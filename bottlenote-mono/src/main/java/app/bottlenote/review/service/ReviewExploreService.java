@@ -2,6 +2,7 @@ package app.bottlenote.review.service;
 
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.request.ReviewExploreRequest;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,6 @@ public class ReviewExploreService {
   @Transactional(readOnly = true)
   public PageResponse<ReviewExploreListResponse> getStandardExplore(
       ReviewExploreRequest request, Long userId) {
-    return reviewRepository.getStandardExplore(
-        userId, request.keywords(), request.cursor(), request.size());
+    return reviewRepository.getStandardExplore(ReviewExploreCriteria.of(request, userId));
   }
 }

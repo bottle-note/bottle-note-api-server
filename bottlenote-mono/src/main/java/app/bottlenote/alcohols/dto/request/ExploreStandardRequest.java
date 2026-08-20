@@ -4,6 +4,8 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.pagination.PaginationRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
+import jakarta.validation.constraints.AssertTrue;
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.Builder;
 
@@ -28,6 +30,7 @@ public record ExploreStandardRequest(
     Long curationId,
     SearchSortType sortType,
     SortOrder sortOrder,
+    BigDecimal rating,
     String cursor,
     Integer size) {
 
@@ -36,13 +39,21 @@ public record ExploreStandardRequest(
 
   @Builder
   public ExploreStandardRequest {
-    keywords = keywords != null ? keywords : List.of();
-    regionIds = regionIds != null ? regionIds : List.of();
-    distilleryIds = distilleryIds != null ? distilleryIds : List.of();
+    keywords = keywords != null ? List.copyOf(keywords) : List.of();
+    regionIds = regionIds != null ? List.copyOf(regionIds) : List.of();
+    distilleryIds = distilleryIds != null ? List.copyOf(distilleryIds) : List.of();
     sortType = sortType != null ? sortType : SearchSortType.RANDOM;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
     PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
+  }
+
+  @AssertTrue(message = "EXPLORE_RATING_INVALID")
+  public boolean hasValidRating() {
+    return rating == null
+        || (rating.compareTo(new BigDecimal("0.5")) >= 0
+            && rating.compareTo(new BigDecimal("5.0")) <= 0
+            && rating.remainder(new BigDecimal("0.5")).compareTo(BigDecimal.ZERO) == 0);
   }
 }

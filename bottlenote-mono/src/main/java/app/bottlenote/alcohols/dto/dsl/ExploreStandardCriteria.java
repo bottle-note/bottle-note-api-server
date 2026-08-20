@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -20,6 +21,7 @@ public record ExploreStandardCriteria(
     Long curationId,
     SearchSortType sortType,
     SortOrder sortOrder,
+    BigDecimal rating,
     Long seed,
     String cursor,
     Integer size) {
@@ -34,6 +36,7 @@ public record ExploreStandardCriteria(
         request.curationId(),
         request.sortType(),
         request.sortOrder(),
+        request.rating(),
         seed,
         request.cursor(),
         request.size());
@@ -55,6 +58,8 @@ public record ExploreStandardCriteria(
         + ":"
         + sortType
         + ":"
-        + sortOrder;
+        + sortOrder
+        + ":"
+        + rating;
   }
 }

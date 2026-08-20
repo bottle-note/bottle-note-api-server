@@ -29,6 +29,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,16 +119,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.abv,
                 distillery.korName,
                 distillery.engName,
-                rating
-                    .ratingPoint
-                    .rating
-                    .avg()
-                    .multiply(2)
-                    .castToNum(Double.class)
-                    .round()
-                    .divide(2)
-                    .coalesce(0.0)
-                    .as("rating"),
+                displayedRating().as("rating"),
                 rating.id.countDistinct(),
                 supporter.myRating(alcoholId, userId),
                 supporter.averageReviewRating(alcoholId, userId),
@@ -239,16 +231,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     alcohol.abv,
                     distillery.korName,
                     distillery.engName,
-                    rating
-                        .ratingPoint
-                        .rating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0)
-                        .as("rating"),
+                    displayedRating().as("rating"),
                     rating.id.countDistinct(),
                     supporter.myRating(alcohol.id, userId),
                     supporter.averageReviewRating(alcohol.id, userId),
@@ -353,7 +336,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id));
-    if (needsRatingJoin(sortType)) {
+    if (needsRatingJoin(sortType) || criteria.rating() != null) {
       query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
     }
     if (needsReviewJoin(sortType)) {
@@ -372,7 +355,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 supporter.eqCurationId(criteria.curationId()),
                 supporter.isNotDeleted())
             .groupBy(alcohol.id)
-            .having(aggregateSeek(claims, sortType, criteria.sortOrder(), sortScore))
+            .having(
+                ratingMatches(criteria.rating()),
+                aggregateSeek(claims, sortType, criteria.sortOrder(), sortScore))
             .orderBy(supporter.sortBy(sortType, criteria.sortOrder()), alcohol.id.asc())
             .limit(fetchSize)
             .fetch();
@@ -425,6 +410,23 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   }
 
   private record ExploreSeekKey(Long id, String sortValue) {}
+
+  /** 목록 응답에 노출하는 집계 평점과 같은 반올림 값을 HAVING과 projection에서 공통 사용한다. */
+  private static NumberExpression<Double> displayedRating() {
+    return rating
+        .ratingPoint
+        .rating
+        .avg()
+        .multiply(2)
+        .castToNum(Double.class)
+        .round()
+        .divide(2)
+        .coalesce(0.0);
+  }
+
+  private static BooleanExpression ratingMatches(BigDecimal rating) {
+    return rating == null ? null : displayedRating().eq(rating.doubleValue());
+  }
 
   private static boolean needsRatingJoin(SearchSortType sortType) {
     return sortType == SearchSortType.RATING || sortType == SearchSortType.POPULAR;

@@ -31,6 +31,7 @@ public final class AlcoholExploreApiDocs {
           """
           인기순, 별점순, 리뷰순, 찜순, 무작위 중 원하는 기준으로 위스키를 둘러봅니다.
 
+          rating은 목록에 표시되는 집계 평점과 같은 0.5 단위 반올림 값으로 필터링합니다. 생략하면 전체 평점입니다.
           무작위 정렬의 시드는 HMAC 커서 extra에 담기며, 다음 페이지는 meta.pagination.nextCursor를 그대로 보내면 됩니다.
           탐색 조건은 meta.searchParameters에 담깁니다.
           """,

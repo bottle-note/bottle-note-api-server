@@ -116,8 +116,9 @@ public class ReviewQuerySupporter {
 
   public static List<OrderSpecifier<?>> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
     NumberExpression<Long> likesCount = distinctLikesCount();
-    // 동일 순위 리뷰 간 최신순 정렬을 위한 타이브레이커
-    OrderSpecifier<?> createAtDesc = review.createAt.desc();
+    // 모든 tie-breaker는 요청 방향을 따라야 keyset 연속성과 목록 순서가 일치한다.
+    OrderSpecifier<?> createAt = sortOrder == DESC ? review.createAt.desc() : review.createAt.asc();
+    OrderSpecifier<?> reviewId = sortOrder == DESC ? review.id.desc() : review.id.asc();
     return switch (reviewSortType) {
       // 인기순 -> 임시로 좋아요 순으로 구현
       case POPULAR ->
@@ -126,21 +127,21 @@ public class ReviewQuerySupporter {
                   .nullsLast(),
               new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, likesCount)
                   .nullsLast(),
-              createAtDesc,
-              review.id.desc());
+              createAt,
+              reviewId);
       // 좋아요 순
       case LIKES ->
           Arrays.asList(
               sortOrder == DESC ? likesCount.desc() : likesCount.asc(),
-              createAtDesc,
-              review.id.desc());
+              createAt,
+              reviewId);
 
       // 별점 순 — 목록에 내려주는 review.reviewRating과 같은 컬럼으로 정렬한다
       case RATING ->
           Arrays.asList(
               sortOrder == DESC ? review.reviewRating.desc() : review.reviewRating.asc(),
-              createAtDesc,
-              review.id.desc());
+              createAt,
+              reviewId);
 
       // 병 기준 가격 순
       case BOTTLE_PRICE -> {
@@ -150,7 +151,7 @@ public class ReviewQuerySupporter {
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
         yield Arrays.asList(
-            sizeOrderSpecifier, priceOrderSpecifier, createAtDesc, review.id.desc());
+            sizeOrderSpecifier, priceOrderSpecifier, createAt, reviewId);
       }
 
       // 잔 기준 가격 순
@@ -161,7 +162,7 @@ public class ReviewQuerySupporter {
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
         yield Arrays.asList(
-            sizeOrderSpecifier, priceOrderSpecifier, createAtDesc, review.id.desc());
+            sizeOrderSpecifier, priceOrderSpecifier, createAt, reviewId);
       }
     };
   }
@@ -218,7 +219,7 @@ public class ReviewQuerySupporter {
 
   // POPULAR: isBest(nullsLast) -> likes.id.countDistinct()(nullsLast) -> createAt DESC -> id DESC
   private static BooleanExpression popularSeek(boolean desc, CursorClaims claims) {
-    BooleanExpression tail = timeIdSeek(claims);
+    BooleanExpression tail = timeIdSeek(desc, claims);
     NumberExpression<Long> likesCount = distinctLikesCount();
     BooleanExpression likesStep =
         nullsLastNumberStep(likesCount, desc, CursorKeys.optionalLong(claims, "likes"), tail);
@@ -227,7 +228,7 @@ public class ReviewQuerySupporter {
 
   // LIKES: likes.id.countDistinct() -> createAt DESC -> id DESC
   private static BooleanExpression likesSeek(boolean desc, CursorClaims claims) {
-    BooleanExpression tail = timeIdSeek(claims);
+    BooleanExpression tail = timeIdSeek(desc, claims);
     NumberExpression<Long> likesCount = distinctLikesCount();
     return plainNumberStep(likesCount, desc, CursorKeys.requireLong(claims, "likes"), tail);
   }
@@ -239,7 +240,7 @@ public class ReviewQuerySupporter {
 
   // RATING: review.reviewRating -> createAt DESC -> id DESC. 컬럼이 nullable이라 MySQL 기본 NULL 순서를 따른다.
   private static BooleanExpression ratingSeek(boolean desc, CursorClaims claims) {
-    BooleanExpression tail = timeIdSeek(claims);
+    BooleanExpression tail = timeIdSeek(desc, claims);
     return nativeNullableNumberStep(
         review.reviewRating, desc, CursorKeys.optionalDouble(claims, "rating"), tail);
   }
@@ -247,18 +248,20 @@ public class ReviewQuerySupporter {
   // BOTTLE_PRICE/GLASS_PRICE: sizeType(nullsLast, 고정 방향) -> price(dir) -> createAt DESC -> id DESC
   private static BooleanExpression sizePriceSeek(
       boolean desc, SizeType rankFirst, CursorClaims claims) {
-    BooleanExpression tail = timeIdSeek(claims);
+    BooleanExpression tail = timeIdSeek(desc, claims);
     BooleanExpression priceStep =
         nativeNullableNumberStep(review.price, desc, optionalPrice(claims), tail);
     return nullsLastSizeTypeStep(
         review.sizeType, rankFirst, optionalSizeType(claims, "sizeType"), priceStep);
   }
 
-  // 모든 정렬의 공통 타이브레이커. sortOrder와 무관하게 항상 DESC다.
-  private static BooleanExpression timeIdSeek(CursorClaims claims) {
+  // 모든 정렬의 공통 타이브레이커는 정렬 방향을 그대로 따른다.
+  private static BooleanExpression timeIdSeek(boolean desc, CursorClaims claims) {
     LocalDateTime createAt = CursorKeys.requireTime(claims, "t");
     Long id = CursorKeys.requireLong(claims, "id");
-    return review.createAt.lt(createAt).or(review.createAt.eq(createAt).and(review.id.lt(id)));
+    return desc
+        ? review.createAt.lt(createAt).or(review.createAt.eq(createAt).and(review.id.lt(id)))
+        : review.createAt.gt(createAt).or(review.createAt.eq(createAt).and(review.id.gt(id)));
   }
 
   /** nullsLast()가 붙은 숫자 표현식에 대한 keyset seek 한 단계. */
