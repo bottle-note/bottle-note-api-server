@@ -3,6 +3,8 @@ package app.bottlenote.global.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.List;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -45,7 +47,15 @@ class ReviewExploreOpenApiContractIntegrationTest extends OpenApiSpecTestSupport
   }
 
   private JsonNode resolve(JsonNode spec, JsonNode schema) {
-    String ref = schema.path("$ref").asText();
-    return ref.startsWith("#/") ? spec.at(ref.substring(1)) : schema;
+    JsonNode candidate =
+        List.of("anyOf", "oneOf").stream()
+            .map(schema::path)
+            .filter(JsonNode::isArray)
+            .flatMap(composition -> StreamSupport.stream(composition.spliterator(), false))
+            .filter(node -> node.has("$ref"))
+            .findFirst()
+            .orElse(schema);
+    String ref = candidate.path("$ref").asText();
+    return ref.startsWith("#/") ? spec.at(ref.substring(1)) : candidate;
   }
 }
