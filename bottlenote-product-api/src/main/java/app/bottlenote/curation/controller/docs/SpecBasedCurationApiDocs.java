@@ -54,6 +54,7 @@ public final class SpecBasedCurationApiDocs {
 
           키워드로 제목을 검색하거나 코드로 특정 유형만 걸러낼 수 있고, 코드는 여러 개를 함께 보낼 수 있습니다.
           각 항목의 내용은 큐레이션 명세에 따라 구성되므로 유형별로 담기는 항목이 다릅니다.
+          결과는 exposureStartDate 내림차순, 날짜 없는 항목은 마지막, 같은 날짜는 id 내림차순으로 고정 정렬됩니다.
           다음 페이지는 meta.pagination.nextCursor를 그대로 보내면 됩니다.
           """,
       responses =

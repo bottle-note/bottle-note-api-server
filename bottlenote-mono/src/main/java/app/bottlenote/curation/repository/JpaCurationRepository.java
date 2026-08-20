@@ -17,6 +17,16 @@ import org.springframework.data.repository.query.Param;
 public interface JpaCurationRepository
     extends CurationRepository, JpaRepository<Curation, Long>, CustomCurationFeedRepository {
 
+  @Override
+  @Query(
+      """
+      SELECT c
+      FROM curation c
+      WHERE c.isActive = true
+      ORDER BY CASE WHEN c.exposureStartDate IS NULL THEN 1 ELSE 0 END ASC,
+               c.exposureStartDate DESC,
+               c.id DESC
+      """)
   List<Curation> findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc();
 
   List<Curation> findAllByIdIn(Collection<Long> ids);
@@ -29,7 +39,9 @@ public interface JpaCurationRepository
       WHERE c.isActive = true
         AND (c.exposureStartDate IS NULL OR c.exposureStartDate <= :today)
         AND (c.exposureEndDate IS NULL OR c.exposureEndDate >= :today)
-      ORDER BY c.displayOrder ASC, c.id ASC
+      ORDER BY CASE WHEN c.exposureStartDate IS NULL THEN 1 ELSE 0 END ASC,
+               c.exposureStartDate DESC,
+               c.id DESC
       """)
   List<Curation> findAllVisibleOn(@Param("today") LocalDate today);
 
@@ -52,7 +64,9 @@ public interface JpaCurationRepository
       WHERE (:keyword IS NULL OR :keyword = '' OR c.name LIKE CONCAT('%', :keyword, '%'))
         AND (:specId IS NULL OR c.specId = :specId)
         AND (:isActive IS NULL OR c.isActive = :isActive)
-      ORDER BY c.displayOrder ASC, c.id ASC
+      ORDER BY CASE WHEN c.exposureStartDate IS NULL THEN 1 ELSE 0 END ASC,
+               c.exposureStartDate DESC,
+               c.id DESC
       """)
   Page<Curation> searchForAdmin(String keyword, Long specId, Boolean isActive, Pageable pageable);
 }

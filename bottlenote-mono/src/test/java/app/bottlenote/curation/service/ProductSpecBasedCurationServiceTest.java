@@ -192,6 +192,34 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   @Test
+  @DisplayName("Product feed는 노출 시작일 최신순으로 정렬하고 null 날짜 꼬리까지 cursor로 중복 없이 이어진다")
+  void searchFeed_ordersByExposureStartDateWithNullLastAcrossCursorBoundary() throws IOException {
+    CurationSpec spec = createSpec();
+    Long nullDateId = createCuration(spec.getId(), "null 날짜", 1, true, null, null);
+    Long olderId =
+        createCuration(
+            spec.getId(), "오래된 날짜", 2, true, LocalDate.now().minusDays(5), LocalDate.now().plusDays(1));
+    Long sameDateLowerId =
+        createCuration(
+            spec.getId(), "같은 날짜 낮은 ID", 3, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+    Long sameDateHigherId =
+        createCuration(
+            spec.getId(), "같은 날짜 높은 ID", 4, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+
+    var firstPage = productService.searchFeed(null, List.of(spec.getCode()), null, 2);
+    var secondPage =
+        productService.searchFeed(
+            null, List.of(spec.getCode()), firstPage.pagination().nextCursor(), 2);
+
+    assertThat(firstPage.content().items())
+        .extracting("id")
+        .containsExactly(sameDateHigherId, sameDateLowerId);
+    assertThat(secondPage.content().items()).extracting("id").containsExactly(olderId, nullDateId);
+    assertThat(firstPage.pagination().hasNext()).isTrue();
+    assertThat(secondPage.pagination().hasNext()).isFalse();
+  }
+
+  @Test
   @DisplayName(
       "Product feed 검색은 keyword를 큐레이션 제목/설명과 스펙 제목/설명에 LIKE 적용하고 code는 별도 exact match로 필터링한다")
   void searchFeed_whenKeywordAndCodeProvided_filtersBeforeCursorPagination() throws IOException {
@@ -221,16 +249,16 @@ class ProductSpecBasedCurationServiceTest {
 
     assertThat(keywordResult.content().items())
         .extracting("name")
-        .containsExactly("큐레이션 제목 매치", "일반 제목", "큐레이션 제목 매치 페어링");
+        .containsExactly("큐레이션 제목 매치 페어링", "일반 제목", "큐레이션 제목 매치");
     assertThat(specKeywordResult.content().items())
         .extracting("name")
-        .containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
+        .containsExactly("큐레이션 제목 매치 페어링", "일반 제목");
     assertThat(codeResult.content().items())
         .extracting("name")
-        .containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
+        .containsExactly("큐레이션 제목 매치 페어링", "일반 제목");
     assertThat(multiCodeResult.content().items())
         .extracting("name")
-        .containsExactly("큐레이션 제목 매치", "일반 제목", "일반 제목", "큐레이션 제목 매치 페어링");
+        .containsExactly("큐레이션 제목 매치 페어링", "일반 제목", "일반 제목", "큐레이션 제목 매치");
     assertThat(combinedResult.content().items())
         .extracting("name")
         .containsExactly("큐레이션 제목 매치 페어링");
