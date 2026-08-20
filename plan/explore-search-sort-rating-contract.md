@@ -187,3 +187,4 @@ Mockito interaction verify를 추가하지 않는다. QueryDSL·serialization �
 - 2026-08-20: Draft PR #714 첫 CI는 신규 review query parameter 5개의 OpenAPI schema 누락과, ASC tie-breaker를 과거 DESC로 기대하는 기존 단위 테스트 3건 때문에 실패했다. 운영 `ORDER BY createAt ASC, id ASC`와 seek `>`는 일치하므로 query는 유지하고 OpenAPI schema·기존 테스트·상충 주석만 ADR 방향에 맞게 보정한다.
 - 2026-08-20: 두 번째 CI는 `@Schema.multipleOf`에 문자열 `"0.5"`를 지정해 현재 OpenAPI annotation의 `double` 타입과 맞지 않는 컴파일 오류로 중단됐다. 세 번째 최종 시도는 이를 숫자 literal `0.5`로 고치는 한 줄 외에 코드 계약을 변경하지 않는다.
 - 2026-08-21: 별도 리뷰에서 리뷰 둘러보기 무파라미터 기본 정렬이 기존 최신순에서 POPULAR로 회귀한 blocker를 확인했다. `ReviewSortType.LATEST`와 둘러보기 전용 기본값, sort/keyset/cursor/OpenAPI, 실행 회귀 테스트를 추가하되 `ReviewPageableRequest`의 POPULAR 기본값은 유지한다.
+- 2026-08-21: #713·#715 병합 main 위로 rebase하고 #713 `locationInfo`와 #714 검색·정렬·cursor 계약을 함께 보존해 충돌을 해결했다. fresh 리뷰에서 신규 `ReviewExploreServiceTest` fixture만 #713 이후 18개 생성자 인자 중 `locationInfo`가 누락된 컴파일 blocker를 확인해 null fixture를 추가하고 CI를 재검증한다.
