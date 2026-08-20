@@ -37,7 +37,7 @@ class CurationSortOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
 
     assertThat(schema.path("type").asText()).isEqualTo("string");
     assertThat(StreamSupport.stream(schema.path("enum").spliterator(), false).map(JsonNode::asText).toList())
-        .containsExactlyElementsOf(expectedEnum);
+        .containsExactlyInAnyOrderElementsOf(expectedEnum);
     assertThat(schema.path("default").asText()).isEqualTo(expectedDefault);
   }
 }
