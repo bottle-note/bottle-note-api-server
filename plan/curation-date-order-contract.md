@@ -175,3 +175,5 @@ Mockito를 사용하지 않고 실제 repository/fixture 또는 Fake/InMemory �
 - 2026-08-21: QueryDSL/JPA/InMemory seek·order·cursor keys를 선택 정렬로 전환하고 정적 GREEN source/model/diff 검증을 수행했다. OOM 정책에 따라 Gradle/JVM/Testcontainers/Docker는 실행하지 않았으며 compile/unit/integration/OpenAPI 생성/CI는 delivery-stage 검증 gap으로 남긴다.
 - 2026-08-21: 선택 정렬 PR 갱신 후 첫 CI가 `ComparableExpressionBase<T>`에 존재하지 않는 `gt/lt` 호출로 compile 단계에서 실패했다. 날짜·숫자 QueryDSL path별 typed seek helper로 분리하는 최소 수정 후 2차 CI를 수행한다.
 - 2026-08-21: 2차 CI는 compile을 통과하고 7개 규칙/계약 실패를 노출했다. enum constant 패키지, service 최대 5개 인자, OpenAPI enum 순서 비의존 assertion, 기본 날짜 DESC 페이지 기대값, 기존 invalid-enum 400 의미를 수정한 뒤 fresh 리뷰를 거쳐 세 번째 최종 CI를 수행한다.
+- 2026-08-21: 세 번째 최종 CI는 `ProductSpecBasedCurationService` request-object 전환 후 lambda가 제거된 지역 변수 `keyword`를 참조해 mono compile 단계에서 실패했다. verify 3회 stop-condition에 도달했으므로 추가 수정·push를 중단한다.
+- 2026-08-21: 사용자가 Terra level PR 수정을 명시해 정지를 해제했다. `keyword`를 `request.keyword()`로 교체하는 확인된 한 줄만 수정하고 CI를 재검증한다.

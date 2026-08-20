@@ -93,7 +93,7 @@ public class ProductSpecBasedCurationService {
         specs.stream().collect(Collectors.toMap(CurationSpec::getId, Function.identity()));
     Set<Long> keywordMatchedSpecIds =
         specs.stream()
-            .filter(spec -> matchesKeyword(spec, keyword))
+            .filter(spec -> matchesKeyword(spec, request.keyword()))
             .map(CurationSpec::getId)
             .collect(Collectors.toSet());
     CurationFeedSearchCriteria criteria =
