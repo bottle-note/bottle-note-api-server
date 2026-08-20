@@ -3,7 +3,7 @@
   "info": {
     "title": "프로그램",
     "description": "행사 기간과 장소, 여러 프로그램 및 프로그램별 위스키 라인업을 함께 발행하는 행사형 큐레이션.",
-    "version": "3.0.2"
+    "version": "3.0.3"
   },
   "x-curation": {
     "code": "PROGRAM",
@@ -159,7 +159,6 @@
           "programs": {
             "type": "array",
             "description": "행사에 포함된 프로그램 목록. 배열 순서가 앱 노출 순서다.",
-            "minItems": 1,
             "maxItems": 20,
             "x-display-name": "프로그램",
             "items": {
@@ -388,8 +387,7 @@
           "eventStartDate",
           "eventEndDate",
           "placeName",
-          "address",
-          "programs"
+          "address"
         ]
       },
       "ProgramResponse": {
@@ -558,7 +556,6 @@
           "programs": {
             "type": "array",
             "description": "행사에 포함된 프로그램 목록. 배열 순서가 앱 노출 순서다.",
-            "minItems": 1,
             "maxItems": 20,
             "x-display-name": "프로그램",
             "items": {
@@ -811,8 +808,7 @@
           "eventStartDate",
           "eventEndDate",
           "placeName",
-          "address",
-          "programs"
+          "address"
         ]
       }
     }

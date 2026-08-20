@@ -54,12 +54,68 @@ class CurationProgramSpecContractTest {
   }
 
   @Test
-  @DisplayName("날짜와 시간이 없는 최소 일정 payload는 요청과 응답 검증을 통과한다")
-  void validate_minimalProgramWithoutSchedule_passesRequestAndResponse() throws IOException {
+  @DisplayName("요청과 응답에서 programs는 선택이고 빈 배열도 허용한다")
+  void programs_areOptionalAndAllowEmptyArrayForRequestAndResponse() throws IOException {
+    for (String suffix : List.of("Request", "Response")) {
+      JsonNode programSchema = OBJECT_MAPPER.valueToTree(schema(suffix));
+
+      assertThat(requiredRootFields(suffix)).doesNotContain("programs");
+      assertThat(programSchema.path("properties").path("programs").has("minItems")).isFalse();
+      assertThat(validator.validate(new MapBackedSchema(schema(suffix)), payloadWithoutPrograms()))
+          .isEmpty();
+      assertThat(validator.validate(new MapBackedSchema(schema(suffix)), payloadWithEmptyPrograms()))
+          .isEmpty();
+    }
+  }
+
+  @Test
+  @DisplayName("유효한 프로그램 항목은 요청과 응답 검증을 통과한다")
+  void validate_validProgram_passesRequestAndResponse() throws IOException {
     Map<String, Object> payload = minimalPayload();
 
     assertThat(validator.validate(new MapBackedSchema(schema("Request")), payload)).isEmpty();
     assertThat(validator.validate(new MapBackedSchema(schema("Response")), payload)).isEmpty();
+  }
+
+  @Test
+  @DisplayName("요청과 응답의 programs는 최대 20개이며 21개는 거부한다")
+  void programs_maxItems_isTwentyAndRejectsTwentyOneItemsForRequestAndResponse()
+      throws IOException {
+    Map<String, Object> payload = payloadWithPrograms(21);
+
+    for (String suffix : List.of("Request", "Response")) {
+      JsonNode programsSchema =
+          OBJECT_MAPPER.valueToTree(schema(suffix)).path("properties").path("programs");
+
+      assertThat(programsSchema.path("maxItems").asInt()).isEqualTo(20);
+      assertThat(validator.validate(new MapBackedSchema(schema(suffix)), payload))
+          .containsExactly("$.programs 배열 크기는 최대 20개여야 합니다.");
+    }
+  }
+
+  @Test
+  @DisplayName("프로그램 항목의 이름, 유형, 설명 누락은 계속 거부한다")
+  void validate_programMissingCoreField_rejectsRequestAndResponse() throws IOException {
+    Map<String, Map<String, Object>> invalidPrograms =
+        Map.of(
+            "name", Map.of("type", "MASTER_CLASS", "description", "프로그램 설명"),
+            "type", Map.of("name", "위스키 입문 클래스", "description", "프로그램 설명"),
+            "description", Map.of("name", "위스키 입문 클래스", "type", "MASTER_CLASS"));
+
+    for (String suffix : List.of("Request", "Response")) {
+      for (String missingField : invalidPrograms.keySet()) {
+        Map<String, Object> payload =
+            Map.of(
+                "eventStartDate", "2026-07-24",
+                "eventEndDate", "2026-07-26",
+                "placeName", "코엑스",
+                "address", "서울 강남구 영동대로 513",
+                "programs", List.of(invalidPrograms.get(missingField)));
+
+        assertThat(validator.validate(new MapBackedSchema(schema(suffix)), payload))
+            .contains("$.programs[0]." + missingField + " 필드는 필수입니다.");
+      }
+    }
   }
 
   @Test
@@ -77,9 +133,14 @@ class CurationProgramSpecContractTest {
   }
 
   @Test
-  @DisplayName("PROGRAM 리소스 버전은 3.0.2이다")
-  void resourceVersion_isThreeDotZeroDotTwo() throws IOException {
-    assertThat(resource().path("info").path("version").asText()).isEqualTo("3.0.2");
+  @DisplayName("PROGRAM 리소스 버전은 3.0.3이다")
+  void resourceVersion_isThreeDotZeroDotThree() throws IOException {
+    assertThat(resource().path("info").path("version").asText()).isEqualTo("3.0.3");
+  }
+
+  private static List<String> requiredRootFields(String suffix) throws IOException {
+    JsonNode required = OBJECT_MAPPER.valueToTree(schema(suffix)).path("required");
+    return StreamSupport.stream(required.spliterator(), false).map(JsonNode::asText).toList();
   }
 
   private static List<String> requiredProgramFields(String suffix) throws IOException {
@@ -93,18 +154,42 @@ class CurationProgramSpecContractTest {
     return StreamSupport.stream(required.spliterator(), false).map(JsonNode::asText).toList();
   }
 
+  private static Map<String, Object> payloadWithoutPrograms() {
+    return Map.of(
+        "eventStartDate", "2026-07-24",
+        "eventEndDate", "2026-07-26",
+        "placeName", "코엑스",
+        "address", "서울 강남구 영동대로 513");
+  }
+
+  private static Map<String, Object> payloadWithEmptyPrograms() {
+    return Map.of(
+        "eventStartDate", "2026-07-24",
+        "eventEndDate", "2026-07-26",
+        "placeName", "코엑스",
+        "address", "서울 강남구 영동대로 513",
+        "programs", List.of());
+  }
+
   private static Map<String, Object> minimalPayload() {
+    return payloadWithPrograms(1);
+  }
+
+  private static Map<String, Object> payloadWithPrograms(int programCount) {
     return Map.of(
         "eventStartDate", "2026-07-24",
         "eventEndDate", "2026-07-26",
         "placeName", "코엑스",
         "address", "서울 강남구 영동대로 513",
         "programs",
-            List.of(
-                Map.of(
-                    "name", "위스키 입문 클래스",
-                    "type", "MASTER_CLASS",
-                    "description", "위스키를 처음 접하는 참가자를 위한 클래스입니다.")));
+            java.util.stream.IntStream.range(0, programCount)
+                .mapToObj(
+                    ignored ->
+                        Map.of(
+                            "name", "위스키 입문 클래스",
+                            "type", "MASTER_CLASS",
+                            "description", "위스키를 처음 접하는 참가자를 위한 클래스입니다."))
+                .toList());
   }
 
   private static Map<String, Object> schema(String suffix) throws IOException {
