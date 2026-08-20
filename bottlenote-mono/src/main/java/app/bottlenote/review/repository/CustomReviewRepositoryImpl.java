@@ -25,10 +25,10 @@ import static app.bottlenote.user.domain.QUser.user;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
-import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
@@ -45,7 +45,9 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -287,36 +289,34 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
   @Override
   public PageResponse<ReviewExploreListResponse> getStandardExplore(
-      Long userId, List<String> keywords, String cursor, Integer size) {
+      ReviewExploreCriteria criteria) {
+    Long userId = criteria.userId();
+    int size = criteria.size();
     int fetchSize = size + 1;
-    String context = "review.explore:" + userId + ":" + keywords;
+    String context = criteria.context();
+    var cursorClaims =
+        criteria.cursor() == null ? null : cursorCodec.verify(criteria.cursor(), context);
 
-    // GROUP_CONCAT 표현식
     StringExpression groupConcatImages =
         Expressions.stringTemplate(
             "GROUP_CONCAT(DISTINCT {0})", reviewImage.reviewImageInfo.imageUrl);
-
     StringExpression groupConcatTags =
         Expressions.stringTemplate("GROUP_CONCAT(DISTINCT {0})", reviewTastingTag.tastingTag);
 
-    // Tuple로 결과 가져오기
     List<Tuple> results =
         queryFactory
             .select(
-                // 사용자 정보
                 user.id,
                 user.nickName,
                 user.imageUrl,
                 user.id.eq(userId),
-
-                // 주류 정보
                 alcohol.id,
                 alcohol.korName,
-
-                // 리뷰 정보
                 review.id,
                 review.content,
                 review.reviewRating,
+                review.sizeType,
+                review.price,
                 groupConcatTags,
                 review.createAt,
                 review.lastModifyAt,
@@ -355,12 +355,14 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .where(
                 review.activeStatus.eq(ACTIVE),
                 review.status.eq(PUBLIC),
-                containsKeywordInAll(keywords),
-                reviewExploreSeek(cursor, context))
+                containsKeywordInAll(criteria.effectiveKeywords()),
+                criteria.rating() == null ? null : review.reviewRating.eq(criteria.rating().doubleValue()))
             .groupBy(
                 review.id,
                 review.content,
                 review.reviewRating,
+                review.sizeType,
+                review.price,
                 review.createAt,
                 review.lastModifyAt,
                 review.isBest,
@@ -377,24 +379,19 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 review.reviewLocation.mapUrl,
                 review.reviewLocation.latitude,
                 review.reviewLocation.longitude)
-            .orderBy(review.createAt.desc(), review.id.desc())
+            .having(keysetSeek(criteria.sortType(), criteria.sortOrder(), cursorClaims))
+            .orderBy(sortBy(criteria.sortType(), criteria.sortOrder()).toArray(new OrderSpecifier[0]))
             .limit(fetchSize)
             .fetch();
 
-    // Tuple 결과를 ReviewExploreItem으로 변환
     List<ReviewExploreItem> items = new ArrayList<>();
-
+    Map<Long, ReviewInfo> cursorItems = new HashMap<>();
     for (Tuple tuple : results) {
-      // UserInfo 생성
       UserInfo userInfo =
           UserInfo.of(tuple.get(user.id), tuple.get(user.nickName), tuple.get(user.imageUrl));
-
-      // 태그 문자열을 List<String>으로 변환
       String tagStr = tuple.get(groupConcatTags);
       List<String> tags =
           tagStr != null ? new ArrayList<>(Arrays.asList(tagStr.split(","))) : new ArrayList<>();
-
-      // 이미지 URL 문자열을 List<String>으로 변환
       String imageUrlsStr = tuple.get(groupConcatImages);
       List<String> imageUrls =
           imageUrlsStr != null
@@ -412,8 +409,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
               tuple.get(review.reviewLocation.latitude),
               tuple.get(review.reviewLocation.longitude));
 
-      // ReviewExploreItem 생성
-      items.add(
+      ReviewExploreItem item =
           new ReviewExploreItem(
               userInfo,
               tuple.get(user.id.eq(userId)),
@@ -432,7 +428,19 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
               tuple.get(likes.id.countDistinct()),
               tuple.get(isLikeByMeSubquery(userId)),
               tuple.get(reviewReply.id.countDistinct()),
-              tuple.get(hasReplyByMeSubquery(userId))));
+              tuple.get(hasReplyByMeSubquery(userId)));
+      items.add(item);
+      cursorItems.put(
+          item.reviewId(),
+          ReviewInfo.builder()
+              .reviewId(item.reviewId())
+              .createAt(item.createAt())
+              .isBestReview(item.isBestReview())
+              .sizeType(tuple.get(review.sizeType))
+              .price(tuple.get(review.price))
+              .rating(item.reviewRating())
+              .likeCount(item.likeCount())
+              .build());
     }
 
     var slice =
@@ -440,21 +448,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             items,
             size,
             item ->
-                cursorCodec.encode(context, TimeIdCursor.keys(item.createAt(), item.reviewId())));
+                cursorCodec.encode(context, cursorKeys(criteria.sortType(), cursorItems.get(item.reviewId()))));
     return PageResponse.of(new ReviewExploreListResponse(slice.items()), slice.pagination());
   }
 
-  private com.querydsl.core.types.dsl.BooleanExpression reviewExploreSeek(
-      String cursor, String context) {
-    if (cursor == null) {
-      return null;
-    }
-    var claims = cursorCodec.verify(cursor, context);
-    var lastCreateAt = TimeIdCursor.time(claims);
-    var lastId = TimeIdCursor.id(claims);
-    return review
-        .createAt
-        .lt(lastCreateAt)
-        .or(review.createAt.eq(lastCreateAt).and(review.id.lt(lastId)));
-  }
 }

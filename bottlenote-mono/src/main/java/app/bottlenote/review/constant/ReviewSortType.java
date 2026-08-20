@@ -24,6 +24,6 @@ public enum ReviewSortType {
     return Stream.of(ReviewSortType.values())
         .filter(sortType -> sortType.toString().equals(source.toUpperCase()))
         .findFirst()
-        .orElse(POPULAR);
+        .orElseThrow(() -> new IllegalArgumentException("Unsupported review sort type: " + source));
   }
 }

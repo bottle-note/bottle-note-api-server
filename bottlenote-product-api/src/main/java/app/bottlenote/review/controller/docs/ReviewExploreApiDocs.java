@@ -29,11 +29,13 @@ public final class ReviewExploreApiDocs {
       summary = "키워드로 리뷰를 탐색한다",
       description =
           """
-          입력한 키워드가 담긴 리뷰를 커서 방식으로 찾아옵니다.
+          입력한 키워드가 담긴 리뷰를 커서 방식으로 찾아옵니다. 신규 단일 검색어는 keyword이며,
+          legacy keywords는 keyword가 없을 때만 기존 AND 의미로 한시 지원됩니다. 둘을 함께 보내면 400입니다.
 
-          키워드를 여러 개 보내면 그중 하나라도 걸리는 리뷰를 가져오고, 키워드를 생략하면 전체 리뷰를 대상으로 합니다.
-          각 item의 locationInfo는 리뷰에 저장된 위치 정보를 반환하며, 위치가 없거나 모든 위치 값이 비어 있으면 null입니다.
-          다음 페이지 정보는 meta.pagination, 검색에 사용한 키워드는 meta.searchParameters에 담깁니다.
+          sortType/sortOrder로 정렬하고 rating은 각 리뷰의 작성 평점과 정확히 일치하는 0.5 단위 필터입니다.
+          검색·정렬·rating을 생략하면 기존 최신순 전체 목록을 대상으로 합니다. 각 item의 locationInfo는 리뷰에
+          저장된 위치 정보를 반환하며, 위치가 없거나 모든 위치 값이 비어 있으면 null입니다. 다음 페이지 정보와 실제 적용 조건은
+          meta.pagination 및 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(

@@ -5,6 +5,7 @@ import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
@@ -47,5 +48,5 @@ public interface ReviewRepository {
   boolean existsByAlcoholId(Long alcoholId);
 
   PageResponse<ReviewExploreListResponse> getStandardExplore(
-      Long userId, List<String> keywords, String cursor, Integer size);
+      ReviewExploreCriteria criteria);
 }

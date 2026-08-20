@@ -3,6 +3,7 @@ package app.bottlenote.review.repository;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -46,5 +47,5 @@ public interface CustomReviewRepository {
   Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);
 
   PageResponse<ReviewExploreListResponse> getStandardExplore(
-      Long userId, List<String> keywords, String cursor, Integer size);
+      ReviewExploreCriteria criteria);
 }
