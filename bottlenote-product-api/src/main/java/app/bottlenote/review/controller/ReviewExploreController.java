@@ -60,7 +60,7 @@ public class ReviewExploreController {
     @Parameter(
         name = "rating",
         description = "0.5부터 5.0까지 0.5 단위의 작성 평점 필터",
-        schema = @Schema(type = "number", minimum = "0.5", maximum = "5.0", multipleOf = "0.5"))
+        schema = @Schema(type = "number", minimum = "0.5", maximum = "5.0", multipleOf = 0.5))
   })
   public ResponseEntity<GlobalResponse> getStandardExplore(
       @ModelAttribute @Valid ReviewExploreRequest request) {
