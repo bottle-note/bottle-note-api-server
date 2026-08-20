@@ -33,6 +33,7 @@ import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.facade.payload.LocationInfo;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
 import com.querydsl.core.Tuple;
@@ -322,6 +323,16 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 reviewImage.id.countDistinct(),
                 groupConcatImages,
 
+                // 저장된 리뷰 위치 정보
+                review.reviewLocation.name,
+                review.reviewLocation.zipCode,
+                review.reviewLocation.address,
+                review.reviewLocation.detailAddress,
+                review.reviewLocation.category,
+                review.reviewLocation.mapUrl,
+                review.reviewLocation.latitude,
+                review.reviewLocation.longitude,
+
                 // 상태 및 속성
                 review.isBest,
                 likes.id.countDistinct(),
@@ -357,7 +368,15 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 user.nickName,
                 user.imageUrl,
                 alcohol.id,
-                alcohol.korName)
+                alcohol.korName,
+                review.reviewLocation.name,
+                review.reviewLocation.zipCode,
+                review.reviewLocation.address,
+                review.reviewLocation.detailAddress,
+                review.reviewLocation.category,
+                review.reviewLocation.mapUrl,
+                review.reviewLocation.latitude,
+                review.reviewLocation.longitude)
             .orderBy(review.createAt.desc(), review.id.desc())
             .limit(fetchSize)
             .fetch();
@@ -382,6 +401,17 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
               ? new ArrayList<>(Arrays.asList(imageUrlsStr.split(",")))
               : new ArrayList<>();
 
+      LocationInfo locationInfo =
+          LocationInfo.of(
+              tuple.get(review.reviewLocation.name),
+              tuple.get(review.reviewLocation.zipCode),
+              tuple.get(review.reviewLocation.address),
+              tuple.get(review.reviewLocation.detailAddress),
+              tuple.get(review.reviewLocation.category),
+              tuple.get(review.reviewLocation.mapUrl),
+              tuple.get(review.reviewLocation.latitude),
+              tuple.get(review.reviewLocation.longitude));
+
       // ReviewExploreItem 생성
       items.add(
           new ReviewExploreItem(
@@ -397,6 +427,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
               tuple.get(review.lastModifyAt),
               tuple.get(reviewImage.id.countDistinct()),
               imageUrls,
+              locationInfo,
               tuple.get(review.isBest),
               tuple.get(likes.id.countDistinct()),
               tuple.get(isLikeByMeSubquery(userId)),
