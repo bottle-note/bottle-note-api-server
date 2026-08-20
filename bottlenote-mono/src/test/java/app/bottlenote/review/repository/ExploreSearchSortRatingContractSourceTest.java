@@ -24,7 +24,7 @@ class ExploreSearchSortRatingContractSourceTest {
 
     assertThat(request)
         .contains("String keyword", "List<String> keywords", "ReviewSortType sortType", "SortOrder sortOrder", "BigDecimal rating")
-        .contains("EXPLORE_KEYWORD_CONFLICT", "EXPLORE_RATING_INVALID");
+        .contains("ReviewSortType.LATEST", "EXPLORE_KEYWORD_CONFLICT", "EXPLORE_RATING_INVALID");
     assertThat(criteria).contains("effectiveKeywords", "sortType", "sortOrder", "rating");
     assertThat(repository)
         .contains("criteria.effectiveKeywords()", "criteria.rating()", "criteria.sortType()", "criteria.sortOrder()")

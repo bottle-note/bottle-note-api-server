@@ -8,6 +8,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ReviewSortType {
+  LATEST("최신순"),
   POPULAR("인기순"),
   LIKES("좋아요순"),
   RATING("별점순"),

@@ -48,11 +48,14 @@ public class ReviewExploreController {
         array = @ArraySchema(schema = @Schema(type = "string"))),
     @Parameter(
         name = "sortType",
-        description = "POPULAR, LIKES, RATING, BOTTLE_PRICE, GLASS_PRICE",
+        description = "LATEST, POPULAR, LIKES, RATING, BOTTLE_PRICE, GLASS_PRICE. 기본값은 LATEST입니다.",
         schema =
             @Schema(
                 type = "string",
-                allowableValues = {"POPULAR", "LIKES", "RATING", "BOTTLE_PRICE", "GLASS_PRICE"})),
+                defaultValue = "LATEST",
+                allowableValues = {
+                  "LATEST", "POPULAR", "LIKES", "RATING", "BOTTLE_PRICE", "GLASS_PRICE"
+                })),
     @Parameter(
         name = "sortOrder",
         description = "ASC 또는 DESC. 기본값은 DESC입니다.",
