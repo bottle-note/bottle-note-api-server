@@ -170,10 +170,11 @@ Mockito 대신 실제 repository/fixture 상태와 결과 순서를 검증한다
 - Files (advisory): API docs/tests, PR body
 - Depends: Tasks 1, 2
 - Size: M
-- Status: [ ] delivery-stage pending (local worker static verification complete)
+- Status: [x] worker complete (Draft PR/CI delivery 진행)
 
 ## Progress Log
 
 - 2026-08-20: live main에서 기존 displayOrder keyset 확인.
 - 2026-08-20: 사용자 승인. exposureStartDate DESC/null-last/id DESC, #410 단독 PR, PR-first GitHub Actions verify 확정.
 - 2026-08-20: worker-stage 완료. Admin/Product test source를 먼저 추가해 기존 displayOrder ASC 구현과의 정적 RED 불일치를 확인했고, nullable date tuple seek·명시적 null rank·문서를 반영했다. OOM 정책에 따라 JVM/Gradle/컨테이너 검증과 delivery-stage push/PR은 수행하지 않았다.
+- 2026-08-20: 마지막 serial delivery lane에서 전체 diff 정적 재검토 후 Draft PR 생성·GitHub Actions 검증을 진행한다.
