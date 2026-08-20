@@ -1,5 +1,6 @@
 package app.bottlenote.review.dto.response;
 
+import app.bottlenote.review.facade.payload.LocationInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,7 @@ public record ReviewExploreItem(
     LocalDateTime modifiedAt,
     Long totalImageCount,
     List<String> reviewImages,
+    LocationInfo locationInfo,
 
     // 좋아요 및 댓글 정보
     // 리뷰 상태 및 속성
