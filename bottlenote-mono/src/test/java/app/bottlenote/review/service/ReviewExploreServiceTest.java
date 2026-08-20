@@ -56,6 +56,7 @@ class ReviewExploreServiceTest {
         LocalDateTime.parse(createAt),
         0L,
         List.of(),
+        null,
         false,
         0L,
         false,
