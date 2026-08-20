@@ -305,6 +305,32 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
     if (sortType == SearchSortType.RANDOM) {
       NumberExpression<Long> crc = supporter.crc32Rank(criteria.seed());
+      if (criteria.rating() != null) {
+        List<Tuple> rows =
+            queryFactory
+                .select(alcohol.id, crc)
+                .from(alcohol)
+                .join(region)
+                .on(alcohol.region.id.eq(region.id))
+                .join(distillery)
+                .on(alcohol.distillery.id.eq(distillery.id))
+                .leftJoin(rating)
+                .on(rating.id.alcoholId.eq(alcohol.id))
+                .where(
+                    supporter.keywordsMatch(criteria.keywords()),
+                    supporter.eqCategory(criteria.category()),
+                    supporter.inRegionIds(criteria.regionIds()),
+                    supporter.inDistilleryIds(criteria.distilleryIds()),
+                    supporter.eqCurationId(criteria.curationId()),
+                    supporter.isNotDeleted(),
+                    randomSeek(claims, crc))
+                .groupBy(alcohol.id)
+                .having(ratingMatches(criteria.rating()))
+                .orderBy(crc.asc(), alcohol.id.asc())
+                .limit(fetchSize)
+                .fetch();
+        return toSeekKeys(rows, crc);
+      }
       List<Tuple> rows =
           queryFactory
               .select(alcohol.id, crc)

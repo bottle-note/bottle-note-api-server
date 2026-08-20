@@ -148,7 +148,7 @@ Mockito interaction verify를 추가하지 않는다. QueryDSL·serialization �
 - Files (advisory): review explore controller/docs/request, validation enum, Product HTTP tests
 - Depends: 없음
 - Size: M
-- Status: [ ] not done
+- Status: [x] worker complete (CI pending)
 
 ### Task 2: 리뷰 검색·정렬·별점 조회 수직 경로
 - Acceptance: keyword·sort·rating 조합과 결정적 순서가 repository/service/HTTP에서 일치한다.
@@ -156,11 +156,11 @@ Mockito interaction verify를 추가하지 않는다. QueryDSL·serialization �
 - Files (advisory): review criteria, repository port/impl, service, fixtures
 - Depends: Task 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] worker complete (CI pending)
 
 ### Checkpoint: after Tasks 1-2
-- [ ] focused compile/test 가능한 범위 통과
-- [ ] legacy 단독·신규 단독·충돌 계약 확인
+- [x] local static contract verification complete; compile/test는 OOM 정책에 따라 CI pending
+- [x] legacy 단독·신규 단독·충돌 계약을 test source와 정적 검사로 확인
 
 ### Task 3: 위스키 표시 평점 필터 수직 경로
 - Acceptance: 표시 집계 평점 기준 0.5-step 필터가 기존 검색·정렬·cursor와 조합된다.
@@ -168,7 +168,7 @@ Mockito interaction verify를 추가하지 않는다. QueryDSL·serialization �
 - Files (advisory): ExploreStandard request/criteria, alcohol query supporter/repository, tests/docs
 - Depends: 없음
 - Size: M
-- Status: [ ] not done
+- Status: [x] worker complete (CI pending)
 
 ### Task 4: 문서·회귀·Draft PR CI verify
 - Acceptance: OpenAPI/REST Docs에 신규 계약과 keywords deprecated가 나타나고 Draft PR CI가 통과한다.
@@ -176,8 +176,10 @@ Mockito interaction verify를 추가하지 않는다. QueryDSL·serialization �
 - Files (advisory): docs annotations/tests, PR body
 - Depends: Tasks 2, 3
 - Size: M
-- Status: [ ] not done
+- Status: [ ] delivery-stage pending (worker static verification complete)
 
 ## Progress Log
 
 - 2026-08-20: 사용자 승인. #414+#415+#417 단일 PR, legacy keywords 점진 전환, PR-first GitHub Actions verify 확정.
+- 2026-08-20: worker-stage 완료. 기존 legacy `keywords`는 AND 결합임을 확인해 `keyword` 미입력 시에만 보존했고, 단일 keyword·conflict validation·review sort/rating·alcohol 표시 집계 rating 필터와 문서/test source를 반영했다. 정적 RED/GREEN·diff 검사는 통과했으며 OOM 정책에 따라 JVM/Gradle/컨테이너는 실행하지 않았다. delivery-stage push/PR/CI는 대기 중이다.
+- 2026-08-20: delivery 전 정적 리뷰에서 alcohol `RANDOM` 후보 조회만 `criteria.rating()` join/HAVING을 적용하지 않아 rating을 무시하는 조합 결함을 발견했다. RANDOM+rating 회귀 test source를 먼저 추가했고, rating이 있을 때만 기존 `ratingMatches(criteria.rating())` HAVING을 쓰는 `rating` LEFT JOIN/GROUP BY 분기를 추가했다. rating 미지정 RANDOM의 기존 CRC32 order/keyset 경로는 보존했으며, 전체 정적 재검토·CI는 delivery-stage에서 수행한다.
