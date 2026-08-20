@@ -48,7 +48,7 @@ class ReviewExploreOpenApiContractIntegrationTest extends OpenApiSpecTestSupport
 
   private JsonNode resolve(JsonNode spec, JsonNode schema) {
     JsonNode candidate =
-        List.of("anyOf", "oneOf").stream()
+        List.of("allOf", "anyOf", "oneOf").stream()
             .map(schema::path)
             .filter(JsonNode::isArray)
             .flatMap(composition -> StreamSupport.stream(composition.spliterator(), false))
