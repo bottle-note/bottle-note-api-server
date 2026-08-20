@@ -372,6 +372,22 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       assertThat(secondPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 10");
       assertThat(secondMeta.path("hasNext").asBoolean()).isFalse();
     }
+    @Test
+    @DisplayName("Product feed HTTP는 선택 정렬 query를 바인딩하고 알 수 없는 enum을 400으로 거부한다")
+    void searchFeed_bindsSelectableSortQueriesAndRejectsInvalidEnum() throws Exception {
+      Long lowerOrder = createCuration("낮은 순서", 1, true, List.of(manualItem("낮음")));
+      Long higherOrder = createCuration("높은 순서", 9, true, List.of(manualItem("높음")));
+
+      MvcTestResult sorted = mockMvcTester.get()
+          .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&sortType=DISPLAY_ORDER&sortOrder=DESC&size=10")
+          .exchange();
+
+      assertThat(dataNode(sorted).path("items").get(0).path("id").asLong()).isEqualTo(higherOrder);
+      assertThat(dataNode(sorted).path("items").get(1).path("id").asLong()).isEqualTo(lowerOrder);
+      assertThat(mockMvcTester.get().uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&sortType=UNKNOWN").exchange())
+          .hasStatus(BAD_REQUEST);
+    }
+
   }
 
   @Nested

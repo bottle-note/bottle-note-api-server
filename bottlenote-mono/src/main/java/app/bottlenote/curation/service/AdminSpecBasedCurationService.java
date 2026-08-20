@@ -71,7 +71,13 @@ public class AdminSpecBasedCurationService {
       return GlobalResponse.fromPage(Page.empty(pageable));
     }
     Page<Curation> page =
-        curationRepository.searchForAdmin(request.keyword(), specId, request.isActive(), pageable);
+        curationRepository.searchForAdmin(
+            request.keyword(),
+            specId,
+            request.isActive(),
+            pageable,
+            request.sortType(),
+            request.sortOrder());
     Map<Long, CurationSpec> specMap =
         curationSpecRepository
             .findAllByIdIn(
@@ -92,7 +98,13 @@ public class AdminSpecBasedCurationService {
       return GlobalResponse.fromPage(Page.empty(pageable));
     }
     Page<Curation> page =
-        curationRepository.searchForAdmin(request.keyword(), specId, request.isActive(), pageable);
+        curationRepository.searchForAdmin(
+            request.keyword(),
+            specId,
+            request.isActive(),
+            pageable,
+            request.sortType(),
+            request.sortOrder());
     Map<Long, CurationSpec> specMap =
         curationSpecRepository
             .findAllByIdIn(

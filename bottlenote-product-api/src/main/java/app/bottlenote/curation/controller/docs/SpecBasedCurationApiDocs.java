@@ -54,8 +54,9 @@ public final class SpecBasedCurationApiDocs {
 
           키워드로 제목을 검색하거나 코드로 특정 유형만 걸러낼 수 있고, 코드는 여러 개를 함께 보낼 수 있습니다.
           각 항목의 내용은 큐레이션 명세에 따라 구성되므로 유형별로 담기는 항목이 다릅니다.
-          결과는 exposureStartDate 내림차순, 날짜 없는 항목은 마지막, 같은 날짜는 id 내림차순으로 고정 정렬됩니다.
-          다음 페이지는 meta.pagination.nextCursor를 그대로 보내면 됩니다.
+          결과는 sortType(EXPOSURE_START_DATE 또는 DISPLAY_ORDER)과 sortOrder(ASC 또는 DESC)로 선택합니다. 기본값은 EXPOSURE_START_DATE와 DESC입니다.
+          EXPOSURE_START_DATE는 방향과 무관하게 null 날짜를 마지막에 두고, 같은 날짜/null bucket은 요청 방향의 id로 정렬합니다.
+          DISPLAY_ORDER는 같은 방향의 displayOrder, id로 정렬합니다. 다음 페이지는 같은 sortType/sortOrder와 meta.pagination.nextCursor를 그대로 보내야 합니다.
           """,
       responses =
           @ApiResponse(

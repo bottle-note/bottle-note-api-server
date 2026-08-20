@@ -3,6 +3,8 @@ package app.bottlenote.curation.fixture;
 import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
+import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.global.service.cursor.SortOrder;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
@@ -17,130 +19,64 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryCurationRepository implements CurationRepository {
 
-  private static final Comparator<Curation> EXPOSURE_START_DATE_ORDER =
-      Comparator.comparing(
-              Curation::getExposureStartDate, Comparator.nullsLast(Comparator.reverseOrder()))
-          .thenComparing(Curation::getId, Comparator.reverseOrder());
-
   private final Map<Long, Curation> database = new HashMap<>();
 
   @Override
-  public Optional<Curation> findById(Long id) {
-    return Optional.ofNullable(database.get(id));
-  }
+  public Optional<Curation> findById(Long id) { return Optional.ofNullable(database.get(id)); }
 
   @Override
   public List<Curation> findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc() {
-    return database.values().stream()
-        .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
-        .sorted(EXPOSURE_START_DATE_ORDER)
-        .toList();
+    return database.values().stream().filter(c -> Boolean.TRUE.equals(c.getIsActive()))
+        .sorted(comparator(CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC)).toList();
   }
 
   @Override
   public List<Curation> findAllVisibleOn(LocalDate today) {
-    return database.values().stream()
-        .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
-        .filter(curation -> isVisibleOn(curation, today))
-        .sorted(EXPOSURE_START_DATE_ORDER)
-        .toList();
+    return database.values().stream().filter(c -> Boolean.TRUE.equals(c.getIsActive())).filter(c -> isVisibleOn(c, today))
+        .sorted(comparator(CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC)).toList();
   }
 
   @Override
   public List<Long> findFeedCandidateIds(CurationFeedSearchCriteria criteria) {
-    if (criteria.specIds().isEmpty()) {
-      return List.of();
-    }
-
-    return database.values().stream()
-        .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
-        .filter(curation -> isVisibleOn(curation, criteria.today()))
-        .filter(curation -> criteria.specIds().contains(curation.getSpecId()))
-        .filter(curation -> matchesKeyword(curation, criteria))
-        .filter(curation -> afterCursor(curation, criteria))
-        .sorted(EXPOSURE_START_DATE_ORDER)
-        .map(Curation::getId)
-        .limit(criteria.fetchSize())
-        .toList();
+    if (criteria.specIds().isEmpty()) return List.of();
+    Comparator<Curation> comparator = comparator(criteria.sortType(), criteria.sortOrder());
+    return database.values().stream().filter(c -> Boolean.TRUE.equals(c.getIsActive())).filter(c -> isVisibleOn(c, criteria.today()))
+        .filter(c -> criteria.specIds().contains(c.getSpecId())).filter(c -> matchesKeyword(c, criteria))
+        .filter(c -> afterCursor(c, criteria, comparator)).sorted(comparator).map(Curation::getId).limit(criteria.fetchSize()).toList();
   }
 
-  private static boolean afterCursor(Curation curation, CurationFeedSearchCriteria criteria) {
-    if (criteria.lastId() == null) {
-      return true;
-    }
-    LocalDate lastExposureStartDate = criteria.lastExposureStartDate();
-    LocalDate exposureStartDate = curation.getExposureStartDate();
-    if (lastExposureStartDate == null) {
-      return exposureStartDate == null && curation.getId() < criteria.lastId();
-    }
-    return exposureStartDate == null
-        || exposureStartDate.isBefore(lastExposureStartDate)
-        || (exposureStartDate.equals(lastExposureStartDate) && curation.getId() < criteria.lastId());
+  private static boolean afterCursor(Curation curation, CurationFeedSearchCriteria criteria, Comparator<Curation> comparator) {
+    if (criteria.lastId() == null) return true;
+    Curation cursor = Curation.builder().id(criteria.lastId()).exposureStartDate(criteria.lastExposureStartDate())
+        .displayOrder(criteria.lastDisplayOrder()).build();
+    return comparator.compare(curation, cursor) > 0;
   }
+
+  private static Comparator<Curation> comparator(CurationSortType sortType, SortOrder sortOrder) {
+    Comparator<Long> ids = sortOrder == SortOrder.ASC ? Comparator.naturalOrder() : Comparator.reverseOrder();
+    if (sortType == CurationSortType.DISPLAY_ORDER) {
+      Comparator<Integer> primary = sortOrder == SortOrder.ASC ? Comparator.naturalOrder() : Comparator.reverseOrder();
+      return Comparator.comparing(Curation::getDisplayOrder, primary).thenComparing(Curation::getId, ids);
+    }
+    Comparator<LocalDate> primary = sortOrder == SortOrder.ASC ? Comparator.naturalOrder() : Comparator.reverseOrder();
+    return Comparator.comparing(Curation::getExposureStartDate, Comparator.nullsLast(primary)).thenComparing(Curation::getId, ids);
+  }
+
+  @Override public List<Curation> findAllByIdIn(Collection<Long> ids) { return database.values().stream().filter(c -> ids.contains(c.getId())).toList(); }
+  @Override public Optional<Curation> findVisibleById(Long id, LocalDate today) { return findById(id).filter(c -> Boolean.TRUE.equals(c.getIsActive())).filter(c -> isVisibleOn(c, today)); }
 
   @Override
-  public List<Curation> findAllByIdIn(Collection<Long> ids) {
-    return database.values().stream().filter(curation -> ids.contains(curation.getId())).toList();
+  public Page<Curation> searchForAdmin(String keyword, Long specId, Boolean isActive, Pageable pageable, CurationSortType sortType, SortOrder sortOrder) {
+    List<Curation> all = database.values().stream().filter(c -> keyword == null || keyword.isBlank() || c.getName().contains(keyword))
+        .filter(c -> specId == null || c.getSpecId().equals(specId)).filter(c -> isActive == null || c.getIsActive().equals(isActive))
+        .sorted(comparator(sortType, sortOrder)).toList();
+    int start = (int) pageable.getOffset(), end = Math.min(start + pageable.getPageSize(), all.size());
+    return new PageImpl<>(start < all.size() ? all.subList(start, end) : List.of(), pageable, all.size());
   }
 
-  @Override
-  public Optional<Curation> findVisibleById(Long id, LocalDate today) {
-    return findById(id)
-        .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
-        .filter(curation -> isVisibleOn(curation, today));
-  }
-
-  @Override
-  public Page<Curation> searchForAdmin(String keyword, Long specId, Boolean isActive, Pageable pageable) {
-    List<Curation> all =
-        database.values().stream()
-            .filter(
-                curation ->
-                    keyword == null || keyword.isBlank() || curation.getName().contains(keyword))
-            .filter(curation -> specId == null || curation.getSpecId().equals(specId))
-            .filter(curation -> isActive == null || curation.getIsActive().equals(isActive))
-            .sorted(EXPOSURE_START_DATE_ORDER)
-            .toList();
-    int start = (int) pageable.getOffset();
-    int end = Math.min(start + pageable.getPageSize(), all.size());
-    List<Curation> content = start < all.size() ? all.subList(start, end) : List.of();
-    return new PageImpl<>(content, pageable, all.size());
-  }
-
-  @Override
-  public Curation save(Curation curation) {
-    Long id = curation.getId();
-    if (id == null) {
-      id = database.size() + 1L;
-      ReflectionTestUtils.setField(curation, "id", id);
-    }
-    database.put(id, curation);
-    return curation;
-  }
-
-  @Override
-  public void delete(Curation curation) {
-    database.remove(curation.getId());
-  }
-
-  private boolean isVisibleOn(Curation curation, LocalDate today) {
-    return (curation.getExposureStartDate() == null
-            || !curation.getExposureStartDate().isAfter(today))
-        && (curation.getExposureEndDate() == null
-            || !curation.getExposureEndDate().isBefore(today));
-  }
-
-  private boolean matchesKeyword(Curation curation, CurationFeedSearchCriteria criteria) {
-    if (criteria.keyword() == null || criteria.keyword().isBlank()) {
-      return true;
-    }
-    String keyword = criteria.keyword().trim();
-    return contains(curation.getName(), keyword)
-        || contains(curation.getDescription(), keyword)
-        || criteria.keywordMatchedSpecIds().contains(curation.getSpecId());
-  }
-
-  private boolean contains(String value, String keyword) {
-    return value != null && value.contains(keyword);
-  }
+  @Override public Curation save(Curation curation) { Long id = curation.getId(); if (id == null) { id = database.size() + 1L; ReflectionTestUtils.setField(curation, "id", id); } database.put(id, curation); return curation; }
+  @Override public void delete(Curation curation) { database.remove(curation.getId()); }
+  private boolean isVisibleOn(Curation c, LocalDate today) { return (c.getExposureStartDate() == null || !c.getExposureStartDate().isAfter(today)) && (c.getExposureEndDate() == null || !c.getExposureEndDate().isBefore(today)); }
+  private boolean matchesKeyword(Curation c, CurationFeedSearchCriteria criteria) { if (criteria.keyword() == null || criteria.keyword().isBlank()) return true; String keyword = criteria.keyword().trim(); return contains(c.getName(), keyword) || contains(c.getDescription(), keyword) || criteria.keywordMatchedSpecIds().contains(c.getSpecId()); }
+  private boolean contains(String value, String keyword) { return value != null && value.contains(keyword); }
 }
