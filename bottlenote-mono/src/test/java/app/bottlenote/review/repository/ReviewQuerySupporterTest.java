@@ -191,7 +191,7 @@ class ReviewQuerySupporterTest {
 
       // then
       BooleanExpression tail =
-          review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(9L)));
+          review.createAt.gt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.gt(9L)));
       NumberExpression<Long> likesCount = likes.id.countDistinct();
       BooleanExpression expected = likesCount.gt(5L).or(likesCount.eq(5L).and(tail));
       assertThat(actual.toString()).isEqualTo(expected.toString());
@@ -209,7 +209,7 @@ class ReviewQuerySupporterTest {
 
       // then: ASC는 MySQL 기본 정렬상 NULL이 맨 앞이므로, NULL 아닌 행은 전부 이후 페이지에 포함돼야 한다.
       BooleanExpression tail =
-          review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(5L)));
+          review.createAt.gt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.gt(5L)));
       BooleanExpression expected =
           review.reviewRating.isNotNull().or(review.reviewRating.isNull().and(tail));
       assertThat(actual.toString()).isEqualTo(expected.toString());
@@ -267,7 +267,7 @@ class ReviewQuerySupporterTest {
 
       // then
       BooleanExpression tail =
-          review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(7L)));
+          review.createAt.gt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.gt(7L)));
       BooleanExpression priceStep =
           review
               .price
