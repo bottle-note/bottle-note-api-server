@@ -24,7 +24,7 @@ public record ReviewExploreRequest(
   public ReviewExploreRequest {
     keyword = keyword != null && !keyword.isBlank() ? keyword.trim() : null;
     keywords = keywords != null ? List.copyOf(keywords) : List.of();
-    sortType = sortType != null ? sortType : ReviewSortType.POPULAR;
+    sortType = sortType != null ? sortType : ReviewSortType.LATEST;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
     PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();

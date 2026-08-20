@@ -120,6 +120,8 @@ public class ReviewQuerySupporter {
     OrderSpecifier<?> createAt = sortOrder == DESC ? review.createAt.desc() : review.createAt.asc();
     OrderSpecifier<?> reviewId = sortOrder == DESC ? review.id.desc() : review.id.asc();
     return switch (reviewSortType) {
+      // 최신순
+      case LATEST -> Arrays.asList(createAt, reviewId);
       // 인기순 -> 임시로 좋아요 순으로 구현
       case POPULAR ->
           Arrays.asList(
@@ -178,6 +180,7 @@ public class ReviewQuerySupporter {
     }
     boolean desc = sortOrder != SortOrder.ASC;
     return switch (sortType) {
+      case LATEST -> timeIdSeek(desc, claims);
       case POPULAR -> popularSeek(desc, claims);
       case LIKES -> likesSeek(desc, claims);
       case RATING -> ratingSeek(desc, claims);
@@ -190,6 +193,7 @@ public class ReviewQuerySupporter {
   public static Map<String, String> cursorKeys(ReviewSortType sortType, ReviewInfo item) {
     Map<String, String> keys = new LinkedHashMap<>();
     switch (sortType) {
+      case LATEST -> {}
       case POPULAR -> {
         putIfNotNull(keys, "best", item.isBestReview());
         // COUNT는 SQL에서 NULL이 아니라 0이므로 키를 생략하지 않는다

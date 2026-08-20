@@ -4,6 +4,7 @@ import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.cursorKeys;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.keysetSeek;
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.global.pagination.CursorClaims;
@@ -129,9 +130,22 @@ class ReviewQuerySupporterTest {
 
       Map<String, String> keys = cursorKeys(ReviewSortType.BOTTLE_PRICE, item);
 
+      // then
       assertThat(keys).doesNotContainKey("price").containsEntry("sizeType", "BOTTLE");
     }
-  }
+
+    @Test
+    @DisplayName("LATEST 정렬은 공통 createAt, reviewId 키만 커서에 담는다")
+    void latest_정렬은_공통_시간과_id_키만_담는다() {
+      // given
+      ReviewInfo item = reviewInfo(10L, true, 7L, 4.5, SizeType.BOTTLE, new BigDecimal("10000"));
+
+      // when
+      Map<String, String> keys = cursorKeys(ReviewSortType.LATEST, item);
+
+      // then
+      assertThat(keys).containsOnly(entry("t", CREATE_AT.toString()), entry("id", "10"));
+    }
 
   @Nested
   @DisplayName("keysetSeek")
@@ -328,6 +342,38 @@ class ReviewQuerySupporterTest {
               .eq(SizeType.GLASS)
               .or(review.sizeType.isNull())
               .or(review.sizeType.eq(SizeType.BOTTLE).and(priceStep));
+      assertThat(actual.toString()).isEqualTo(expected.toString());
+    }
+
+    @Test
+    @DisplayName("LATEST DESC는 createAt과 reviewId를 내림차순으로 seek한다")
+    void latest_desc는_생성일과_id를_내림차순으로_seek한다() {
+      // given
+      ReviewInfo lastOfPage1 = reviewInfo(10L, null, null, null, null, null);
+      CursorClaims claims = claimsOf(cursorKeys(ReviewSortType.LATEST, lastOfPage1));
+
+      // when
+      BooleanExpression actual = keysetSeek(ReviewSortType.LATEST, SortOrder.DESC, claims);
+
+      // then
+      BooleanExpression expected =
+          review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(10L)));
+      assertThat(actual.toString()).isEqualTo(expected.toString());
+    }
+
+    @Test
+    @DisplayName("LATEST ASC는 createAt과 reviewId를 오름차순으로 seek한다")
+    void latest_asc는_생성일과_id를_오름차순으로_seek한다() {
+      // given
+      ReviewInfo lastOfPage1 = reviewInfo(10L, null, null, null, null, null);
+      CursorClaims claims = claimsOf(cursorKeys(ReviewSortType.LATEST, lastOfPage1));
+
+      // when
+      BooleanExpression actual = keysetSeek(ReviewSortType.LATEST, SortOrder.ASC, claims);
+
+      // then
+      BooleanExpression expected =
+          review.createAt.gt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.gt(10L)));
       assertThat(actual.toString()).isEqualTo(expected.toString());
     }
   }
