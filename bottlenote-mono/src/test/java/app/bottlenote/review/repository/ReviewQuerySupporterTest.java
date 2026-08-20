@@ -146,6 +146,7 @@ class ReviewQuerySupporterTest {
       // then
       assertThat(keys).containsOnly(entry("t", CREATE_AT.toString()), entry("id", "10"));
     }
+  }
 
   @Nested
   @DisplayName("keysetSeek")
