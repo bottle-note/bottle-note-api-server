@@ -1,5 +1,6 @@
 package app.bottlenote.curation.dto.request;
 
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import lombok.Builder;
 

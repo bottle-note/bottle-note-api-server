@@ -1,6 +1,6 @@
 package app.bottlenote.curation.dto.dsl;
 
-import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import java.time.LocalDate;
 import java.util.Set;

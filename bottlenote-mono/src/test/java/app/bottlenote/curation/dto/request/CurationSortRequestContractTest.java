@@ -2,6 +2,7 @@ package app.bottlenote.curation.dto.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

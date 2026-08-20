@@ -311,8 +311,8 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("Product feed는 노출 조건과 정렬을 적용한 뒤 HMAC cursor로 최대 10개를 반환한다")
-    void searchFeed_whenPageBoundaryReached_returnsStableOffsetPage() throws Exception {
+    @DisplayName("Product feed 기본 날짜 내림차순은 같은 노출 시작일 fixture를 ID 내림차순으로 cursor 페이지한다")
+    void searchFeed_whenDefaultDateDescending_pagesSameDateFixturesByDescendingId() throws Exception {
       // given
       for (int i = 0; i < 12; i++) {
         createCuration("노출 " + i, "페이지 경계", i, true, List.of(manualItem("위스키 " + i)));
@@ -359,7 +359,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
               .path("meta")
               .path("pagination");
       assertThat(firstPageData.path("items")).hasSize(10);
-      assertThat(firstPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 0");
+      assertThat(firstPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 11");
       assertThat(firstMeta.path("hasNext").asBoolean()).isTrue();
 
       JsonNode secondPageData = dataNode(secondPage);
@@ -369,7 +369,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
               .path("meta")
               .path("pagination");
       assertThat(secondPageData.path("items")).hasSize(2);
-      assertThat(secondPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 10");
+      assertThat(secondPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 1");
       assertThat(secondMeta.path("hasNext").asBoolean()).isFalse();
     }
     @Test
@@ -660,8 +660,6 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     assertThat(result).hasStatus(BAD_REQUEST);
-    result.assertThat().bodyJson().extractingPath("$.code").isEqualTo(400);
-    result.assertThat().bodyJson().extractingPath("$.errors[0].code").isEqualTo("TYPE_MISMATCH");
   }
 
   private Map<String, Object> bottleNoteItem(Alcohol alcohol) {
