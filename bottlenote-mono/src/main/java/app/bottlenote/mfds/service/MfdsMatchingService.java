@@ -13,7 +13,7 @@ import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.domain.MfdsMatchCandidate;
 import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest;
 import app.bottlenote.mfds.dto.response.MfdsAlcoholCandidateItem;
-import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetail;
+import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetailItem;
 import app.bottlenote.mfds.dto.response.MfdsMatchingCandidatesResponse;
 import app.bottlenote.mfds.dto.response.MfdsMatchingCandidatesResponse.MfdsMatchingSelection;
 import app.bottlenote.mfds.dto.response.MfdsMatchingConfirmResponse;
@@ -250,7 +250,7 @@ public class MfdsMatchingService {
   }
 
   private static MfdsAlcoholCandidateItem toAlcoholItem(
-      AlcoholMatchTargetItem target, BigDecimal score, MfdsMatchScoreDetail detail) {
+      AlcoholMatchTargetItem target, BigDecimal score, MfdsMatchScoreDetailItem detail) {
     return new MfdsAlcoholCandidateItem(
         target.alcoholId(),
         score,
@@ -284,7 +284,7 @@ public class MfdsMatchingService {
         .toList();
   }
 
-  private record ScoredAlcohol(AlcoholMatchTargetItem target, MfdsMatchScoreDetail detail) {
+  private record ScoredAlcohol(AlcoholMatchTargetItem target, MfdsMatchScoreDetailItem detail) {
     BigDecimal totalScore() {
       return detail.totalScore();
     }

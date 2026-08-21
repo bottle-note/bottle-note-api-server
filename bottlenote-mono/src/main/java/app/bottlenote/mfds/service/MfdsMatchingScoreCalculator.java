@@ -4,7 +4,7 @@ import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.DistilleryMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.RegionMatchTargetItem;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
-import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetail;
+import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetailItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
@@ -38,11 +38,11 @@ public class MfdsMatchingScoreCalculator {
   private static final Pattern FIRST_NUMBER = Pattern.compile("(\\d+(?:\\.\\d+)?)");
 
   /** 알코올 후보 점수와 요소별 근거를 계산한다. */
-  public MfdsMatchScoreDetail scoreAlcohol(
+  public MfdsMatchScoreDetailItem scoreAlcohol(
       MfdsDeclaration declaration, AlcoholMatchTargetItem target) {
     Double nameScore = alcoholNameSimilarity(declaration, target);
     if (nameScore == null) {
-      return new MfdsMatchScoreDetail(null, null, null, null, null, toBigDecimal(0.0));
+      return new MfdsMatchScoreDetailItem(null, null, null, null, null, toBigDecimal(0.0));
     }
 
     Double abvScore = abvProximity(declaration.getAbvPercent(), target.abv());
@@ -69,7 +69,7 @@ public class MfdsMatchingScoreCalculator {
       weightSum += REGION_WEIGHT;
     }
 
-    return new MfdsMatchScoreDetail(
+    return new MfdsMatchScoreDetailItem(
         toBigDecimal(nameScore),
         toBigDecimal(abvScore),
         toBigDecimal(ageScore),

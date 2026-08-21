@@ -13,4 +13,4 @@ public record MfdsAlcoholCandidateItem(
     String abv,
     String age,
     String imageUrl,
-    MfdsMatchScoreDetail scoreDetail) {}
+    MfdsMatchScoreDetailItem scoreDetail) {}
