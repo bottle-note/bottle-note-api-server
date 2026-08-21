@@ -50,6 +50,12 @@ class MfdsEntityMappingContractTest {
         .isEqualTo(Short.class);
     assertThat(MfdsDeclaration.class.getDeclaredField("vintageYear").getType())
         .isEqualTo(Short.class);
+    assertColumnDefinition(
+        MfdsDeclaration.class, "manufactureCountryAlpha2", "CHAR(2)");
+    assertColumnDefinition(
+        MfdsDeclaration.class, "manufactureCountryAlpha3", "CHAR(3)");
+    assertColumnDefinition(MfdsDeclaration.class, "exportCountryAlpha2", "CHAR(2)");
+    assertColumnDefinition(MfdsDeclaration.class, "exportCountryAlpha3", "CHAR(3)");
 
     assertColumn(MfdsImporterRcnoLink.class, "rcno", "rcno");
     assertColumn(MfdsImporterRcnoLink.class, "importerId", "importer_id");
@@ -75,6 +81,12 @@ class MfdsEntityMappingContractTest {
       throws NoSuchFieldException {
     Field field = type.getDeclaredField(fieldName);
     assertThat(field.getAnnotation(Column.class).name()).isEqualTo(columnName);
+  }
+
+  private static void assertColumnDefinition(
+      Class<?> type, String fieldName, String columnDefinition) throws NoSuchFieldException {
+    Column column = type.getDeclaredField(fieldName).getAnnotation(Column.class);
+    assertThat(column.columnDefinition()).isEqualTo(columnDefinition);
   }
 
   private static void assertRequiredBinaryColumn(
