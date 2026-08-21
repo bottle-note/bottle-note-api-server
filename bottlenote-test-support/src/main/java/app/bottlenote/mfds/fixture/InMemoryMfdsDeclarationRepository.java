@@ -56,6 +56,12 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
     return database.values().stream().filter(declaration -> matches(declaration, criteria)).count();
   }
 
+  @Override
+  public boolean existsByImporterId(Long importerId) {
+    return database.values().stream()
+        .anyMatch(declaration -> Objects.equals(declaration.getImporterId(), importerId));
+  }
+
   private boolean matches(MfdsDeclaration declaration, MfdsDeclarationSearchCriteria criteria) {
     if (criteria.normalizationStatus() != null
         && declaration.getNormalizationStatus() != criteria.normalizationStatus()) {

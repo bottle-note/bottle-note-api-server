@@ -467,4 +467,31 @@ public class MfdsDeclaration {
   @Comment("수정 시각")
   @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
   private LocalDateTime updatedAt;
+
+  /** 관리자 검토에 따라 정규화 상태를 전이하고 검토 이력을 남긴다. */
+  public void changeNormalizationStatus(
+      MfdsNormalizationStatus status, String reviewedBy, String reviewNote) {
+    this.normalizationStatus = status;
+    this.reviewedBy = reviewedBy;
+    this.reviewNote = reviewNote;
+    this.reviewedAt = LocalDateTime.now();
+  }
+
+  /** 수입사를 연결하고 연결 근거 유형과 시각을 기록한다. */
+  public void linkImporter(Long importerId, MfdsImporterLinkSource linkSource) {
+    this.importerId = importerId;
+    this.importerLinkSource = linkSource;
+    this.importerLinkedAt = LocalDateTime.now();
+  }
+
+  /** 수입사 연결을 해제한다. */
+  public void unlinkImporter() {
+    this.importerId = null;
+    this.importerLinkSource = null;
+    this.importerLinkedAt = null;
+  }
+
+  public boolean isImporterLinked() {
+    return this.importerId != null;
+  }
 }

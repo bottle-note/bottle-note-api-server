@@ -19,4 +19,6 @@ public interface MfdsImporterRcnoLinkRepository {
   List<MfdsImporterRcnoLink> findAllByImporterId(Long importerId);
 
   long countByImporterId(Long importerId);
+
+  void deleteByRcno(String rcno);
 }

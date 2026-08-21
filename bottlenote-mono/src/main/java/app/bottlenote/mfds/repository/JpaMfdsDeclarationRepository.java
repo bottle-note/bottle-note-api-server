@@ -14,4 +14,7 @@ public interface JpaMfdsDeclarationRepository
 
   @Override
   Optional<MfdsDeclaration> findByRcno(String rcno);
+
+  @Override
+  boolean existsByImporterId(Long importerId);
 }

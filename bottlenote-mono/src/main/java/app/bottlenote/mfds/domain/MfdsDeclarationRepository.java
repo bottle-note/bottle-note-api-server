@@ -24,4 +24,7 @@ public interface MfdsDeclarationRepository {
 
   /** cursor를 제외한 목록 조회 조건의 전체 건수를 반환한다. */
   long countByCriteria(MfdsDeclarationSearchCriteria criteria);
+
+  /** 해당 수입사에 연결된 신고 데이터 존재 여부를 확인한다. 수입사 삭제 가드에 쓴다. */
+  boolean existsByImporterId(Long importerId);
 }
