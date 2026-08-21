@@ -46,6 +46,10 @@ class MfdsEntityMappingContractTest {
     assertColumn(MfdsDeclaration.class, "importerId", "importer_id");
     assertColumn(MfdsDeclaration.class, "normalizationStatus", "normalization_status");
     assertColumn(MfdsDeclaration.class, "selectedAlcoholId", "selected_alcohol_id");
+    assertThat(MfdsDeclaration.class.getDeclaredField("ageYears").getType())
+        .isEqualTo(Short.class);
+    assertThat(MfdsDeclaration.class.getDeclaredField("vintageYear").getType())
+        .isEqualTo(Short.class);
 
     assertColumn(MfdsImporterRcnoLink.class, "rcno", "rcno");
     assertColumn(MfdsImporterRcnoLink.class, "importerId", "importer_id");
