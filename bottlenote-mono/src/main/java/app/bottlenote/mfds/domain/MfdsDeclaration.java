@@ -97,13 +97,13 @@ public class MfdsDeclaration {
   private String ageRaw;
 
   @Column(name = "age_years")
-  private Integer ageYears;
+  private Short ageYears;
 
   @Column(name = "vintage_raw", length = 255)
   private String vintageRaw;
 
   @Column(name = "vintage_year")
-  private Integer vintageYear;
+  private Short vintageYear;
 
   @Column(name = "version_marker", length = 64)
   private String versionMarker;
