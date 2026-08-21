@@ -12,7 +12,10 @@ public enum MfdsExceptionCode implements ExceptionCode {
   MFDS_DECLARATION_ALREADY_LINKED(HttpStatus.CONFLICT, "이미 수입사가 연결된 수입 신고입니다. 먼저 연결을 해제해 주세요."),
   MFDS_DECLARATION_NOT_LINKED(HttpStatus.BAD_REQUEST, "수입사가 연결되지 않은 수입 신고입니다."),
   MFDS_RCNO_LINK_NOT_FOUND(HttpStatus.NOT_FOUND, "수입신고번호 연결 근거를 찾을 수 없습니다."),
-  MFDS_RCNO_LINK_DUPLICATE(HttpStatus.CONFLICT, "해당 수입신고번호에 이미 연결 근거가 존재합니다.");
+  MFDS_RCNO_LINK_DUPLICATE(HttpStatus.CONFLICT, "해당 수입신고번호에 이미 연결 근거가 존재합니다."),
+  MFDS_SELECTED_ALCOHOL_NOT_FOUND(HttpStatus.BAD_REQUEST, "선택한 주류가 존재하지 않습니다."),
+  MFDS_SELECTED_DISTILLERY_NOT_FOUND(HttpStatus.BAD_REQUEST, "선택한 증류소가 존재하지 않습니다."),
+  MFDS_SELECTED_REGION_NOT_FOUND(HttpStatus.BAD_REQUEST, "선택한 지역이 존재하지 않습니다.");
 
   private final HttpStatus httpStatus;
   private final String message;
