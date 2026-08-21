@@ -41,4 +41,9 @@ public class InMemoryMfdsImporterRcnoLinkRepository implements MfdsImporterRcnoL
         .filter(link -> Objects.equals(link.getImporterId(), importerId))
         .count();
   }
+
+  @Override
+  public void deleteByRcno(String rcno) {
+    database.remove(rcno);
+  }
 }

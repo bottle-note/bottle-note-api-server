@@ -120,4 +120,60 @@ public class MfdsImporter {
   @Comment("수정 시각")
   @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
   private LocalDateTime updatedAt;
+
+  /**
+   * 관리자가 확정한 수입사를 등록한다.
+   *
+   * <p>businessNameKeySha256은 TRIM(업소명)의 SHA-256, sourceListSha256은 원문 HTML이 없어 출처 URL 문자열의
+   * SHA-256으로 대체한다.
+   */
+  public static MfdsImporter create(
+      String officialBusinessCode,
+      String licenseNo,
+      String businessName,
+      String representativeName,
+      String sourceListUrl,
+      String description,
+      String adminNote,
+      MfdsImporterAdminStatus adminStatus) {
+    MfdsImporter importer = new MfdsImporter();
+    importer.officialBusinessCode = officialBusinessCode;
+    importer.licenseNo = licenseNo;
+    importer.businessName = businessName.trim();
+    importer.businessNameKeySha256 = sha256(importer.businessName);
+    importer.representativeName = representativeName;
+    importer.operatingStatus = "UNKNOWN";
+    importer.sourceListUrl = sourceListUrl;
+    importer.sourceListSha256 = sha256(sourceListUrl);
+    importer.sourceObservedAt = LocalDateTime.now();
+    importer.description = description;
+    importer.adminNote = adminNote;
+    importer.adminStatus = adminStatus != null ? adminStatus : MfdsImporterAdminStatus.ACTIVE;
+    return importer;
+  }
+
+  /** 관리자 관리 항목(공식명·설명·메모·관리 상태)을 수정한다. 업소명이 바뀌면 자동 매칭 키를 다시 계산한다. */
+  public void update(
+      String businessName,
+      String description,
+      String adminNote,
+      MfdsImporterAdminStatus adminStatus) {
+    String trimmedName = businessName.trim();
+    if (!trimmedName.equals(this.businessName)) {
+      this.businessName = trimmedName;
+      this.businessNameKeySha256 = sha256(trimmedName);
+    }
+    this.description = description;
+    this.adminNote = adminNote;
+    this.adminStatus = adminStatus;
+  }
+
+  private static byte[] sha256(String value) {
+    try {
+      return java.security.MessageDigest.getInstance("SHA-256")
+          .digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    } catch (java.security.NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 알고리즘을 사용할 수 없습니다.", exception);
+    }
+  }
 }

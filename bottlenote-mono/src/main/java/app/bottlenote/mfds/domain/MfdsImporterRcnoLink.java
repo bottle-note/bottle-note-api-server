@@ -65,4 +65,16 @@ public class MfdsImporterRcnoLink {
   @Comment("수정 시각")
   @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
   private LocalDateTime updatedAt;
+
+  /** 관리자 확인 등으로 확보한 RCNO별 수입사 연결 근거를 생성한다. */
+  public static MfdsImporterRcnoLink create(
+      String rcno, Long importerId, String sourceImporterName, MfdsImporterLinkSource linkSource) {
+    MfdsImporterRcnoLink link = new MfdsImporterRcnoLink();
+    link.rcno = rcno;
+    link.importerId = importerId;
+    link.sourceImporterName = sourceImporterName;
+    link.linkSource = linkSource;
+    link.sourceObservedAt = LocalDateTime.now();
+    return link;
+  }
 }

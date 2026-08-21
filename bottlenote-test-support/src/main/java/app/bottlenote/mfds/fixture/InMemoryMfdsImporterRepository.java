@@ -30,6 +30,12 @@ public class InMemoryMfdsImporterRepository implements MfdsImporterRepository {
   }
 
   @Override
+  public void delete(MfdsImporter importer) {
+    Objects.requireNonNull(importer, "importer는 null일 수 없습니다.");
+    database.remove(importer.getId());
+  }
+
+  @Override
   public Optional<MfdsImporter> findById(Long id) {
     return Optional.ofNullable(database.get(id));
   }

@@ -19,4 +19,7 @@ public interface JpaMfdsImporterRcnoLinkRepository
 
   @Override
   long countByImporterId(Long importerId);
+
+  @Override
+  void deleteByRcno(String rcno);
 }

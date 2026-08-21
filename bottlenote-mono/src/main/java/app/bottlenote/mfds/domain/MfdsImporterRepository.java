@@ -15,6 +15,8 @@ public interface MfdsImporterRepository {
 
   MfdsImporter save(MfdsImporter importer);
 
+  void delete(MfdsImporter importer);
+
   Optional<MfdsImporter> findById(Long id);
 
   Optional<MfdsImporter> findByOfficialBusinessCode(String officialBusinessCode);
