@@ -16,6 +16,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.CursorKeys;
@@ -96,6 +97,53 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         .where(alcohol.type.eq(WHISKY), alcohol.deletedAt.isNull())
         .orderBy(alcohol.id.asc())
         .fetch();
+  }
+
+  @Override
+  public List<AlcoholMatchTargetItem> findAllMatchTargets() {
+    return queryFactory
+        .select(matchTargetProjection())
+        .from(alcohol)
+        .leftJoin(region)
+        .on(alcohol.region.id.eq(region.id))
+        .leftJoin(distillery)
+        .on(alcohol.distillery.id.eq(distillery.id))
+        .where(alcohol.deletedAt.isNull())
+        .orderBy(alcohol.id.asc())
+        .fetch();
+  }
+
+  @Override
+  public List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds) {
+    return queryFactory
+        .select(matchTargetProjection())
+        .from(alcohol)
+        .leftJoin(region)
+        .on(alcohol.region.id.eq(region.id))
+        .leftJoin(distillery)
+        .on(alcohol.distillery.id.eq(distillery.id))
+        .where(alcohol.id.in(alcoholIds))
+        .orderBy(alcohol.id.asc())
+        .fetch();
+  }
+
+  private Expression<AlcoholMatchTargetItem> matchTargetProjection() {
+    return Projections.constructor(
+        AlcoholMatchTargetItem.class,
+        alcohol.id,
+        alcohol.korName,
+        alcohol.engName,
+        alcohol.abv,
+        alcohol.age,
+        alcohol.korCategory,
+        alcohol.engCategory,
+        region.id,
+        region.korName,
+        region.engName,
+        distillery.id,
+        distillery.korName,
+        distillery.engName,
+        alcohol.imageUrl);
   }
 
   /** queryDSL 알코올 상세 조회 */

@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import java.time.LocalDateTime;
@@ -18,6 +19,10 @@ public interface CustomAlcoholQueryRepository {
   List<CategoryItem> findAllCategoryItems();
 
   List<AlcoholLookupItem> findAllLookupItems();
+
+  List<AlcoholMatchTargetItem> findAllMatchTargets();
+
+  List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds);
 
   AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);
 
