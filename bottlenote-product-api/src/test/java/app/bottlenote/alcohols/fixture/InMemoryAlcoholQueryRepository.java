@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.pagination.KeysetPageResponse;
@@ -87,6 +88,40 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
                     alcohol.getDistillery() != null ? alcohol.getDistillery().getEngName() : null,
                     alcohol.getImageUrl()))
         .toList();
+  }
+
+  @Override
+  public List<AlcoholMatchTargetItem> findAllMatchTargets() {
+    return alcohols.values().stream()
+        .filter(alcohol -> alcohol.getDeletedAt() == null)
+        .map(this::toMatchTargetItem)
+        .toList();
+  }
+
+  @Override
+  public List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds) {
+    return alcohols.values().stream()
+        .filter(alcohol -> alcoholIds.contains(alcohol.getId()))
+        .map(this::toMatchTargetItem)
+        .toList();
+  }
+
+  private AlcoholMatchTargetItem toMatchTargetItem(Alcohol alcohol) {
+    return new AlcoholMatchTargetItem(
+        alcohol.getId(),
+        alcohol.getKorName(),
+        alcohol.getEngName(),
+        alcohol.getAbv(),
+        alcohol.getAge(),
+        alcohol.getKorCategory(),
+        alcohol.getEngCategory(),
+        alcohol.getRegion() != null ? alcohol.getRegion().getId() : null,
+        alcohol.getRegion() != null ? alcohol.getRegion().getKorName() : null,
+        alcohol.getRegion() != null ? alcohol.getRegion().getEngName() : null,
+        alcohol.getDistillery() != null ? alcohol.getDistillery().getId() : null,
+        alcohol.getDistillery() != null ? alcohol.getDistillery().getKorName() : null,
+        alcohol.getDistillery() != null ? alcohol.getDistillery().getEngName() : null,
+        alcohol.getImageUrl());
   }
 
   @Override

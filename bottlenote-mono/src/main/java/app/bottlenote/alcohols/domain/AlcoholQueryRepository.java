@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import java.util.List;
@@ -35,6 +36,10 @@ public interface AlcoholQueryRepository {
   List<CategoryItem> findAllCategoryItems();
 
   List<AlcoholLookupItem> findAllLookupItems();
+
+  List<AlcoholMatchTargetItem> findAllMatchTargets();
+
+  List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds);
 
   Boolean existsByAlcoholId(Long alcoholId);
 
