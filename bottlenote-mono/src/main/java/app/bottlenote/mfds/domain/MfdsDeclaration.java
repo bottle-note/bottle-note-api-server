@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.mfds.constant.MfdsImporterLinkSource;
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
@@ -493,5 +494,124 @@ public class MfdsDeclaration {
 
   public boolean isImporterLinked() {
     return this.importerId != null;
+  }
+
+  /** 매칭 실행 결과의 상위 후보(최대 3개)를 기록한다. 목록이 3개 미만이면 남는 슬롯은 비운다. */
+  public void applyMatchingCandidates(
+      List<MfdsMatchCandidate> alcoholCandidates,
+      List<MfdsMatchCandidate> distilleryCandidates,
+      List<MfdsMatchCandidate> regionCandidates,
+      String matchingVersion,
+      LocalDateTime matchedAt) {
+    this.alcoholCandidate1Id = candidateId(alcoholCandidates, 0);
+    this.alcoholCandidate1Score = candidateScore(alcoholCandidates, 0);
+    this.alcoholCandidate2Id = candidateId(alcoholCandidates, 1);
+    this.alcoholCandidate2Score = candidateScore(alcoholCandidates, 1);
+    this.alcoholCandidate3Id = candidateId(alcoholCandidates, 2);
+    this.alcoholCandidate3Score = candidateScore(alcoholCandidates, 2);
+    this.distilleryCandidate1Id = candidateId(distilleryCandidates, 0);
+    this.distilleryCandidate1Score = candidateScore(distilleryCandidates, 0);
+    this.distilleryCandidate2Id = candidateId(distilleryCandidates, 1);
+    this.distilleryCandidate2Score = candidateScore(distilleryCandidates, 1);
+    this.distilleryCandidate3Id = candidateId(distilleryCandidates, 2);
+    this.distilleryCandidate3Score = candidateScore(distilleryCandidates, 2);
+    this.regionCandidate1Id = candidateId(regionCandidates, 0);
+    this.regionCandidate1Score = candidateScore(regionCandidates, 0);
+    this.regionCandidate2Id = candidateId(regionCandidates, 1);
+    this.regionCandidate2Score = candidateScore(regionCandidates, 1);
+    this.regionCandidate3Id = candidateId(regionCandidates, 2);
+    this.regionCandidate3Score = candidateScore(regionCandidates, 2);
+    this.matchingVersion = matchingVersion;
+    this.matchedAt = matchedAt;
+  }
+
+  /** 매칭을 확정한다. distillery/region은 선택 사항이며 지정하지 않으면 기존 선택이 해제된다. */
+  public void confirmMatching(
+      Long alcoholId,
+      MfdsMatchSelectionSource alcoholSource,
+      Long distilleryId,
+      MfdsMatchSelectionSource distillerySource,
+      Long regionId,
+      MfdsMatchSelectionSource regionSource) {
+    this.selectedAlcoholId = alcoholId;
+    this.alcoholMatchDecision = alcoholSource != null ? alcoholSource.name() : null;
+    this.selectedDistilleryId = distilleryId;
+    this.distilleryMatchSource =
+        distilleryId != null && distillerySource != null ? distillerySource.name() : null;
+    this.selectedRegionId = regionId;
+    this.regionMatchSource = regionId != null && regionSource != null ? regionSource.name() : null;
+  }
+
+  /** 확정된 매칭 선택을 해제한다. 후보와 매칭 이력(matchingVersion, matchedAt)은 유지한다. */
+  public void clearMatchingSelection() {
+    this.selectedAlcoholId = null;
+    this.alcoholMatchDecision = null;
+    this.selectedDistilleryId = null;
+    this.distilleryMatchSource = null;
+    this.selectedRegionId = null;
+    this.regionMatchSource = null;
+  }
+
+  public List<MfdsMatchCandidate> getAlcoholCandidates() {
+    return storedCandidates(
+        alcoholCandidate1Id,
+        alcoholCandidate1Score,
+        alcoholCandidate2Id,
+        alcoholCandidate2Score,
+        alcoholCandidate3Id,
+        alcoholCandidate3Score);
+  }
+
+  public List<MfdsMatchCandidate> getDistilleryCandidates() {
+    return storedCandidates(
+        distilleryCandidate1Id,
+        distilleryCandidate1Score,
+        distilleryCandidate2Id,
+        distilleryCandidate2Score,
+        distilleryCandidate3Id,
+        distilleryCandidate3Score);
+  }
+
+  public List<MfdsMatchCandidate> getRegionCandidates() {
+    return storedCandidates(
+        regionCandidate1Id,
+        regionCandidate1Score,
+        regionCandidate2Id,
+        regionCandidate2Score,
+        regionCandidate3Id,
+        regionCandidate3Score);
+  }
+
+  public boolean hasAlcoholCandidate(Long alcoholId) {
+    return getAlcoholCandidates().stream().anyMatch(candidate -> candidate.id().equals(alcoholId));
+  }
+
+  public boolean hasDistilleryCandidate(Long distilleryId) {
+    return getDistilleryCandidates().stream()
+        .anyMatch(candidate -> candidate.id().equals(distilleryId));
+  }
+
+  public boolean hasRegionCandidate(Long regionId) {
+    return getRegionCandidates().stream().anyMatch(candidate -> candidate.id().equals(regionId));
+  }
+
+  private static Long candidateId(List<MfdsMatchCandidate> candidates, int index) {
+    return candidates != null && candidates.size() > index ? candidates.get(index).id() : null;
+  }
+
+  private static BigDecimal candidateScore(List<MfdsMatchCandidate> candidates, int index) {
+    return candidates != null && candidates.size() > index ? candidates.get(index).score() : null;
+  }
+
+  private static List<MfdsMatchCandidate> storedCandidates(Object... idScorePairs) {
+    List<MfdsMatchCandidate> candidates = new ArrayList<>();
+    for (int i = 0; i < idScorePairs.length; i += 2) {
+      Long id = (Long) idScorePairs[i];
+      BigDecimal score = (BigDecimal) idScorePairs[i + 1];
+      if (id != null) {
+        candidates.add(new MfdsMatchCandidate(id, score != null ? score : BigDecimal.ZERO));
+      }
+    }
+    return candidates;
   }
 }
