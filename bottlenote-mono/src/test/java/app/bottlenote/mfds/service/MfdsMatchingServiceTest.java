@@ -1,0 +1,243 @@
+package app.bottlenote.mfds.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
+import app.bottlenote.alcohols.facade.payload.DistilleryMatchTargetItem;
+import app.bottlenote.alcohols.facade.payload.RegionMatchTargetItem;
+import app.bottlenote.alcohols.fixture.FakeAlcoholMatchTargetFacade;
+import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
+import app.bottlenote.mfds.domain.MfdsDeclaration;
+import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest;
+import app.bottlenote.mfds.dto.response.MfdsMatchingCandidatesResponse;
+import app.bottlenote.mfds.dto.response.MfdsMatchingConfirmResponse;
+import app.bottlenote.mfds.dto.response.MfdsMatchingRunResponse;
+import app.bottlenote.mfds.exception.MfdsException;
+import app.bottlenote.mfds.exception.MfdsExceptionCode;
+import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
+import app.bottlenote.mfds.fixture.MfdsTestData;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
+@Tag("unit")
+@DisplayName("MfdsMatchingService 단위 테스트")
+class MfdsMatchingServiceTest {
+
+  private InMemoryMfdsDeclarationRepository declarationRepository;
+  private FakeAlcoholMatchTargetFacade alcoholMatchTargetFacade;
+  private MfdsMatchingService matchingService;
+
+  @BeforeEach
+  void setUp() {
+    declarationRepository = new InMemoryMfdsDeclarationRepository();
+    alcoholMatchTargetFacade = new FakeAlcoholMatchTargetFacade();
+    matchingService =
+        new MfdsMatchingService(
+            declarationRepository, alcoholMatchTargetFacade, new MfdsMatchingScoreCalculator());
+  }
+
+  @Test
+  @DisplayName("매칭을 실행할 때 점수 상위 3개 후보만 저장한다")
+  void 후보를_3개까지만_저장한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    alcoholMatchTargetFacade.addAlcohol(alcohol(2L, "글렌피딕 12 리저브", "Glenfiddich 12 Reserve"));
+    alcoholMatchTargetFacade.addAlcohol(
+        alcohol(3L, "글렌피딕 12 스페셜 에디션", "Glenfiddich 12 Special Edition"));
+    alcoholMatchTargetFacade.addAlcohol(
+        alcohol(4L, "글렌피딕 12 캐스크 스트렝스 리미티드", "Glenfiddich 12 Cask Strength Limited"));
+
+    MfdsMatchingRunResponse response = matchingService.runMatching(declaration.getId());
+
+    assertThat(response.alcoholCandidates()).hasSize(3);
+    assertThat(response.alcoholCandidates().get(0).alcoholId()).isEqualTo(1L);
+    assertThat(response.alcoholCandidates().get(0).scoreDetail()).isNotNull();
+    assertThat(declaration.getAlcoholCandidates()).hasSize(3);
+    assertThat(declaration.getAlcoholCandidate1Id()).isEqualTo(1L);
+    assertThat(declaration.getAlcoholCandidate1Score())
+        .isGreaterThanOrEqualTo(declaration.getAlcoholCandidate2Score());
+    assertThat(declaration.getAlcoholCandidate2Score())
+        .isGreaterThanOrEqualTo(declaration.getAlcoholCandidate3Score());
+    assertThat(declaration.getMatchingVersion()).isEqualTo(MfdsMatchingService.MATCHING_VERSION);
+    assertThat(declaration.getMatchedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("비교 집합이 비어 있을 때 후보 없이 매칭 이력만 기록한다")
+  void 빈_비교_집합이면_후보없이_기록한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+
+    MfdsMatchingRunResponse response = matchingService.runMatching(declaration.getId());
+
+    assertThat(response.alcoholCandidates()).isEmpty();
+    assertThat(response.distilleryCandidates()).isEmpty();
+    assertThat(response.regionCandidates()).isEmpty();
+    assertThat(declaration.getAlcoholCandidate1Id()).isNull();
+    assertThat(declaration.getMatchingVersion()).isEqualTo(MfdsMatchingService.MATCHING_VERSION);
+    assertThat(declaration.getMatchedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("점수가 기준 미달인 대상은 후보에서 제외한다")
+  void 기준_미달_대상은_후보에서_제외한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "산토리 가쿠빈", "Suntory Kakubin"));
+
+    MfdsMatchingRunResponse response = matchingService.runMatching(declaration.getId());
+
+    assertThat(response.alcoholCandidates()).isEmpty();
+    assertThat(declaration.getAlcoholCandidate1Id()).isNull();
+  }
+
+  @Test
+  @DisplayName("다시 실행할 때 기존 후보를 덮어쓴다")
+  void 재실행시_기존_후보를_덮어쓴다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    matchingService.runMatching(declaration.getId());
+    assertThat(declaration.getAlcoholCandidate1Id()).isEqualTo(1L);
+
+    alcoholMatchTargetFacade.clear();
+    matchingService.runMatching(declaration.getId());
+
+    assertThat(declaration.getAlcoholCandidate1Id()).isNull();
+    assertThat(declaration.getAlcoholCandidate1Score()).isNull();
+  }
+
+  @Test
+  @DisplayName("증류소·지역 이름 후보가 있을 때 함께 매칭한다")
+  void 증류소와_지역도_함께_매칭한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    MfdsTestData.set(declaration, "distilleryNameEnCandidate", "Glenfiddich");
+    MfdsTestData.set(declaration, "manufactureCountryNameEn", "United Kingdom");
+    alcoholMatchTargetFacade.addDistillery(
+        new DistilleryMatchTargetItem(11L, "글렌피딕", "Glenfiddich"));
+    alcoholMatchTargetFacade.addDistillery(new DistilleryMatchTargetItem(12L, "야마자키", "Yamazaki"));
+    alcoholMatchTargetFacade.addRegion(new RegionMatchTargetItem(21L, "영국", "United Kingdom"));
+    alcoholMatchTargetFacade.addRegion(new RegionMatchTargetItem(22L, "일본", "Japan"));
+
+    MfdsMatchingRunResponse response = matchingService.runMatching(declaration.getId());
+
+    assertThat(response.distilleryCandidates()).hasSize(1);
+    assertThat(response.distilleryCandidates().get(0).id()).isEqualTo(11L);
+    assertThat(response.regionCandidates()).hasSize(1);
+    assertThat(response.regionCandidates().get(0).id()).isEqualTo(21L);
+    assertThat(declaration.getDistilleryCandidate1Id()).isEqualTo(11L);
+    assertThat(declaration.getRegionCandidate1Id()).isEqualTo(21L);
+  }
+
+  @Test
+  @DisplayName("저장된 후보를 요약 정보와 함께 조회할 수 있다")
+  void 저장된_후보를_조회할_수_있다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    matchingService.runMatching(declaration.getId());
+
+    MfdsMatchingCandidatesResponse response = matchingService.getCandidates(declaration.getId());
+
+    assertThat(response.alcoholCandidates()).hasSize(1);
+    assertThat(response.alcoholCandidates().get(0).alcoholId()).isEqualTo(1L);
+    assertThat(response.alcoholCandidates().get(0).korName()).isEqualTo("글렌피딕 12");
+    assertThat(response.matchingVersion()).isEqualTo(MfdsMatchingService.MATCHING_VERSION);
+    assertThat(response.selection().alcoholId()).isNull();
+  }
+
+  @Test
+  @DisplayName("후보 안의 ID로 확정할 때 CANDIDATE 결정으로 기록한다")
+  void 후보내_ID_확정시_CANDIDATE로_기록한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    matchingService.runMatching(declaration.getId());
+
+    MfdsMatchingConfirmResponse response =
+        matchingService.confirmMatching(
+            declaration.getId(), new MfdsMatchingConfirmRequest(1L, null, null));
+
+    assertThat(response.selectedAlcoholId()).isEqualTo(1L);
+    assertThat(response.alcoholMatchDecision()).isEqualTo("CANDIDATE");
+    assertThat(declaration.getSelectedAlcoholId()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("후보 밖의 ID로 확정할 때 MANUAL 결정으로 기록한다")
+  void 후보외_ID_확정시_MANUAL로_기록한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    matchingService.runMatching(declaration.getId());
+    alcoholMatchTargetFacade.addAlcohol(alcohol(99L, "발베니 12", "Balvenie 12"));
+
+    MfdsMatchingConfirmResponse response =
+        matchingService.confirmMatching(
+            declaration.getId(), new MfdsMatchingConfirmRequest(99L, null, null));
+
+    assertThat(response.selectedAlcoholId()).isEqualTo(99L);
+    assertThat(response.alcoholMatchDecision()).isEqualTo("MANUAL");
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 주류 ID로 확정할 때 예외를 던진다")
+  void 존재하지_않는_주류로_확정하면_예외가_발생한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+
+    assertThatThrownBy(
+            () ->
+                matchingService.confirmMatching(
+                    declaration.getId(), new MfdsMatchingConfirmRequest(404L, null, null)))
+        .isInstanceOf(MfdsException.class)
+        .hasMessage(MfdsExceptionCode.MFDS_SELECTED_ALCOHOL_NOT_FOUND.getMessage());
+  }
+
+  @Test
+  @DisplayName("확정을 해제할 때 선택 상태만 비우고 후보는 유지한다")
+  void 확정_해제시_선택만_비운다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    matchingService.runMatching(declaration.getId());
+    matchingService.confirmMatching(
+        declaration.getId(), new MfdsMatchingConfirmRequest(1L, null, null));
+
+    MfdsMatchingConfirmResponse response = matchingService.clearMatching(declaration.getId());
+
+    assertThat(response.selectedAlcoholId()).isNull();
+    assertThat(response.alcoholMatchDecision()).isNull();
+    assertThat(declaration.getSelectedAlcoholId()).isNull();
+    assertThat(declaration.getAlcoholCandidate1Id()).isEqualTo(1L);
+    assertThat(declaration.getMatchedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 신고 데이터로 실행할 때 예외를 던진다")
+  void 신고_데이터가_없으면_예외가_발생한다() {
+    assertThatThrownBy(() -> matchingService.runMatching(404L))
+        .isInstanceOf(MfdsException.class)
+        .hasMessage(MfdsExceptionCode.MFDS_DECLARATION_NOT_FOUND.getMessage());
+  }
+
+  private MfdsDeclaration savedDeclaration(String nameKo, String nameEn) {
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, nameKo, nameEn);
+    return declarationRepository.save(declaration);
+  }
+
+  private AlcoholMatchTargetItem alcohol(Long id, String korName, String engName) {
+    return new AlcoholMatchTargetItem(
+        id,
+        korName,
+        engName,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "https://bottlenote.app/alcohol/" + id);
+  }
+}
