@@ -7,7 +7,7 @@ import java.math.BigDecimal;
  *
  * <p>totalScore는 존재하는 요소들의 가중 평균(가중치 재정규화)이다.
  */
-public record MfdsMatchScoreDetail(
+public record MfdsMatchScoreDetailItem(
     BigDecimal nameScore,
     BigDecimal abvScore,
     BigDecimal ageScore,

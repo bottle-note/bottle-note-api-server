@@ -7,7 +7,7 @@ import app.bottlenote.alcohols.facade.payload.DistilleryMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.RegionMatchTargetItem;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
-import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetail;
+import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetailItem;
 import app.bottlenote.mfds.fixture.MfdsTestData;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,7 @@ class MfdsMatchingScoreCalculatorTest {
     MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
     AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 12", "Glenfiddich 12");
 
-    MfdsMatchScoreDetail detail = calculator.scoreAlcohol(declaration, target);
+    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
 
     assertThat(detail.nameScore()).isEqualByComparingTo(BigDecimal.ONE);
     assertThat(detail.totalScore()).isEqualByComparingTo(BigDecimal.ONE);
@@ -38,7 +38,7 @@ class MfdsMatchingScoreCalculatorTest {
     MfdsDeclaration declaration = declaration(null, "glenfiddich 12 special reserve");
     AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 12", "Glenfiddich 12");
 
-    MfdsMatchScoreDetail detail = calculator.scoreAlcohol(declaration, target);
+    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
 
     assertThat(detail.nameScore()).isGreaterThan(BigDecimal.ZERO);
     assertThat(detail.nameScore()).isLessThan(BigDecimal.ONE);
@@ -50,7 +50,7 @@ class MfdsMatchingScoreCalculatorTest {
     MfdsDeclaration declaration = declaration(null, null);
     AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 12", "Glenfiddich 12");
 
-    MfdsMatchScoreDetail detail = calculator.scoreAlcohol(declaration, target);
+    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
 
     assertThat(detail.nameScore()).isNull();
     assertThat(detail.totalScore()).isEqualByComparingTo(BigDecimal.ZERO);
@@ -95,8 +95,8 @@ class MfdsMatchingScoreCalculatorTest {
             null,
             null);
 
-    MfdsMatchScoreDetail matchedDetail = calculator.scoreAlcohol(declaration, abvMatched);
-    MfdsMatchScoreDetail mismatchedDetail = calculator.scoreAlcohol(declaration, abvMismatched);
+    MfdsMatchScoreDetailItem matchedDetail = calculator.scoreAlcohol(declaration, abvMatched);
+    MfdsMatchScoreDetailItem mismatchedDetail = calculator.scoreAlcohol(declaration, abvMismatched);
 
     assertThat(matchedDetail.abvScore()).isEqualByComparingTo(BigDecimal.ONE);
     assertThat(mismatchedDetail.abvScore()).isLessThan(matchedDetail.abvScore());
@@ -109,9 +109,10 @@ class MfdsMatchingScoreCalculatorTest {
     MfdsDeclaration declaration = declaration("글렌피딕", "glenfiddich");
     MfdsTestData.set(declaration, "ageYears", (short) 12);
 
-    MfdsMatchScoreDetail exact = calculator.scoreAlcohol(declaration, alcoholWithAge(1L, "12"));
-    MfdsMatchScoreDetail nearby = calculator.scoreAlcohol(declaration, alcoholWithAge(2L, "13"));
-    MfdsMatchScoreDetail far = calculator.scoreAlcohol(declaration, alcoholWithAge(3L, "18"));
+    MfdsMatchScoreDetailItem exact = calculator.scoreAlcohol(declaration, alcoholWithAge(1L, "12"));
+    MfdsMatchScoreDetailItem nearby =
+        calculator.scoreAlcohol(declaration, alcoholWithAge(2L, "13"));
+    MfdsMatchScoreDetailItem far = calculator.scoreAlcohol(declaration, alcoholWithAge(3L, "18"));
 
     assertThat(exact.ageScore()).isEqualByComparingTo(BigDecimal.ONE);
     assertThat(nearby.ageScore()).isEqualByComparingTo(new BigDecimal("0.5"));
@@ -141,7 +142,7 @@ class MfdsMatchingScoreCalculatorTest {
             null,
             null);
 
-    MfdsMatchScoreDetail detail = calculator.scoreAlcohol(declaration, target);
+    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
 
     assertThat(detail.categoryScore()).isEqualByComparingTo(BigDecimal.ONE);
   }
