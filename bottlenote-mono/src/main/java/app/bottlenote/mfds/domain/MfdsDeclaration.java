@@ -286,10 +286,10 @@ public class MfdsDeclaration {
   @Column(name = "manufacture_country_name_en", length = 128)
   private String manufactureCountryNameEn;
 
-  @Column(name = "manufacture_country_alpha2", length = 2)
+  @Column(name = "manufacture_country_alpha2", length = 2, columnDefinition = "CHAR(2)")
   private String manufactureCountryAlpha2;
 
-  @Column(name = "manufacture_country_alpha3", length = 3)
+  @Column(name = "manufacture_country_alpha3", length = 3, columnDefinition = "CHAR(3)")
   private String manufactureCountryAlpha3;
 
   @Column(name = "export_country_name_ko", length = 128)
@@ -298,10 +298,10 @@ public class MfdsDeclaration {
   @Column(name = "export_country_name_en", length = 128)
   private String exportCountryNameEn;
 
-  @Column(name = "export_country_alpha2", length = 2)
+  @Column(name = "export_country_alpha2", length = 2, columnDefinition = "CHAR(2)")
   private String exportCountryAlpha2;
 
-  @Column(name = "export_country_alpha3", length = 3)
+  @Column(name = "export_country_alpha3", length = 3, columnDefinition = "CHAR(3)")
   private String exportCountryAlpha3;
 
   @Enumerated(EnumType.STRING)
