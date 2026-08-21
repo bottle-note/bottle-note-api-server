@@ -56,7 +56,6 @@ class LocationInfoTest {
     LocationInfo actual = LocationInfo.from(reviewLocation);
 
     assertThat(actual)
-        .isEqualTo(
-            new LocationInfo("도시술", null, "서울 송파구", null, null, null, null, null));
+        .isEqualTo(new LocationInfo("도시술", null, "서울 송파구", null, null, null, null, null));
   }
 }

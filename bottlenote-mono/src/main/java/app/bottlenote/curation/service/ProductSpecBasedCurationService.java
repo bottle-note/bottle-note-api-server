@@ -3,6 +3,7 @@ package app.bottlenote.curation.service;
 import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_NOT_FOUND;
 import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_SPEC_NOT_FOUND;
 
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.curation.domain.CurationExtension;
 import app.bottlenote.curation.domain.CurationExtensionRepository;
@@ -10,9 +11,7 @@ import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
-import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.curation.dto.request.CurationFeedSearchRequest;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.response.CurationFeedListResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
@@ -23,6 +22,7 @@ import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
+import app.bottlenote.global.service.cursor.SortOrder;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -75,7 +75,14 @@ public class ProductSpecBasedCurationService {
     CurationSortType sortType = request.sortType();
     SortOrder sortOrder = request.sortOrder();
     String context =
-        "curation.feed:" + normalizedCodes + ":" + request.keyword() + ":" + sortType + ":" + sortOrder;
+        "curation.feed:"
+            + normalizedCodes
+            + ":"
+            + request.keyword()
+            + ":"
+            + sortType
+            + ":"
+            + sortOrder;
     LocalDate lastExposureStartDate = null;
     Integer lastDisplayOrder = null;
     Long lastId = null;
@@ -132,12 +139,7 @@ public class ProductSpecBasedCurationService {
             .toList();
     var slice =
         KeysetPagination.fromOverflow(
-            items,
-            pageSize,
-            item ->
-                cursorCodec.encode(
-                    context,
-                    cursorKeys(item, sortType)));
+            items, pageSize, item -> cursorCodec.encode(context, cursorKeys(item, sortType)));
     return KeysetPageResponse.of(new CurationFeedListResponse(slice.items()), slice.pagination());
   }
 
@@ -291,7 +293,8 @@ public class ProductSpecBasedCurationService {
   private Map<String, String> cursorKeys(
       ProductSpecBasedCurationFeedItemResponse item, CurationSortType sortType) {
     if (sortType == CurationSortType.DISPLAY_ORDER) {
-      return Map.of("displayOrder", String.valueOf(item.displayOrder()), "id", String.valueOf(item.id()));
+      return Map.of(
+          "displayOrder", String.valueOf(item.displayOrder()), "id", String.valueOf(item.id()));
     }
     if (item.exposureStartDate() == null) {
       return Map.of("id", String.valueOf(item.id()));

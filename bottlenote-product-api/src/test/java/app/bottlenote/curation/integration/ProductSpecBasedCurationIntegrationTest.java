@@ -312,7 +312,8 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("Product feed 기본 날짜 내림차순은 같은 노출 시작일 fixture를 ID 내림차순으로 cursor 페이지한다")
-    void searchFeed_whenDefaultDateDescending_pagesSameDateFixturesByDescendingId() throws Exception {
+    void searchFeed_whenDefaultDateDescending_pagesSameDateFixturesByDescendingId()
+        throws Exception {
       // given
       for (int i = 0; i < 12; i++) {
         createCuration("노출 " + i, "페이지 경계", i, true, List.of(manualItem("위스키 " + i)));
@@ -372,22 +373,25 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       assertThat(secondPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 1");
       assertThat(secondMeta.path("hasNext").asBoolean()).isFalse();
     }
+
     @Test
     @DisplayName("Product feed HTTP는 선택 정렬 query를 바인딩하고 알 수 없는 enum을 400으로 거부한다")
     void searchFeed_bindsSelectableSortQueriesAndRejectsInvalidEnum() throws Exception {
       Long lowerOrder = createCuration("낮은 순서", 1, true, List.of(manualItem("낮음")));
       Long higherOrder = createCuration("높은 순서", 9, true, List.of(manualItem("높음")));
 
-      MvcTestResult sorted = mockMvcTester.get()
-          .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&sortType=DISPLAY_ORDER&sortOrder=DESC&size=10")
-          .exchange();
+      MvcTestResult sorted =
+          mockMvcTester
+              .get()
+              .uri(
+                  "/api/v2/curations/feed?code=RECOMMENDED_WHISKY&sortType=DISPLAY_ORDER&sortOrder=DESC&size=10")
+              .exchange();
 
       assertThat(dataNode(sorted).path("items").get(0).path("id").asLong()).isEqualTo(higherOrder);
       assertThat(dataNode(sorted).path("items").get(1).path("id").asLong()).isEqualTo(lowerOrder);
       assertInvalidSortQuery("sortType", "UNKNOWN");
       assertInvalidSortQuery("sortOrder", "UNKNOWN");
     }
-
   }
 
   @Nested

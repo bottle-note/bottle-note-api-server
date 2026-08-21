@@ -38,7 +38,8 @@ public class ProductSpecBasedCurationController {
   @GetMapping("/feed")
   public ResponseEntity<GlobalResponse> getCurationFeed(
       @ModelAttribute @Valid CurationFeedSearchRequest request) {
-    KeysetPageResponse<CurationFeedListResponse> page = productSpecBasedCurationService.searchFeed(request);
+    KeysetPageResponse<CurationFeedListResponse> page =
+        productSpecBasedCurationService.searchFeed(request);
     return GlobalResponse.ok(
         page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }

@@ -1,9 +1,9 @@
 package app.bottlenote.curation.controller.docs;
 
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
-import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

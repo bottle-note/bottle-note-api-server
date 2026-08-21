@@ -3,12 +3,11 @@ package app.bottlenote.curation.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.curation.domain.CurationExtension;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
 import app.bottlenote.curation.dto.request.CurationSearchRequest;
-import app.bottlenote.curation.constant.CurationSortType;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.request.CurationUpdateRequest;
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.CurationFeedItemResponse;
@@ -19,6 +18,7 @@ import app.bottlenote.curation.fixture.InMemoryCurationExtensionRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationSpecRepository;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
@@ -415,20 +415,77 @@ class AdminSpecBasedCurationServiceTest {
   @DisplayName("Admin 목록은 선택한 sortType과 sortOrder의 2x2 matrix로 정렬한다")
   void search_appliesSelectableSortMatrix() {
     CurationSpec spec = createSpec();
-    Long nullDate = adminSpecBasedCurationService.create(createRequest(spec.getId(), "null", 20, true, null, null)).targetId();
-    Long dateLow = adminSpecBasedCurationService.create(createRequest(spec.getId(), "date-low", 10, true, LocalDate.now().minusDays(2), LocalDate.now().plusDays(1))).targetId();
-    Long dateHigh = adminSpecBasedCurationService.create(createRequest(spec.getId(), "date-high", 10, true, LocalDate.now().minusDays(2), LocalDate.now().plusDays(1))).targetId();
-    Long newer = adminSpecBasedCurationService.create(createRequest(spec.getId(), "newer", 5, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1))).targetId();
+    Long nullDate =
+        adminSpecBasedCurationService
+            .create(createRequest(spec.getId(), "null", 20, true, null, null))
+            .targetId();
+    Long dateLow =
+        adminSpecBasedCurationService
+            .create(
+                createRequest(
+                    spec.getId(),
+                    "date-low",
+                    10,
+                    true,
+                    LocalDate.now().minusDays(2),
+                    LocalDate.now().plusDays(1)))
+            .targetId();
+    Long dateHigh =
+        adminSpecBasedCurationService
+            .create(
+                createRequest(
+                    spec.getId(),
+                    "date-high",
+                    10,
+                    true,
+                    LocalDate.now().minusDays(2),
+                    LocalDate.now().plusDays(1)))
+            .targetId();
+    Long newer =
+        adminSpecBasedCurationService
+            .create(
+                createRequest(
+                    spec.getId(),
+                    "newer",
+                    5,
+                    true,
+                    LocalDate.now().minusDays(1),
+                    LocalDate.now().plusDays(1)))
+            .targetId();
 
-    GlobalResponse dateAsc = adminSpecBasedCurationService.search(new CurationSearchRequest(null, null, null, 0, 20, CurationSortType.EXPOSURE_START_DATE, SortOrder.ASC));
-    GlobalResponse dateDesc = adminSpecBasedCurationService.search(new CurationSearchRequest(null, null, null, 0, 20, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC));
-    GlobalResponse displayAsc = adminSpecBasedCurationService.search(new CurationSearchRequest(null, null, null, 0, 20, CurationSortType.DISPLAY_ORDER, SortOrder.ASC));
-    GlobalResponse displayDesc = adminSpecBasedCurationService.search(new CurationSearchRequest(null, null, null, 0, 20, CurationSortType.DISPLAY_ORDER, SortOrder.DESC));
+    GlobalResponse dateAsc =
+        adminSpecBasedCurationService.search(
+            new CurationSearchRequest(
+                null, null, null, 0, 20, CurationSortType.EXPOSURE_START_DATE, SortOrder.ASC));
+    GlobalResponse dateDesc =
+        adminSpecBasedCurationService.search(
+            new CurationSearchRequest(
+                null, null, null, 0, 20, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC));
+    GlobalResponse displayAsc =
+        adminSpecBasedCurationService.search(
+            new CurationSearchRequest(
+                null, null, null, 0, 20, CurationSortType.DISPLAY_ORDER, SortOrder.ASC));
+    GlobalResponse displayDesc =
+        adminSpecBasedCurationService.search(
+            new CurationSearchRequest(
+                null, null, null, 0, 20, CurationSortType.DISPLAY_ORDER, SortOrder.DESC));
 
-    assertThat(dateAsc.getData()).asList().extracting("id").containsExactly(dateLow, dateHigh, newer, nullDate);
-    assertThat(dateDesc.getData()).asList().extracting("id").containsExactly(newer, dateHigh, dateLow, nullDate);
-    assertThat(displayAsc.getData()).asList().extracting("id").containsExactly(newer, dateLow, dateHigh, nullDate);
-    assertThat(displayDesc.getData()).asList().extracting("id").containsExactly(nullDate, dateHigh, dateLow, newer);
+    assertThat(dateAsc.getData())
+        .asList()
+        .extracting("id")
+        .containsExactly(dateLow, dateHigh, newer, nullDate);
+    assertThat(dateDesc.getData())
+        .asList()
+        .extracting("id")
+        .containsExactly(newer, dateHigh, dateLow, nullDate);
+    assertThat(displayAsc.getData())
+        .asList()
+        .extracting("id")
+        .containsExactly(newer, dateLow, dateHigh, nullDate);
+    assertThat(displayDesc.getData())
+        .asList()
+        .extracting("id")
+        .containsExactly(nullDate, dateHigh, dateLow, newer);
   }
 
   @Test

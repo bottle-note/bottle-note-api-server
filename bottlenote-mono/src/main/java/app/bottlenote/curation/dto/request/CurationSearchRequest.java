@@ -17,7 +17,8 @@ public record CurationSearchRequest(
     this(keyword, null, isActive, page, size, null, null);
   }
 
-  public CurationSearchRequest(String keyword, String code, Boolean isActive, Integer page, Integer size) {
+  public CurationSearchRequest(
+      String keyword, String code, Boolean isActive, Integer page, Integer size) {
     this(keyword, code, isActive, page, size, null, null);
   }
 

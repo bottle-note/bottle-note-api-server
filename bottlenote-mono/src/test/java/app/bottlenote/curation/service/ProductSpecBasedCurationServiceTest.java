@@ -3,12 +3,10 @@ package app.bottlenote.curation.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.constant.CurationSortType;
+import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
 import app.bottlenote.curation.dto.request.CurationFeedSearchRequest;
-import app.bottlenote.global.pagination.PaginationException;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.exception.CurationExceptionCode;
@@ -18,6 +16,8 @@ import app.bottlenote.curation.fixture.InMemoryCurationRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationSpecRepository;
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PaginationException;
+import app.bottlenote.global.service.cursor.SortOrder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -203,13 +203,28 @@ class ProductSpecBasedCurationServiceTest {
     Long nullDateId = createCuration(spec.getId(), "null 날짜", 1, true, null, null);
     Long olderId =
         createCuration(
-            spec.getId(), "오래된 날짜", 2, true, LocalDate.now().minusDays(5), LocalDate.now().plusDays(1));
+            spec.getId(),
+            "오래된 날짜",
+            2,
+            true,
+            LocalDate.now().minusDays(5),
+            LocalDate.now().plusDays(1));
     Long sameDateLowerId =
         createCuration(
-            spec.getId(), "같은 날짜 낮은 ID", 3, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+            spec.getId(),
+            "같은 날짜 낮은 ID",
+            3,
+            true,
+            LocalDate.now().minusDays(1),
+            LocalDate.now().plusDays(1));
     Long sameDateHigherId =
         createCuration(
-            spec.getId(), "같은 날짜 높은 ID", 4, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+            spec.getId(),
+            "같은 날짜 높은 ID",
+            4,
+            true,
+            LocalDate.now().minusDays(1),
+            LocalDate.now().plusDays(1));
 
     var firstPage = productService.searchFeed(null, List.of(spec.getCode()), null, 2);
     var secondPage =
@@ -226,20 +241,47 @@ class ProductSpecBasedCurationServiceTest {
 
   @Test
   @DisplayName("Product feed는 선택한 2x2 정렬 matrix로 날짜 null-last, displayOrder 동률과 cursor 연속성을 유지한다")
-  void searchFeed_appliesSelectableSortMatrixAndRejectsMismatchedCursorContext() throws IOException {
+  void searchFeed_appliesSelectableSortMatrixAndRejectsMismatchedCursorContext()
+      throws IOException {
     CurationSpec spec = createSpec();
     Long nullDate = createCuration(spec.getId(), "null", 20, true, null, null);
-    Long sameDateLowerId = createCuration(spec.getId(), "date-low", 10, true, LocalDate.now().minusDays(2), LocalDate.now().plusDays(1));
-    Long sameDateHigherId = createCuration(spec.getId(), "date-high", 10, true, LocalDate.now().minusDays(2), LocalDate.now().plusDays(1));
-    Long newer = createCuration(spec.getId(), "newer", 5, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+    Long sameDateLowerId =
+        createCuration(
+            spec.getId(),
+            "date-low",
+            10,
+            true,
+            LocalDate.now().minusDays(2),
+            LocalDate.now().plusDays(1));
+    Long sameDateHigherId =
+        createCuration(
+            spec.getId(),
+            "date-high",
+            10,
+            true,
+            LocalDate.now().minusDays(2),
+            LocalDate.now().plusDays(1));
+    Long newer =
+        createCuration(
+            spec.getId(),
+            "newer",
+            5,
+            true,
+            LocalDate.now().minusDays(1),
+            LocalDate.now().plusDays(1));
 
-    List<Long> dateAsc = collectAllFeedIds(spec.getCode(), CurationSortType.EXPOSURE_START_DATE, SortOrder.ASC, 4);
-    List<Long> dateDesc = collectAllFeedIds(spec.getCode(), CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC, 4);
-    List<Long> displayAsc = collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.ASC, 4);
-    List<Long> displayDesc = collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.DESC, 4);
+    List<Long> dateAsc =
+        collectAllFeedIds(spec.getCode(), CurationSortType.EXPOSURE_START_DATE, SortOrder.ASC, 4);
+    List<Long> dateDesc =
+        collectAllFeedIds(spec.getCode(), CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC, 4);
+    List<Long> displayAsc =
+        collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.ASC, 4);
+    List<Long> displayDesc =
+        collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.DESC, 4);
     var dateDescFirst =
         productService.searchFeed(
-            feedRequest(spec.getCode(), null, 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC));
+            feedRequest(
+                spec.getCode(), null, 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC));
 
     assertThat(dateAsc).containsExactly(sameDateLowerId, sameDateHigherId, newer, nullDate);
     assertThat(dateDesc).containsExactly(newer, sameDateHigherId, sameDateLowerId, nullDate);
@@ -263,7 +305,8 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   private List<Long> collectAllFeedIds(
-      String code, CurationSortType sortType, SortOrder sortOrder, int expectedSize) throws IOException {
+      String code, CurationSortType sortType, SortOrder sortOrder, int expectedSize)
+      throws IOException {
     List<Long> ids = new ArrayList<>();
     String cursor = null;
     do {

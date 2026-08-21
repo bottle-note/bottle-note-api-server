@@ -22,7 +22,11 @@ class CurationSortOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
             .findFirst()
             .orElseThrow();
 
-    assertSortParameter(operation, "sortType", List.of("EXPOSURE_START_DATE", "DISPLAY_ORDER"), "EXPOSURE_START_DATE");
+    assertSortParameter(
+        operation,
+        "sortType",
+        List.of("EXPOSURE_START_DATE", "DISPLAY_ORDER"),
+        "EXPOSURE_START_DATE");
     assertSortParameter(operation, "sortOrder", List.of("ASC", "DESC"), "DESC");
   }
 
@@ -36,7 +40,10 @@ class CurationSortOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
             .path("schema");
 
     assertThat(schema.path("type").asText()).isEqualTo("string");
-    assertThat(StreamSupport.stream(schema.path("enum").spliterator(), false).map(JsonNode::asText).toList())
+    assertThat(
+            StreamSupport.stream(schema.path("enum").spliterator(), false)
+                .map(JsonNode::asText)
+                .toList())
         .containsExactlyInAnyOrderElementsOf(expectedEnum);
     assertThat(schema.path("default").asText()).isEqualTo(expectedDefault);
   }

@@ -91,8 +91,7 @@ class ExploreRatingRangeIntegrationTest extends IntegrationTestSupport {
     Review low = persistReview(user, alcohol, "단일경계리뷰 낮음", 2.5);
     Review high = persistReview(user, alcohol, "단일경계리뷰 높음", 4.5);
 
-    MvcTestResult fromResult =
-        get(REVIEW_ENDPOINT, "keyword", "단일경계리뷰", "ratingFrom", "4.0");
+    MvcTestResult fromResult = get(REVIEW_ENDPOINT, "keyword", "단일경계리뷰", "ratingFrom", "4.0");
     MvcTestResult toResult = get(REVIEW_ENDPOINT, "keyword", "단일경계리뷰", "ratingTo", "3.0");
 
     fromResult
@@ -128,8 +127,7 @@ class ExploreRatingRangeIntegrationTest extends IntegrationTestSupport {
             .ratingPoint(RatingPoint.of(rating)));
   }
 
-  private Review persistReview(
-      User user, Alcohol alcohol, String content, double reviewRating) {
+  private Review persistReview(User user, Alcohol alcohol, String content, double reviewRating) {
     return reviewTestFactory.persistReview(
         Review.builder()
             .userId(user.getId())

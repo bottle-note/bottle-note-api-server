@@ -26,9 +26,9 @@ import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.like.constant.LikeStatus;
+import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
@@ -385,7 +385,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 review.reviewLocation.latitude,
                 review.reviewLocation.longitude)
             .having(keysetSeek(criteria.sortType(), criteria.sortOrder(), cursorClaims))
-            .orderBy(sortBy(criteria.sortType(), criteria.sortOrder()).toArray(new OrderSpecifier[0]))
+            .orderBy(
+                sortBy(criteria.sortType(), criteria.sortOrder()).toArray(new OrderSpecifier[0]))
             .limit(fetchSize)
             .fetch();
 
@@ -453,8 +454,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             items,
             size,
             item ->
-                cursorCodec.encode(context, cursorKeys(criteria.sortType(), cursorItems.get(item.reviewId()))));
+                cursorCodec.encode(
+                    context, cursorKeys(criteria.sortType(), cursorItems.get(item.reviewId()))));
     return KeysetPageResponse.of(new ReviewExploreListResponse(slice.items()), slice.pagination());
   }
-
 }
