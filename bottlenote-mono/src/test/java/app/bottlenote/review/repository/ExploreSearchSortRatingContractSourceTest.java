@@ -23,11 +23,23 @@ class ExploreSearchSortRatingContractSourceTest {
     String repository = read("bottlenote-mono/src/main/java/app/bottlenote/review/repository/CustomReviewRepositoryImpl.java");
 
     assertThat(request)
-        .contains("String keyword", "List<String> keywords", "ReviewSortType sortType", "SortOrder sortOrder", "BigDecimal rating")
+        .contains(
+            "String keyword",
+            "List<String> keywords",
+            "ReviewSortType sortType",
+            "SortOrder sortOrder",
+            "BigDecimal ratingFrom",
+            "BigDecimal ratingTo")
         .contains("ReviewSortType.LATEST", "EXPLORE_KEYWORD_CONFLICT", "EXPLORE_RATING_INVALID");
-    assertThat(criteria).contains("effectiveKeywords", "sortType", "sortOrder", "rating");
+    assertThat(criteria)
+        .contains("effectiveKeywords", "sortType", "sortOrder", "ratingFrom", "ratingTo");
     assertThat(repository)
-        .contains("criteria.effectiveKeywords()", "criteria.rating()", "criteria.sortType()", "criteria.sortOrder()")
+        .contains(
+            "criteria.effectiveKeywords()",
+            "criteria.ratingFrom()",
+            "criteria.ratingTo()",
+            "criteria.sortType()",
+            "criteria.sortOrder()")
         .contains("keysetSeek(criteria.sortType(), criteria.sortOrder()")
         .doesNotContain(".orderBy(review.createAt.desc(), review.id.desc())");
   }
@@ -39,18 +51,19 @@ class ExploreSearchSortRatingContractSourceTest {
     String criteria = read("bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/dsl/ExploreStandardCriteria.java");
     String repository = read("bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/CustomAlcoholQueryRepositoryImpl.java");
 
-    assertThat(request).contains("BigDecimal rating", "EXPLORE_RATING_INVALID");
-    assertThat(criteria).contains("BigDecimal rating", "request.rating()");
+    assertThat(request)
+        .contains("BigDecimal ratingFrom", "BigDecimal ratingTo", "EXPLORE_RATING_INVALID");
+    assertThat(criteria)
+        .contains("BigDecimal ratingFrom", "BigDecimal ratingTo", "request.ratingFrom()", "request.ratingTo()");
     assertThat(repository)
-        .contains("displayedRating()", "ratingMatches(BigDecimal rating)")
-        .contains(".having(", "ratingMatches(criteria.rating())");
+        .contains("displayedRating()", "ratingInRange(BigDecimal from, BigDecimal to)")
+        .contains(".having(", "ratingInRange(criteria.ratingFrom(), criteria.ratingTo())");
 
     String randomBranch = extractRandomBranch(repository);
     assertThat(randomBranch)
-        .contains("if (criteria.rating() != null)")
-        .contains("leftJoin(rating)", "ratingMatches(criteria.rating())")
-        .contains("groupBy(alcohol.id)", "randomSeek(claims, crc)")
-        .doesNotContain("criteria.rating() == null");
+        .contains("if (criteria.hasRatingRange())")
+        .contains("leftJoin(rating)", "ratingInRange(criteria.ratingFrom(), criteria.ratingTo())")
+        .contains("groupBy(alcohol.id)", "randomSeek(claims, crc)");
   }
 
   private static String extractRandomBranch(String source) {

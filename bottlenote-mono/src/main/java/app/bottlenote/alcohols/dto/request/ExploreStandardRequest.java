@@ -4,6 +4,8 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.pagination.PaginationRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.global.validation.RatingRangeValidator;
+
 import jakarta.validation.constraints.AssertTrue;
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,7 +32,8 @@ public record ExploreStandardRequest(
     Long curationId,
     SearchSortType sortType,
     SortOrder sortOrder,
-    BigDecimal rating,
+    BigDecimal ratingFrom,
+    BigDecimal ratingTo,
     String cursor,
     Integer size) {
 
@@ -50,10 +53,7 @@ public record ExploreStandardRequest(
   }
 
   @AssertTrue(message = "EXPLORE_RATING_INVALID")
-  public boolean hasValidRating() {
-    return rating == null
-        || (rating.compareTo(new BigDecimal("0.5")) >= 0
-            && rating.compareTo(new BigDecimal("5.0")) <= 0
-            && rating.remainder(new BigDecimal("0.5")).compareTo(BigDecimal.ZERO) == 0);
+  public boolean hasValidRatingRange() {
+    return RatingRangeValidator.isValid(ratingFrom, ratingTo);
   }
 }

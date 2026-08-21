@@ -356,7 +356,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 review.activeStatus.eq(ACTIVE),
                 review.status.eq(PUBLIC),
                 containsKeywordInAll(criteria.effectiveKeywords()),
-                criteria.rating() == null ? null : review.reviewRating.eq(criteria.rating().doubleValue()))
+                criteria.ratingFrom() == null
+                    ? null
+                    : review.reviewRating.goe(criteria.ratingFrom().doubleValue()),
+                criteria.ratingTo() == null
+                    ? null
+                    : review.reviewRating.loe(criteria.ratingTo().doubleValue()))
             .groupBy(
                 review.id,
                 review.content,

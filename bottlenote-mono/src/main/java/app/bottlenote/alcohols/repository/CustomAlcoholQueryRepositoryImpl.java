@@ -305,7 +305,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
     if (sortType == SearchSortType.RANDOM) {
       NumberExpression<Long> crc = supporter.crc32Rank(criteria.seed());
-      if (criteria.rating() != null) {
+      if (criteria.hasRatingRange()) {
         List<Tuple> rows =
             queryFactory
                 .select(alcohol.id, crc)
@@ -325,7 +325,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     supporter.isNotDeleted(),
                     randomSeek(claims, crc))
                 .groupBy(alcohol.id)
-                .having(ratingMatches(criteria.rating()))
+                .having(ratingInRange(criteria.ratingFrom(), criteria.ratingTo()))
                 .orderBy(crc.asc(), alcohol.id.asc())
                 .limit(fetchSize)
                 .fetch();
@@ -362,7 +362,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id));
-    if (needsRatingJoin(sortType) || criteria.rating() != null) {
+    if (needsRatingJoin(sortType) || criteria.hasRatingRange()) {
       query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
     }
     if (needsReviewJoin(sortType)) {
@@ -382,7 +382,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 supporter.isNotDeleted())
             .groupBy(alcohol.id)
             .having(
-                ratingMatches(criteria.rating()),
+                ratingInRange(criteria.ratingFrom(), criteria.ratingTo()),
                 aggregateSeek(claims, sortType, criteria.sortOrder(), sortScore))
             .orderBy(supporter.sortBy(sortType, criteria.sortOrder()), alcohol.id.asc())
             .limit(fetchSize)
@@ -450,8 +450,14 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         .coalesce(0.0);
   }
 
-  private static BooleanExpression ratingMatches(BigDecimal rating) {
-    return rating == null ? null : displayedRating().eq(rating.doubleValue());
+  private static BooleanExpression ratingInRange(BigDecimal from, BigDecimal to) {
+    BooleanExpression lower = from == null ? null : displayedRating().goe(from.doubleValue());
+    BooleanExpression upper = to == null ? null : displayedRating().loe(to.doubleValue());
+    BooleanExpression hasRating = rating.id.count().gt(0L);
+    if (lower == null) {
+      return upper == null ? null : hasRating.and(upper);
+    }
+    return hasRating.and(upper == null ? lower : lower.and(upper));
   }
 
   private static boolean needsRatingJoin(SearchSortType sortType) {
