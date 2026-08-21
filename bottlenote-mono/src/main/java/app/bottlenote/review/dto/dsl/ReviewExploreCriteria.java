@@ -13,7 +13,8 @@ public record ReviewExploreCriteria(
     List<String> keywords,
     ReviewSortType sortType,
     SortOrder sortOrder,
-    BigDecimal rating,
+    BigDecimal ratingFrom,
+    BigDecimal ratingTo,
     String cursor,
     Integer size) {
 
@@ -24,7 +25,8 @@ public record ReviewExploreCriteria(
         request.keywords(),
         request.sortType(),
         request.sortOrder(),
-        request.rating(),
+        request.ratingFrom(),
+        request.ratingTo(),
         request.cursor(),
         request.size());
   }
@@ -43,6 +45,8 @@ public record ReviewExploreCriteria(
         + ":"
         + sortOrder
         + ":"
-        + rating;
+        + ratingFrom
+        + ":"
+        + ratingTo;
   }
 }

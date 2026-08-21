@@ -21,7 +21,8 @@ public record ExploreStandardCriteria(
     Long curationId,
     SearchSortType sortType,
     SortOrder sortOrder,
-    BigDecimal rating,
+    BigDecimal ratingFrom,
+    BigDecimal ratingTo,
     Long seed,
     String cursor,
     Integer size) {
@@ -36,7 +37,8 @@ public record ExploreStandardCriteria(
         request.curationId(),
         request.sortType(),
         request.sortOrder(),
-        request.rating(),
+        request.ratingFrom(),
+        request.ratingTo(),
         seed,
         request.cursor(),
         request.size());
@@ -60,6 +62,12 @@ public record ExploreStandardCriteria(
         + ":"
         + sortOrder
         + ":"
-        + rating;
+        + ratingFrom
+        + ":"
+        + ratingTo;
+  }
+
+  public boolean hasRatingRange() {
+    return ratingFrom != null || ratingTo != null;
   }
 }

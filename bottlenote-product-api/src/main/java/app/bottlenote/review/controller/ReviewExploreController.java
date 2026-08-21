@@ -61,8 +61,12 @@ public class ReviewExploreController {
         description = "ASC 또는 DESC. 기본값은 DESC입니다.",
         schema = @Schema(type = "string", allowableValues = {"ASC", "DESC"}, defaultValue = "DESC")),
     @Parameter(
-        name = "rating",
-        description = "0.5부터 5.0까지 0.5 단위의 작성 평점 필터",
+        name = "ratingFrom",
+        description = "작성 평점 포함 하한. 0.5부터 5.0까지 0.5 단위입니다.",
+        schema = @Schema(type = "number", minimum = "0.5", maximum = "5.0", multipleOf = 0.5)),
+    @Parameter(
+        name = "ratingTo",
+        description = "작성 평점 포함 상한. 0.5부터 5.0까지 0.5 단위입니다.",
         schema = @Schema(type = "number", minimum = "0.5", maximum = "5.0", multipleOf = 0.5))
   })
   public ResponseEntity<GlobalResponse> getStandardExplore(

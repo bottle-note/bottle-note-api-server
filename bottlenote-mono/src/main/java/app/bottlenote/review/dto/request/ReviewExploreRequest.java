@@ -2,6 +2,7 @@ package app.bottlenote.review.dto.request;
 
 import app.bottlenote.global.pagination.PaginationRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.global.validation.RatingRangeValidator;
 import app.bottlenote.review.constant.ReviewSortType;
 import jakarta.validation.constraints.AssertTrue;
 import java.math.BigDecimal;
@@ -13,7 +14,8 @@ public record ReviewExploreRequest(
     List<String> keywords,
     ReviewSortType sortType,
     SortOrder sortOrder,
-    BigDecimal rating,
+    BigDecimal ratingFrom,
+    BigDecimal ratingTo,
     String cursor,
     Integer size) {
 
@@ -37,10 +39,7 @@ public record ReviewExploreRequest(
   }
 
   @AssertTrue(message = "EXPLORE_RATING_INVALID")
-  public boolean hasValidRating() {
-    return rating == null
-        || (rating.compareTo(new BigDecimal("0.5")) >= 0
-            && rating.compareTo(new BigDecimal("5.0")) <= 0
-            && rating.remainder(new BigDecimal("0.5")).compareTo(BigDecimal.ZERO) == 0);
+  public boolean hasValidRatingRange() {
+    return RatingRangeValidator.isValid(ratingFrom, ratingTo);
   }
 }

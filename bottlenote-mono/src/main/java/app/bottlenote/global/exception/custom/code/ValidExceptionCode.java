@@ -65,7 +65,8 @@ public enum ValidExceptionCode implements ExceptionCode {
 
   // RATING
   RATING_REQUIRED(HttpStatus.BAD_REQUEST, "별점은 필수입니다."),
-  EXPLORE_RATING_INVALID(HttpStatus.BAD_REQUEST, "둘러보기 별점은 0.5 이상 5.0 이하의 0.5 단위여야 합니다."),
+  EXPLORE_RATING_INVALID(
+      HttpStatus.BAD_REQUEST, "둘러보기 별점 범위는 0.5 이상 5.0 이하의 0.5 단위이며 하한이 상한보다 클 수 없습니다."),
   EXPLORE_KEYWORD_CONFLICT(HttpStatus.BAD_REQUEST, "keyword와 keywords는 함께 사용할 수 없습니다."),
 
   // USER,
