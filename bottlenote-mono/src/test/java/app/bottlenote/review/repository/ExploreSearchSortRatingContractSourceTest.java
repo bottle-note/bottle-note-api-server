@@ -18,9 +18,15 @@ class ExploreSearchSortRatingContractSourceTest {
   @Test
   @DisplayName("리뷰 둘러보기는 신규 keyword·정렬·rating을 criteria와 keyset 쿼리까지 전달한다")
   void review_explore_contract_is_wired_end_to_end() throws IOException {
-    String request = read("bottlenote-mono/src/main/java/app/bottlenote/review/dto/request/ReviewExploreRequest.java");
-    String criteria = read("bottlenote-mono/src/main/java/app/bottlenote/review/dto/dsl/ReviewExploreCriteria.java");
-    String repository = read("bottlenote-mono/src/main/java/app/bottlenote/review/repository/CustomReviewRepositoryImpl.java");
+    String request =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/review/dto/request/ReviewExploreRequest.java");
+    String criteria =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/review/dto/dsl/ReviewExploreCriteria.java");
+    String repository =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/review/repository/CustomReviewRepositoryImpl.java");
 
     assertThat(request)
         .contains(
@@ -47,14 +53,24 @@ class ExploreSearchSortRatingContractSourceTest {
   @Test
   @DisplayName("위스키 둘러보기 rating은 목록 표시와 같은 반올림 집계값으로 후보 단계에서 필터링한다")
   void alcohol_explore_rating_uses_displayed_aggregate() throws IOException {
-    String request = read("bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/request/ExploreStandardRequest.java");
-    String criteria = read("bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/dsl/ExploreStandardCriteria.java");
-    String repository = read("bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/CustomAlcoholQueryRepositoryImpl.java");
+    String request =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/request/ExploreStandardRequest.java");
+    String criteria =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/dsl/ExploreStandardCriteria.java");
+    String repository =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/CustomAlcoholQueryRepositoryImpl.java");
 
     assertThat(request)
         .contains("BigDecimal ratingFrom", "BigDecimal ratingTo", "EXPLORE_RATING_INVALID");
     assertThat(criteria)
-        .contains("BigDecimal ratingFrom", "BigDecimal ratingTo", "request.ratingFrom()", "request.ratingTo()");
+        .contains(
+            "BigDecimal ratingFrom",
+            "BigDecimal ratingTo",
+            "request.ratingFrom()",
+            "request.ratingTo()");
     assertThat(repository)
         .contains("displayedRating()", "ratingInRange(BigDecimal from, BigDecimal to)")
         .contains(".having(", "ratingInRange(criteria.ratingFrom(), criteria.ratingTo())");

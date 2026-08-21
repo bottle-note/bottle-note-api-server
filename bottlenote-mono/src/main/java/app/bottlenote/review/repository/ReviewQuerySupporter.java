@@ -134,9 +134,7 @@ public class ReviewQuerySupporter {
       // 좋아요 순
       case LIKES ->
           Arrays.asList(
-              sortOrder == DESC ? likesCount.desc() : likesCount.asc(),
-              createAt,
-              reviewId);
+              sortOrder == DESC ? likesCount.desc() : likesCount.asc(), createAt, reviewId);
 
       // 별점 순 — 목록에 내려주는 review.reviewRating과 같은 컬럼으로 정렬한다
       case RATING ->
@@ -152,8 +150,7 @@ public class ReviewQuerySupporter {
 
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
-        yield Arrays.asList(
-            sizeOrderSpecifier, priceOrderSpecifier, createAt, reviewId);
+        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier, createAt, reviewId);
       }
 
       // 잔 기준 가격 순
@@ -163,8 +160,7 @@ public class ReviewQuerySupporter {
 
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
-        yield Arrays.asList(
-            sizeOrderSpecifier, priceOrderSpecifier, createAt, reviewId);
+        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier, createAt, reviewId);
       }
     };
   }

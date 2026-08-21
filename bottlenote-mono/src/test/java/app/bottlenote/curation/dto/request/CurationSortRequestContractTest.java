@@ -16,7 +16,8 @@ class CurationSortRequestContractTest {
   @Test
   @DisplayName("Admin과 Product 요청은 누락된 정렬을 노출 시작일 내림차순으로 기본화한다")
   void requests_defaultToExposureStartDateDescending() {
-    CurationSearchRequest admin = new CurationSearchRequest(null, null, null, null, null, null, null);
+    CurationSearchRequest admin =
+        new CurationSearchRequest(null, null, null, null, null, null, null);
     CurationFeedSearchRequest product =
         new CurationFeedSearchRequest(List.of("RECOMMENDED_WHISKY"), null, null, null, null, null);
 

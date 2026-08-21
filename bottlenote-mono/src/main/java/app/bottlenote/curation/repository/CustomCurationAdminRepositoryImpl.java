@@ -2,8 +2,8 @@ package app.bottlenote.curation.repository;
 
 import static app.bottlenote.curation.domain.QCuration.curation;
 
-import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.curation.constant.CurationSortType;
+import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -28,7 +28,8 @@ public class CustomCurationAdminRepositoryImpl implements CustomCurationAdminRep
       Pageable pageable,
       CurationSortType sortType,
       SortOrder sortOrder) {
-    BooleanExpression condition = keywordCondition(keyword).and(specCondition(specId)).and(activeCondition(isActive));
+    BooleanExpression condition =
+        keywordCondition(keyword).and(specCondition(specId)).and(activeCondition(isActive));
     List<Curation> content =
         queryFactory
             .selectFrom(curation)
@@ -43,7 +44,9 @@ public class CustomCurationAdminRepositoryImpl implements CustomCurationAdminRep
 
   private static OrderSpecifier<?>[] orderBy(CurationSortType sortType, SortOrder sortOrder) {
     if (sortType == CurationSortType.DISPLAY_ORDER) {
-      return new OrderSpecifier<?>[] {sortOrder.resolve(curation.displayOrder), sortOrder.resolve(curation.id)};
+      return new OrderSpecifier<?>[] {
+        sortOrder.resolve(curation.displayOrder), sortOrder.resolve(curation.id)
+      };
     }
     return new OrderSpecifier<?>[] {
       new CaseBuilder().when(curation.exposureStartDate.isNull()).then(1).otherwise(0).asc(),
@@ -53,7 +56,9 @@ public class CustomCurationAdminRepositoryImpl implements CustomCurationAdminRep
   }
 
   private static BooleanExpression keywordCondition(String keyword) {
-    return keyword == null || keyword.isBlank() ? curation.id.isNotNull() : curation.name.contains(keyword);
+    return keyword == null || keyword.isBlank()
+        ? curation.id.isNotNull()
+        : curation.name.contains(keyword);
   }
 
   private static BooleanExpression specCondition(Long specId) {

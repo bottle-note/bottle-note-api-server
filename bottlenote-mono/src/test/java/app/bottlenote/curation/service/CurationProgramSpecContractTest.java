@@ -63,7 +63,8 @@ class CurationProgramSpecContractTest {
       assertThat(programSchema.path("properties").path("programs").has("minItems")).isFalse();
       assertThat(validator.validate(new MapBackedSchema(schema(suffix)), payloadWithoutPrograms()))
           .isEmpty();
-      assertThat(validator.validate(new MapBackedSchema(schema(suffix)), payloadWithEmptyPrograms()))
+      assertThat(
+              validator.validate(new MapBackedSchema(schema(suffix)), payloadWithEmptyPrograms()))
           .isEmpty();
     }
   }

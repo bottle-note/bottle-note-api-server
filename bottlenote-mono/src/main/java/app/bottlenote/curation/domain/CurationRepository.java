@@ -1,8 +1,8 @@
 package app.bottlenote.curation.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
-import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
 import app.bottlenote.curation.constant.CurationSortType;
+import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
 import app.bottlenote.global.service.cursor.SortOrder;
 import java.time.LocalDate;
 import java.util.Collection;

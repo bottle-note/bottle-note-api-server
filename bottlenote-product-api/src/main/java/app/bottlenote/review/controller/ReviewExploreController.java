@@ -54,12 +54,21 @@ public class ReviewExploreController {
                 type = "string",
                 defaultValue = "LATEST",
                 allowableValues = {
-                  "LATEST", "POPULAR", "LIKES", "RATING", "BOTTLE_PRICE", "GLASS_PRICE"
+                  "LATEST",
+                  "POPULAR",
+                  "LIKES",
+                  "RATING",
+                  "BOTTLE_PRICE",
+                  "GLASS_PRICE"
                 })),
     @Parameter(
         name = "sortOrder",
         description = "ASC 또는 DESC. 기본값은 DESC입니다.",
-        schema = @Schema(type = "string", allowableValues = {"ASC", "DESC"}, defaultValue = "DESC")),
+        schema =
+            @Schema(
+                type = "string",
+                allowableValues = {"ASC", "DESC"},
+                defaultValue = "DESC")),
     @Parameter(
         name = "ratingFrom",
         description = "작성 평점 포함 하한. 0.5부터 5.0까지 0.5 단위입니다.",

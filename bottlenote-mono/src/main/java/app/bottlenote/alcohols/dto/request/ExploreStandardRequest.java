@@ -5,7 +5,6 @@ import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.pagination.KeysetPageRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.global.validation.RatingRangeValidator;
-
 import jakarta.validation.constraints.AssertTrue;
 import java.math.BigDecimal;
 import java.util.List;

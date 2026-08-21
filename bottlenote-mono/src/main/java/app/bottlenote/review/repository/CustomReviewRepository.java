@@ -1,14 +1,13 @@
 package app.bottlenote.review.repository;
 
 import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
-import java.util.List;
 import org.springframework.data.domain.Page;
 
 public interface CustomReviewRepository {
@@ -46,6 +45,5 @@ public interface CustomReviewRepository {
 
   Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);
 
-  KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
-      ReviewExploreCriteria criteria);
+  KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(ReviewExploreCriteria criteria);
 }

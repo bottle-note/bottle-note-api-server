@@ -17,18 +17,18 @@ class ReviewExploreOpenApiContractIntegrationTest extends OpenApiSpecTestSupport
     JsonNode spec = fetchSpec();
     SpecOperation operation =
         operationsOf(spec).stream()
-            .filter(candidate -> candidate.endpoint().equals("GET /api/v1/reviews/explore/standard"))
+            .filter(
+                candidate -> candidate.endpoint().equals("GET /api/v1/reviews/explore/standard"))
             .findFirst()
             .orElseThrow();
 
-    assertThat(operation.definition().path("description").asText()).contains("locationInfo").contains("null");
+    assertThat(operation.definition().path("description").asText())
+        .contains("locationInfo")
+        .contains("null");
 
-    JsonNode responseData = resolve(spec, operation.successSchema().path("properties").path("data"));
-    JsonNode item =
-        resolve(
-            spec,
-            responseData.path("properties").path("items")
-                .path("items"));
+    JsonNode responseData =
+        resolve(spec, operation.successSchema().path("properties").path("data"));
+    JsonNode item = resolve(spec, responseData.path("properties").path("items").path("items"));
     JsonNode locationInfo = resolve(spec, item.path("properties").path("locationInfo"));
 
     assertThat(propertyNamesOf(locationInfo))

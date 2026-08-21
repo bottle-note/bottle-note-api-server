@@ -52,14 +52,46 @@ class ReviewExploreLocationIntegrationTest extends IntegrationTestSupport {
     MvcTestResult result = explore("위치전체계약");
 
     result.assertThat().hasStatusOk();
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.locationName").isEqualTo("도시술");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.zipCode").isEqualTo("12345");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.address").isEqualTo("서울 송파구 송파대로 145");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.detailAddress").isEqualTo("2층");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.category").isEqualTo("음식점 > 술집");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.mapUrl").isEqualTo("https://example.com/place");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.latitude").isEqualTo("37.0000");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.longitude").isEqualTo("127.0000");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.locationName")
+        .isEqualTo("도시술");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.zipCode")
+        .isEqualTo("12345");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.address")
+        .isEqualTo("서울 송파구 송파대로 145");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.detailAddress")
+        .isEqualTo("2층");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.category")
+        .isEqualTo("음식점 > 술집");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.mapUrl")
+        .isEqualTo("https://example.com/place");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.latitude")
+        .isEqualTo("37.0000");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.longitude")
+        .isEqualTo("127.0000");
   }
 
   @Test
@@ -91,10 +123,22 @@ class ReviewExploreLocationIntegrationTest extends IntegrationTestSupport {
     MvcTestResult result = explore("위치부분계약");
 
     result.assertThat().hasStatusOk();
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.locationName").isEqualTo("도시술");
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.address").isEqualTo("서울 송파구");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.locationName")
+        .isEqualTo("도시술");
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.address")
+        .isEqualTo("서울 송파구");
     result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.zipCode").isNull();
-    result.assertThat().bodyJson().extractingPath("$.data.items[0].locationInfo.detailAddress").isNull();
+    result
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.items[0].locationInfo.detailAddress")
+        .isNull();
   }
 
   private MvcTestResult explore(String keyword) {

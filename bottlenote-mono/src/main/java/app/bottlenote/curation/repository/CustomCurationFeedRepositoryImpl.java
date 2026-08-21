@@ -2,8 +2,8 @@ package app.bottlenote.curation.repository;
 
 import static app.bottlenote.curation.domain.QCuration.curation;
 
-import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
 import app.bottlenote.curation.constant.CurationSortType;
+import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -30,7 +30,10 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
         .from(curation)
         .where(
             curation.isActive.isTrue(),
-            curation.exposureStartDate.isNull().or(curation.exposureStartDate.loe(criteria.today())),
+            curation
+                .exposureStartDate
+                .isNull()
+                .or(curation.exposureStartDate.loe(criteria.today())),
             curation.exposureEndDate.isNull().or(curation.exposureEndDate.goe(criteria.today())),
             curation.specId.in(criteria.specIds()),
             matchesKeyword(criteria),
@@ -43,7 +46,8 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
   private static OrderSpecifier<?>[] orderBy(CurationFeedSearchCriteria criteria) {
     if (criteria.sortType() == CurationSortType.DISPLAY_ORDER) {
       return new OrderSpecifier<?>[] {
-        criteria.sortOrder().resolve(curation.displayOrder), criteria.sortOrder().resolve(curation.id)
+        criteria.sortOrder().resolve(curation.displayOrder),
+        criteria.sortOrder().resolve(curation.id)
       };
     }
     return new OrderSpecifier<?>[] {
@@ -58,10 +62,17 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
       return null;
     }
     if (criteria.sortType() == CurationSortType.DISPLAY_ORDER) {
-      return orderedAfter(curation.displayOrder, criteria.lastDisplayOrder(), criteria.lastId(), criteria.sortOrder());
+      return orderedAfter(
+          curation.displayOrder,
+          criteria.lastDisplayOrder(),
+          criteria.lastId(),
+          criteria.sortOrder());
     }
     if (criteria.lastExposureStartDate() == null) {
-      return curation.exposureStartDate.isNull().and(idAfter(criteria.lastId(), criteria.sortOrder()));
+      return curation
+          .exposureStartDate
+          .isNull()
+          .and(idAfter(criteria.lastId(), criteria.sortOrder()));
     }
     return orderedAfter(
             curation.exposureStartDate,
@@ -72,20 +83,14 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
   }
 
   private static BooleanExpression orderedAfter(
-      NumberPath<Integer> field,
-      Integer lastValue,
-      Long lastId,
-      SortOrder sortOrder) {
+      NumberPath<Integer> field, Integer lastValue, Long lastId, SortOrder sortOrder) {
     BooleanExpression primaryAfter =
         sortOrder == SortOrder.ASC ? field.gt(lastValue) : field.lt(lastValue);
     return primaryAfter.or(field.eq(lastValue).and(idAfter(lastId, sortOrder)));
   }
 
   private static BooleanExpression orderedAfter(
-      DatePath<LocalDate> field,
-      LocalDate lastValue,
-      Long lastId,
-      SortOrder sortOrder) {
+      DatePath<LocalDate> field, LocalDate lastValue, Long lastId, SortOrder sortOrder) {
     BooleanExpression primaryAfter =
         sortOrder == SortOrder.ASC ? field.gt(lastValue) : field.lt(lastValue);
     return primaryAfter.or(field.eq(lastValue).and(idAfter(lastId, sortOrder)));
@@ -100,7 +105,8 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
       return null;
     }
     String keyword = criteria.keyword().trim();
-    BooleanExpression matchesCuration = curation.name.contains(keyword).or(curation.description.contains(keyword));
+    BooleanExpression matchesCuration =
+        curation.name.contains(keyword).or(curation.description.contains(keyword));
     return criteria.keywordMatchedSpecIds().isEmpty()
         ? matchesCuration
         : matchesCuration.or(curation.specId.in(criteria.keywordMatchedSpecIds()));

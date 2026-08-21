@@ -40,7 +40,9 @@ class ReviewExploreServiceTest {
 
     // then
     assertThat(repository.criteria.sortType()).isEqualTo(ReviewSortType.LATEST);
-    assertThat(result.content().items()).extracting(ReviewExploreItem::reviewId).containsExactly(3L, 2L, 1L);
+    assertThat(result.content().items())
+        .extracting(ReviewExploreItem::reviewId)
+        .containsExactly(3L, 2L, 1L);
   }
 
   private static ReviewExploreItem item(Long reviewId, String createAt) {
@@ -74,7 +76,8 @@ class ReviewExploreServiceTest {
     }
 
     @Override
-    public KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(ReviewExploreCriteria criteria) {
+    public KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
+        ReviewExploreCriteria criteria) {
       this.criteria = criteria;
       if (criteria.sortType() != ReviewSortType.LATEST) {
         throw new AssertionError("무파라미터 리뷰 둘러보기는 최신순이어야 합니다.");
