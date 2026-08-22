@@ -2,6 +2,7 @@ package app.bottlenote.mfds.fixture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
@@ -58,7 +59,13 @@ class InMemoryMfdsDeclarationRepositoryTest {
   void 매칭_여부로_필터링할_수_있다() {
     MfdsDeclaration matched =
         MfdsTestData.declaration(
-            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 77L, "AUTO_ACCEPT", null, null);
+            "RCNO-001",
+            MfdsNormalizationStatus.NORMALIZED,
+            null,
+            77L,
+            MfdsMatchSelectionSource.AUTO,
+            null,
+            null);
     repository.save(matched);
     repository.save(declaration("RCNO-002", MfdsNormalizationStatus.NORMALIZED));
 
@@ -74,22 +81,35 @@ class InMemoryMfdsDeclarationRepositoryTest {
   }
 
   @Test
-  @DisplayName("매칭 결정 값으로 필터링할 때 정확히 일치하는 행만 반환한다")
+  @DisplayName("매칭 결정 근거로 필터링할 때 정확히 일치하는 행만 반환한다")
   void 매칭_결정으로_필터링할_수_있다() {
-    MfdsDeclaration autoAccepted =
+    MfdsDeclaration autoSelected =
         MfdsTestData.declaration(
-            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 77L, "AUTO_ACCEPT", null, null);
-    MfdsDeclaration reviewNeeded =
+            "RCNO-001",
+            MfdsNormalizationStatus.NORMALIZED,
+            null,
+            77L,
+            MfdsMatchSelectionSource.AUTO,
+            null,
+            null);
+    MfdsDeclaration manualSelected =
         MfdsTestData.declaration(
-            "RCNO-002", MfdsNormalizationStatus.NORMALIZED, null, null, "REVIEW", null, null);
-    repository.save(autoAccepted);
-    repository.save(reviewNeeded);
+            "RCNO-002",
+            MfdsNormalizationStatus.NORMALIZED,
+            null,
+            88L,
+            MfdsMatchSelectionSource.MANUAL,
+            null,
+            null);
+    repository.save(autoSelected);
+    repository.save(manualSelected);
 
     List<MfdsDeclaration> result =
         repository.searchByCriteria(
-            new MfdsDeclarationSearchCriteria(null, null, "REVIEW", null, null, 0L, 20L));
+            new MfdsDeclarationSearchCriteria(
+                null, null, MfdsMatchSelectionSource.MANUAL, null, null, 0L, 20L));
 
-    assertThat(result).containsExactly(reviewNeeded);
+    assertThat(result).containsExactly(manualSelected);
   }
 
   @Test

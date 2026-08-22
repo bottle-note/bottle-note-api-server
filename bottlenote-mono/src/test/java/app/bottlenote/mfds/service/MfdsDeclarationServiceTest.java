@@ -7,6 +7,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.constant.MfdsImporterLinkSource;
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
@@ -71,7 +72,7 @@ class MfdsDeclarationServiceTest {
             MfdsNormalizationStatus.NORMALIZED,
             importer.getId(),
             77L,
-            "AUTO_ACCEPT",
+            MfdsMatchSelectionSource.AUTO,
             null,
             null);
     MfdsTestData.set(declaration, "alcoholCandidate1Id", 77L);
