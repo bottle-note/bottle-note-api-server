@@ -2,7 +2,6 @@ package app.bottlenote.mfds.dto.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -34,13 +33,12 @@ class MfdsSearchCriteriaTest {
   }
 
   @Test
-  @DisplayName("신고 criteria의 공백 키워드를 정규화할 때 매칭 결정 근거는 그대로 유지한다")
+  @DisplayName("신고 criteria의 공백 키워드와 매칭 결정을 null로 정규화한다")
   void 신고_criteria_공백_입력을_정규화할_수_있다() {
     MfdsDeclarationSearchCriteria criteria =
-        new MfdsDeclarationSearchCriteria(
-            null, null, MfdsMatchSelectionSource.MANUAL, null, " 글렌피딕 ", 0L, 20L);
+        new MfdsDeclarationSearchCriteria(null, null, "  ", null, " 글렌피딕 ", 0L, 20L);
 
-    assertThat(criteria.alcoholMatchDecision()).isEqualTo(MfdsMatchSelectionSource.MANUAL);
+    assertThat(criteria.alcoholMatchDecision()).isNull();
     assertThat(criteria.keyword()).isEqualTo("글렌피딕");
   }
 

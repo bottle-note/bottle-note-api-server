@@ -89,7 +89,8 @@ class ReviewExploreServiceTest {
                       .reversed()
                       .thenComparing(ReviewExploreItem::reviewId, Comparator.reverseOrder()))
               .toList();
-      return KeysetPageResponse.of(new ReviewExploreListResponse(result), new KeysetPagination(false, null));
+      return KeysetPageResponse.of(
+          new ReviewExploreListResponse(result), new KeysetPagination(false, null));
     }
   }
 }

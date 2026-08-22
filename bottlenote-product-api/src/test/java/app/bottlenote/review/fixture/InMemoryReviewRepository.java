@@ -120,7 +120,8 @@ public class InMemoryReviewRepository implements ReviewRepository {
   @Override
   public KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
       ReviewExploreCriteria criteria) {
-    return KeysetPageResponse.of(new ReviewExploreListResponse(List.of()), new KeysetPagination(false, null));
+    return KeysetPageResponse.of(
+        new ReviewExploreListResponse(List.of()), new KeysetPagination(false, null));
   }
 
   @Override

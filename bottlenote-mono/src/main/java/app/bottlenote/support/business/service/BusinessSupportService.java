@@ -167,7 +167,8 @@ public class BusinessSupportService {
             fetched.stream().map(this::toInfo).toList(),
             req.size(),
             item -> cursorCodec.encode(context, cursorKeys(item.createAt(), item.id())));
-    return KeysetPageResponse.of(new BusinessSupportListResponse(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(
+        new BusinessSupportListResponse(slice.items()), slice.pagination());
   }
 
   /** 정렬 값이 NULL이면 대체값을 넣지 않고 키 자체를 뺀다. */

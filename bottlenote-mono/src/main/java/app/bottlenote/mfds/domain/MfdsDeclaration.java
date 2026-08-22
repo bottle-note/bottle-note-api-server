@@ -357,19 +357,16 @@ public class MfdsDeclaration {
   private Long matchingRunId;
 
   @Comment("주류 매칭 결정")
-  @Enumerated(EnumType.STRING)
   @Column(name = "alcohol_match_decision", length = 32)
-  private MfdsMatchSelectionSource alcoholMatchDecision;
+  private String alcoholMatchDecision;
 
   @Comment("증류소 매칭 출처")
-  @Enumerated(EnumType.STRING)
   @Column(name = "distillery_match_source", length = 32)
-  private MfdsMatchSelectionSource distilleryMatchSource;
+  private String distilleryMatchSource;
 
   @Comment("지역 매칭 출처")
-  @Enumerated(EnumType.STRING)
   @Column(name = "region_match_source", length = 32)
-  private MfdsMatchSelectionSource regionMatchSource;
+  private String regionMatchSource;
 
   @Comment("매칭 완료 시각")
   @Column(name = "matched_at")
@@ -519,11 +516,12 @@ public class MfdsDeclaration {
       Long regionId,
       MfdsMatchSelectionSource regionSource) {
     this.selectedAlcoholId = alcoholId;
-    this.alcoholMatchDecision = alcoholSource;
+    this.alcoholMatchDecision = alcoholSource != null ? alcoholSource.name() : null;
     this.selectedDistilleryId = distilleryId;
-    this.distilleryMatchSource = distilleryId != null ? distillerySource : null;
+    this.distilleryMatchSource =
+        distilleryId != null && distillerySource != null ? distillerySource.name() : null;
     this.selectedRegionId = regionId;
-    this.regionMatchSource = regionId != null ? regionSource : null;
+    this.regionMatchSource = regionId != null && regionSource != null ? regionSource.name() : null;
   }
 
   /** 확정된 매칭 선택을 해제한다. 후보와 매칭 이력(matchingVersion, matchedAt)은 유지한다. */

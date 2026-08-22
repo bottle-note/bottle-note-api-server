@@ -29,7 +29,8 @@ public class UserQueryFixture {
         .build();
   }
 
-  public KeysetPageResponse<MyBottleResponse> getReviewMyBottleResponse(Long userId, boolean isMyPage) {
+  public KeysetPageResponse<MyBottleResponse> getReviewMyBottleResponse(
+      Long userId, boolean isMyPage) {
     LocalDateTime now = LocalDateTime.now();
 
     ReviewMyBottleItem review1 =
@@ -74,7 +75,8 @@ public class UserQueryFixture {
     return KeysetPageResponse.of(myBottleResponse, new KeysetPagination(false, null));
   }
 
-  public KeysetPageResponse<MyBottleResponse> getRatingMyBottleResponse(Long userId, boolean isMyPage) {
+  public KeysetPageResponse<MyBottleResponse> getRatingMyBottleResponse(
+      Long userId, boolean isMyPage) {
 
     RatingMyBottleItem ratingMyBottleItem1 =
         RatingMyBottleItem.builder()
@@ -99,7 +101,8 @@ public class UserQueryFixture {
     return KeysetPageResponse.of(myBottleResponse, new KeysetPagination(false, null));
   }
 
-  public KeysetPageResponse<MyBottleResponse> getPicksMyBottleResponse(Long userId, boolean isMyPage) {
+  public KeysetPageResponse<MyBottleResponse> getPicksMyBottleResponse(
+      Long userId, boolean isMyPage) {
 
     PicksMyBottleItem picksMyBottleItem1 =
         PicksMyBottleItem.builder()

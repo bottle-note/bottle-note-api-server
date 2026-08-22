@@ -166,7 +166,7 @@ class MfdsMatchingServiceTest {
             declaration.getId(), new MfdsMatchingConfirmRequest(1L, null, null));
 
     assertThat(response.selectedAlcoholId()).isEqualTo(1L);
-    assertThat(response.alcoholMatchDecision()).isEqualTo(MfdsMatchSelectionSource.CANDIDATE);
+    assertThat(response.alcoholMatchDecision()).isEqualTo("CANDIDATE");
     assertThat(declaration.getSelectedAlcoholId()).isEqualTo(1L);
   }
 
@@ -183,7 +183,7 @@ class MfdsMatchingServiceTest {
             declaration.getId(), new MfdsMatchingConfirmRequest(99L, null, null));
 
     assertThat(response.selectedAlcoholId()).isEqualTo(99L);
-    assertThat(response.alcoholMatchDecision()).isEqualTo(MfdsMatchSelectionSource.MANUAL);
+    assertThat(response.alcoholMatchDecision()).isEqualTo("MANUAL");
   }
 
   @Test
@@ -450,9 +450,10 @@ class MfdsMatchingServiceTest {
             declaration.getId(), new MfdsMatchingConfirmRequest(1L, 11L, 21L));
 
     assertThat(response.selectedDistilleryId()).isEqualTo(11L);
-    assertThat(response.distilleryMatchSource()).isEqualTo(MfdsMatchSelectionSource.CANDIDATE);
+    assertThat(response.distilleryMatchSource())
+        .isEqualTo(MfdsMatchSelectionSource.CANDIDATE.name());
     assertThat(response.selectedRegionId()).isEqualTo(21L);
-    assertThat(response.regionMatchSource()).isEqualTo(MfdsMatchSelectionSource.CANDIDATE);
+    assertThat(response.regionMatchSource()).isEqualTo(MfdsMatchSelectionSource.CANDIDATE.name());
     assertThat(declaration.getSelectedDistilleryId()).isEqualTo(11L);
     assertThat(declaration.getSelectedRegionId()).isEqualTo(21L);
   }
@@ -470,8 +471,8 @@ class MfdsMatchingServiceTest {
         matchingService.confirmMatching(
             declaration.getId(), new MfdsMatchingConfirmRequest(1L, 99L, 98L));
 
-    assertThat(response.distilleryMatchSource()).isEqualTo(MfdsMatchSelectionSource.MANUAL);
-    assertThat(response.regionMatchSource()).isEqualTo(MfdsMatchSelectionSource.MANUAL);
+    assertThat(response.distilleryMatchSource()).isEqualTo(MfdsMatchSelectionSource.MANUAL.name());
+    assertThat(response.regionMatchSource()).isEqualTo(MfdsMatchSelectionSource.MANUAL.name());
   }
 
   @Test

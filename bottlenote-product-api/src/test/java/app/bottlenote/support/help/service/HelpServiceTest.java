@@ -159,7 +159,8 @@ class HelpServiceTest {
         .thenReturn(helpPageResponse);
 
     // when
-    KeysetPageResponse<HelpListResponse> helpList = helpService.getHelpList(emptyPageableRequest, 1L);
+    KeysetPageResponse<HelpListResponse> helpList =
+        helpService.getHelpList(emptyPageableRequest, 1L);
 
     // then
     assertEquals(helpPageResponse.content(), helpList.content());

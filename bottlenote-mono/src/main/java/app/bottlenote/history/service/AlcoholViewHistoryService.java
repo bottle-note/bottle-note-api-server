@@ -156,7 +156,8 @@ public class AlcoholViewHistoryService {
   public KeysetPageResponse<ViewHistoryListResponse> getViewHistory(
       Long userId, ViewHistoryRequest request) {
     if (userId == null || userId <= 0) {
-      return KeysetPageResponse.of(new ViewHistoryListResponse(List.of()), new KeysetPagination(false, null));
+      return KeysetPageResponse.of(
+          new ViewHistoryListResponse(List.of()), new KeysetPagination(false, null));
     }
     String context = "view-history:" + userId;
     LocalDateTime cursorViewAt = null;

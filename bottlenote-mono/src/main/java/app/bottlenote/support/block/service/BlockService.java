@@ -80,7 +80,8 @@ public class BlockService {
   public KeysetPageResponse<UserBlockListResponse> getBlockedUserItems(
       Long userId, BlockPageableRequest request) {
     if (userId == null) {
-      return KeysetPageResponse.of(new UserBlockListResponse(List.of()), new KeysetPagination(false, null));
+      return KeysetPageResponse.of(
+          new UserBlockListResponse(List.of()), new KeysetPagination(false, null));
     }
     String context = "block.list:" + userId;
     LocalDateTime lastAt = null;

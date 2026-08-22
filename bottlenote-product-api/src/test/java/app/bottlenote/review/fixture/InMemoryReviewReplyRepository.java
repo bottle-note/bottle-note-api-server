@@ -50,13 +50,15 @@ public class InMemoryReviewReplyRepository implements ReviewReplyRepository {
   @Override
   public KeysetPageResponse<RootReviewReplyResponse> getReviewRootReplies(
       Long reviewId, String cursor, Integer size) {
-    return KeysetPageResponse.of(RootReviewReplyResponse.of(List.of()), new KeysetPagination(false, null));
+    return KeysetPageResponse.of(
+        RootReviewReplyResponse.of(List.of()), new KeysetPagination(false, null));
   }
 
   @Override
   public KeysetPageResponse<SubReviewReplyResponse> getSubReviewReplies(
       Long reviewId, Long replyId, String cursor, Integer size) {
-    return KeysetPageResponse.of(SubReviewReplyResponse.of(List.of()), new KeysetPagination(false, null));
+    return KeysetPageResponse.of(
+        SubReviewReplyResponse.of(List.of()), new KeysetPagination(false, null));
   }
 
   @Override

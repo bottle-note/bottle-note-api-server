@@ -136,7 +136,8 @@ class RatingQueryServiceTest {
     }
 
     @Override
-    public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+    public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(
+        RatingListFetchCriteria criteria) {
       this.lastCriteria = criteria;
       return KeysetPageResponse.of(
           RatingListFetchResponse.create(List.of()), new KeysetPagination(false, null));

@@ -78,7 +78,7 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
       return false;
     }
     if (criteria.alcoholMatchDecision() != null
-        && declaration.getAlcoholMatchDecision() != criteria.alcoholMatchDecision()) {
+        && !Objects.equals(declaration.getAlcoholMatchDecision(), criteria.alcoholMatchDecision())) {
       return false;
     }
     if (criteria.importerId() != null

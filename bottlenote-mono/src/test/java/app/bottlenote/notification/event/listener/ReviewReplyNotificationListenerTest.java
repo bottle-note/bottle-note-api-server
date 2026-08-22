@@ -111,7 +111,8 @@ class ReviewReplyNotificationListenerTest {
     @Override
     public KeysetPageResponse<NotificationListResponse> getNotifications(
         Long userId, NotificationPageableRequest request) {
-      return KeysetPageResponse.of(NotificationListResponse.of(List.of()), new KeysetPagination(false, null));
+      return KeysetPageResponse.of(
+          NotificationListResponse.of(List.of()), new KeysetPagination(false, null));
     }
 
     @Override

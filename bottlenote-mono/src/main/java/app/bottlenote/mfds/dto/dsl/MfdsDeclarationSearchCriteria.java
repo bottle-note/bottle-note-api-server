@@ -1,6 +1,5 @@
 package app.bottlenote.mfds.dto.dsl;
 
-import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 
 /**
@@ -13,7 +12,7 @@ import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 public record MfdsDeclarationSearchCriteria(
     MfdsNormalizationStatus normalizationStatus,
     Boolean alcoholMatched,
-    MfdsMatchSelectionSource alcoholMatchDecision,
+    String alcoholMatchDecision,
     Long importerId,
     String keyword,
     Long cursor,
@@ -26,6 +25,10 @@ public record MfdsDeclarationSearchCriteria(
     cursor = cursor == null || cursor < 0L ? 0L : cursor;
     pageSize = pageSize == null || pageSize < 1L ? DEFAULT_SIZE : Math.min(pageSize, MAX_SIZE);
     keyword = keyword == null || keyword.isBlank() ? null : keyword.trim();
+    alcoholMatchDecision =
+        alcoholMatchDecision == null || alcoholMatchDecision.isBlank()
+            ? null
+            : alcoholMatchDecision.trim();
   }
 
   public static MfdsDeclarationSearchCriteria of(Long cursor, Long pageSize) {
