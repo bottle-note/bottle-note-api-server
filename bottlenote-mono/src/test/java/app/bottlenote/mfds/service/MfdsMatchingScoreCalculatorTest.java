@@ -130,6 +130,8 @@ class MfdsMatchingScoreCalculatorTest {
         calculator.scoreAlcohol(declaration, alcohol(1L, "글렌피딕 2012", "Glenfiddich 2012"));
 
     assertThat(detail.ageScore()).isNull();
+    // 판단 불가는 0점이 아니라 가중치 제외다. 총점이 이름 점수와 같아야 분모에서 빠진 것이다
+    assertThat(detail.totalScore()).isEqualByComparingTo(detail.nameScore());
   }
 
   @Test
@@ -215,6 +217,82 @@ class MfdsMatchingScoreCalculatorTest {
     assertThat(unrelated).isLessThan(matched);
   }
 
+  @Test
+  @DisplayName("이름만 비교 가능할 때 총점은 이름 점수와 정확히 같다")
+  void 이름만_비교_가능하면_총점은_이름_점수와_같다() {
+    // 재정규화 분모가 0.5가 아니면(예: 1.0 고정) 총점이 이름 점수의 절반이 되어 깨진다
+    MfdsDeclaration declaration = declaration("글렌피딕 12", null);
+    AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 15", null);
+
+    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
+
+    assertThat(detail.nameScore()).isEqualByComparingTo(new BigDecimal("0.857143"));
+    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.857143"));
+  }
+
+  @Test
+  @DisplayName("이름과 도수만 비교 가능할 때 총점은 가중합을 0.65로 나눈 값이다")
+  void 이름과_도수만_비교_가능하면_남은_가중치로_재정규화한다() {
+    // (0.5 * 1.0 + 0.15 * 0.5) / (0.5 + 0.15) = 0.884615. 분모를 1.0으로 두면 0.575가 된다
+    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
+    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
+
+    MfdsMatchScoreDetailItem detail =
+        calculator.scoreAlcohol(declaration, alcoholWithAbv(1L, "45.0"));
+
+    assertThat(detail.nameScore()).isEqualByComparingTo(BigDecimal.ONE);
+    assertThat(detail.abvScore()).isEqualByComparingTo(new BigDecimal("0.5"));
+    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.884615"));
+  }
+
+  @Test
+  @DisplayName("도수 차이가 0이면 1점, 5면 0.5점, 10이면 0점이다")
+  void 도수_근접도의_경계값을_점수화한다() {
+    // 허용 오차 10 기준의 선형 감점이다. 경계 세 지점을 기대값으로 고정한다
+    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
+    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
+
+    MfdsMatchScoreDetailItem same =
+        calculator.scoreAlcohol(declaration, alcoholWithAbv(1L, "40.0"));
+    MfdsMatchScoreDetailItem half =
+        calculator.scoreAlcohol(declaration, alcoholWithAbv(2L, "45.0"));
+    MfdsMatchScoreDetailItem zero =
+        calculator.scoreAlcohol(declaration, alcoholWithAbv(3L, "50.0"));
+
+    assertThat(same.abvScore()).isEqualByComparingTo(BigDecimal.ONE);
+    assertThat(half.abvScore()).isEqualByComparingTo(new BigDecimal("0.5"));
+    assertThat(zero.abvScore()).isEqualByComparingTo(BigDecimal.ZERO);
+  }
+
+  @Test
+  @DisplayName("도수 차이가 허용 오차를 넘어도 음수가 아니라 0점으로 고정한다")
+  void 도수_차이가_허용_오차를_넘으면_0으로_고정한다() {
+    // 클램프가 없으면 -0.5가 되어 총점을 끌어내린다
+    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
+    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
+
+    MfdsMatchScoreDetailItem detail =
+        calculator.scoreAlcohol(declaration, alcoholWithAbv(1L, "55.0"));
+
+    assertThat(detail.abvScore()).isEqualByComparingTo(BigDecimal.ZERO);
+    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.769231"));
+  }
+
+  @Test
+  @DisplayName("대상 도수가 없을 때 도수 요소를 가중치에서 제외한다")
+  void 대상_도수가_없으면_도수_요소를_제외한다() {
+    // 0점 처리와 구분해야 한다. 제외라면 총점이 이름 점수 그대로 남는다
+    MfdsDeclaration declaration = declaration("글렌피딕 12", null);
+    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
+
+    MfdsMatchScoreDetailItem detail =
+        calculator.scoreAlcohol(declaration, alcohol(1L, "글렌피딕 15", null));
+
+    assertThat(detail.abvScore()).isNull();
+    assertThat(detail.totalScore()).isEqualByComparingTo(detail.nameScore());
+    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.857143"));
+  }
+
   private MfdsDeclaration declaration(String nameKo, String nameEn) {
     return MfdsTestData.declaration(
         "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, nameKo, nameEn);
@@ -223,6 +301,24 @@ class MfdsMatchingScoreCalculatorTest {
   private AlcoholMatchTargetItem alcohol(Long id, String korName, String engName) {
     return new AlcoholMatchTargetItem(
         id, korName, engName, null, null, null, null, null, null, null, null, null, null, null);
+  }
+
+  private AlcoholMatchTargetItem alcoholWithAbv(Long id, String abv) {
+    return new AlcoholMatchTargetItem(
+        id,
+        "글렌피딕 12",
+        "Glenfiddich 12",
+        abv,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 
   private AlcoholMatchTargetItem alcoholWithAge(Long id, String age) {
