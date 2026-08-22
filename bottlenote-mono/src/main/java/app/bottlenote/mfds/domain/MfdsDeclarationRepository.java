@@ -17,6 +17,13 @@ public interface MfdsDeclarationRepository {
 
   Optional<MfdsDeclaration> findById(Long id);
 
+  /**
+   * 갱신을 전제로 신고 데이터를 조회한다. 조회한 행을 트랜잭션이 끝날 때까지 배타 잠금해 동시 확정·해제의 마지막 쓰기 승리를 막는다.
+   *
+   * <p>반드시 트랜잭션 경계 안에서 호출해야 하며, 조회 전용 경로에서는 {@link #findById(Long)}를 쓴다.
+   */
+  Optional<MfdsDeclaration> findByIdForUpdate(Long id);
+
   Optional<MfdsDeclaration> findByRcno(String rcno);
 
   /** 검색 조건에 맞는 신고 데이터를 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */

@@ -165,7 +165,7 @@ public class MfdsMatchingService {
   @Transactional
   public MfdsMatchingConfirmResponse confirmMatching(
       Long declarationId, MfdsMatchingConfirmRequest request) {
-    MfdsDeclaration declaration = getDeclaration(declarationId);
+    MfdsDeclaration declaration = getDeclarationForUpdate(declarationId);
 
     if (!alcoholMatchTargetFacade.existsAlcohol(request.alcoholId())) {
       throw new MfdsException(MFDS_SELECTED_ALCOHOL_NOT_FOUND);
@@ -197,7 +197,7 @@ public class MfdsMatchingService {
   /** 확정을 해제한다. 저장된 후보와 매칭 이력은 유지한다. */
   @Transactional
   public MfdsMatchingConfirmResponse clearMatching(Long declarationId) {
-    MfdsDeclaration declaration = getDeclaration(declarationId);
+    MfdsDeclaration declaration = getDeclarationForUpdate(declarationId);
     declaration.clearMatchingSelection();
     declarationRepository.save(declaration);
     return toConfirmResponse(declaration);
@@ -231,6 +231,13 @@ public class MfdsMatchingService {
   private MfdsDeclaration getDeclaration(Long declarationId) {
     return declarationRepository
         .findById(declarationId)
+        .orElseThrow(() -> new MfdsException(MFDS_DECLARATION_NOT_FOUND));
+  }
+
+  /** 확정·해제처럼 읽은 뒤 갱신하는 경로에서 쓴다. 행을 배타 잠금해 동시 요청의 마지막 쓰기 승리를 막는다. */
+  private MfdsDeclaration getDeclarationForUpdate(Long declarationId) {
+    return declarationRepository
+        .findByIdForUpdate(declarationId)
         .orElseThrow(() -> new MfdsException(MFDS_DECLARATION_NOT_FOUND));
   }
 
