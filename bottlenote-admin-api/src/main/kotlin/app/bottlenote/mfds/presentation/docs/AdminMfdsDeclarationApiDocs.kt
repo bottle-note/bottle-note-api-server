@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 /** 식약처 수입 신고 관리 엔드포인트의 문서 설명. */
 object AdminMfdsDeclarationApiDocs {
 
+	private const val ERROR_SCHEMA = "#/components/schemas/ErrorResponse"
+
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
 	@Tag(
@@ -48,6 +50,11 @@ object AdminMfdsDeclarationApiDocs {
 						array = ArraySchema(schema = Schema(implementation = MfdsDeclarationListItem::class))
 					)
 				]
+			),
+			ApiResponse(
+				responseCode = "400",
+				description = "검색 조건이 올바르지 않습니다. 정의되지 않은 매칭 결정 근거 값이 여기에 해당합니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -71,6 +78,11 @@ object AdminMfdsDeclarationApiDocs {
 				responseCode = "200",
 				description = "수입 신고 상세 정보",
 				content = [Content(schema = Schema(implementation = MfdsDeclarationDetailResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -90,6 +102,11 @@ object AdminMfdsDeclarationApiDocs {
 				responseCode = "200",
 				description = "상태 변경 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -102,13 +119,23 @@ object AdminMfdsDeclarationApiDocs {
 		description = """
 			수집기가 자동으로 연결하지 못한 수입 신고에 수입사를 직접 연결합니다.
 
-			연결 근거는 MANUAL로 기록되며, 같은 수입신고번호(RCNO)의 연결 근거도 함께 남습니다. 이미 수입사가 연결된 신고는 먼저 연결을 해제해야 합니다.
+			바뀌는 것은 이 신고 행의 수입사와 연결 근거 종류(MANUAL)뿐입니다. 수입신고번호(RCNO) 원장은 수집기가 적재한 데이터라 관리자 조작으로 추가되거나 바뀌지 않습니다. 이미 수입사가 연결된 신고는 먼저 연결을 해제해야 합니다.
 			""",
 		responses = [
 			ApiResponse(
 				responseCode = "200",
 				description = "연결 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고 또는 수입사가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
+			),
+			ApiResponse(
+				responseCode = "409",
+				description = "이미 수입사가 연결된 신고입니다. 먼저 연결을 해제한 뒤 다시 시도합니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -118,12 +145,26 @@ object AdminMfdsDeclarationApiDocs {
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "수입 신고의 수입사 연결을 해제한다",
-		description = "수입 신고에 연결된 수입사를 해제하고, 해당 수입신고번호(RCNO)의 연결 근거도 함께 제거합니다. 연결된 수입사가 없으면 실패합니다.",
+		description = """
+			수입 신고에 연결된 수입사를 해제합니다.
+
+			해제되는 것은 이 신고 행의 수입사와 연결 근거 종류뿐입니다. 수입신고번호(RCNO) 원장은 수집기가 적재한 데이터라 관리자 조작으로 삭제되거나 바뀌지 않습니다. 연결된 수입사가 없으면 실패합니다.
+			""",
 		responses = [
 			ApiResponse(
 				responseCode = "200",
 				description = "해제 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "400",
+				description = "수입사가 연결되지 않은 신고입니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)

@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 /** MFDS 수입 원장 매칭 엔드포인트의 문서 설명. */
 object AdminMfdsMatchingApiDocs {
 
+	private const val ERROR_SCHEMA = "#/components/schemas/ErrorResponse"
+
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
 	@Tag(
@@ -35,6 +37,11 @@ object AdminMfdsMatchingApiDocs {
 				responseCode = "200",
 				description = "계산된 후보 목록과 점수 근거",
 				content = [Content(schema = Schema(implementation = MfdsMatchingRunResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -60,6 +67,11 @@ object AdminMfdsMatchingApiDocs {
 				responseCode = "200",
 				description = "저장된 후보와 확정 상태",
 				content = [Content(schema = Schema(implementation = MfdsMatchingCandidatesResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -86,6 +98,16 @@ object AdminMfdsMatchingApiDocs {
 				responseCode = "200",
 				description = "확정 처리 결과",
 				content = [Content(schema = Schema(implementation = MfdsMatchingConfirmResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "400",
+				description = "요청 본문이 올바르지 않거나, 선택한 주류·증류소·지역이 존재하지 않습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -101,6 +123,11 @@ object AdminMfdsMatchingApiDocs {
 				responseCode = "200",
 				description = "해제 처리 결과",
 				content = [Content(schema = Schema(implementation = MfdsMatchingConfirmResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입 신고가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)

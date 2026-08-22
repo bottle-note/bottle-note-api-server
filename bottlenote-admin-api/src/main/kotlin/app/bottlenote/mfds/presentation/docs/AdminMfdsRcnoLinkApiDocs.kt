@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 /** 수입신고번호(RCNO) 연결 근거 엔드포인트의 문서 설명. */
 object AdminMfdsRcnoLinkApiDocs {
 
+	private const val ERROR_SCHEMA = "#/components/schemas/ErrorResponse"
+
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
 	@Tag(
@@ -28,6 +30,8 @@ object AdminMfdsRcnoLinkApiDocs {
 			수입신고번호(rcno) 또는 수입사 ID(importerId)로 연결 근거를 조회합니다.
 
 			rcno를 주면 해당 신고번호의 근거 1건을, importerId를 주면 그 수입사에 연결된 근거 전체를 반환합니다. 두 조건을 모두 주면 rcno가 우선합니다.
+
+			이 원장은 수집기가 적재한 데이터입니다. 수입 신고에 수입사를 연결하거나 해제하는 조작으로는 원장이 바뀌지 않습니다.
 			""",
 		responses = [
 			ApiResponse(
@@ -57,6 +61,16 @@ object AdminMfdsRcnoLinkApiDocs {
 				responseCode = "200",
 				description = "등록 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입사가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
+			),
+			ApiResponse(
+				responseCode = "409",
+				description = "해당 수입신고번호에 이미 연결 근거가 있습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -72,6 +86,11 @@ object AdminMfdsRcnoLinkApiDocs {
 				responseCode = "200",
 				description = "삭제 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "해당 수입신고번호의 연결 근거가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
