@@ -33,7 +33,8 @@ class GlobalExceptionHandlerTest {
     Error error = firstError(response);
     assertThat(error.code()).isEqualTo(ValidExceptionCode.RESOURCE_NOT_FOUND);
     assertThat(error.status()).isEqualTo(HttpStatus.NOT_FOUND);
-    assertThat(error.message()).contains("GET", "v1/mfds/nope");
+    // 이 응답은 인증 이전에도 나가므로 요청 경로나 프레임워크 내부 표현이 본문에 섞이면 안 된다.
+    assertThat(error.message()).doesNotContain("v1/mfds/nope", "static resource");
   }
 
   @Test
