@@ -10,6 +10,8 @@ public enum ValidExceptionCode implements ExceptionCode {
 
   // COMMON
   TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "잘못된 타입입니다."),
+  REQUIRED_PARAMETER_MISSING(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
+  RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 경로를 찾을 수 없습니다."),
   JSON_PASSING_FAILED(HttpStatus.BAD_REQUEST, "JSON 파싱에 실패했습니다."),
   UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류가 추가적인 문의가 필요합니다."),
   JWT_TOKEN_EXCEPTION(HttpStatus.UNAUTHORIZED, "JWT 토큰 관련 예외가 발생했습니다."),

@@ -22,9 +22,11 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -107,6 +109,50 @@ public class GlobalExceptionHandler {
             fieldName, requiredType, rejectedValue);
 
     ValidExceptionCode code = ValidExceptionCode.TYPE_MISMATCH;
+    code.message(errorMessage);
+    return GlobalResponse.error(Error.of(code));
+  }
+
+  /**
+   * 필수 요청 파라미터가 누락된 경우에 대한 처리
+   *
+   * @param exception the exception
+   * @return the response entity
+   */
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  public ResponseEntity<GlobalResponse> handleMissingRequestParameterException(
+      MissingServletRequestParameterException exception) {
+    String parameterName = exception.getParameterName();
+    String parameterType = exception.getParameterType();
+    String errorMessage =
+        String.format(
+            "'%s' 필드는 '%s' 타입의 필수 파라미터이지만, 요청에 포함되지 않았습니다.", parameterName, parameterType);
+
+    log.warn("필수 요청 파라미터 누락 : {}", errorMessage);
+
+    ValidExceptionCode code = ValidExceptionCode.REQUIRED_PARAMETER_MISSING;
+    code.message(errorMessage);
+    return GlobalResponse.error(Error.of(code));
+  }
+
+  /**
+   * 매핑되지 않은 경로를 요청한 경우에 대한 처리<br>
+   * 서버 장애가 아니라 클라이언트의 잘못된 요청이므로 404로 응답한다.
+   *
+   * @param exception the exception
+   * @return the response entity
+   */
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<GlobalResponse> handleNoResourceFoundException(
+      NoResourceFoundException exception) {
+    String httpMethod = exception.getHttpMethod().name();
+    String resourcePath = exception.getResourcePath();
+    String errorMessage =
+        String.format("'%s /%s' 요청에 매핑된 API가 존재하지 않습니다. 요청 경로를 확인해주세요.", httpMethod, resourcePath);
+
+    log.warn("매핑되지 않은 경로 요청 : {}", errorMessage);
+
+    ValidExceptionCode code = ValidExceptionCode.RESOURCE_NOT_FOUND;
     code.message(errorMessage);
     return GlobalResponse.error(Error.of(code));
   }
