@@ -123,12 +123,15 @@ public class MfdsMatchingScoreCalculator {
   }
 
   /**
-   * 숙성 연수는 양쪽 값이 있으면 일치 여부(±1년까지 부분 점수)로 본다. 신고에 숙성 연수가 없고 빈티지 연도만 있으면 알코올 이름에 그 연도가 등장하는지로 대체하며,
-   * 등장하지 않는 경우는 판단 불가로 제외한다.
+   * 숙성 연수는 양쪽 값이 있으면 일치 여부(±1년까지 부분 점수)로 본다. 신고에 숙성 연수가 있으면 대상 age가 없어도 빈티지로 대체하지 않고 판단 불가다. 신고에 숙성
+   * 연수가 없고 빈티지 연도만 있으면 알코올 이름에 그 연도가 등장하는지로 대체하며, 등장하지 않는 경우는 판단 불가로 제외한다.
    */
   private Double ageMatch(MfdsDeclaration declaration, AlcoholMatchTargetItem target) {
     Double targetAge = parseFirstNumber(target.age());
-    if (declaration.getAgeYears() != null && targetAge != null) {
+    if (declaration.getAgeYears() != null) {
+      if (targetAge == null) {
+        return null;
+      }
       double diff = Math.abs(declaration.getAgeYears() - targetAge);
       if (diff == 0) {
         return 1.0;
