@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.DistilleryRepository;
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,4 +38,8 @@ public interface JpaDistilleryRepository
   @Override
   @Query("select d from distillery d order by d.sortOrder asc, d.id asc")
   List<Distillery> findAllOrderBySortOrderAsc();
+
+  @Override
+  @Query("select d from distillery d where d.id in :ids order by d.sortOrder asc, d.id asc")
+  List<Distillery> findAllByIdInOrderBySortOrderAsc(@Param("ids") Collection<Long> ids);
 }

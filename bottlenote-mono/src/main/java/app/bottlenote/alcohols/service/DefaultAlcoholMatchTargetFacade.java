@@ -1,7 +1,9 @@
 package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.DistilleryRepository;
+import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.RegionRepository;
 import app.bottlenote.alcohols.facade.AlcoholMatchTargetFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
@@ -36,7 +38,32 @@ public class DefaultAlcoholMatchTargetFacade implements AlcoholMatchTargetFacade
 
   @Override
   public List<DistilleryMatchTargetItem> findAllDistilleryTargets() {
-    return distilleryRepository.findAllOrderBySortOrderAsc().stream()
+    return toDistilleryItems(distilleryRepository.findAllOrderBySortOrderAsc());
+  }
+
+  @Override
+  public List<DistilleryMatchTargetItem> findDistilleryTargetsByIds(List<Long> distilleryIds) {
+    if (distilleryIds == null || distilleryIds.isEmpty()) {
+      return List.of();
+    }
+    return toDistilleryItems(distilleryRepository.findAllByIdInOrderBySortOrderAsc(distilleryIds));
+  }
+
+  @Override
+  public List<RegionMatchTargetItem> findAllRegionTargets() {
+    return toRegionItems(regionRepository.findAllOrderBySortOrderAsc());
+  }
+
+  @Override
+  public List<RegionMatchTargetItem> findRegionTargetsByIds(List<Long> regionIds) {
+    if (regionIds == null || regionIds.isEmpty()) {
+      return List.of();
+    }
+    return toRegionItems(regionRepository.findAllByIdInOrderBySortOrderAsc(regionIds));
+  }
+
+  private List<DistilleryMatchTargetItem> toDistilleryItems(List<Distillery> distilleries) {
+    return distilleries.stream()
         .map(
             distillery ->
                 new DistilleryMatchTargetItem(
@@ -44,9 +71,8 @@ public class DefaultAlcoholMatchTargetFacade implements AlcoholMatchTargetFacade
         .toList();
   }
 
-  @Override
-  public List<RegionMatchTargetItem> findAllRegionTargets() {
-    return regionRepository.findAllOrderBySortOrderAsc().stream()
+  private List<RegionMatchTargetItem> toRegionItems(List<Region> regions) {
+    return regions.stream()
         .map(
             region ->
                 new RegionMatchTargetItem(region.getId(), region.getKorName(), region.getEngName()))

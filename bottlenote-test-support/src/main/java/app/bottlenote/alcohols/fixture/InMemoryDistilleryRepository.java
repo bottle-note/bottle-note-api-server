@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.DistilleryRepository;
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -91,6 +92,14 @@ public class InMemoryDistilleryRepository implements DistilleryRepository {
   @Override
   public List<Distillery> findAllOrderBySortOrderAsc() {
     return distilleries.stream()
+        .sorted(Comparator.comparing(Distillery::getSortOrder).thenComparing(Distillery::getId))
+        .toList();
+  }
+
+  @Override
+  public List<Distillery> findAllByIdInOrderBySortOrderAsc(Collection<Long> ids) {
+    return distilleries.stream()
+        .filter(d -> ids.contains(d.getId()))
         .sorted(Comparator.comparing(Distillery::getSortOrder).thenComparing(Distillery::getId))
         .toList();
   }

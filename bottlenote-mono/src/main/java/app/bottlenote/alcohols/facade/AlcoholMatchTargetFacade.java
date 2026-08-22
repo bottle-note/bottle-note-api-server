@@ -17,8 +17,14 @@ public interface AlcoholMatchTargetFacade {
   /** 전체 증류소를 매칭 비교용 요약으로 조회한다. */
   List<DistilleryMatchTargetItem> findAllDistilleryTargets();
 
+  /** 지정한 ID들의 증류소를 매칭 비교용 요약으로 조회한다. */
+  List<DistilleryMatchTargetItem> findDistilleryTargetsByIds(List<Long> distilleryIds);
+
   /** 전체 지역을 매칭 비교용 요약으로 조회한다. */
   List<RegionMatchTargetItem> findAllRegionTargets();
+
+  /** 지정한 ID들의 지역을 매칭 비교용 요약으로 조회한다. */
+  List<RegionMatchTargetItem> findRegionTargetsByIds(List<Long> regionIds);
 
   boolean existsAlcohol(Long alcoholId);
 
