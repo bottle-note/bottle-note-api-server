@@ -17,7 +17,6 @@ import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
 import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
-import app.bottlenote.mfds.fixture.InMemoryMfdsImporterRcnoLinkRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsImporterRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
 import java.util.List;
@@ -32,16 +31,13 @@ class MfdsDeclarationServiceTest {
 
   private InMemoryMfdsDeclarationRepository declarationRepository;
   private InMemoryMfdsImporterRepository importerRepository;
-  private InMemoryMfdsImporterRcnoLinkRepository rcnoLinkRepository;
   private MfdsDeclarationService service;
 
   @BeforeEach
   void setUp() {
     declarationRepository = new InMemoryMfdsDeclarationRepository();
     importerRepository = new InMemoryMfdsImporterRepository();
-    rcnoLinkRepository = new InMemoryMfdsImporterRcnoLinkRepository();
-    service =
-        new MfdsDeclarationService(declarationRepository, importerRepository, rcnoLinkRepository);
+    service = new MfdsDeclarationService(declarationRepository, importerRepository);
   }
 
   @Test
@@ -111,7 +107,7 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
-  @DisplayName("수입사를 수동 연결할 때 MANUAL 근거와 RCNO 연결 근거를 남긴다")
+  @DisplayName("수입사를 수동 연결할 때 신고의 수입사와 MANUAL 근거만 갱신한다")
   void 수입사를_수동_연결할_수_있다() {
     MfdsImporter importer =
         importerRepository.save(
@@ -127,13 +123,6 @@ class MfdsDeclarationServiceTest {
     assertThat(declaration.getImporterId()).isEqualTo(importer.getId());
     assertThat(declaration.getImporterLinkSource()).isEqualTo(MfdsImporterLinkSource.MANUAL);
     assertThat(declaration.getImporterLinkedAt()).isNotNull();
-    assertThat(rcnoLinkRepository.findByRcno("RCNO-001"))
-        .hasValueSatisfying(
-            link -> {
-              assertThat(link.getImporterId()).isEqualTo(importer.getId());
-              assertThat(link.getSourceImporterName()).isEqualTo("보틀상사");
-              assertThat(link.getLinkSource()).isEqualTo(MfdsImporterLinkSource.MANUAL);
-            });
   }
 
   @Test
@@ -172,7 +161,7 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
-  @DisplayName("수입사 연결을 해제할 때 RCNO 연결 근거도 함께 제거한다")
+  @DisplayName("수입사 연결을 해제할 때 신고의 수입사와 연결 근거만 비운다")
   void 수입사_연결을_해제할_수_있다() {
     MfdsImporter importer =
         importerRepository.save(
@@ -189,7 +178,7 @@ class MfdsDeclarationServiceTest {
     assertThat(result.code()).isEqualTo("MFDS_DECLARATION_IMPORTER_UNLINKED");
     assertThat(declaration.getImporterId()).isNull();
     assertThat(declaration.getImporterLinkSource()).isNull();
-    assertThat(rcnoLinkRepository.findByRcno("RCNO-001")).isEmpty();
+    assertThat(declaration.getImporterLinkedAt()).isNull();
   }
 
   @Test

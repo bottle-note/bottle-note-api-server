@@ -15,8 +15,6 @@ import app.bottlenote.mfds.constant.MfdsImporterLinkSource;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.domain.MfdsImporter;
-import app.bottlenote.mfds.domain.MfdsImporterRcnoLink;
-import app.bottlenote.mfds.domain.MfdsImporterRcnoLinkRepository;
 import app.bottlenote.mfds.domain.MfdsImporterRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.request.MfdsDeclarationImporterLinkRequest;
@@ -36,7 +34,6 @@ public class MfdsDeclarationService {
 
   private final MfdsDeclarationRepository declarationRepository;
   private final MfdsImporterRepository importerRepository;
-  private final MfdsImporterRcnoLinkRepository rcnoLinkRepository;
 
   @Transactional(readOnly = true)
   public GlobalResponse search(MfdsDeclarationSearchRequest request) {
@@ -80,7 +77,7 @@ public class MfdsDeclarationService {
     return AdminResultResponse.of(MFDS_DECLARATION_STATUS_UPDATED, declarationId);
   }
 
-  /** 수입사를 수동 연결하고 RCNO 연결 근거를 함께 남긴다. 이미 연결돼 있으면 먼저 해제해야 한다. */
+  /** 수입사를 수동 연결한다. 원장 테이블은 크롤러 소유라 변경하지 않는다. */
   @Transactional
   public AdminResultResponse linkImporter(
       Long declarationId, MfdsDeclarationImporterLinkRequest request) {
@@ -96,17 +93,10 @@ public class MfdsDeclarationService {
     declaration.linkImporter(importer.getId(), MfdsImporterLinkSource.MANUAL);
     declarationRepository.save(declaration);
 
-    rcnoLinkRepository.save(
-        MfdsImporterRcnoLink.create(
-            declaration.getRcno(),
-            importer.getId(),
-            importer.getBusinessName(),
-            MfdsImporterLinkSource.MANUAL));
-
     return AdminResultResponse.of(MFDS_DECLARATION_IMPORTER_LINKED, declarationId);
   }
 
-  /** 수입사 연결을 해제하고 해당 RCNO의 연결 근거도 제거한다. */
+  /** 수입사 연결을 해제한다. 원장 테이블은 크롤러 소유라 변경하지 않는다. */
   @Transactional
   public AdminResultResponse unlinkImporter(Long declarationId) {
     MfdsDeclaration declaration = findDeclaration(declarationId);
@@ -116,7 +106,6 @@ public class MfdsDeclarationService {
 
     declaration.unlinkImporter();
     declarationRepository.save(declaration);
-    rcnoLinkRepository.deleteByRcno(declaration.getRcno());
 
     return AdminResultResponse.of(MFDS_DECLARATION_IMPORTER_UNLINKED, declarationId);
   }
