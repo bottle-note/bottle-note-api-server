@@ -14,7 +14,10 @@ object AdminMfdsMatchingApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "수입 원장 매칭", description = "정제된 수입 원장을 BottleNote 위스키·증류소·지역 데이터와 비교해 후보를 계산하고 확정한다")
+	@Tag(
+		name = "수입 정보",
+		description = "식약처 수입 원장에서 수집한 수입사와 수입 신고 데이터를 조회하고, 수입사 연결 근거와 BottleNote 위스키 매칭을 관리한다"
+	)
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)
