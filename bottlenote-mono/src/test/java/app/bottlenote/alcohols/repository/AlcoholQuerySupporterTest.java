@@ -1,11 +1,19 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
+import com.querydsl.core.JoinExpression;
+import com.querydsl.core.QueryMetadata;
 import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Operation;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Ops;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.SubQueryExpression;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import org.junit.jupiter.api.DisplayName;
@@ -55,10 +63,45 @@ class AlcoholQuerySupporterTest {
     BooleanExpression condition = supporter.latestPopularSnapshot();
 
     // then
-    assertThat(condition.toString())
-        .contains("popularAlcohol.alcoholId = alcohol.id")
-        .contains("latestPopularAlcohol")
-        .contains("max")
-        .contains("alcoholId = alcohol.id");
+    assertThat(condition).isInstanceOf(Operation.class);
+    Operation<?> rootAnd = (Operation<?>) condition;
+    assertThat(rootAnd.getOperator()).isEqualTo(Ops.AND);
+
+    Operation<?> joinsSnapshotToAlcohol = (Operation<?>) rootAnd.getArg(0);
+    assertThat(joinsSnapshotToAlcohol.getOperator()).isEqualTo(Ops.EQ);
+    assertThat(joinsSnapshotToAlcohol.getArgs()).containsExactly(popularAlcohol.alcoholId, alcohol.id);
+
+    Operation<?> matchesLatestCreatedAt = (Operation<?>) rootAnd.getArg(1);
+    assertThat(matchesLatestCreatedAt.getOperator()).isEqualTo(Ops.EQ);
+    assertThat(matchesLatestCreatedAt.getArg(0)).isEqualTo(popularAlcohol.createdAt);
+    assertThat(matchesLatestCreatedAt.getArg(1)).isInstanceOf(SubQueryExpression.class);
+
+    SubQueryExpression<?> latestCreatedAt =
+        (SubQueryExpression<?>) matchesLatestCreatedAt.getArg(1);
+    QueryMetadata metadata = latestCreatedAt.getMetadata();
+    assertThat(metadata.getJoins()).hasSize(1);
+    JoinExpression join = metadata.getJoins().get(0);
+    assertThat(join.getTarget()).isInstanceOf(Path.class);
+    assertThat(((Path<?>) join.getTarget()).getMetadata().getName())
+        .isEqualTo("latestPopularAlcohol");
+
+    assertThat(metadata.getProjection()).isInstanceOf(Operation.class);
+    Operation<?> maxCreatedAt = (Operation<?>) metadata.getProjection();
+    assertThat(maxCreatedAt.getOperator()).isEqualTo(Ops.AggOps.MAX_AGG);
+    assertThat(maxCreatedAt.getArgs()).hasSize(1);
+    assertThat(maxCreatedAt.getArg(0)).isInstanceOf(Path.class);
+    Path<?> createdAt = (Path<?>) maxCreatedAt.getArg(0);
+    assertThat(createdAt.getMetadata().getName()).isEqualTo("createdAt");
+    assertThat(createdAt.getRoot().getMetadata().getName()).isEqualTo("latestPopularAlcohol");
+
+    assertThat(metadata.getWhere()).isInstanceOf(Operation.class);
+    Operation<?> correlation = (Operation<?>) metadata.getWhere();
+    assertThat(correlation.getOperator()).isEqualTo(Ops.EQ);
+    assertThat(correlation.getArgs()).hasSize(2);
+    assertThat(correlation.getArg(0)).isInstanceOf(Path.class);
+    Path<?> latestAlcoholId = (Path<?>) correlation.getArg(0);
+    assertThat(latestAlcoholId.getMetadata().getName()).isEqualTo("alcoholId");
+    assertThat(latestAlcoholId.getRoot().getMetadata().getName()).isEqualTo("latestPopularAlcohol");
+    assertThat(correlation.getArg(1)).isEqualTo(alcohol.id);
   }
 }
