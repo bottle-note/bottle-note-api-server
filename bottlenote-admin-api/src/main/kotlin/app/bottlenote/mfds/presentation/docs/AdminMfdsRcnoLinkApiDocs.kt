@@ -14,7 +14,10 @@ object AdminMfdsRcnoLinkApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "식약처 RCNO 연결 근거", description = "수입신고번호별 수입사 연결 근거를 조회하고 등록·삭제한다")
+	@Tag(
+		name = "수입 정보",
+		description = "식약처 수입 원장에서 수집한 수입사와 수입 신고 데이터를 조회하고, 수입사 연결 근거와 BottleNote 위스키 매칭을 관리한다"
+	)
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)
