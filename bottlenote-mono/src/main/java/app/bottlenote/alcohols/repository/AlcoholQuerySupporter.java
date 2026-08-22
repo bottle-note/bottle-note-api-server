@@ -15,6 +15,7 @@ import static com.querydsl.jpa.JPAExpressions.select;
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
+import app.bottlenote.alcohols.domain.QPopularAlcohol;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
@@ -36,6 +37,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AlcoholQuerySupporter {
+
+  private static final QPopularAlcohol latestPopularAlcohol =
+      new QPopularAlcohol("latestPopularAlcohol");
 
   private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
 
@@ -129,10 +133,7 @@ public class AlcoholQuerySupporter {
     NumberExpression<Long> reviewCount = review.id.countDistinct();
     NumberExpression<Long> pickCount = picks.id.countDistinct();
     return switch (searchSortType) {
-      case POPULAR ->
-          sortOrder == SortOrder.DESC
-              ? avgRating.add(reviewCount).desc()
-              : avgRating.add(reviewCount).asc();
+      case POPULAR -> sortOrder == SortOrder.DESC ? popularScore().desc() : popularScore().asc();
       case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
       case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
       case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
@@ -180,12 +181,31 @@ public class AlcoholQuerySupporter {
     NumberExpression<Long> reviewCount = review.id.countDistinct();
     NumberExpression<Long> pickCount = picks.id.countDistinct();
     return switch (searchSortType) {
-      case POPULAR -> avgRating.add(reviewCount);
+      case POPULAR -> popularScore();
       case RATING -> avgRating;
       case PICK -> pickCount;
       case REVIEW -> reviewCount;
       case RANDOM -> throw new IllegalArgumentException("RANDOM uses crc32Rank");
     };
+  }
+
+  /** 최신 인기 snapshot 점수. 점수가 없는 주류도 cursor double key를 유지하도록 0.0으로 처리한다. */
+  public NumberExpression<Double> popularScore() {
+    return popularAlcohol.popularScore.castToNum(Double.class).coalesce(0.0);
+  }
+
+  /** 주류별 최신 popular_alcohols snapshot 행을 연결하는 correlated LEFT JOIN 조건이다. */
+  public BooleanExpression latestPopularSnapshot() {
+    return popularAlcohol
+        .alcoholId
+        .eq(alcohol.id)
+        .and(
+            popularAlcohol
+                .createdAt
+                .eq(
+                    JPAExpressions.select(latestPopularAlcohol.createdAt.max())
+                        .from(latestPopularAlcohol)
+                        .where(latestPopularAlcohol.alcoholId.eq(alcohol.id))));
   }
 
   /** 삭제되지 않은 데이터 필터 조건 */

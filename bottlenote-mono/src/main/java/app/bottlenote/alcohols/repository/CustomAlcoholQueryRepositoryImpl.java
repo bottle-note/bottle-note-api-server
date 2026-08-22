@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.repository;
 import static app.bottlenote.alcohols.constant.AlcoholType.WHISKY;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QDistillery.distillery;
+import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
 import static app.bottlenote.picks.domain.QPicks.picks;
@@ -368,6 +369,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     if (needsReviewJoin(sortType)) {
       query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
     }
+    if (sortType == SearchSortType.POPULAR) {
+      query = query.leftJoin(popularAlcohol).on(supporter.latestPopularSnapshot());
+    }
     if (needsPicksJoin(sortType)) {
       query = query.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id));
     }
@@ -380,7 +384,10 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 supporter.inDistilleryIds(criteria.distilleryIds()),
                 supporter.eqCurationId(criteria.curationId()),
                 supporter.isNotDeleted())
-            .groupBy(alcohol.id)
+            .groupBy(
+                sortType == SearchSortType.POPULAR
+                    ? new Expression<?>[] {alcohol.id, popularAlcohol.popularScore}
+                    : new Expression<?>[] {alcohol.id})
             .having(
                 ratingInRange(criteria.ratingFrom(), criteria.ratingTo()),
                 aggregateSeek(claims, sortType, criteria.sortOrder(), sortScore))
@@ -461,11 +468,11 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   }
 
   private static boolean needsRatingJoin(SearchSortType sortType) {
-    return sortType == SearchSortType.RATING || sortType == SearchSortType.POPULAR;
+    return sortType == SearchSortType.RATING;
   }
 
   private static boolean needsReviewJoin(SearchSortType sortType) {
-    return sortType == SearchSortType.REVIEW || sortType == SearchSortType.POPULAR;
+    return sortType == SearchSortType.REVIEW;
   }
 
   private static boolean needsPicksJoin(SearchSortType sortType) {
