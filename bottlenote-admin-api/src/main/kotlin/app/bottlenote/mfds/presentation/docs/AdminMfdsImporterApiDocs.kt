@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 /** 식약처 수입사 관리 엔드포인트의 문서 설명. */
 object AdminMfdsImporterApiDocs {
 
+	private const val ERROR_SCHEMA = "#/components/schemas/ErrorResponse"
+
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
 	@Tag(
@@ -53,6 +55,11 @@ object AdminMfdsImporterApiDocs {
 				responseCode = "200",
 				description = "수입사 상세 정보",
 				content = [Content(schema = Schema(implementation = MfdsImporterItem::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입사가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -72,6 +79,11 @@ object AdminMfdsImporterApiDocs {
 				responseCode = "200",
 				description = "등록 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "409",
+				description = "동일한 공식 업소 코드의 수입사가 이미 있습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -87,6 +99,11 @@ object AdminMfdsImporterApiDocs {
 				responseCode = "200",
 				description = "수정 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입사가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
@@ -102,6 +119,16 @@ object AdminMfdsImporterApiDocs {
 				responseCode = "200",
 				description = "삭제 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "요청한 수입사가 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
+			),
+			ApiResponse(
+				responseCode = "409",
+				description = "연결된 수입 신고나 수입신고번호 원장이 있어 삭제할 수 없습니다.",
+				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
 	)
