@@ -1,6 +1,5 @@
 package app.bottlenote.mfds.dto.response;
 
-import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,9 +16,9 @@ public record MfdsMatchingCandidatesResponse(
   /** 확정된 선택 상태. 확정 전이면 모든 필드가 null이다. */
   public record MfdsMatchingSelection(
       Long alcoholId,
-      MfdsMatchSelectionSource alcoholMatchDecision,
+      String alcoholMatchDecision,
       Long distilleryId,
-      MfdsMatchSelectionSource distilleryMatchSource,
+      String distilleryMatchSource,
       Long regionId,
-      MfdsMatchSelectionSource regionMatchSource) {}
+      String regionMatchSource) {}
 }

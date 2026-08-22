@@ -49,7 +49,8 @@ public class InMemoryRatingRepository implements RatingRepository {
   }
 
   @Override
-  public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+  public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(
+      RatingListFetchCriteria criteria) {
     return null;
   }
 

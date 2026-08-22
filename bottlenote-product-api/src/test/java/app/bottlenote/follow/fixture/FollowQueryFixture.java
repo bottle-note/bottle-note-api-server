@@ -38,6 +38,7 @@ public class FollowQueryFixture {
                 .reviewCount(10L)
                 .ratingCount(5L)
                 .build());
-    return KeysetPageResponse.of(FollowerSearchResponse.of(followerDetails), new KeysetPagination(false, null));
+    return KeysetPageResponse.of(
+        FollowerSearchResponse.of(followerDetails), new KeysetPagination(false, null));
   }
 }

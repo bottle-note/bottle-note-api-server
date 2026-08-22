@@ -149,7 +149,8 @@ class GraphQLCurationAlcoholResolverTest {
     }
 
     @Override
-    public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+    public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(
+        RatingListFetchCriteria criteria) {
       throw new UnsupportedOperationException("not used in GraphQL resolver test");
     }
 

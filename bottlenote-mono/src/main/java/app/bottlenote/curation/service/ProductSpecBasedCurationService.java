@@ -69,7 +69,8 @@ public class ProductSpecBasedCurationService {
   }
 
   @Transactional(readOnly = true)
-  public KeysetPageResponse<CurationFeedListResponse> searchFeed(CurationFeedSearchRequest request) {
+  public KeysetPageResponse<CurationFeedListResponse> searchFeed(
+      CurationFeedSearchRequest request) {
     int pageSize = normalizeFeedSize(request.size());
     List<String> normalizedCodes = normalizeCodes(request.code());
     CurationSortType sortType = request.sortType();
@@ -117,7 +118,8 @@ public class ProductSpecBasedCurationService {
             pageSize + 1);
     List<Long> candidateIds = curationRepository.findFeedCandidateIds(criteria);
     if (candidateIds.isEmpty()) {
-      return KeysetPageResponse.of(new CurationFeedListResponse(List.of()), new KeysetPagination(false, null));
+      return KeysetPageResponse.of(
+          new CurationFeedListResponse(List.of()), new KeysetPagination(false, null));
     }
     Map<Long, Curation> curationMap =
         curationRepository.findAllByIdIn(candidateIds).stream()

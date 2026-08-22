@@ -47,7 +47,8 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
   }
 
   @Override
-  public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+  public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(
+      RatingListFetchCriteria criteria) {
     Integer pageSize = criteria.size();
     Long userId = criteria.userId();
     int fetchSize = pageSize + 1;

@@ -2,7 +2,6 @@ package app.bottlenote.mfds.repository;
 
 import static app.bottlenote.mfds.domain.QMfdsDeclaration.mfdsDeclaration;
 
-import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.stereotype.Component;
@@ -25,7 +24,7 @@ public class MfdsDeclarationQuerySupporter {
         : mfdsDeclaration.selectedAlcoholId.isNull();
   }
 
-  public BooleanExpression eqAlcoholMatchDecision(MfdsMatchSelectionSource decision) {
+  public BooleanExpression eqAlcoholMatchDecision(String decision) {
     return decision != null ? mfdsDeclaration.alcoholMatchDecision.eq(decision) : null;
   }
 

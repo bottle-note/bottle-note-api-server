@@ -43,8 +43,7 @@ class KeysetPaginationTest {
   @DisplayName("키셋 페이지 응답 JSON은 기존 content와 pagination 필드 계약을 유지한다")
   void keysetPageResponse_preserves_json_contract() throws JsonProcessingException {
     KeysetPageResponse<List<String>> response =
-        KeysetPageResponse.of(
-            List.of("first", "second"), new KeysetPagination(true, "cursor-2"));
+        KeysetPageResponse.of(List.of("first", "second"), new KeysetPagination(true, "cursor-2"));
 
     assertThat(OBJECT_MAPPER.writeValueAsString(response))
         .isEqualTo(

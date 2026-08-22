@@ -32,12 +32,16 @@ object AdminMfdsDeclarationApiDocs {
 
 			검색어는 한글/영문 제품 검색 키와 수입신고번호에 부분 일치로 적용됩니다. alcoholMatched를 true로 주면 주류가 확정된 신고만, false로 주면 미확정 신고만 반환합니다.
 
-			alcoholMatchDecision에는 아래 값만 지정할 수 있습니다. 정의되지 않은 값은 조용히 무시되지 않고 요청 자체가 실패합니다.
+			alcoholMatchDecision은 문자열로 그대로 비교합니다. 이 값은 관리자 확정과 수집 파이프라인이 함께 기록하므로 두 계열이 섞여 있습니다.
 
+			관리자가 확정할 때 기록하는 값
 			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
 			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
-			- AUTO(자동 매칭): 관리자 개입 없이 자동 매칭이 선정한 값이 그대로 확정된 경우에 해당 값이 사용된다
 
+			정규화 배치가 기록하는 값
+			- AUTO_SELECTED: 배치가 단일 후보를 자동 선정했다
+			- NO_MATCH: 후보를 찾지 못했다
+			- REVIEW / AMBIGUOUS / CONFLICT_REVIEW: 사람이 판단해야 하는 상태다
 
 			목록은 ID 내림차순이며 커서 방식으로 페이징합니다. 응답 meta의 nextCursor를 다음 요청의 cursor로 전달하면 다음 페이지를 받을 수 있습니다.
 			""",
@@ -71,7 +75,8 @@ object AdminMfdsDeclarationApiDocs {
 
 			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
 			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
-			- AUTO(자동 매칭): 관리자 개입 없이 자동 매칭이 선정한 값이 그대로 확정된 경우에 해당 값이 사용된다
+
+			이 밖에 정규화 배치가 남긴 AUTO_SELECTED, NO_MATCH, REVIEW, AMBIGUOUS, CONFLICT_REVIEW 가 그대로 노출될 수 있습니다.
 			""",
 		responses = [
 			ApiResponse(
