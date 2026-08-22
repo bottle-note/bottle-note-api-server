@@ -21,8 +21,8 @@ import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.exception.CurationExceptionCode;
 import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -63,13 +63,13 @@ public class ProductSpecBasedCurationService {
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<CurationFeedListResponse> searchFeed(
+  public KeysetPageResponse<CurationFeedListResponse> searchFeed(
       String keyword, List<String> codes, String cursor, Integer size) {
     return searchFeed(new CurationFeedSearchRequest(codes, keyword, cursor, size));
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<CurationFeedListResponse> searchFeed(CurationFeedSearchRequest request) {
+  public KeysetPageResponse<CurationFeedListResponse> searchFeed(CurationFeedSearchRequest request) {
     int pageSize = normalizeFeedSize(request.size());
     List<String> normalizedCodes = normalizeCodes(request.code());
     CurationSortType sortType = request.sortType();
@@ -110,7 +110,7 @@ public class ProductSpecBasedCurationService {
             pageSize + 1);
     List<Long> candidateIds = curationRepository.findFeedCandidateIds(criteria);
     if (candidateIds.isEmpty()) {
-      return PageResponse.of(new CurationFeedListResponse(List.of()), new Pagination(false, null));
+      return KeysetPageResponse.of(new CurationFeedListResponse(List.of()), new KeysetPagination(false, null));
     }
     Map<Long, Curation> curationMap =
         curationRepository.findAllByIdIn(candidateIds).stream()
@@ -131,14 +131,14 @@ public class ProductSpecBasedCurationService {
                 })
             .toList();
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             items,
             pageSize,
             item ->
                 cursorCodec.encode(
                     context,
                     cursorKeys(item, sortType)));
-    return PageResponse.of(new CurationFeedListResponse(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(new CurationFeedListResponse(slice.items()), slice.pagination());
   }
 
   @Transactional(readOnly = true)

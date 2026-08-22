@@ -14,8 +14,8 @@ import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.support.business.domain.BusinessSupportRepository;
@@ -140,7 +140,7 @@ public class BusinessSupportService {
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<BusinessSupportListResponse> getList(
+  public KeysetPageResponse<BusinessSupportListResponse> getList(
       BusinessSupportPageableRequest req, Long userId) {
     String context = "business-support.list:" + userId;
 
@@ -162,12 +162,12 @@ public class BusinessSupportService {
             .filter(item -> afterCursor(item, hasCursor, lastCreateAt, lastId))
             .limit(req.size() + 1L)
             .toList();
-    Pagination.PageSlice<BusinessInfoResponse> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<BusinessInfoResponse> slice =
+        KeysetPagination.fromOverflow(
             fetched.stream().map(this::toInfo).toList(),
             req.size(),
             item -> cursorCodec.encode(context, cursorKeys(item.createAt(), item.id())));
-    return PageResponse.of(new BusinessSupportListResponse(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(new BusinessSupportListResponse(slice.items()), slice.pagination());
   }
 
   /** 정렬 값이 NULL이면 대체값을 넣지 않고 키 자체를 뺀다. */

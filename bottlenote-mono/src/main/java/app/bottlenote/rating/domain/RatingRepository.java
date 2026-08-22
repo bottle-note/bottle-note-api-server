@@ -1,6 +1,6 @@
 package app.bottlenote.rating.domain;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;
@@ -20,7 +20,7 @@ public interface RatingRepository {
 
   Optional<Rating> findByAlcoholIdAndUserId(Long alcoholId, Long userId);
 
-  PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria);
+  KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria);
 
   Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId);
 

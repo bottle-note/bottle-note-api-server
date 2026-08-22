@@ -5,7 +5,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.notification.controller.docs.NotificationApiDocs;
@@ -43,7 +43,7 @@ public class NotificationController {
   public ResponseEntity<GlobalResponse> getNotifications(
       @Parameter(hidden = true) @ModelAttribute @Valid NotificationPageableRequest request) {
     Long userId = currentUserId();
-    PageResponse<NotificationListResponse> page =
+    KeysetPageResponse<NotificationListResponse> page =
         notificationService.getNotifications(userId, request);
     return GlobalResponse.ok(
         page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));

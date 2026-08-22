@@ -1,6 +1,6 @@
 package app.bottlenote.history.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
@@ -39,7 +39,7 @@ public class InMemoryUserHistoryRepository implements UserHistoryRepository {
   }
 
   @Override
-  public PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
+  public KeysetPageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
       Long userId, UserHistorySearchRequest userHistorySearchRequest) {
     return null;
   }

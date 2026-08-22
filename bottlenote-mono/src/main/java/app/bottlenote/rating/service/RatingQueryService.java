@@ -3,7 +3,7 @@ package app.bottlenote.rating.service;
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
@@ -25,7 +25,7 @@ public class RatingQueryService {
   private final HmacCursorCodec cursorCodec;
 
   @Transactional(readOnly = true)
-  public PageResponse<RatingListFetchResponse> fetchRatingList(
+  public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(
       RatingListFetchRequest request, Long userId) {
     long resolvedSeed = resolveSeed(request, userId);
     var criteria = RatingListFetchCriteria.of(request, userId, resolvedSeed);

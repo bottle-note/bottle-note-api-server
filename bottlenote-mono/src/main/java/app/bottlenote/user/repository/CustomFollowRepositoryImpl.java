@@ -4,8 +4,8 @@ import static app.bottlenote.user.domain.QFollow.follow;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.QFollow;
@@ -31,7 +31,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
   private final HmacCursorCodec cursorCodec;
 
   @Override
-  public PageResponse<FollowingSearchResponse> getFollowingList(
+  public KeysetPageResponse<FollowingSearchResponse> getFollowingList(
       Long userId, FollowPageableCriteria criteria) {
     String context = "follow.following:" + userId;
     List<RelationUserItem> details =
@@ -61,7 +61,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
   }
 
   @Override
-  public PageResponse<FollowerSearchResponse> getFollowerList(
+  public KeysetPageResponse<FollowerSearchResponse> getFollowerList(
       Long userId, FollowPageableCriteria criteria) {
     String context = "follow.follower:" + userId;
     QFollow f2 = new QFollow("f2");
@@ -105,19 +105,19 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
     return toPage(details, criteria.size(), context, FollowerSearchResponse::of);
   }
 
-  private <T> PageResponse<T> toPage(
+  private <T> KeysetPageResponse<T> toPage(
       List<RelationUserItem> details,
       int size,
       String context,
       java.util.function.Function<List<RelationUserItem>, T> mapper) {
-    Pagination.PageSlice<RelationUserItem> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<RelationUserItem> slice =
+        KeysetPagination.fromOverflow(
             details,
             size,
             item ->
                 cursorCodec.encode(
                     context, TimeIdCursor.keys(item.lastModifyAt(), item.followId())));
-    return PageResponse.of(mapper.apply(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(mapper.apply(slice.items()), slice.pagination());
   }
 
   private BooleanExpression followSeek(FollowPageableCriteria criteria) {

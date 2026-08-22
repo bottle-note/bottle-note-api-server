@@ -3,7 +3,7 @@ package app.bottlenote.review.service;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 import app.bottlenote.common.annotation.FacadeService;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -25,7 +25,7 @@ public class DefaultReviewFacade implements ReviewFacade {
   @Transactional(readOnly = true)
   public ReviewListResponse getReviewInfoList(Long alcoholId, Long userId) {
     ReviewPageableRequest pageableRequest = ReviewPageableRequest.builder().size(6).build();
-    PageResponse<ReviewListResponse> reviews =
+    KeysetPageResponse<ReviewListResponse> reviews =
         reviewRepository.getReviews(alcoholId, pageableRequest, userId);
     return reviews.content();
   }

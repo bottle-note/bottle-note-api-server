@@ -1,6 +1,6 @@
 package app.bottlenote.notification.dto.request;
 
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationReadStatus;
 import app.bottlenote.notification.constant.NotificationType;
@@ -29,7 +29,7 @@ public record NotificationPageableRequest(
 
   @Builder
   public NotificationPageableRequest {
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
     types = types == null ? List.of() : types.stream().filter(Objects::nonNull).toList();

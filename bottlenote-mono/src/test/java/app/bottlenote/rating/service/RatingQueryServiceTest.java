@@ -6,8 +6,8 @@ import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.rating.domain.Rating;
@@ -136,10 +136,10 @@ class RatingQueryServiceTest {
     }
 
     @Override
-    public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+    public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
       this.lastCriteria = criteria;
-      return PageResponse.of(
-          RatingListFetchResponse.create(List.of()), new Pagination(false, null));
+      return KeysetPageResponse.of(
+          RatingListFetchResponse.create(List.of()), new KeysetPagination(false, null));
     }
 
     @Override

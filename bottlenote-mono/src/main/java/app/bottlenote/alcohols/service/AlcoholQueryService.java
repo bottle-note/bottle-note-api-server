@@ -12,7 +12,7 @@ import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.PaginationException;
 import app.bottlenote.global.pagination.PaginationExceptionCode;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
@@ -73,13 +73,13 @@ public class AlcoholQueryService {
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<ExploreStandardResponse> getStandardExplore(
+  public KeysetPageResponse<ExploreStandardResponse> getStandardExplore(
       ExploreStandardRequest request, Long userId) {
     long resolvedSeed = resolveSeed(request, userId);
     ExploreStandardCriteria criteria = ExploreStandardCriteria.of(request, userId, resolvedSeed);
-    PageResponse<List<AlcoholDetailItem>> page =
+    KeysetPageResponse<List<AlcoholDetailItem>> page =
         alcoholQueryRepository.getStandardExplore(criteria);
-    return PageResponse.of(new ExploreStandardResponse(page.content()), page.pagination());
+    return KeysetPageResponse.of(new ExploreStandardResponse(page.content()), page.pagination());
   }
 
   /** RANDOM은 커서 extra의 seed를 재사용하고, 첫 페이지는 서버가 생성한다. */

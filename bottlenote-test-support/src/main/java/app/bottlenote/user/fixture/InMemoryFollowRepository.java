@@ -1,6 +1,6 @@
 package app.bottlenote.user.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
@@ -44,13 +44,13 @@ public class InMemoryFollowRepository implements FollowRepository {
   }
 
   @Override
-  public PageResponse<FollowingSearchResponse> getFollowingList(
+  public KeysetPageResponse<FollowingSearchResponse> getFollowingList(
       Long userId, FollowPageableCriteria criteria) {
     return null;
   }
 
   @Override
-  public PageResponse<FollowerSearchResponse> getFollowerList(
+  public KeysetPageResponse<FollowerSearchResponse> getFollowerList(
       Long userId, FollowPageableCriteria criteria) {
     return null;
   }

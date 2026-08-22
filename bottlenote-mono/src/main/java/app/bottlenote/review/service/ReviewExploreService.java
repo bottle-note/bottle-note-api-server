@@ -1,6 +1,6 @@
 package app.bottlenote.review.service;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.request.ReviewExploreRequest;
@@ -17,7 +17,7 @@ public class ReviewExploreService {
   private final ReviewRepository reviewRepository;
 
   @Transactional(readOnly = true)
-  public PageResponse<ReviewExploreListResponse> getStandardExplore(
+  public KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
       ReviewExploreRequest request, Long userId) {
     return reviewRepository.getStandardExplore(ReviewExploreCriteria.of(request, userId));
   }

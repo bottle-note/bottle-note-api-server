@@ -288,7 +288,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("페이징")
-  class Pagination {
+  class KeysetPagination {
 
     @Test
     @DisplayName("커서 기반 페이징 시 페이지 간 중복 데이터가 발생하지 않는다")

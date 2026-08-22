@@ -23,8 +23,8 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -122,7 +122,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviews(
+  public KeysetPageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     List<ReviewInfo> fetch =
         queryFactory
@@ -163,7 +163,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviewsByMe(
+  public KeysetPageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     // 특정한 위스키의 내 리뷰만 조회
     List<ReviewInfo> fetch =
@@ -196,14 +196,14 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
         fetch, reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest));
   }
 
-  private PageResponse<ReviewListResponse> toReviewPage(
+  private KeysetPageResponse<ReviewListResponse> toReviewPage(
       List<ReviewInfo> fetch, ReviewPageableRequest request, String context) {
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             fetch,
             request.size(),
             item -> cursorCodec.encode(context, cursorKeys(request.sortType(), item)));
-    return PageResponse.of(ReviewListResponse.of(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(ReviewListResponse.of(slice.items()), slice.pagination());
   }
 
   private com.querydsl.core.types.dsl.BooleanExpression reviewSeek(
@@ -288,7 +288,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewExploreListResponse> getStandardExplore(
+  public KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
       ReviewExploreCriteria criteria) {
     Long userId = criteria.userId();
     int size = criteria.size();
@@ -449,12 +449,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
     }
 
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             items,
             size,
             item ->
                 cursorCodec.encode(context, cursorKeys(criteria.sortType(), cursorItems.get(item.reviewId()))));
-    return PageResponse.of(new ReviewExploreListResponse(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(new ReviewExploreListResponse(slice.items()), slice.pagination());
   }
 
 }

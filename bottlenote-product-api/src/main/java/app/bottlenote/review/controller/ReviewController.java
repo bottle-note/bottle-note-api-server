@@ -5,7 +5,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.controller.docs.ReviewApiDocs;
@@ -55,7 +55,7 @@ public class ReviewController {
   public ResponseEntity<GlobalResponse> getReviews(
       @PathVariable Long alcoholId, @ModelAttribute ReviewPageableRequest reviewPageableRequest) {
     Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-    PageResponse<ReviewListResponse> pageResponse =
+    KeysetPageResponse<ReviewListResponse> pageResponse =
         reviewService.getReviews(alcoholId, reviewPageableRequest, currentUserId);
 
     return GlobalResponse.ok(
@@ -82,7 +82,7 @@ public class ReviewController {
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-    PageResponse<ReviewListResponse> myReviews =
+    KeysetPageResponse<ReviewListResponse> myReviews =
         reviewService.getMyReviews(reviewPageableRequest, alcoholId, currentUserId);
 
     return GlobalResponse.ok(

@@ -1,7 +1,7 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
@@ -61,13 +61,13 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviews(
+  public KeysetPageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     return null;
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviewsByMe(
+  public KeysetPageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     return null;
   }
@@ -118,9 +118,9 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewExploreListResponse> getStandardExplore(
+  public KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
       ReviewExploreCriteria criteria) {
-    return PageResponse.of(new ReviewExploreListResponse(List.of()), new Pagination(false, null));
+    return KeysetPageResponse.of(new ReviewExploreListResponse(List.of()), new KeysetPagination(false, null));
   }
 
   @Override

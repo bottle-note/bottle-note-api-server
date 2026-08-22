@@ -1,6 +1,6 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
@@ -25,10 +25,10 @@ public interface ReviewRepository {
 
   ReviewInfo getReview(Long reviewId, Long userId);
 
-  PageResponse<ReviewListResponse> getReviews(
+  KeysetPageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
-  PageResponse<ReviewListResponse> getReviewsByMe(
+  KeysetPageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
   Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);
@@ -47,6 +47,6 @@ public interface ReviewRepository {
 
   boolean existsByAlcoholId(Long alcoholId);
 
-  PageResponse<ReviewExploreListResponse> getStandardExplore(
+  KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
       ReviewExploreCriteria criteria);
 }

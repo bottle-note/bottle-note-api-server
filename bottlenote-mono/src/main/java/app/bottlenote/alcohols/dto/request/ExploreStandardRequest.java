@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.global.validation.RatingRangeValidator;
 
@@ -47,7 +47,7 @@ public record ExploreStandardRequest(
     distilleryIds = distilleryIds != null ? List.copyOf(distilleryIds) : List.of();
     sortType = sortType != null ? sortType : SearchSortType.RANDOM;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
   }

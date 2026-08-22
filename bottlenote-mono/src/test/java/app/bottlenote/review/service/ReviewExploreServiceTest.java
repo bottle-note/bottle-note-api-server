@@ -2,8 +2,8 @@ package app.bottlenote.review.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.review.constant.ReviewSortType;
 import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
 import app.bottlenote.review.dto.request.ReviewExploreRequest;
@@ -36,7 +36,7 @@ class ReviewExploreServiceTest {
         new ReviewExploreRequest(null, null, null, null, null, null, null, null);
 
     // when
-    PageResponse<ReviewExploreListResponse> result = service.getStandardExplore(request, 1L);
+    KeysetPageResponse<ReviewExploreListResponse> result = service.getStandardExplore(request, 1L);
 
     // then
     assertThat(repository.criteria.sortType()).isEqualTo(ReviewSortType.LATEST);
@@ -74,7 +74,7 @@ class ReviewExploreServiceTest {
     }
 
     @Override
-    public PageResponse<ReviewExploreListResponse> getStandardExplore(ReviewExploreCriteria criteria) {
+    public KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(ReviewExploreCriteria criteria) {
       this.criteria = criteria;
       if (criteria.sortType() != ReviewSortType.LATEST) {
         throw new AssertionError("무파라미터 리뷰 둘러보기는 최신순이어야 합니다.");
@@ -86,7 +86,7 @@ class ReviewExploreServiceTest {
                       .reversed()
                       .thenComparing(ReviewExploreItem::reviewId, Comparator.reverseOrder()))
               .toList();
-      return PageResponse.of(new ReviewExploreListResponse(result), new Pagination(false, null));
+      return KeysetPageResponse.of(new ReviewExploreListResponse(result), new KeysetPagination(false, null));
     }
   }
 }

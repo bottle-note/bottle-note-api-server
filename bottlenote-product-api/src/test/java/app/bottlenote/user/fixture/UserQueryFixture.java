@@ -1,7 +1,7 @@
 package app.bottlenote.user.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.dto.response.PicksMyBottleItem;
@@ -29,7 +29,7 @@ public class UserQueryFixture {
         .build();
   }
 
-  public PageResponse<MyBottleResponse> getReviewMyBottleResponse(Long userId, boolean isMyPage) {
+  public KeysetPageResponse<MyBottleResponse> getReviewMyBottleResponse(Long userId, boolean isMyPage) {
     LocalDateTime now = LocalDateTime.now();
 
     ReviewMyBottleItem review1 =
@@ -71,10 +71,10 @@ public class UserQueryFixture {
     List<ReviewMyBottleItem> reviewList = List.of(review1, review2);
 
     MyBottleResponse myBottleResponse = MyBottleResponse.create(userId, isMyPage, reviewList);
-    return PageResponse.of(myBottleResponse, new Pagination(false, null));
+    return KeysetPageResponse.of(myBottleResponse, new KeysetPagination(false, null));
   }
 
-  public PageResponse<MyBottleResponse> getRatingMyBottleResponse(Long userId, boolean isMyPage) {
+  public KeysetPageResponse<MyBottleResponse> getRatingMyBottleResponse(Long userId, boolean isMyPage) {
 
     RatingMyBottleItem ratingMyBottleItem1 =
         RatingMyBottleItem.builder()
@@ -96,10 +96,10 @@ public class UserQueryFixture {
     List<RatingMyBottleItem> ratingList = List.of(ratingMyBottleItem1);
 
     MyBottleResponse myBottleResponse = MyBottleResponse.create(userId, isMyPage, ratingList);
-    return PageResponse.of(myBottleResponse, new Pagination(false, null));
+    return KeysetPageResponse.of(myBottleResponse, new KeysetPagination(false, null));
   }
 
-  public PageResponse<MyBottleResponse> getPicksMyBottleResponse(Long userId, boolean isMyPage) {
+  public KeysetPageResponse<MyBottleResponse> getPicksMyBottleResponse(Long userId, boolean isMyPage) {
 
     PicksMyBottleItem picksMyBottleItem1 =
         PicksMyBottleItem.builder()
@@ -121,6 +121,6 @@ public class UserQueryFixture {
     List<PicksMyBottleItem> picksList = List.of(picksMyBottleItem1);
 
     MyBottleResponse myBottleResponse = MyBottleResponse.create(userId, isMyPage, picksList);
-    return PageResponse.of(myBottleResponse, new Pagination(false, null));
+    return KeysetPageResponse.of(myBottleResponse, new KeysetPagination(false, null));
   }
 }

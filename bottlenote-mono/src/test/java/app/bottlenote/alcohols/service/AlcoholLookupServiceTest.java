@@ -15,7 +15,7 @@ import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
 import app.bottlenote.alcohols.service.AlcoholLookupService.AlcoholLookupSyncResult;
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import java.time.Clock;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -61,8 +61,8 @@ class AlcoholLookupServiceTest {
             .build();
 
     // when
-    PageResponse<AlcoholLookupListResponse> first = alcoholLookupService.lookup(request);
-    PageResponse<AlcoholLookupListResponse> second =
+    KeysetPageResponse<AlcoholLookupListResponse> first = alcoholLookupService.lookup(request);
+    KeysetPageResponse<AlcoholLookupListResponse> second =
         alcoholLookupService.lookup(
             AlcoholLookupRequest.builder()
                 .keyword("macallan speyside")
@@ -95,7 +95,7 @@ class AlcoholLookupServiceTest {
         AlcoholLookupRequest.builder().keyword("macallan speyside").size(20).build();
 
     // when
-    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
+    KeysetPageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
     assertThat(response.content().items())
@@ -112,7 +112,7 @@ class AlcoholLookupServiceTest {
         AlcoholLookupRequest.builder().keyword("macallan").size(20).build();
 
     // when
-    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
+    KeysetPageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
     assertThat(response.content().items())
@@ -132,7 +132,7 @@ class AlcoholLookupServiceTest {
 
     // when
     alcoholLookupService.lookup(request);
-    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
+    KeysetPageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
     assertThat(response.content().items()).hasSize(20);
@@ -154,7 +154,7 @@ class AlcoholLookupServiceTest {
     snapshotStore.failReads();
 
     // when
-    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
+    KeysetPageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
     assertThat(response.content().items()).hasSize(20);

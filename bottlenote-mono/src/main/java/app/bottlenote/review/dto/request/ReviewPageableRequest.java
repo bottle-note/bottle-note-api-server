@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.constant.ReviewSortType;
 import lombok.Builder;
@@ -15,7 +15,7 @@ public record ReviewPageableRequest(
   public ReviewPageableRequest {
     sortType = sortType != null ? sortType : ReviewSortType.POPULAR;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
   }

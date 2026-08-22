@@ -13,7 +13,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.HelpRepository;
@@ -44,7 +44,7 @@ import org.springframework.context.ApplicationEventPublisher;
 class HelpServiceTest {
 
   private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
-  private final PageResponse<HelpListResponse> helpPageResponse =
+  private final KeysetPageResponse<HelpListResponse> helpPageResponse =
       HelpObjectFixture.getHelpListPageResponse();
   private final HelpPageableRequest emptyPageableRequest =
       HelpObjectFixture.getEmptyHelpPageableRequest();
@@ -159,7 +159,7 @@ class HelpServiceTest {
         .thenReturn(helpPageResponse);
 
     // when
-    PageResponse<HelpListResponse> helpList = helpService.getHelpList(emptyPageableRequest, 1L);
+    KeysetPageResponse<HelpListResponse> helpList = helpService.getHelpList(emptyPageableRequest, 1L);
 
     // then
     assertEquals(helpPageResponse.content(), helpList.content());

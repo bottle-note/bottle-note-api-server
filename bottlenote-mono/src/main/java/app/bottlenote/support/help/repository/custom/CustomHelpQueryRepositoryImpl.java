@@ -5,8 +5,8 @@ import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
@@ -33,7 +33,7 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
   private final HmacCursorCodec cursorCodec;
 
   @Override
-  public PageResponse<HelpListResponse> getHelpList(
+  public KeysetPageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId) {
     String context = "help.list:" + currentUserId;
     int size = helpPageableRequest.size();
@@ -48,12 +48,12 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
             .limit(size + 1L)
             .fetch();
 
-    Pagination.PageSlice<HelpListResponse.HelpInfo> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<HelpListResponse.HelpInfo> slice =
+        KeysetPagination.fromOverflow(
             fetch,
             size,
             item -> cursorCodec.encode(context, TimeIdCursor.keys(item.createAt(), item.helpId())));
-    return PageResponse.of(HelpListResponse.of(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(HelpListResponse.of(slice.items()), slice.pagination());
   }
 
   private BooleanExpression helpSeek(String cursor, String context) {

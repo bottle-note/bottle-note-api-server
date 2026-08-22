@@ -4,7 +4,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.user.controller.docs.FollowApiDocs;
@@ -43,7 +43,7 @@ public class FollowController {
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-    PageResponse<FollowingSearchResponse> followingPageResponse =
+    KeysetPageResponse<FollowingSearchResponse> followingPageResponse =
         followService.getFollowingList(currentUserId, targetUserId, pageableRequest);
     return GlobalResponse.ok(
         followingPageResponse.content(),
@@ -59,7 +59,7 @@ public class FollowController {
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-    PageResponse<FollowerSearchResponse> followerPageResponse =
+    KeysetPageResponse<FollowerSearchResponse> followerPageResponse =
         followService.getFollowerList(currentUserId, targetUserId, pageableRequest);
     return GlobalResponse.ok(
         followerPageResponse.content(),

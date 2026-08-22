@@ -1,7 +1,7 @@
 package app.bottlenote.user.service;
 
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.FollowRepository;
@@ -75,7 +75,7 @@ public class FollowService implements FollowFacade {
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<FollowingSearchResponse> getFollowingList(
+  public KeysetPageResponse<FollowingSearchResponse> getFollowingList(
       Long currentUserId, Long userId, FollowPageableRequest pageableRequest) {
 
     if (!userRepository.existsByUserId(currentUserId)) {
@@ -86,7 +86,7 @@ public class FollowService implements FollowFacade {
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<FollowerSearchResponse> getFollowerList(
+  public KeysetPageResponse<FollowerSearchResponse> getFollowerList(
       Long currentUserId, Long userId, FollowPageableRequest pageableRequest) {
 
     if (!userRepository.existsByUserId(currentUserId)) {

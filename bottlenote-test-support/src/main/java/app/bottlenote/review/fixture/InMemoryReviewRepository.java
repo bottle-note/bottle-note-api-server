@@ -1,6 +1,6 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
@@ -26,7 +26,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 import app.bottlenote.review.dto.response.ReviewExploreListResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPagination;
 
 public class InMemoryReviewRepository implements ReviewRepository {
 
@@ -63,13 +63,13 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviews(
+  public KeysetPageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     return null;
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviewsByMe(
+  public KeysetPageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     return null;
   }
@@ -118,11 +118,11 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewExploreListResponse>
+  public KeysetPageResponse<ReviewExploreListResponse>
       getStandardExplore(ReviewExploreCriteria criteria) {
-    return PageResponse.of(
+    return KeysetPageResponse.of(
         new ReviewExploreListResponse(List.of()),
-        new Pagination(false, null));
+        new KeysetPagination(false, null));
   }
 
   @Override

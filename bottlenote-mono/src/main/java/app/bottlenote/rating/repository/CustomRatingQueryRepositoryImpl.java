@@ -8,8 +8,8 @@ import static app.bottlenote.review.domain.QReview.review;
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.picks.repository.PicksQuerySupporter;
 import app.bottlenote.rating.constant.SearchSortType;
@@ -47,7 +47,7 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
   }
 
   @Override
-  public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+  public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
     Integer pageSize = criteria.size();
     Long userId = criteria.userId();
     int fetchSize = pageSize + 1;
@@ -55,8 +55,8 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
 
     List<RatingSeekKey> candidates = fetchCandidateIds(criteria, context, fetchSize);
     if (candidates.isEmpty()) {
-      return PageResponse.of(
-          RatingListFetchResponse.create(List.of()), new Pagination(false, null));
+      return KeysetPageResponse.of(
+          RatingListFetchResponse.create(List.of()), new KeysetPagination(false, null));
     }
 
     List<Long> candidateIds = candidates.stream().map(RatingSeekKey::id).toList();
@@ -88,7 +88,7 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
         candidateIds.stream().map(byId::get).filter(Objects::nonNull).toList();
 
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             ordered,
             pageSize,
             item -> {
@@ -102,7 +102,7 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
                       : Map.of();
               return cursorCodec.encode(context, keys, extra);
             });
-    return PageResponse.of(RatingListFetchResponse.create(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(RatingListFetchResponse.create(slice.items()), slice.pagination());
   }
 
   /** 1단계 후보 id 추출 - RANDOM은 CRC32 keyset, 나머지는 sortScore 집계 기반 keyset으로 정렬과 커서를 일치시킨다. */

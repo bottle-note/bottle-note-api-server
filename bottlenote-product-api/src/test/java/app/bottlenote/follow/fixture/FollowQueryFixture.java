@@ -1,7 +1,7 @@
 package app.bottlenote.follow.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class FollowQueryFixture {
 
-  public PageResponse<FollowingSearchResponse> getFollowingPageResponse() {
+  public KeysetPageResponse<FollowingSearchResponse> getFollowingPageResponse() {
     List<RelationUserItem> followingDetails =
         List.of(
             RelationUserItem.builder()
@@ -22,11 +22,11 @@ public class FollowQueryFixture {
                 .reviewCount(10L)
                 .ratingCount(5L)
                 .build());
-    return PageResponse.of(
-        FollowingSearchResponse.of(followingDetails), new Pagination(false, null));
+    return KeysetPageResponse.of(
+        FollowingSearchResponse.of(followingDetails), new KeysetPagination(false, null));
   }
 
-  public PageResponse<FollowerSearchResponse> getFollowerPageResponse() {
+  public KeysetPageResponse<FollowerSearchResponse> getFollowerPageResponse() {
     List<RelationUserItem> followerDetails =
         List.of(
             RelationUserItem.builder()
@@ -38,6 +38,6 @@ public class FollowQueryFixture {
                 .reviewCount(10L)
                 .ratingCount(5L)
                 .build());
-    return PageResponse.of(FollowerSearchResponse.of(followerDetails), new Pagination(false, null));
+    return KeysetPageResponse.of(FollowerSearchResponse.of(followerDetails), new KeysetPagination(false, null));
   }
 }

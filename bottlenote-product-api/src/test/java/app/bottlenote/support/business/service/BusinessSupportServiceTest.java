@@ -13,7 +13,7 @@ import app.bottlenote.common.profanity.FakeProfanityClient;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
@@ -269,7 +269,7 @@ class BusinessSupportServiceTest {
 
     // when
     BusinessSupportPageableRequest req = new BusinessSupportPageableRequest(null, null);
-    PageResponse<BusinessSupportListResponse> response = service.getList(req, userId);
+    KeysetPageResponse<BusinessSupportListResponse> response = service.getList(req, userId);
 
     // then
     assertEquals(3, response.content().items().size());
@@ -342,7 +342,7 @@ class BusinessSupportServiceTest {
     List<Long> collected = new ArrayList<>();
     String cursor = null;
     for (int guard = 0; guard < 20; guard++) {
-      PageResponse<BusinessSupportListResponse> page =
+      KeysetPageResponse<BusinessSupportListResponse> page =
           service.getList(new BusinessSupportPageableRequest(cursor, size), userId);
       page.content().items().forEach(item -> collected.add(item.id()));
       if (!page.pagination().hasNext()) {

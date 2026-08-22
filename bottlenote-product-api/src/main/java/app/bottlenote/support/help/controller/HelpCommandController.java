@@ -3,7 +3,7 @@ package app.bottlenote.support.help.controller;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.support.help.controller.docs.HelpApiDocs;
@@ -55,7 +55,7 @@ public class HelpCommandController {
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new HelpException(REQUIRED_USER_ID));
 
-    PageResponse<HelpListResponse> pageResponse =
+    KeysetPageResponse<HelpListResponse> pageResponse =
         helpService.getHelpList(helpPageableRequest, currentUserId);
 
     return GlobalResponse.ok(

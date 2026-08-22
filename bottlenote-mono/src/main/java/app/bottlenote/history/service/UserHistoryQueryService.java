@@ -2,7 +2,7 @@ package app.bottlenote.history.service;
 
 import static java.lang.Boolean.FALSE;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
@@ -23,7 +23,7 @@ public class UserHistoryQueryService {
   private final UserFacade userFacade;
 
   @Transactional(readOnly = true)
-  public PageResponse<UserHistorySearchResponse> findUserHistoryList(
+  public KeysetPageResponse<UserHistorySearchResponse> findUserHistoryList(
       final Long targetUserId, final UserHistorySearchRequest userHistorySearchRequest) {
     if (FALSE.equals(userFacade.existsByUserId(targetUserId))) {
       throw new UserException(UserExceptionCode.USER_NOT_FOUND);

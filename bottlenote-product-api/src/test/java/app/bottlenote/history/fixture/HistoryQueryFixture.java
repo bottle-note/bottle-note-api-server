@@ -1,8 +1,8 @@
 package app.bottlenote.history.fixture;
 
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.history.constant.EventCategory;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.dto.response.UserHistoryItem;
@@ -32,7 +32,7 @@ public class HistoryQueryFixture {
         .build();
   }
 
-  public PageResponse<UserHistorySearchResponse> getUserHistorySearchResponse() {
+  public KeysetPageResponse<UserHistorySearchResponse> getUserHistorySearchResponse() {
     UserHistoryItem detail1 =
         UserHistoryItem.builder()
             .historyId(1L)
@@ -61,6 +61,6 @@ public class HistoryQueryFixture {
 
     List<UserHistoryItem> details = List.of(detail1, detail2);
     UserHistorySearchResponse response = UserHistorySearchResponse.of(LocalDateTime.now(), details);
-    return PageResponse.of(response, new Pagination(true, "next"));
+    return KeysetPageResponse.of(response, new KeysetPagination(true, "next"));
   }
 }

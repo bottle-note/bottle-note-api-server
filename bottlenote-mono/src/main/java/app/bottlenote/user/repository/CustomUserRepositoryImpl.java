@@ -9,8 +9,8 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.repository.PicksQuerySupporter;
@@ -95,7 +95,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
   }
 
   @Override
-  public PageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria request) {
+  public KeysetPageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria request) {
     Long userId = request.userId();
     boolean isMyPage = userId.equals(request.currentUserId());
 
@@ -200,7 +200,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     log.debug("mergedReviewMyBottleList : {}", mergedReviewMyBottleList);
 
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             mergedReviewMyBottleList,
             request.size(),
             item ->
@@ -212,12 +212,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     item.reviewCreateAt(),
                     item.myRatingPoint(),
                     cursorCodec));
-    return PageResponse.of(
+    return KeysetPageResponse.of(
         MyBottleResponse.create(userId, isMyPage, slice.items()), slice.pagination());
   }
 
   @Override
-  public PageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria request) {
+  public KeysetPageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria request) {
 
     Long userId = request.userId();
     boolean isMyPage = userId.equals(request.currentUserId());
@@ -272,7 +272,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .limit(request.size() + 1L)
             .fetch();
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             ratingMyBottleList,
             request.size(),
             item ->
@@ -284,12 +284,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     item.lastReviewAt(),
                     item.myRatingPoint(),
                     cursorCodec));
-    return PageResponse.of(
+    return KeysetPageResponse.of(
         MyBottleResponse.create(userId, isMyPage, slice.items()), slice.pagination());
   }
 
   @Override
-  public PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria request) {
+  public KeysetPageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria request) {
     final Long currentUserId = request.currentUserId();
     final Long targetUserId = request.userId();
     final boolean isMyPage = targetUserId.equals(request.currentUserId());
@@ -351,7 +351,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .fetch();
 
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             picksMyBottleList,
             request.size(),
             item ->
@@ -363,7 +363,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     item.lastReviewAt(),
                     item.myRatingPoint(),
                     cursorCodec));
-    return PageResponse.of(
+    return KeysetPageResponse.of(
         MyBottleResponse.create(targetUserId, isMyPage, slice.items()), slice.pagination());
   }
 
