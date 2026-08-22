@@ -19,9 +19,9 @@ import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -102,6 +102,10 @@ public class AlcoholQueryService {
         throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
       }
     }
-    return ThreadLocalRandom.current().nextLong();
+    return resolveFirstPageRandomSeed(Instant.now());
+  }
+
+  static long resolveFirstPageRandomSeed(Instant serverTime) {
+    return serverTime.getEpochSecond();
   }
 }
