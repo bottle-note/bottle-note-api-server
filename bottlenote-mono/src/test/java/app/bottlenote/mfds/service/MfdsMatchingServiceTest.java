@@ -17,6 +17,7 @@ import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,13 +29,13 @@ import org.junit.jupiter.api.Test;
 class MfdsMatchingServiceTest {
 
   private RecordingDeclarationRepository declarationRepository;
-  private FakeAlcoholMatchTargetFacade alcoholMatchTargetFacade;
+  private RecordingMatchTargetFacade alcoholMatchTargetFacade;
   private MfdsMatchingService matchingService;
 
   @BeforeEach
   void setUp() {
     declarationRepository = new RecordingDeclarationRepository();
-    alcoholMatchTargetFacade = new FakeAlcoholMatchTargetFacade();
+    alcoholMatchTargetFacade = new RecordingMatchTargetFacade();
     matchingService =
         new MfdsMatchingService(
             declarationRepository, alcoholMatchTargetFacade, new MfdsMatchingScoreCalculator());
@@ -244,6 +245,42 @@ class MfdsMatchingServiceTest {
     assertThat(declarationRepository.plainReads).isEqualTo(1);
   }
 
+  @Test
+  @DisplayName("저장된 후보를 조회할 때 증류소·지역을 전체 조회하지 않고 후보 ID로만 읽는다")
+  void 후보_조회는_참조_테이블을_전체_조회하지_않는다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    MfdsTestData.set(declaration, "distilleryNameEnCandidate", "Glenfiddich");
+    MfdsTestData.set(declaration, "manufactureCountryNameEn", "United Kingdom");
+    alcoholMatchTargetFacade.addDistillery(
+        new DistilleryMatchTargetItem(11L, "글렌피딕", "Glenfiddich"));
+    alcoholMatchTargetFacade.addRegion(new RegionMatchTargetItem(21L, "영국", "United Kingdom"));
+    matchingService.runMatching(declaration.getId());
+    alcoholMatchTargetFacade.resetCounts();
+
+    MfdsMatchingCandidatesResponse response = matchingService.getCandidates(declaration.getId());
+
+    assertThat(response.distilleryCandidates().get(0).korName()).isEqualTo("글렌피딕");
+    assertThat(response.regionCandidates().get(0).korName()).isEqualTo("영국");
+    assertThat(alcoholMatchTargetFacade.fullScans).isZero();
+    assertThat(alcoholMatchTargetFacade.distilleryIdLookups).isEqualTo(1);
+    assertThat(alcoholMatchTargetFacade.regionIdLookups).isEqualTo(1);
+  }
+
+  @Test
+  @DisplayName("저장된 증류소·지역 후보가 없을 때 참조 테이블을 조회하지 않는다")
+  void 후보가_없으면_참조_테이블을_조회하지_않는다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.resetCounts();
+
+    MfdsMatchingCandidatesResponse response = matchingService.getCandidates(declaration.getId());
+
+    assertThat(response.distilleryCandidates()).isEmpty();
+    assertThat(response.regionCandidates()).isEmpty();
+    assertThat(alcoholMatchTargetFacade.fullScans).isZero();
+    assertThat(alcoholMatchTargetFacade.distilleryIdLookups).isZero();
+    assertThat(alcoholMatchTargetFacade.regionIdLookups).isZero();
+  }
+
   private MfdsDeclaration savedDeclaration(String nameKo, String nameEn) {
     MfdsDeclaration declaration =
         MfdsTestData.declaration(
@@ -290,6 +327,44 @@ class MfdsMatchingServiceTest {
     public Optional<MfdsDeclaration> findByIdForUpdate(Long id) {
       lockedReads++;
       return super.findById(id);
+    }
+  }
+
+  /** 참조 테이블 전체 조회 여부를 확인하기 위한 호출 기록용 더블. */
+  private static class RecordingMatchTargetFacade extends FakeAlcoholMatchTargetFacade {
+
+    private int fullScans;
+    private int distilleryIdLookups;
+    private int regionIdLookups;
+
+    void resetCounts() {
+      fullScans = 0;
+      distilleryIdLookups = 0;
+      regionIdLookups = 0;
+    }
+
+    @Override
+    public List<DistilleryMatchTargetItem> findAllDistilleryTargets() {
+      fullScans++;
+      return super.findAllDistilleryTargets();
+    }
+
+    @Override
+    public List<RegionMatchTargetItem> findAllRegionTargets() {
+      fullScans++;
+      return super.findAllRegionTargets();
+    }
+
+    @Override
+    public List<DistilleryMatchTargetItem> findDistilleryTargetsByIds(List<Long> distilleryIds) {
+      distilleryIdLookups++;
+      return super.findDistilleryTargetsByIds(distilleryIds);
+    }
+
+    @Override
+    public List<RegionMatchTargetItem> findRegionTargetsByIds(List<Long> regionIds) {
+      regionIdLookups++;
+      return super.findRegionTargetsByIds(regionIds);
     }
   }
 }

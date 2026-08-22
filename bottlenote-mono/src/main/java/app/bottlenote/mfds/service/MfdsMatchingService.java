@@ -7,6 +7,8 @@ import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_SELECTED_REGI
 
 import app.bottlenote.alcohols.facade.AlcoholMatchTargetFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
+import app.bottlenote.alcohols.facade.payload.DistilleryMatchTargetItem;
+import app.bottlenote.alcohols.facade.payload.RegionMatchTargetItem;
 import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
@@ -114,6 +116,30 @@ public class MfdsMatchingService {
             .stream()
             .collect(Collectors.toMap(AlcoholMatchTargetItem::alcoholId, Function.identity()));
 
+    List<MfdsMatchCandidate> distilleryCandidates = declaration.getDistilleryCandidates();
+    Map<Long, ReferenceName> distilleryNames =
+        distilleryCandidates.isEmpty()
+            ? Map.of()
+            : alcoholMatchTargetFacade
+                .findDistilleryTargetsByIds(candidateIds(distilleryCandidates))
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        DistilleryMatchTargetItem::id,
+                        target -> new ReferenceName(target.korName(), target.engName())));
+
+    List<MfdsMatchCandidate> regionCandidates = declaration.getRegionCandidates();
+    Map<Long, ReferenceName> regionNames =
+        regionCandidates.isEmpty()
+            ? Map.of()
+            : alcoholMatchTargetFacade
+                .findRegionTargetsByIds(candidateIds(regionCandidates))
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        RegionMatchTargetItem::id,
+                        target -> new ReferenceName(target.korName(), target.engName())));
+
     return new MfdsMatchingCandidatesResponse(
         declaration.getId(),
         declaration.getMatchingVersion(),
@@ -145,20 +171,8 @@ public class MfdsMatchingService {
                   return toAlcoholItem(summary, candidate.score(), null);
                 })
             .toList(),
-        toStoredReferenceItems(
-            declaration.getDistilleryCandidates(),
-            alcoholMatchTargetFacade.findAllDistilleryTargets().stream()
-                .collect(
-                    Collectors.toMap(
-                        target -> target.id(),
-                        target -> new ReferenceName(target.korName(), target.engName())))),
-        toStoredReferenceItems(
-            declaration.getRegionCandidates(),
-            alcoholMatchTargetFacade.findAllRegionTargets().stream()
-                .collect(
-                    Collectors.toMap(
-                        target -> target.id(),
-                        target -> new ReferenceName(target.korName(), target.engName())))));
+        toStoredReferenceItems(distilleryCandidates, distilleryNames),
+        toStoredReferenceItems(regionCandidates, regionNames));
   }
 
   /** 매칭을 확정한다. 후보 목록에 있으면 CANDIDATE, 후보 밖 ID면 MANUAL로 결정 근거를 기록한다. */
@@ -250,6 +264,10 @@ public class MfdsMatchingService {
         declaration.getDistilleryMatchSource(),
         declaration.getSelectedRegionId(),
         declaration.getRegionMatchSource());
+  }
+
+  private static List<Long> candidateIds(List<MfdsMatchCandidate> candidates) {
+    return candidates.stream().map(MfdsMatchCandidate::id).toList();
   }
 
   private static MfdsMatchSelectionSource selectionSource(boolean fromCandidate) {
