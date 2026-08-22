@@ -1,5 +1,10 @@
 package app.bottlenote.operation.utils;
 
+import app.bottlenote.agreement.constant.AgreementAction;
+import app.bottlenote.agreement.constant.AgreementInputContext;
+import app.bottlenote.agreement.constant.AgreementType;
+import app.bottlenote.agreement.domain.UserAgreement;
+import app.bottlenote.agreement.domain.UserAgreementRepository;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -7,6 +12,8 @@ import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.repository.OauthRepository;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -16,11 +23,15 @@ public class TestAuthenticationSupport {
 
   private final OauthRepository oauthRepository;
   private final JwtTokenProvider jwtTokenProvider;
+  private final UserAgreementRepository userAgreementRepository;
 
   public TestAuthenticationSupport(
-      OauthRepository oauthRepository, JwtTokenProvider jwtTokenProvider) {
+      OauthRepository oauthRepository,
+      JwtTokenProvider jwtTokenProvider,
+      UserAgreementRepository userAgreementRepository) {
     this.oauthRepository = oauthRepository;
     this.jwtTokenProvider = jwtTokenProvider;
+    this.userAgreementRepository = userAgreementRepository;
   }
 
   public User getFirstUser() {
@@ -70,14 +81,35 @@ public class TestAuthenticationSupport {
   /** 랜덤 테스트 유저 생성 */
   private User createRandomUser() {
     UUID key = UUID.randomUUID();
-    return oauthRepository.save(
-        User.builder()
-            .email(key + "@example.com")
-            .age(20)
-            .gender(GenderType.MALE)
-            .nickName("testUser" + key)
-            .socialType(List.of(SocialType.KAKAO))
-            .role(UserType.ROLE_USER)
-            .build());
+    User user =
+        oauthRepository.save(
+            User.builder()
+                .email(key + "@example.com")
+                .age(20)
+                .gender(GenderType.MALE)
+                .nickName("testUser" + key)
+                .socialType(List.of(SocialType.KAKAO))
+                .role(UserType.ROLE_USER)
+                .build());
+    seedRequiredAgreements(user.getId());
+    return user;
+  }
+
+  private void seedRequiredAgreements(Long userId) {
+    LocalDateTime recordedAt = LocalDateTime.of(2026, 1, 1, 0, 0);
+    Arrays.stream(AgreementType.values())
+        .filter(AgreementType::isRequired)
+        .forEach(
+            type ->
+                userAgreementRepository.save(
+                    UserAgreement.create(
+                        userId,
+                        type,
+                        AgreementAction.AGREE,
+                        type.getDescription(),
+                        recordedAt,
+                        AgreementInputContext.BULK,
+                        "127.0.0.1",
+                        "TestAuthenticationSupport")));
   }
 }

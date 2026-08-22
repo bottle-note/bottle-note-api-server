@@ -51,7 +51,7 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("인증 사용자는 동일한 필드의 동의 상태를 조회한다")
     void getStatus_whenAuthenticated_returnsExactStatusShape() throws Exception {
-      User user = userTestFactory.persistUser();
+      User user = userTestFactory.persistUserWithoutAgreements();
       TokenItem token = getToken(user);
 
       MvcTestResult result =
@@ -93,7 +93,7 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("인증 사용자의 원문과 요청 메타데이터를 저장하고 갱신된 상태를 반환한다")
     void submit_whenValidRequest_savesEvidenceAndReturnsStatus() throws Exception {
-      User user = userTestFactory.persistUser();
+      User user = userTestFactory.persistUserWithoutAgreements();
       TokenItem token = getToken(user);
       AgreementSubmitRequest request = validRequest();
 
@@ -174,7 +174,7 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("만료 상태를 제출하면 저장하지 않고 400을 반환한다")
     void submit_whenActionIsExpired_returnsBadRequestWithoutSaving() throws Exception {
-      User user = userTestFactory.persistUser();
+      User user = userTestFactory.persistUserWithoutAgreements();
       TokenItem token = getToken(user);
       AgreementSubmitRequest request =
           new AgreementSubmitRequest(
