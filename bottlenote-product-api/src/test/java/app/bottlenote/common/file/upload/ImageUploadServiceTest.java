@@ -121,14 +121,19 @@ class ImageUploadServiceTest {
 
       for (Long index = 1L; index <= response.imageUploadInfo().size(); index++) {
         String imageKey = imageUploadService.getImageKey(request.rootPath(), index, "image/jpeg");
-        String uploadUrlExpected = imageUploadService.generatePreSignUrl(imageKey, "image/jpeg");
         String viewUrlExpected = imageUploadService.generateViewUrl(CLOUD_FRONT_URL, imageKey);
 
         ImageUploadItem info = response.imageUploadInfo().get((int) (index - 1));
 
         log.info("[{}] ImageUploadItem: {}", index, info);
         assertEquals(index, info.order());
-        assertEquals(uploadUrlExpected, info.uploadUrl());
+        // presigned URL은 서명에 요청 시각이 들어가 재생성한 값과 문자열이 같다는 보장이 없다.
+        // 시각에 무관한 구성 요소만 검증한다.
+        assertTrue(info.uploadUrl().startsWith("https://" + BUCKET_NAME + ".s3."));
+        assertTrue(info.uploadUrl().contains(imageKey));
+        assertTrue(info.uploadUrl().contains("X-Amz-Algorithm="));
+        assertTrue(
+            info.uploadUrl().contains("X-Amz-Expires=" + (int) TimeUnit.MINUTES.toSeconds(5)));
         assertEquals(viewUrlExpected, info.viewUrl());
       }
     }
