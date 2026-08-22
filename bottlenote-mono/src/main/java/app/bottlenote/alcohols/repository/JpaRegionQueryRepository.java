@@ -67,6 +67,10 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   List<Region> findAllOrderBySortOrderAsc();
 
   @Override
+  @Query("select r from region r where r.id in :ids order by r.sortOrder asc, r.id asc")
+  List<Region> findAllByIdInOrderBySortOrderAsc(@Param("ids") Collection<Long> ids);
+
+  @Override
   @Query("select r from region r where r.parent.id = :parentId order by r.sortOrder asc, r.id asc")
   List<Region> findAllByParentIdOrderBySortOrderAsc(@Param("parentId") Long parentId);
 

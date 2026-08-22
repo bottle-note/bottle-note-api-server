@@ -36,6 +36,8 @@ public interface RegionRepository {
 
   List<Region> findAllOrderBySortOrderAsc();
 
+  List<Region> findAllByIdInOrderBySortOrderAsc(Collection<Long> ids);
+
   List<Region> findAllByParentIdOrderBySortOrderAsc(Long parentId);
 
   boolean existsAlcoholByRegionId(Long regionId);

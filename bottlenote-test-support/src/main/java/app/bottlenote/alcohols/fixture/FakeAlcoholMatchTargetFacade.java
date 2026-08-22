@@ -40,6 +40,9 @@ public class FakeAlcoholMatchTargetFacade implements AlcoholMatchTargetFacade {
 
   @Override
   public List<AlcoholMatchTargetItem> findAlcoholTargetsByIds(List<Long> alcoholIds) {
+    if (alcoholIds == null || alcoholIds.isEmpty()) {
+      return List.of();
+    }
     return alcohols.values().stream()
         .filter(item -> alcoholIds.contains(item.alcoholId()))
         .toList();
@@ -51,8 +54,26 @@ public class FakeAlcoholMatchTargetFacade implements AlcoholMatchTargetFacade {
   }
 
   @Override
+  public List<DistilleryMatchTargetItem> findDistilleryTargetsByIds(List<Long> distilleryIds) {
+    if (distilleryIds == null || distilleryIds.isEmpty()) {
+      return List.of();
+    }
+    return distilleries.values().stream()
+        .filter(item -> distilleryIds.contains(item.id()))
+        .toList();
+  }
+
+  @Override
   public List<RegionMatchTargetItem> findAllRegionTargets() {
     return List.copyOf(regions.values());
+  }
+
+  @Override
+  public List<RegionMatchTargetItem> findRegionTargetsByIds(List<Long> regionIds) {
+    if (regionIds == null || regionIds.isEmpty()) {
+      return List.of();
+    }
+    return regions.values().stream().filter(item -> regionIds.contains(item.id())).toList();
   }
 
   @Override

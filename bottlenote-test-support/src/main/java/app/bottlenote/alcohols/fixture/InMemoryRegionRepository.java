@@ -151,6 +151,14 @@ public class InMemoryRegionRepository implements RegionRepository {
   }
 
   @Override
+  public List<Region> findAllByIdInOrderBySortOrderAsc(Collection<Long> ids) {
+    return regions.stream()
+        .filter(r -> ids.contains(r.getId()))
+        .sorted(Comparator.comparing(Region::getSortOrder).thenComparing(Region::getId))
+        .toList();
+  }
+
+  @Override
   public List<Region> findAllByParentIdOrderBySortOrderAsc(Long parentId) {
     return regions.stream()
         .filter(r -> r.getParent() != null && Objects.equals(r.getParent().getId(), parentId))

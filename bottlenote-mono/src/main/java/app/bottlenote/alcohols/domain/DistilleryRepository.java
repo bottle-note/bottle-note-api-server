@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -27,4 +28,6 @@ public interface DistilleryRepository {
   List<Distillery> findAllBySortOrderGreaterThanEqual(int sortOrder);
 
   List<Distillery> findAllOrderBySortOrderAsc();
+
+  List<Distillery> findAllByIdInOrderBySortOrderAsc(Collection<Long> ids);
 }
