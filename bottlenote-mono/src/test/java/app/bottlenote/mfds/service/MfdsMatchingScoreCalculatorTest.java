@@ -120,6 +120,34 @@ class MfdsMatchingScoreCalculatorTest {
   }
 
   @Test
+  @DisplayName("신고에 숙성 연수가 있으면 대상 age가 없어도 빈티지 점수를 주지 않는다")
+  void 숙성_연수가_있으면_빈티지_분기를_타지_않는다() {
+    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
+    MfdsTestData.set(declaration, "ageYears", (short) 12);
+    MfdsTestData.set(declaration, "vintageYear", (short) 2012);
+
+    MfdsMatchScoreDetailItem detail =
+        calculator.scoreAlcohol(declaration, alcohol(1L, "글렌피딕 2012", "Glenfiddich 2012"));
+
+    assertThat(detail.ageScore()).isNull();
+  }
+
+  @Test
+  @DisplayName("신고에 숙성 연수가 없고 빈티지 연도만 있으면 이름에 연도가 있을 때 1점을 준다")
+  void 숙성_연수가_없을_때_빈티지_연도로_대체한다() {
+    MfdsDeclaration declaration = declaration("글렌피딕", "glenfiddich");
+    MfdsTestData.set(declaration, "vintageYear", (short) 2012);
+
+    MfdsMatchScoreDetailItem withYear =
+        calculator.scoreAlcohol(declaration, alcohol(1L, "글렌피딕 2012", "Glenfiddich 2012"));
+    MfdsMatchScoreDetailItem withoutYear =
+        calculator.scoreAlcohol(declaration, alcohol(2L, "글렌피딕", "Glenfiddich"));
+
+    assertThat(withYear.ageScore()).isEqualByComparingTo(BigDecimal.ONE);
+    assertThat(withoutYear.ageScore()).isNull();
+  }
+
+  @Test
   @DisplayName("카테고리가 일치할 때 카테고리 점수가 1이다")
   void 카테고리_일치를_점수화한다() {
     MfdsDeclaration declaration = declaration("글렌피딕", "glenfiddich");
