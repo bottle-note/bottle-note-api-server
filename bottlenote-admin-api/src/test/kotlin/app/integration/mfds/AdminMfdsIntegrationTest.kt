@@ -1,8 +1,12 @@
 package app.integration.mfds
 
 import app.IntegrationTestSupport
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import app.bottlenote.mfds.constant.MfdsImporterAdminStatus
+import app.bottlenote.mfds.constant.MfdsImporterLinkSource
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus
+import app.bottlenote.mfds.domain.MfdsDeclaration
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository
 import app.bottlenote.mfds.domain.MfdsImporterRcnoLinkRepository
 import app.bottlenote.mfds.domain.MfdsImporterRepository
@@ -10,7 +14,9 @@ import app.bottlenote.mfds.dto.request.MfdsDeclarationImporterLinkRequest
 import app.bottlenote.mfds.dto.request.MfdsDeclarationStatusRequest
 import app.bottlenote.mfds.dto.request.MfdsImporterCreateRequest
 import app.bottlenote.mfds.dto.request.MfdsImporterUpdateRequest
+import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest
 import app.bottlenote.mfds.dto.request.MfdsRcnoLinkCreateRequest
+import app.bottlenote.mfds.fixture.MfdsTestData
 import app.bottlenote.mfds.fixture.MfdsTestFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -36,6 +42,9 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var rcnoLinkRepository: MfdsImporterRcnoLinkRepository
+
+	@Autowired
+	private lateinit var alcoholTestFactory: AlcoholTestFactory
 
 	private lateinit var accessToken: String
 
@@ -238,7 +247,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("수입사를 수동 연결하면 MANUAL 근거와 RCNO 연결 근거가 남는다")
+		@DisplayName("수입사를 수동 연결하면 신고 행만 바뀌고 원장은 그대로다")
 		fun linkImporter() {
 			val importer = mfdsTestFactory.persistImporter("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE)
 			val declaration =
@@ -255,15 +264,17 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 
 			val linked = declarationRepository.findById(declaration.id).orElseThrow()
 			assertThat(linked.importerId).isEqualTo(importer.id)
-			assertThat(rcnoLinkRepository.findByRcno("RCNO-001")).isPresent
+			assertThat(linked.importerLinkSource).isEqualTo(MfdsImporterLinkSource.MANUAL)
+			assertThat(rcnoLinkRepository.findByRcno("RCNO-001")).isEmpty
 		}
 
 		@Test
-		@DisplayName("수입사 연결을 해제하면 RCNO 연결 근거도 제거된다")
+		@DisplayName("수입사 연결을 해제해도 원장은 그대로다")
 		fun unlinkImporter() {
 			val importer = mfdsTestFactory.persistImporter("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE)
 			val declaration =
 				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+			mfdsTestFactory.persistRcnoLink("RCNO-001", importer.id, "보틀상사")
 			mockMvcTester
 				.post()
 				.uri("/v1/mfds/declarations/${declaration.id}/importer")
@@ -281,7 +292,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 
 			val unlinked = declarationRepository.findById(declaration.id).orElseThrow()
 			assertThat(unlinked.isImporterLinked).isFalse()
-			assertThat(rcnoLinkRepository.findByRcno("RCNO-001")).isEmpty
+			assertThat(rcnoLinkRepository.findByRcno("RCNO-001")).isPresent
 		}
 	}
 
@@ -340,6 +351,125 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 					.uri("/v1/mfds/rcno-links/RCNO-404")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus(404)
+		}
+	}
+
+	@Nested
+	@DisplayName("매칭 API")
+	inner class Matching {
+		@Test
+		@DisplayName("매칭을 실행하면 후보가 저장되고 조회된다")
+		fun runMatchingSavesCandidates() {
+			val alcohol = alcoholTestFactory.persistAlcoholWithName("글렌피딕 12", "Glenfiddich 12")
+			val declaration = persistNamedDeclaration("RCNO-M-001")
+
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/mfds/declarations/${declaration.id}/matching/run")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.alcoholCandidates.length()")
+				.isEqualTo(1)
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/mfds/declarations/${declaration.id}/matching/candidates")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.alcoholCandidates[0].korName")
+				.isEqualTo("글렌피딕 12")
+
+			val stored = declarationRepository.findById(declaration.id).orElseThrow()
+			assertThat(stored.alcoholCandidate1Id).isEqualTo(alcohol.id)
+			assertThat(stored.matchingVersion).isNotBlank()
+			assertThat(stored.matchedAt).isNotNull()
+		}
+
+		@Test
+		@DisplayName("후보 목록의 주류를 선택하면 CANDIDATE로 확정된다")
+		fun confirmCandidate() {
+			val alcohol = alcoholTestFactory.persistAlcoholWithName("글렌피딕 12", "Glenfiddich 12")
+			val declaration = persistNamedDeclaration("RCNO-M-002")
+			runMatching(declaration.id)
+
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/mfds/declarations/${declaration.id}/matching/confirm")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(MfdsMatchingConfirmRequest(alcohol.id, null, null)))
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.alcoholMatchDecision")
+				.isEqualTo("CANDIDATE")
+
+			val confirmed = declarationRepository.findById(declaration.id).orElseThrow()
+			assertThat(confirmed.selectedAlcoholId).isEqualTo(alcohol.id)
+			assertThat(confirmed.alcoholMatchDecision).isEqualTo(MfdsMatchSelectionSource.CANDIDATE)
+		}
+
+		@Test
+		@DisplayName("확정을 해제하면 선택은 비우고 후보는 유지한다")
+		fun releaseMatching() {
+			val alcohol = alcoholTestFactory.persistAlcoholWithName("글렌피딕 12", "Glenfiddich 12")
+			val declaration = persistNamedDeclaration("RCNO-M-003")
+			runMatching(declaration.id)
+			mockMvcTester
+				.post()
+				.uri("/v1/mfds/declarations/${declaration.id}/matching/confirm")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(MfdsMatchingConfirmRequest(alcohol.id, null, null)))
+				.exchange()
+
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/mfds/declarations/${declaration.id}/matching/release")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+
+			val released = declarationRepository.findById(declaration.id).orElseThrow()
+			assertThat(released.selectedAlcoholId).isNull()
+			assertThat(released.alcoholMatchDecision).isNull()
+			assertThat(released.alcoholCandidate1Id).isEqualTo(alcohol.id)
+			assertThat(released.matchedAt).isNotNull()
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 주류로 확정하면 400을 반환한다")
+		fun confirmUnknownAlcohol() {
+			val declaration = persistNamedDeclaration("RCNO-M-004")
+
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/mfds/declarations/${declaration.id}/matching/confirm")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(MfdsMatchingConfirmRequest(999_999L, null, null)))
+			).hasStatus(400)
+		}
+
+		private fun persistNamedDeclaration(rcno: String): MfdsDeclaration {
+			val declaration =
+				mfdsTestFactory.persistDeclaration(rcno, MfdsNormalizationStatus.NORMALIZED, null, null, null)
+			MfdsTestData.set(declaration, "nameSearchKeyKo", "글렌피딕 12")
+			MfdsTestData.set(declaration, "nameSearchKeyEn", "Glenfiddich 12")
+			return declarationRepository.save(declaration)
+		}
+
+		private fun runMatching(declarationId: Long) {
+			mockMvcTester
+				.post()
+				.uri("/v1/mfds/declarations/$declarationId/matching/run")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
 		}
 	}
 }
