@@ -122,7 +122,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         .on(alcohol.region.id.eq(region.id))
         .leftJoin(distillery)
         .on(alcohol.distillery.id.eq(distillery.id))
-        .where(alcohol.id.in(alcoholIds))
+        .where(alcohol.id.in(alcoholIds), alcohol.deletedAt.isNull())
         .orderBy(alcohol.id.asc())
         .fetch();
   }

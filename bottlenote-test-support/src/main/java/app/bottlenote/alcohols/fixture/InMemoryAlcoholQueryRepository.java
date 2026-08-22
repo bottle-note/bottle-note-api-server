@@ -112,6 +112,7 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   public List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds) {
     return alcohols.values().stream()
         .filter(alcohol -> alcoholIds.contains(alcohol.getId()))
+        .filter(alcohol -> alcohol.getDeletedAt() == null)
         .map(this::toMatchTargetItem)
         .toList();
   }
@@ -136,7 +137,8 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 
   @Override
   public Boolean existsByAlcoholId(Long alcoholId) {
-    return alcohols.containsKey(alcoholId);
+    Alcohol found = alcohols.get(alcoholId);
+    return found != null && found.getDeletedAt() == null;
   }
 
   @Override
