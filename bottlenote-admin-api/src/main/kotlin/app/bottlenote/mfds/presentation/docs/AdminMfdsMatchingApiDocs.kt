@@ -54,14 +54,18 @@ object AdminMfdsMatchingApiDocs {
 		description = """
 			신고 정제 데이터에 저장된 후보 목록과 각 후보의 요약 정보, 현재 확정 상태를 조회합니다. 점수 근거 상세는 매칭 실행 응답에서만 제공됩니다.
 
-			확정 상태(selection)의 alcoholMatchDecision, distilleryMatchSource, regionMatchSource가 선택 근거이며 확정 전이면 모두 비어 있습니다.
+			확정 상태(selection)의 alcoholMatchDecision, distilleryMatchSource, regionMatchSource는 저장된 값을 그대로 돌려줍니다. 관리자가 확정하기 전이라도 정규화 배치가 남긴 판정 값이 들어 있을 수 있습니다.
 
-			매칭 결정 근거 값은 다음과 같습니다.
-
+			관리자 확정으로 기록되는 값
 			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
 			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
 
-			이 밖에 정규화 배치가 남긴 AUTO_SELECTED, NO_MATCH, REVIEW, AMBIGUOUS, CONFLICT_REVIEW 가 그대로 노출될 수 있습니다.
+			정규화 배치가 남기는 값
+			- AUTO_SELECTED: 배치가 단일 후보를 자동 선정했다
+			- NO_MATCH: 후보를 찾지 못했다
+			- REVIEW / AMBIGUOUS / CONFLICT_REVIEW: 사람이 판단해야 하는 상태다
+
+			확정 여부는 selectedAlcoholId 등 선택 ID가 채워졌는지로 판단하십시오.
 			""",
 		responses = [
 			ApiResponse(
@@ -88,12 +92,10 @@ object AdminMfdsMatchingApiDocs {
 			후보 목록에 있는 ID를 고르면 CANDIDATE, 후보에 없는 ID를 지정하면 MANUAL로 결정 근거가 기록됩니다.
 			존재하지 않는 ID를 지정하면 실패합니다.
 
-			매칭 결정 근거 값은 다음과 같습니다.
-
 			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
 			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
 
-			이 밖에 정규화 배치가 남긴 AUTO_SELECTED, NO_MATCH, REVIEW, AMBIGUOUS, CONFLICT_REVIEW 가 그대로 노출될 수 있습니다.
+			확정하면 이전에 정규화 배치가 남긴 판정 값은 위 두 값 중 하나로 대체됩니다.
 			""",
 		responses = [
 			ApiResponse(

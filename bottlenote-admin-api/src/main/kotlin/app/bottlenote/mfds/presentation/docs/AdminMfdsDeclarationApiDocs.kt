@@ -32,7 +32,7 @@ object AdminMfdsDeclarationApiDocs {
 
 			검색어는 한글/영문 제품 검색 키와 수입신고번호에 부분 일치로 적용됩니다. alcoholMatched를 true로 주면 주류가 확정된 신고만, false로 주면 미확정 신고만 반환합니다.
 
-			alcoholMatchDecision은 문자열로 그대로 비교합니다. 이 값은 관리자 확정과 수집 파이프라인이 함께 기록하므로 두 계열이 섞여 있습니다.
+			alcoholMatchDecision은 문자열로 그대로 비교하며 허용값을 따로 검증하지 않습니다. 아래에 없는 값을 주면 오류가 아니라 조회 결과가 0건이 됩니다. 이 값은 관리자 확정과 수집 파이프라인이 함께 기록하므로 두 계열이 섞여 있습니다.
 
 			관리자가 확정할 때 기록하는 값
 			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
@@ -57,7 +57,7 @@ object AdminMfdsDeclarationApiDocs {
 			),
 			ApiResponse(
 				responseCode = "400",
-				description = "검색 조건이 올바르지 않습니다. 정의되지 않은 매칭 결정 근거 값이 여기에 해당합니다.",
+				description = "검색 조건이 올바르지 않습니다.",
 				content = [Content(schema = Schema(ref = ERROR_SCHEMA))]
 			)
 		]
