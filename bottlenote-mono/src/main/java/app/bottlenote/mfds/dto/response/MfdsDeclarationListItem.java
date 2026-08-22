@@ -1,6 +1,7 @@
 package app.bottlenote.mfds.dto.response;
 
 import app.bottlenote.mfds.constant.MfdsImporterLinkSource;
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,6 +19,6 @@ public record MfdsDeclarationListItem(
     String importerBaseName,
     MfdsImporterLinkSource importerLinkSource,
     Long selectedAlcoholId,
-    String alcoholMatchDecision,
+    MfdsMatchSelectionSource alcoholMatchDecision,
     LocalDateTime matchedAt,
     LocalDateTime createdAt) {}

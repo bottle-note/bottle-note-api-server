@@ -2,6 +2,7 @@ package app.bottlenote.mfds.fixture;
 
 import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.constant.MfdsImporterLinkSource;
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
@@ -39,7 +40,7 @@ public final class MfdsTestData {
       MfdsNormalizationStatus normalizationStatus,
       Long importerId,
       Long selectedAlcoholId,
-      String alcoholMatchDecision,
+      MfdsMatchSelectionSource alcoholMatchDecision,
       String nameSearchKeyKo,
       String nameSearchKeyEn) {
     MfdsDeclaration declaration = instantiate(MfdsDeclaration.class);

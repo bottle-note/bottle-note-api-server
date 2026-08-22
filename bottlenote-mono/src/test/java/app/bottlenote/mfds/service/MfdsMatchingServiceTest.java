@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.DistilleryMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.RegionMatchTargetItem;
 import app.bottlenote.alcohols.fixture.FakeAlcoholMatchTargetFacade;
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest;
@@ -159,7 +160,7 @@ class MfdsMatchingServiceTest {
             declaration.getId(), new MfdsMatchingConfirmRequest(1L, null, null));
 
     assertThat(response.selectedAlcoholId()).isEqualTo(1L);
-    assertThat(response.alcoholMatchDecision()).isEqualTo("CANDIDATE");
+    assertThat(response.alcoholMatchDecision()).isEqualTo(MfdsMatchSelectionSource.CANDIDATE);
     assertThat(declaration.getSelectedAlcoholId()).isEqualTo(1L);
   }
 
@@ -176,7 +177,7 @@ class MfdsMatchingServiceTest {
             declaration.getId(), new MfdsMatchingConfirmRequest(99L, null, null));
 
     assertThat(response.selectedAlcoholId()).isEqualTo(99L);
-    assertThat(response.alcoholMatchDecision()).isEqualTo("MANUAL");
+    assertThat(response.alcoholMatchDecision()).isEqualTo(MfdsMatchSelectionSource.MANUAL);
   }
 
   @Test

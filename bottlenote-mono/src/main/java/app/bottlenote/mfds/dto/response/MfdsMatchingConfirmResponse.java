@@ -1,11 +1,13 @@
 package app.bottlenote.mfds.dto.response;
 
+import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
+
 /** 매칭 확정·해제 처리 결과. */
 public record MfdsMatchingConfirmResponse(
     Long declarationId,
     Long selectedAlcoholId,
-    String alcoholMatchDecision,
+    MfdsMatchSelectionSource alcoholMatchDecision,
     Long selectedDistilleryId,
-    String distilleryMatchSource,
+    MfdsMatchSelectionSource distilleryMatchSource,
     Long selectedRegionId,
-    String regionMatchSource) {}
+    MfdsMatchSelectionSource regionMatchSource) {}
