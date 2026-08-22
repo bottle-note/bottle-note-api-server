@@ -435,7 +435,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 			).hasStatusOk()
 
 			val released = declarationRepository.findById(declaration.id).orElseThrow()
-			assertThat(released.selectedAlcoholId).isNull()
+			assertThat(released.selectedAlcoholId as Any?).isNull()
 			assertThat(released.alcoholMatchDecision).isNull()
 			assertThat(released.alcoholCandidate1Id).isEqualTo(alcohol.id)
 			assertThat(released.matchedAt).isNotNull()
