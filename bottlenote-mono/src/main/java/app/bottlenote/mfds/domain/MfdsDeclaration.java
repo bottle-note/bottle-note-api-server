@@ -1,8 +1,5 @@
 package app.bottlenote.mfds.domain;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.Distillery;
-import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.mfds.constant.MfdsImporterLinkSource;
 import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
@@ -295,11 +292,6 @@ public class MfdsDeclaration {
   @Column(name = "selected_alcohol_id")
   private Long selectedAlcoholId;
 
-  @Comment("선택된 주류")
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "selected_alcohol_id", insertable = false, updatable = false)
-  private Alcohol selectedAlcohol;
-
   @Comment("증류소 1순위 후보 ID")
   @Column(name = "distillery_candidate_1_id")
   private Long distilleryCandidate1Id;
@@ -328,11 +320,6 @@ public class MfdsDeclaration {
   @Column(name = "selected_distillery_id")
   private Long selectedDistilleryId;
 
-  @Comment("선택된 증류소")
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "selected_distillery_id", insertable = false, updatable = false)
-  private Distillery selectedDistillery;
-
   @Comment("지역 1순위 후보 ID")
   @Column(name = "region_candidate_1_id")
   private Long regionCandidate1Id;
@@ -360,11 +347,6 @@ public class MfdsDeclaration {
   @Comment("선택된 지역 ID")
   @Column(name = "selected_region_id")
   private Long selectedRegionId;
-
-  @Comment("선택된 지역")
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "selected_region_id", insertable = false, updatable = false)
-  private Region selectedRegion;
 
   @Comment("매칭 로직 버전")
   @Column(name = "matching_version", length = 64)
