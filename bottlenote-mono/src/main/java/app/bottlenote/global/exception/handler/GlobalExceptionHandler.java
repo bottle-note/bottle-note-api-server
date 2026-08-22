@@ -139,22 +139,18 @@ public class GlobalExceptionHandler {
    * 매핑되지 않은 경로를 요청한 경우에 대한 처리<br>
    * 서버 장애가 아니라 클라이언트의 잘못된 요청이므로 404로 응답한다.
    *
+   * <p>이 응답은 인증 이전 단계에서도 나가므로 요청 경로나 프레임워크 내부 메시지를 본문에 담지 않는다. 조사에 필요한 정보는 서버 로그에만 남긴다.
+   *
    * @param exception the exception
    * @return the response entity
    */
   @ExceptionHandler(NoResourceFoundException.class)
   public ResponseEntity<GlobalResponse> handleNoResourceFoundException(
       NoResourceFoundException exception) {
-    String httpMethod = exception.getHttpMethod().name();
-    String resourcePath = exception.getResourcePath();
-    String errorMessage =
-        String.format("'%s /%s' 요청에 매핑된 API가 존재하지 않습니다. 요청 경로를 확인해주세요.", httpMethod, resourcePath);
+    log.warn(
+        "매핑되지 않은 경로 요청 : {} /{}", exception.getHttpMethod().name(), exception.getResourcePath());
 
-    log.warn("매핑되지 않은 경로 요청 : {}", errorMessage);
-
-    ValidExceptionCode code = ValidExceptionCode.RESOURCE_NOT_FOUND;
-    code.message(errorMessage);
-    return GlobalResponse.error(Error.of(code));
+    return GlobalResponse.error(Error.of(ValidExceptionCode.RESOURCE_NOT_FOUND));
   }
 
   /**
