@@ -44,7 +44,17 @@ object AdminMfdsMatchingApiDocs {
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "저장된 매칭 후보를 조회한다",
-		description = "신고 정제 데이터에 저장된 후보 목록과 각 후보의 요약 정보, 현재 확정 상태를 조회합니다. 점수 근거 상세는 매칭 실행 응답에서만 제공됩니다.",
+		description = """
+			신고 정제 데이터에 저장된 후보 목록과 각 후보의 요약 정보, 현재 확정 상태를 조회합니다. 점수 근거 상세는 매칭 실행 응답에서만 제공됩니다.
+
+			확정 상태(selection)의 alcoholMatchDecision, distilleryMatchSource, regionMatchSource가 선택 근거이며 확정 전이면 모두 비어 있습니다.
+
+			매칭 결정 근거 값은 다음과 같습니다.
+
+			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
+			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
+			- AUTO(자동 매칭): 관리자 개입 없이 자동 매칭이 선정한 값이 그대로 확정된 경우에 해당 값이 사용된다
+			""",
 		responses = [
 			ApiResponse(
 				responseCode = "200",
@@ -62,8 +72,14 @@ object AdminMfdsMatchingApiDocs {
 		description = """
 			신고 정제 데이터에 위스키를 확정 연결합니다. 증류소와 지역은 선택 사항입니다.
 
-			후보 목록에 있는 ID를 고르면 CANDIDATE, 후보에 없는 ID를 지정하면 MANUAL(수동 매칭)로 결정 근거가 기록됩니다.
+			후보 목록에 있는 ID를 고르면 CANDIDATE, 후보에 없는 ID를 지정하면 MANUAL로 결정 근거가 기록됩니다.
 			존재하지 않는 ID를 지정하면 실패합니다.
+
+			매칭 결정 근거 값은 다음과 같습니다.
+
+			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
+			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
+			- AUTO(자동 매칭): 관리자 개입 없이 자동 매칭이 선정한 값이 그대로 확정된 경우에 해당 값이 사용된다
 			""",
 		responses = [
 			ApiResponse(
