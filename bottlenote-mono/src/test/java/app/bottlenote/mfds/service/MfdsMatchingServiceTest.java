@@ -17,6 +17,7 @@ import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -26,13 +27,13 @@ import org.junit.jupiter.api.Test;
 @DisplayName("MfdsMatchingService 단위 테스트")
 class MfdsMatchingServiceTest {
 
-  private InMemoryMfdsDeclarationRepository declarationRepository;
+  private RecordingDeclarationRepository declarationRepository;
   private FakeAlcoholMatchTargetFacade alcoholMatchTargetFacade;
   private MfdsMatchingService matchingService;
 
   @BeforeEach
   void setUp() {
-    declarationRepository = new InMemoryMfdsDeclarationRepository();
+    declarationRepository = new RecordingDeclarationRepository();
     alcoholMatchTargetFacade = new FakeAlcoholMatchTargetFacade();
     matchingService =
         new MfdsMatchingService(
@@ -216,6 +217,33 @@ class MfdsMatchingServiceTest {
         .hasMessage(MfdsExceptionCode.MFDS_DECLARATION_NOT_FOUND.getMessage());
   }
 
+  @Test
+  @DisplayName("매칭을 확정·해제할 때 잠금 조회로 신고를 읽는다")
+  void 확정과_해제는_잠금_조회를_사용한다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    declarationRepository.resetCounts();
+
+    matchingService.confirmMatching(
+        declaration.getId(), new MfdsMatchingConfirmRequest(1L, null, null));
+    matchingService.clearMatching(declaration.getId());
+
+    assertThat(declarationRepository.lockedReads).isEqualTo(2);
+    assertThat(declarationRepository.plainReads).isZero();
+  }
+
+  @Test
+  @DisplayName("저장된 후보를 조회할 때는 잠금 없이 읽는다")
+  void 후보_조회는_잠금을_걸지_않는다() {
+    MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
+    declarationRepository.resetCounts();
+
+    matchingService.getCandidates(declaration.getId());
+
+    assertThat(declarationRepository.lockedReads).isZero();
+    assertThat(declarationRepository.plainReads).isEqualTo(1);
+  }
+
   private MfdsDeclaration savedDeclaration(String nameKo, String nameEn) {
     MfdsDeclaration declaration =
         MfdsTestData.declaration(
@@ -239,5 +267,29 @@ class MfdsMatchingServiceTest {
         null,
         null,
         "https://bottlenote.app/alcohol/" + id);
+  }
+
+  /** 잠금 조회 경로가 실제로 쓰이는지 확인하기 위한 호출 기록용 더블. */
+  private static class RecordingDeclarationRepository extends InMemoryMfdsDeclarationRepository {
+
+    private int plainReads;
+    private int lockedReads;
+
+    void resetCounts() {
+      plainReads = 0;
+      lockedReads = 0;
+    }
+
+    @Override
+    public Optional<MfdsDeclaration> findById(Long id) {
+      plainReads++;
+      return super.findById(id);
+    }
+
+    @Override
+    public Optional<MfdsDeclaration> findByIdForUpdate(Long id) {
+      lockedReads++;
+      return super.findById(id);
+    }
   }
 }

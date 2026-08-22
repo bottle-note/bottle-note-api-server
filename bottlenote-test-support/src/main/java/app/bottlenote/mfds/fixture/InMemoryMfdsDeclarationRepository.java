@@ -34,6 +34,12 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
     return Optional.ofNullable(database.get(id));
   }
 
+  /** 인메모리 구현에는 행 잠금 개념이 없으므로 일반 조회와 동일하게 동작한다. */
+  @Override
+  public Optional<MfdsDeclaration> findByIdForUpdate(Long id) {
+    return findById(id);
+  }
+
   @Override
   public Optional<MfdsDeclaration> findByRcno(String rcno) {
     return database.values().stream()
