@@ -1,6 +1,6 @@
 package app.bottlenote.notification.service;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.payload.NotificationMessage;
@@ -9,7 +9,7 @@ public interface NotificationService {
 
   void sendNotification(NotificationMessage message);
 
-  PageResponse<NotificationListResponse> getNotifications(
+  KeysetPageResponse<NotificationListResponse> getNotifications(
       Long userId, NotificationPageableRequest request);
 
   long countUnread(Long userId);

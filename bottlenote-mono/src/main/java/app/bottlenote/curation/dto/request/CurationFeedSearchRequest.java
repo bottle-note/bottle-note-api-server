@@ -1,7 +1,7 @@
 package app.bottlenote.curation.dto.request;
 
 import app.bottlenote.curation.constant.CurationSortType;
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -27,7 +27,7 @@ public record CurationFeedSearchRequest(
   @Builder
   public CurationFeedSearchRequest {
     code = code != null ? List.copyOf(code) : List.of();
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
     sortType = sortType != null ? sortType : CurationSortType.EXPOSURE_START_DATE;

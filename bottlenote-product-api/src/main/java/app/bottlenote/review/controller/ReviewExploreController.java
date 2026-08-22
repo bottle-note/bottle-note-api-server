@@ -4,7 +4,7 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_
 
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.controller.docs.ReviewExploreApiDocs;
@@ -72,7 +72,7 @@ public class ReviewExploreController {
   public ResponseEntity<GlobalResponse> getStandardExplore(
       @ModelAttribute @Valid ReviewExploreRequest request) {
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-    PageResponse<ReviewExploreListResponse> page =
+    KeysetPageResponse<ReviewExploreListResponse> page =
         reviewExploreService.getStandardExplore(request, userId);
     return GlobalResponse.ok(
         page.content(),

@@ -8,7 +8,7 @@ import app.bottlenote.curation.dto.response.CurationFeedListResponse;
 import app.bottlenote.curation.service.ProductSpecBasedCurationService;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class ProductSpecBasedCurationController {
   @GetMapping("/feed")
   public ResponseEntity<GlobalResponse> getCurationFeed(
       @ModelAttribute @Valid CurationFeedSearchRequest request) {
-    PageResponse<CurationFeedListResponse> page = productSpecBasedCurationService.searchFeed(request);
+    KeysetPageResponse<CurationFeedListResponse> page = productSpecBasedCurationService.searchFeed(request);
     return GlobalResponse.ok(
         page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }

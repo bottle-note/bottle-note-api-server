@@ -1,7 +1,7 @@
 package app.bottlenote.rating.dto.request;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
 import lombok.Builder;
@@ -22,7 +22,7 @@ public record RatingListFetchRequest(
   public RatingListFetchRequest {
     sortType = sortType != null ? sortType : SearchSortType.RANDOM;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
   }

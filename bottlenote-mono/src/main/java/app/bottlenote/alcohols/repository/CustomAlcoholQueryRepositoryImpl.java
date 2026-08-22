@@ -20,8 +20,8 @@ import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -197,7 +197,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   /** queryDSL 알코올 둘러보기 */
   @Override
-  public PageResponse<List<AlcoholDetailItem>> getStandardExplore(
+  public KeysetPageResponse<List<AlcoholDetailItem>> getStandardExplore(
       ExploreStandardCriteria criteria) {
     Long userId = criteria.userId();
     int pageSize = criteria.size();
@@ -206,7 +206,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
     List<ExploreSeekKey> candidates = fetchCandidateIds(criteria, fetchSize);
     if (candidates.isEmpty()) {
-      return PageResponse.of(List.of(), new Pagination(false, null));
+      return KeysetPageResponse.of(List.of(), new KeysetPagination(false, null));
     }
 
     List<Long> candidateIds = candidates.stream().map(ExploreSeekKey::id).toList();
@@ -273,7 +273,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         candidateIds.stream().map(byId::get).filter(Objects::nonNull).toList();
 
     var slice =
-        Pagination.fromOverflow(
+        KeysetPagination.fromOverflow(
             ordered,
             pageSize,
             item -> {
@@ -289,7 +289,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                       : Map.of();
               return cursorCodec.encode(context, keys, extra);
             });
-    return PageResponse.of(slice.items(), slice.pagination());
+    return KeysetPageResponse.of(slice.items(), slice.pagination());
   }
 
   /**

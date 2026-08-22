@@ -3,7 +3,7 @@ package app.bottlenote.support.block.controller;
 import static app.bottlenote.support.block.exception.BlockExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.support.block.controller.docs.BlockApiDocs;
@@ -69,7 +69,7 @@ public class BlockController {
 
   private ResponseEntity<GlobalResponse> okBlockedUsers(
       Long currentUserId, BlockPageableRequest request) {
-    PageResponse<UserBlockListResponse> page =
+    KeysetPageResponse<UserBlockListResponse> page =
         blockService.getBlockedUserItems(currentUserId, request);
     return GlobalResponse.ok(
         page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));

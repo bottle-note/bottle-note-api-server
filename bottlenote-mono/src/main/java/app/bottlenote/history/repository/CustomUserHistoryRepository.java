@@ -1,12 +1,12 @@
 package app.bottlenote.history.repository;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import org.springframework.data.repository.query.Param;
 
 public interface CustomUserHistoryRepository {
 
-  PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
+  KeysetPageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
       @Param("userId") Long userId, @Param("request") UserHistorySearchRequest request);
 }

@@ -3,7 +3,7 @@ package app.bottlenote.history.controller;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.history.controller.docs.UserHistoryApiDocs;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
@@ -36,7 +36,7 @@ public class UserHistoryController {
       @PathVariable Long targetUserId,
       @ModelAttribute @Valid UserHistorySearchRequest userHistorySearchRequest) {
 
-    PageResponse<UserHistorySearchResponse> userHistoryList =
+    KeysetPageResponse<UserHistorySearchResponse> userHistoryList =
         userHistoryQueryService.findUserHistoryList(targetUserId, userHistorySearchRequest);
     return GlobalResponse.ok(
         userHistoryList.content(),
@@ -48,7 +48,7 @@ public class UserHistoryController {
   public ResponseEntity<GlobalResponse> getViewHistory(
       @ModelAttribute @Valid ViewHistoryRequest request) {
     Long id = getUserIdByContext().orElse(-1L);
-    PageResponse<ViewHistoryListResponse> page =
+    KeysetPageResponse<ViewHistoryListResponse> page =
         alcoholViewHistoryService.getViewHistory(id, request);
     return GlobalResponse.ok(
         page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));

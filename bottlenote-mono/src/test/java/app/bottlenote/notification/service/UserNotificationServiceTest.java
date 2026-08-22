@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.action.NotificationAction.OpenHelpActionPayload;
 import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
@@ -159,7 +159,7 @@ class UserNotificationServiceTest {
       Notification newer = seedNotification(USER_ID, "new");
       seedNotification(OTHER_USER_ID, "other");
 
-      PageResponse<NotificationListResponse> result =
+      KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(USER_ID, NotificationPageableRequest.builder().build());
 
       assertThat(result.content().items()).hasSize(2);
@@ -180,7 +180,7 @@ class UserNotificationServiceTest {
       Notification n2 = seedNotification(USER_ID, "n2");
       Notification n3 = seedNotification(USER_ID, "n3");
 
-      PageResponse<NotificationListResponse> firstPage =
+      KeysetPageResponse<NotificationListResponse> firstPage =
           service.getNotifications(USER_ID, NotificationPageableRequest.builder().size(2).build());
 
       assertThat(firstPage.content().items())
@@ -189,7 +189,7 @@ class UserNotificationServiceTest {
       assertThat(firstPage.pagination().hasNext()).isTrue();
       assertThat(firstPage.pagination().nextCursor()).isNotBlank();
 
-      PageResponse<NotificationListResponse> secondPage =
+      KeysetPageResponse<NotificationListResponse> secondPage =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
@@ -217,7 +217,7 @@ class UserNotificationServiceTest {
               .category(NotificationCategory.REVIEW)
               .build());
 
-      PageResponse<NotificationListResponse> result =
+      KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
@@ -243,7 +243,7 @@ class UserNotificationServiceTest {
               .category(NotificationCategory.NOTICE)
               .build());
 
-      PageResponse<NotificationListResponse> result =
+      KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
@@ -262,19 +262,19 @@ class UserNotificationServiceTest {
       Notification read = seedNotification(USER_ID, "read");
       read.markAsRead(LocalDateTime.of(2026, 8, 10, 10, 0));
 
-      PageResponse<NotificationListResponse> readResult =
+      KeysetPageResponse<NotificationListResponse> readResult =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
                   .readStatus(NotificationReadStatus.READ)
                   .build());
-      PageResponse<NotificationListResponse> unreadResult =
+      KeysetPageResponse<NotificationListResponse> unreadResult =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
                   .readStatus(NotificationReadStatus.UNREAD)
                   .build());
-      PageResponse<NotificationListResponse> allResult =
+      KeysetPageResponse<NotificationListResponse> allResult =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder().readStatus(NotificationReadStatus.ALL).build());
@@ -300,7 +300,7 @@ class UserNotificationServiceTest {
       ReflectionTestUtils.setField(inside, "createAt", LocalDateTime.of(2026, 8, 10, 9, 30));
       ReflectionTestUtils.setField(to, "createAt", LocalDateTime.of(2026, 8, 10, 10, 0));
 
-      PageResponse<NotificationListResponse> result =
+      KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
@@ -330,9 +330,9 @@ class UserNotificationServiceTest {
               .size(2)
               .build();
 
-      PageResponse<NotificationListResponse> first =
+      KeysetPageResponse<NotificationListResponse> first =
           service.getNotifications(USER_ID, firstRequest);
-      PageResponse<NotificationListResponse> second =
+      KeysetPageResponse<NotificationListResponse> second =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
@@ -366,7 +366,7 @@ class UserNotificationServiceTest {
               .category(NotificationCategory.NOTICE)
               .build());
 
-      PageResponse<NotificationListResponse> result =
+      KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder().types(List.of()).categories(List.of()).build());
@@ -468,7 +468,7 @@ class UserNotificationServiceTest {
       Notification valid =
           seedNotification(USER_ID, "valid", NotificationAction.openReview(10L, 20L));
 
-      PageResponse<NotificationListResponse> result =
+      KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(USER_ID, NotificationPageableRequest.builder().size(20).build());
 
       assertThat(result.content().items()).hasSize(12);

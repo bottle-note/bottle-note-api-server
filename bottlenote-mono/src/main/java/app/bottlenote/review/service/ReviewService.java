@@ -13,7 +13,7 @@ import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.file.service.ResourceVerifierService;
 import app.bottlenote.common.image.ImageUtil;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -62,7 +62,7 @@ public class ReviewService {
 
   /** Read */
   @Transactional(readOnly = true)
-  public PageResponse<ReviewListResponse> getReviews(
+  public KeysetPageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     return reviewRepository.getReviews(alcoholId, reviewPageableRequest, userId);
   }
@@ -83,7 +83,7 @@ public class ReviewService {
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<ReviewListResponse> getMyReviews(
+  public KeysetPageResponse<ReviewListResponse> getMyReviews(
       ReviewPageableRequest reviewPageableRequest, Long alcoholId, Long userId) {
     return reviewRepository.getReviewsByMe(alcoholId, reviewPageableRequest, userId);
   }

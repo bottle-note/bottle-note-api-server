@@ -1,7 +1,7 @@
 package app.bottlenote.history.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import java.util.List;
@@ -17,6 +17,6 @@ public interface UserHistoryRepository {
 
   void delete(UserHistory userHistory);
 
-  PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
+  KeysetPageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
       Long userId, UserHistorySearchRequest userHistorySearchRequest);
 }

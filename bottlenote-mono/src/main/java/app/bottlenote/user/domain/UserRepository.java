@@ -1,6 +1,6 @@
 package app.bottlenote.user.domain;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.request.AdminUserSearchRequest;
 import app.bottlenote.user.dto.response.AdminUserListResponse;
@@ -25,11 +25,11 @@ public interface UserRepository {
 
   MyPageResponse getMyPage(Long userId, Long currentUserId);
 
-  PageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria criteria);
+  KeysetPageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria criteria);
 
-  PageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria criteria);
+  KeysetPageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria criteria);
 
-  PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria criteria);
+  KeysetPageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria criteria);
 
   Page<AdminUserListResponse> searchAdminUsers(AdminUserSearchRequest request);
 }

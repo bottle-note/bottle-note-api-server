@@ -1,6 +1,6 @@
 package app.bottlenote.rating.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingRepository;
@@ -49,7 +49,7 @@ public class InMemoryRatingRepository implements RatingRepository {
   }
 
   @Override
-  public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+  public KeysetPageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
     return null;
   }
 

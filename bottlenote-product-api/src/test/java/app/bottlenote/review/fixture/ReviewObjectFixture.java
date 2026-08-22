@@ -1,8 +1,8 @@
 package app.bottlenote.review.fixture;
 
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.Review;
@@ -85,14 +85,14 @@ public class ReviewObjectFixture {
     return ReviewListResponse.of(reviewInfo);
   }
 
-  public static PageResponse<ReviewListResponse> getReviewListResponse() {
+  public static KeysetPageResponse<ReviewListResponse> getReviewListResponse() {
     ReviewInfo reviewResponse1 =
         getReviewInfo(1L, "맛있어요", BigDecimal.valueOf(100000L), SizeType.BOTTLE);
     ReviewInfo reviewResponse2 =
         getReviewInfo(2L, "나름 먹을만 하네요", BigDecimal.valueOf(110000L), SizeType.BOTTLE);
     List<ReviewInfo> reviewResponse = List.of(reviewResponse1, reviewResponse2);
     ReviewListResponse response = ReviewListResponse.of(reviewResponse);
-    return PageResponse.of(response, new Pagination(false, null));
+    return KeysetPageResponse.of(response, new KeysetPagination(false, null));
   }
 
   public static ReviewDetailResponse getReviewDetailResponse() {

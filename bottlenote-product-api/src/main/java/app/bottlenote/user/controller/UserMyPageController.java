@@ -6,7 +6,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.user.constant.MyBottleType;
@@ -52,7 +52,7 @@ public class UserMyPageController {
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-    PageResponse<MyBottleResponse> pageResponse =
+    KeysetPageResponse<MyBottleResponse> pageResponse =
         userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW);
 
     return GlobalResponse.ok(
@@ -72,7 +72,7 @@ public class UserMyPageController {
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-    PageResponse<MyBottleResponse> pageResponse =
+    KeysetPageResponse<MyBottleResponse> pageResponse =
         userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING);
 
     return GlobalResponse.ok(
@@ -92,7 +92,7 @@ public class UserMyPageController {
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-    PageResponse<MyBottleResponse> pageResponse =
+    KeysetPageResponse<MyBottleResponse> pageResponse =
         userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK);
 
     return GlobalResponse.ok(

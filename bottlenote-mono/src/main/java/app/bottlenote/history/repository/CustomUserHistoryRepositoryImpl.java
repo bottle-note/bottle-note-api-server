@@ -12,8 +12,8 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.constant.EventType;
@@ -44,7 +44,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
   }
 
   @Override
-  public PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
+  public KeysetPageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
       Long userId, UserHistorySearchRequest request) {
 
     // 요청에 따른 eventType 필터 구성
@@ -142,14 +142,14 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
     final LocalDateTime subscriptionDate =
         queryFactory.select(user.createAt).from(user).where(user.id.eq(userId)).fetchOne();
     String context = historyContext(userId, request);
-    Pagination.PageSlice<UserHistoryItem> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<UserHistoryItem> slice =
+        KeysetPagination.fromOverflow(
             fetch,
             request.size(),
             item ->
                 cursorCodec.encode(
                     context, TimeIdCursor.keys(item.getCreatedAt(), item.getHistoryId())));
-    return PageResponse.of(
+    return KeysetPageResponse.of(
         UserHistorySearchResponse.of(subscriptionDate, slice.items()), slice.pagination());
   }
 

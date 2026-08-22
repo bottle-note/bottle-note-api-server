@@ -6,8 +6,8 @@ import static app.bottlenote.support.block.exception.BlockExceptionCode.USER_ALR
 import static app.bottlenote.support.block.exception.BlockExceptionCode.USER_BLOCK_NOT_FOUND;
 
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.support.block.domain.UserBlock;
 import app.bottlenote.support.block.domain.UserBlockRepository;
@@ -77,10 +77,10 @@ public class BlockService {
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<UserBlockListResponse> getBlockedUserItems(
+  public KeysetPageResponse<UserBlockListResponse> getBlockedUserItems(
       Long userId, BlockPageableRequest request) {
     if (userId == null) {
-      return PageResponse.of(new UserBlockListResponse(List.of()), new Pagination(false, null));
+      return KeysetPageResponse.of(new UserBlockListResponse(List.of()), new KeysetPagination(false, null));
     }
     String context = "block.list:" + userId;
     LocalDateTime lastAt = null;
@@ -93,13 +93,13 @@ public class BlockService {
     List<UserBlockItem> items =
         userBlockRepository.findBlockedUserItemsByBlockerId(
             userId, lastAt, lastId, request.size() + 1);
-    Pagination.PageSlice<UserBlockItem> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<UserBlockItem> slice =
+        KeysetPagination.fromOverflow(
             items,
             request.size(),
             item ->
                 cursorCodec.encode(context, TimeIdCursor.keys(item.blockedAt(), item.userId())));
-    return PageResponse.of(new UserBlockListResponse(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(new UserBlockListResponse(slice.items()), slice.pagination());
   }
 
   @Transactional(readOnly = true)

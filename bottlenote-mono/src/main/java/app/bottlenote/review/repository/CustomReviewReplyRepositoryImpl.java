@@ -5,9 +5,9 @@ import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.core.types.ExpressionUtils.count;
 
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.review.constant.ReviewReplyStatus;
 import app.bottlenote.review.domain.QReviewReply;
@@ -39,11 +39,11 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
   }
 
   @Override
-  public PageResponse<RootReviewReplyResponse> getReviewRootReplies(
+  public KeysetPageResponse<RootReviewReplyResponse> getReviewRootReplies(
       Long reviewId, String cursor, Integer size) {
     long start = System.nanoTime();
     QReviewReply subReply = new QReviewReply("subReply");
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     String context = "review.reply.root:" + reviewId;
 
     List<RootReviewReplyResponse.Item> replyItemList =
@@ -79,21 +79,21 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 
     long end = System.nanoTime();
     log.debug("최상위 댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
-    Pagination.PageSlice<RootReviewReplyResponse.Item> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<RootReviewReplyResponse.Item> slice =
+        KeysetPagination.fromOverflow(
             replyItemList,
             page.size(),
             item ->
                 cursorCodec.encode(
                     context, TimeIdCursor.keys(item.createAt(), item.reviewReplyId())));
-    return PageResponse.of(RootReviewReplyResponse.of(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(RootReviewReplyResponse.of(slice.items()), slice.pagination());
   }
 
   @Override
-  public PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+  public KeysetPageResponse<SubReviewReplyResponse> getSubReviewReplies(
       Long reviewId, Long rootReplyId, String cursor, Integer size) {
     long start = System.nanoTime();
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     String context = "review.reply.sub:" + reviewId + ":" + rootReplyId;
 
     var parentReviewReply = new QReviewReply("parentReviewReply");
@@ -134,14 +134,14 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 
     long end = System.nanoTime();
     log.info("대댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
-    Pagination.PageSlice<Item> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<Item> slice =
+        KeysetPagination.fromOverflow(
             subReplyItemList,
             page.size(),
             item ->
                 cursorCodec.encode(
                     context, TimeIdCursor.keys(item.createAt(), item.reviewReplyId())));
-    return PageResponse.of(SubReviewReplyResponse.of(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(SubReviewReplyResponse.of(slice.items()), slice.pagination());
   }
 
   private BooleanExpression replySeek(String cursor, String context, boolean ascending) {

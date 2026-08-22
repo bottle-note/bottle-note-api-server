@@ -1,15 +1,15 @@
 package app.bottlenote.user.repository;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
 
 public interface CustomFollowRepository {
 
-  PageResponse<FollowingSearchResponse> getFollowingList(
+  KeysetPageResponse<FollowingSearchResponse> getFollowingList(
       Long userId, FollowPageableCriteria criteria);
 
-  PageResponse<FollowerSearchResponse> getFollowerList(
+  KeysetPageResponse<FollowerSearchResponse> getFollowerList(
       Long userId, FollowPageableCriteria criteria);
 }

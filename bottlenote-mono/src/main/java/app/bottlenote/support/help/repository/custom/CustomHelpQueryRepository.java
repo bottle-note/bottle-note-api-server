@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.repository.custom;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
@@ -16,7 +16,7 @@ public interface CustomHelpQueryRepository {
    * @param currentUserId 현재 사용자 ID
    * @return 문의글 목록
    */
-  PageResponse<HelpListResponse> getHelpList(
+  KeysetPageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId);
 
   /**

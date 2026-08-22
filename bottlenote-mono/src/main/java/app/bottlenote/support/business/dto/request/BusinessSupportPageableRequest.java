@@ -1,6 +1,6 @@
 package app.bottlenote.support.business.dto.request;
 
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import lombok.Builder;
 
 public record BusinessSupportPageableRequest(String cursor, Integer size) {
@@ -9,7 +9,7 @@ public record BusinessSupportPageableRequest(String cursor, Integer size) {
 
   @Builder
   public BusinessSupportPageableRequest {
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
   }

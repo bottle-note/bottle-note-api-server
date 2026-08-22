@@ -1,7 +1,7 @@
 package app.bottlenote.support.help.fixture;
 
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.HelpRepository;
@@ -66,9 +66,9 @@ public class InMemoryHelpRepository implements HelpRepository {
   }
 
   @Override
-  public PageResponse<HelpListResponse> getHelpList(
+  public KeysetPageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId) {
-    return PageResponse.of(HelpListResponse.of(List.of()), new Pagination(false, null));
+    return KeysetPageResponse.of(HelpListResponse.of(List.of()), new KeysetPagination(false, null));
   }
 
   @Override

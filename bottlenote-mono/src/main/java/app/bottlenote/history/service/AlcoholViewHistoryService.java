@@ -3,8 +3,8 @@ package app.bottlenote.history.service;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.global.redis.entity.AlcoholViewHistory;
 import app.bottlenote.global.redis.repository.RedisAlcoholViewHistoryRepository;
@@ -153,10 +153,10 @@ public class AlcoholViewHistoryService {
   private record RedisEntry(LocalDateTime viewTime, UUID redisId) {}
 
   @Transactional(readOnly = true)
-  public PageResponse<ViewHistoryListResponse> getViewHistory(
+  public KeysetPageResponse<ViewHistoryListResponse> getViewHistory(
       Long userId, ViewHistoryRequest request) {
     if (userId == null || userId <= 0) {
-      return PageResponse.of(new ViewHistoryListResponse(List.of()), new Pagination(false, null));
+      return KeysetPageResponse.of(new ViewHistoryListResponse(List.of()), new KeysetPagination(false, null));
     }
     String context = "view-history:" + userId;
     LocalDateTime cursorViewAt = null;
@@ -169,12 +169,12 @@ public class AlcoholViewHistoryService {
     List<ViewHistoryItem> fetched =
         historyRepository.findPageByUserId(
             userId, cursorViewAt, cursorAlcoholId, request.size() + 1);
-    Pagination.PageSlice<ViewHistoryItem> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<ViewHistoryItem> slice =
+        KeysetPagination.fromOverflow(
             fetched,
             request.size(),
             item ->
                 cursorCodec.encode(context, TimeIdCursor.keys(item.viewAt(), item.alcoholId())));
-    return PageResponse.of(new ViewHistoryListResponse(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(new ViewHistoryListResponse(slice.items()), slice.pagination());
   }
 }

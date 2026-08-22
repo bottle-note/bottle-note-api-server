@@ -8,7 +8,7 @@ import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,7 +49,7 @@ public class AlcoholExploreController {
   public ResponseEntity<GlobalResponse> getStandardExplore(
       @ModelAttribute @Valid ExploreStandardRequest request) {
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-    PageResponse<ExploreStandardResponse> page =
+    KeysetPageResponse<ExploreStandardResponse> page =
         alcoholQueryService.getStandardExplore(request, userId);
     return GlobalResponse.ok(
         page.content(),

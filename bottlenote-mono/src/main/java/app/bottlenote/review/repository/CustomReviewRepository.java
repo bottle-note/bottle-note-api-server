@@ -1,6 +1,6 @@
 package app.bottlenote.review.repository;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.dsl.ReviewExploreCriteria;
@@ -30,7 +30,7 @@ public interface CustomReviewRepository {
    * @param userId 조회하는 사용자 ID
    * @return 특정 술에 대한 전체 리뷰 목록
    */
-  PageResponse<ReviewListResponse> getReviews(
+  KeysetPageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
   /**
@@ -41,11 +41,11 @@ public interface CustomReviewRepository {
    * @param userId 조회하는 사용자 ID
    * @return 특정 술에 대한 내가 작성한 리뷰 목록
    */
-  PageResponse<ReviewListResponse> getReviewsByMe(
+  KeysetPageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
   Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);
 
-  PageResponse<ReviewExploreListResponse> getStandardExplore(
+  KeysetPageResponse<ReviewExploreListResponse> getStandardExplore(
       ReviewExploreCriteria criteria);
 }

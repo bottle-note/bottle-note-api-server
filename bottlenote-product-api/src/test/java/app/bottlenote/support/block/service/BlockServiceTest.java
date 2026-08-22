@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.support.block.dto.request.BlockPageableRequest;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.dto.response.UserBlockListResponse;
@@ -241,7 +241,7 @@ class BlockServiceTest {
       blockService.blockUser(blockerId, 3L);
 
       // when
-      PageResponse<UserBlockListResponse> response =
+      KeysetPageResponse<UserBlockListResponse> response =
           blockService.getBlockedUserItems(blockerId, new BlockPageableRequest(null, null));
 
       // then
@@ -264,7 +264,7 @@ class BlockServiceTest {
       Long blockerId = 1L;
 
       // when
-      PageResponse<UserBlockListResponse> response =
+      KeysetPageResponse<UserBlockListResponse> response =
           blockService.getBlockedUserItems(blockerId, new BlockPageableRequest(null, null));
 
       // then
@@ -280,14 +280,14 @@ class BlockServiceTest {
       blockService.blockUser(blockerId, 3L);
       blockService.blockUser(blockerId, 4L);
 
-      PageResponse<UserBlockListResponse> first =
+      KeysetPageResponse<UserBlockListResponse> first =
           blockService.getBlockedUserItems(blockerId, new BlockPageableRequest(null, 2));
 
       assertEquals(2, first.content().items().size());
       assertTrue(first.pagination().hasNext());
       assertNotNull(first.pagination().nextCursor());
 
-      PageResponse<UserBlockListResponse> second =
+      KeysetPageResponse<UserBlockListResponse> second =
           blockService.getBlockedUserItems(
               blockerId, new BlockPageableRequest(first.pagination().nextCursor(), 2));
 
@@ -303,7 +303,7 @@ class BlockServiceTest {
     @DisplayName("사용자 ID가 null이면 빈 목록을 반환한다")
     void 사용자_ID가_null이면_빈_목록을_반환한다() {
       // when
-      PageResponse<UserBlockListResponse> response =
+      KeysetPageResponse<UserBlockListResponse> response =
           blockService.getBlockedUserItems(null, new BlockPageableRequest(null, null));
 
       // then

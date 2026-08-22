@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.domain;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
@@ -24,7 +24,7 @@ public interface HelpRepository {
 
   Optional<Help> findByIdAndUserId(Long id, Long userId);
 
-  PageResponse<HelpListResponse> getHelpList(
+  KeysetPageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId);
 
   Page<AdminHelpListResponse.AdminHelpInfo> getAdminHelpList(AdminHelpPageableRequest request);

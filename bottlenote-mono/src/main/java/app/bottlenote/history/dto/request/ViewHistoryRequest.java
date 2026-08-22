@@ -1,6 +1,6 @@
 package app.bottlenote.history.dto.request;
 
-import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.KeysetPageRequest;
 import lombok.Builder;
 
 public record ViewHistoryRequest(String cursor, Integer size) {
@@ -10,7 +10,7 @@ public record ViewHistoryRequest(String cursor, Integer size) {
 
   @Builder
   public ViewHistoryRequest {
-    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
   }

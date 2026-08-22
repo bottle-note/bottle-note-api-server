@@ -6,8 +6,8 @@ import app.bottlenote.alcohols.dto.response.AlcoholLookupListResponse;
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class AlcoholLookupService {
   private final HmacCursorCodec cursorCodec;
 
   @Transactional(readOnly = true)
-  public PageResponse<AlcoholLookupListResponse> lookup(AlcoholLookupRequest request) {
+  public KeysetPageResponse<AlcoholLookupListResponse> lookup(AlcoholLookupRequest request) {
     String context = lookupContext(request);
     Long lastId = null;
     if (request.cursor() != null) {
@@ -39,14 +39,14 @@ public class AlcoholLookupService {
             .filter(item -> seekAfter == null || item.alcoholId() > seekAfter)
             .limit(request.size() + 1L)
             .toList();
-    Pagination.PageSlice<AlcoholLookupItem> slice =
-        Pagination.fromOverflow(
+    KeysetPagination.PageSlice<AlcoholLookupItem> slice =
+        KeysetPagination.fromOverflow(
             fetched,
             request.size(),
             item ->
                 cursorCodec.encode(
                     context, java.util.Map.of("id", String.valueOf(item.alcoholId()))));
-    return PageResponse.of(new AlcoholLookupListResponse(slice.items()), slice.pagination());
+    return KeysetPageResponse.of(new AlcoholLookupListResponse(slice.items()), slice.pagination());
   }
 
   @Transactional(readOnly = true)
