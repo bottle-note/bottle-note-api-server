@@ -410,7 +410,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 
 			val confirmed = declarationRepository.findById(declaration.id).orElseThrow()
 			assertThat(confirmed.selectedAlcoholId).isEqualTo(alcohol.id)
-			assertThat(confirmed.alcoholMatchDecision).isEqualTo(MfdsMatchSelectionSource.CANDIDATE)
+			assertThat(confirmed.alcoholMatchDecision).isEqualTo(MfdsMatchSelectionSource.CANDIDATE.name)
 		}
 
 		@Test
