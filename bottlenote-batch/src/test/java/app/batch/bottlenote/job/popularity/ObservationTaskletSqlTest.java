@@ -93,6 +93,28 @@ class ObservationTaskletSqlTest {
     }
 
     @Test
+    @DisplayName("같은 버킷을 다시 관측해도 누적이 이중 계산되지 않는다")
+    void isIdempotentWithinSameBucket() throws Exception {
+      jdbc.update(
+          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
+          1L, 1L, BUCKET.minusMinutes(10));
+      jdbc.update(
+          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
+          2L, 1L, BUCKET.minusMinutes(5));
+
+      // misfire 복구나 수동 재실행으로 같은 버킷이 두 번 처리될 수 있다
+      run(new InterestObservationTasklet(writer), BUCKET);
+      run(new InterestObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
+      assertThat(rows).hasSize(1);
+      assertThat(rows.get(0).get("viewer_count")).isEqualTo(2L);
+      assertThat(rows.get(0).get("cumulative_viewer_count"))
+          .as("직전 누적을 다시 더하면 4가 된다")
+          .isEqualTo(2L);
+    }
+
+    @Test
     @DisplayName("누적은 직전 관측 누적에 이번 구간을 더한 값이다")
     void cumulativeAddsOnTopOfPrevious() throws Exception {
       jdbc.update(
@@ -155,6 +177,24 @@ class ObservationTaskletSqlTest {
       assertThat(rows).hasSize(2);
       assertThat(rows.get(1).get("delta_rating_count")).isEqualTo(1L);
       assertThat(((Number) rows.get(1).get("delta_rating_sum")).doubleValue()).isEqualTo(5.0);
+    }
+
+    @Test
+    @DisplayName("같은 버킷을 다시 관측해도 증감이 어긋나지 않는다")
+    void isIdempotentWithinSameBucket() throws Exception {
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,1,4.0)");
+      run(new RatingObservationTasklet(writer), PREV_BUCKET);
+
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,2,5.0)");
+      run(new RatingObservationTasklet(writer), BUCKET);
+      run(new RatingObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_rating_observations");
+      assertThat(rows).hasSize(2);
+      assertThat(rows.get(1).get("rating_count")).isEqualTo(2L);
+      assertThat(rows.get(1).get("delta_rating_count"))
+          .as("재실행이 직전 버킷을 다시 보므로 증감은 그대로여야 한다")
+          .isEqualTo(1L);
     }
 
     @Test
