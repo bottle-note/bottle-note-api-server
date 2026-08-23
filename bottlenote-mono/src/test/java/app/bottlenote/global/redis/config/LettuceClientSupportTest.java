@@ -9,6 +9,8 @@ import java.time.Duration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -81,6 +83,50 @@ class LettuceClientSupportTest {
         assertThat(dedicated.getShareNativeConnection()).isTrue();
         assertThat(dedicated.getValidateConnection()).isFalse();
         assertThat(dedicated).isNotSameAs(source);
+      } finally {
+        dedicated.destroy();
+      }
+    } finally {
+      source.destroy();
+    }
+  }
+
+  @Test
+  @DisplayName("Sentinel 전용 factory는 master, nodes와 두 종류의 인증을 그대로 유지한다")
+  void dedicatedFactory_preservesSentinelDiscoveryAndCredentials() {
+    RedisSentinelConfiguration sentinel = new RedisSentinelConfiguration();
+    sentinel.master("bottlenote-master");
+    sentinel.sentinel("sentinel-0", 26379);
+    sentinel.sentinel("sentinel-1", 26379);
+    sentinel.setDatabase(2);
+    sentinel.setUsername("data-user");
+    sentinel.setPassword(RedisPassword.of("data-password"));
+    sentinel.setSentinelUsername("sentinel-user");
+    sentinel.setSentinelPassword(RedisPassword.of("sentinel-password"));
+    LettuceConnectionFactory source =
+        new LettuceConnectionFactory(
+            sentinel, LettuceClientSupport.clientConfiguration(Duration.ofSeconds(15)));
+    LettuceClientSupport.start(source);
+
+    try {
+      LettuceConnectionFactory dedicated =
+          LettuceClientSupport.dedicatedFactory(source, Duration.ofMillis(200));
+      LettuceClientSupport.start(dedicated);
+      try {
+        RedisSentinelConfiguration dedicatedSentinel = dedicated.getSentinelConfiguration();
+        assertThat(dedicatedSentinel).isNotNull();
+        assertThat(dedicatedSentinel.getMaster().getName()).isEqualTo("bottlenote-master");
+        assertThat(dedicatedSentinel.getSentinels()).hasSize(2);
+        assertThat(dedicatedSentinel.getDatabase()).isEqualTo(2);
+        assertThat(dedicatedSentinel.getUsername()).isEqualTo("data-user");
+        assertThat(dedicatedSentinel.getPassword()).isEqualTo(RedisPassword.of("data-password"));
+        assertThat(dedicatedSentinel.getSentinelUsername()).isEqualTo("sentinel-user");
+        assertThat(dedicatedSentinel.getSentinelPassword())
+            .isEqualTo(RedisPassword.of("sentinel-password"));
+        assertThat(dedicated.getClientConfiguration().getCommandTimeout())
+            .isEqualTo(Duration.ofMillis(200));
+        assertThat(dedicated.getShareNativeConnection()).isTrue();
+        assertThat(dedicated.getValidateConnection()).isFalse();
       } finally {
         dedicated.destroy();
       }

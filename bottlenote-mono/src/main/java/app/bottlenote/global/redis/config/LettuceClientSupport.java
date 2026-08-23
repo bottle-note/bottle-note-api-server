@@ -6,6 +6,7 @@ import io.lettuce.core.resource.ClientResources;
 import java.time.Duration;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -104,9 +105,20 @@ public final class LettuceClientSupport {
       return factory;
     }
 
+    RedisSentinelConfiguration sentinelConfiguration = source.getSentinelConfiguration();
+    if (sentinelConfiguration != null
+        && sentinelConfiguration.getMaster() != null
+        && sentinelConfiguration.getSentinels() != null
+        && !sentinelConfiguration.getSentinels().isEmpty()) {
+      LettuceConnectionFactory factory =
+          new LettuceConnectionFactory(sentinelConfiguration, clientConfig);
+      applySharedConnectionPolicy(factory);
+      return factory;
+    }
+
     RedisStandaloneConfiguration standaloneConfiguration = source.getStandaloneConfiguration();
     if (standaloneConfiguration == null) {
-      throw new IllegalStateException("Redis standalone/cluster 설정을 해석할 수 없습니다.");
+      throw new IllegalStateException("Redis standalone/sentinel/cluster 설정을 해석할 수 없습니다.");
     }
     LettuceConnectionFactory factory =
         new LettuceConnectionFactory(standaloneConfiguration, clientConfig);
