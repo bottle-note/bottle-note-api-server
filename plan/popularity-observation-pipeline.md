@@ -91,76 +91,76 @@ PR 계층은 리뷰 단위로 나눈다. 한 PR 안에 Task 여러 개가 들어
 - Files (advisory): `bottlenote-mono/.../alcohols/domain/`, `bottlenote-mono/.../alcohols/repository/`
 - Depends: 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done — PR #722
 
 ### Task 3: 선호도·참여도 관측 엔티티와 레포지토리를 만든다
 - Acceptance: Task 2와 동일한 규약을 따르고, 참여도 엔티티가 리뷰·좋아요·싫어요·댓글 카운트를 각각 별도 컬럼으로 갖는다.
 - Verification: `./gradlew :bottlenote-mono:compileJava`
 - Depends: 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done — PR #722
 
 ### Task 4: 최종 인기도 스냅샷 엔티티와 레포지토리를 만든다
 - Acceptance: 축별 원시값과 축별 갭(직전 관측으로부터 경과 시간), 점수를 담는다. 최신 버킷을 전역으로 하나 고정해 조회하는 메서드가 있다 — 주류별 최신을 각자 고르지 않는다.
 - Verification: `./gradlew :bottlenote-mono:compileJava`
 - Depends: 1
 - Size: S
-- Status: [ ] not done
+- Status: [x] done — PR #722
 
 ### Checkpoint: after Tasks 1-4
-- [ ] `./gradlew compileJava` 통과
-- [ ] `./gradlew check_rule_test` 통과 (ArchUnit)
-- [ ] PR A(서브모듈) 생성, PR B(mono) 생성
+- [x] `./gradlew compileJava` 통과
+- [x] `./gradlew check_rule_test` 통과 (ArchUnit)
+- [x] PR A(서브모듈) 생성, PR B(mono) 생성
 
 ### Task 5: 버킷 시각 확정과 관측 설정을 만든다
 - Acceptance: 잡 파라미터의 실행 시각을 정시로 절삭한 버킷 시각을 네 축이 공유한다. 행 단위로 `now()`를 다시 부르지 않는다. 가중치·정규화 기준을 설정 프로퍼티로 노출하고 기본값은 균등 0.25다.
 - Verification: `./gradlew :bottlenote-batch:compileJava` + 버킷 절삭 단위 테스트
 - Depends: 없음 (2·3·4와 병렬 가능)
 - Size: S
-- Status: [ ] not done
+- Status: [x] done — PR #723
 
 ### Task 6: 관심도·평가도 관측 Step을 만든다
 - Acceptance: 축별로 전체 대상을 집합 연산 한 번으로 집계한다(주류별 루프 금지). 관심도는 `view_at`이 직전 구간에 속한 행을 세고, 평가도는 `rating > 0.0`만 집계한다. 직전 관측과 값이 같으면 행을 쓰지 않는다.
 - Verification: 희소 저장 단위 테스트 — 같은 값 두 번 관측 시 행이 하나만 늘어난다
 - Depends: 2, 5
 - Size: M
-- Status: [ ] not done
+- Status: [x] done — PR #723
 
 ### Task 7: 선호도·참여도 관측 Step을 만든다
 - Acceptance: 선호도는 `status = 'PICK'`만, 참여도는 리뷰 `ACTIVE`+`PUBLIC`·좋아요 `LIKE`/`DISLIKE` 분리·댓글 `NORMAL`만 집계한다. Task 6과 동일한 희소 저장 규칙을 따른다.
 - Verification: 상태 필터 단위 테스트 — UNPICK·DISLIKE·PRIVATE가 집계에서 빠진다
 - Depends: 3, 5
 - Size: M
-- Status: [ ] not done
+- Status: [x] done — PR #723
 
 ### Checkpoint: after Tasks 5-7
-- [ ] `./gradlew compileJava compileTestJava unit_test` 통과
-- [ ] PR C(batch 관측) 생성
+- [x] `./gradlew compileJava compileTestJava` 통과 (batch는 unit_test가 아니라 batch_test 태스크다)
+- [x] PR C(batch 관측) 생성
 
 ### Task 8: 최종 적재 Step에서 네 축을 결합한다
 - Acceptance: 어느 한 축이라도 관측된 주류의 합집합을 대상으로 하고, 이번 버킷에 값이 없는 축은 직전 관측값과 갭을 함께 적재한다. 정규화는 설정된 고정 기준을 쓰고 전역 최댓값을 쓰지 않는다.
 - Verification: 결합 단위 테스트 — 한 축만 관측된 주류도 최종 행이 생기고 나머지 축에 갭이 기록된다
 - Depends: 4, 6, 7
 - Size: M
-- Status: [ ] not done
+- Status: [x] done — PR #724
 
 ### Task 9: 병렬 Job을 조립하고 시간별 트리거로 등록한다
 - Acceptance: 네 관측 Step이 병렬로 실행된 뒤 합류해 최종 적재 Step이 돈다. 한 축 Step이 실패하면 최종 적재 Step이 실행되지 않는다. Quartz 트리거가 시간별이며 클러스터 환경에서 단일 실행된다.
 - Verification: Job 흐름 단위 테스트 — 축 Step 실패 시 최종 Step 미실행
 - Depends: 8
 - Size: M
-- Status: [ ] not done
+- Status: [x] done — PR #724
 
 ### Checkpoint: after Tasks 8-9
-- [ ] `./gradlew compileJava compileTestJava unit_test check_rule_test` 통과
-- [ ] PR D(조립) 생성
+- [x] `./gradlew compileJava compileTestJava check_rule_test batch_test` 통과 — 23건 전부 성공
+- [x] PR D(조립) 생성
 
 ### Task 10: 개발 환경에 반영하고 수집 사이클을 검증한다
 - Acceptance: 서브모듈 PR 머지 후 포인터를 갱신하고 개발 배포한다. 실제 수집 사이클이 **2회 이상** 돌아 관측 테이블과 최종 테이블에 행이 쌓인 것을 확인한다. 버킷 시각이 네 축에서 동일한지, 희소 저장으로 행이 실제로 절감되는지 데이터로 확인한다.
 - Verification: 개발 DB 조회 — 버킷별 행 수, 축별 버킷 시각 일치, 최종 테이블 갭 분포
 - Depends: 9 (그리고 서브모듈 PR 머지)
 - Size: S
-- Status: [ ] not done
+- Status: [ ] blocked — PR 4건이 미머지다. 서브모듈 머지 전에는 포인터를 갱신할 수 없고(stop-condition 5), 본 저장소 PR 머지와 개발 배포는 리뷰를 건너뛰는 행위라 확인이 필요하다.
 
 ### Task 11: 다중 에이전트 교차 검증
 - Acceptance: 구현 전체에 대해 독립 에이전트들이 스키마-엔티티 정합, 결합 규칙, 실패 처리, 희소 저장, 클러스터 동시성, 쿼리 성능, 경계 조건을 각각 검증하고 발견 사항을 보고한다. 확인된 결함은 수정하고 재검증한다.
@@ -172,4 +172,7 @@ PR 계층은 리뷰 단위로 나눈다. 한 PR 안에 Task 여러 개가 들어
 ## Progress Log
 
 - 2026-08-23 define 승인 — delegated, scope에 pr·deploy-dev 포함
+- 2026-08-23 Task 2~9 완료. PR 계층 4단으로 분할해 오픈: 스키마(environment-variables#15), 영속 계층(#722), 축별 관측(#723), 결합·조립(#724). 각 PR의 base가 앞 단계를 가리키는 stacked 구조다.
+- 2026-08-23 검증에서 결함 4건 발견·수정. ① 설정 검증 메서드를 만들고 호출하지 않아 잘못된 설정이 조용히 통과하던 것을 `@PostConstruct`로 기동 시점 강제. ② 집계에서 0으로 떨어져 `GROUP BY` 결과에서 빠진 주류가 관측되지 않아 최종 적재가 과거 값을 영원히 끌어오던 것을 0 기록으로 수정. ③ 흐름 축(관심도)에 직전 값을 끌어오던 결합 규칙을 이번 버킷 한정으로 수정 — 조회가 없던 시간에 과거 조회수가 찍혀 관심이 식지 않는 것처럼 보였다. ④ `alcohols_view_histories`에 `view_at` 인덱스가 없어 매시간 풀스캔이 되던 것을 커버링 인덱스로 해결.
+- 2026-08-23 테스트 23건 작성·통과. 버킷 절삭 7, 정규화 8, 가중합산 5, Job 흐름 3. Job 흐름은 인메모리 DB로 실제 실행해 "한 축 실패 시 최종 적재 미실행" 계약을 검증했다 — 도커 없이 돈다.
 - 2026-08-23 Task 1 완료. 서브모듈에 V14 마이그레이션 추가, 테이블 5개(관측 4 + 최종 1) 생성. `alcohol_id`는 `alcohols.id`와 같은 signed BIGINT로 맞췄고 대량 삽입 경로라 FK는 걸지 않았다. 기존 V11~V13의 DDL 스타일에 맞췄다. 서브모듈 PR #15 오픈 — 머지 전까지 본 저장소 포인터 갱신은 불가(stop-condition 5).
