@@ -132,7 +132,7 @@ class PopularityObservationJobFlowTest {
     // JobConfig가 구체 타입을 주입받으므로 같은 타입으로 갈아끼운다
     @Bean
     public InterestObservationTasklet interestObservationTasklet() {
-      return new InterestObservationTasklet(null) {
+      return new InterestObservationTasklet(null, null) {
         @Override
         public RepeatStatus execute(StepContribution c, ChunkContext ctx) {
           return record("interest");

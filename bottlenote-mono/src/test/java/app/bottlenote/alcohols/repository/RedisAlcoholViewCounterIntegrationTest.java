@@ -7,7 +7,9 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,5 +88,21 @@ class RedisAlcoholViewCounterIntegrationTest {
     counter.increment(42L);
 
     assertThat(redisTemplate.getExpire(BUCKET_KEY, TimeUnit.SECONDS)).isBetween(1L, 60L);
+  }
+
+  @Test
+  @DisplayName("시간 버킷 Hash를 주류 ID와 조회수 절대값으로 읽고 TTL을 변경하지 않는다")
+  void findCounts_readsHourlyHashWithoutChangingTtl() {
+    counter.increment(42L);
+    counter.increment(42L);
+    counter.increment(7L);
+    redisTemplate.expire(BUCKET_KEY, Duration.ofMinutes(10));
+    Long ttlBefore = redisTemplate.getExpire(BUCKET_KEY, TimeUnit.SECONDS);
+
+    Map<Long, Long> counts = counter.findCounts(LocalDateTime.of(2026, 8, 23, 14, 0));
+
+    assertThat(counts).containsExactlyInAnyOrderEntriesOf(Map.of(42L, 2L, 7L, 1L));
+    assertThat(redisTemplate.getExpire(BUCKET_KEY, TimeUnit.SECONDS))
+        .isBetween(ttlBefore - 1L, ttlBefore);
   }
 }

@@ -2,8 +2,11 @@ package app.batch.bottlenote.job.popularity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.alcohols.domain.AlcoholViewCounter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,11 +38,13 @@ class ObservationTaskletSqlTest {
 
   private JdbcTemplate jdbc;
   private ObservationWriter writer;
+  private InMemoryAlcoholViewCounter alcoholViewCounter;
 
   @BeforeEach
   void setUp() {
     jdbc = ObservationSqlSupport.freshDatabase();
     writer = new ObservationWriter(jdbc);
+    alcoholViewCounter = new InMemoryAlcoholViewCounter();
     jdbc.update("INSERT INTO alcohols (id, deleted_at) VALUES (1, NULL), (2, NULL), (3, NULL)");
   }
 
@@ -67,129 +72,124 @@ class ObservationTaskletSqlTest {
         granularity);
   }
 
+  private InterestObservationTasklet interestTasklet() {
+    return new InterestObservationTasklet(writer, alcoholViewCounter);
+  }
+
   @Nested
   @DisplayName("관심도")
   class Interest {
 
     @Test
-    @DisplayName("구간 안에 갱신된 조회만 세고 구간 밖은 세지 않는다")
-    void countsOnlyViewsInsideWindow() throws Exception {
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          1L, 1L, BUCKET.minusMinutes(30));
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          2L, 1L, BUCKET.minusMinutes(10));
-      // 구간 밖 — 2시간 전
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          3L, 1L, BUCKET.minusHours(2));
+    @DisplayName("요청한 시간 Redis Hash의 조회수를 HOUR 행으로 저장한다")
+    void writesCountsFromRequestedHourHash() throws Exception {
+      alcoholViewCounter.put(PREV_BUCKET, Map.of(1L, 99L));
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 2L, 2L, 1L));
 
-      run(new InterestObservationTasklet(writer), BUCKET);
+      run(interestTasklet(), BUCKET);
 
       List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
-      assertThat(rows).hasSize(1);
-      assertThat(rows.get(0).get("viewer_count")).isEqualTo(2L);
-      assertThat(rows.get(0).get("cumulative_viewer_count")).isEqualTo(2L);
-    }
-
-    @Test
-    @DisplayName("구간 시작은 포함하고 끝은 제외한다")
-    void windowIncludesStartAndExcludesEnd() throws Exception {
-      // 조회 이력은 매분 0초에 동기화되므로 정각 경계에 값이 몰릴 수 있다.
-      // 경계를 잘못 잡으면 매시간 누락되거나 두 버킷에 이중 계산된다.
-      // 두 경계를 서로 다른 주류에 두어야 어느 쪽이 잡혔는지 구분된다.
-      // 한 주류에 하나씩 넣으면 경계를 뒤집어도 합계가 같아 통과해 버린다.
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          1L, 1L, PREV_BUCKET);
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          2L, 2L, BUCKET);
-
-      run(new InterestObservationTasklet(writer), BUCKET);
-
-      List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
-      assertThat(rows)
-          .as("시작 경계(주류 1)만 잡히고 끝 경계(주류 2)는 다음 버킷 몫이다")
-          .hasSize(1);
-      assertThat(rows.get(0).get("alcohol_id")).isEqualTo(1L);
-      assertThat(rows.get(0).get("viewer_count")).isEqualTo(1L);
+      assertThat(rows).hasSize(2);
+      assertThat(rows).allSatisfy(row -> assertThat(row.get("bucket_granularity")).isEqualTo("HOUR"));
+      assertThat(rows.get(0).get("view_count")).isEqualTo(2L);
+      assertThat(rows.get(0).get("cumulative_view_count")).isEqualTo(2L);
+      assertThat(alcoholViewCounter.requestedBuckets).containsExactly(BUCKET);
     }
 
     @Test
     @DisplayName("조회가 없는 주류는 행을 남기지 않는다")
     void writesNothingForUnviewedAlcohol() throws Exception {
-      run(new InterestObservationTasklet(writer), BUCKET);
+      run(interestTasklet(), BUCKET);
 
       assertThat(rowsOf("alcohol_interest_observations")).isEmpty();
     }
 
     @Test
-    @DisplayName("오래 멈췄다 재개하면 구간을 24시간으로 잘라낸다")
-    void clampsWindowAfterLongOutage() throws Exception {
-      LocalDateTime longAgo = BUCKET.minusDays(3);
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          1L, 1L, longAgo.minusMinutes(10));
-      run(new InterestObservationTasklet(writer), longAgo);
+    @DisplayName("같은 버킷 재실행은 Redis 절대값으로 기존 행을 정정한다")
+    void rerunCorrectsWithAbsoluteCount() throws Exception {
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 5L));
+      run(interestTasklet(), BUCKET);
 
-      // 3일 전 관측 이후 처음 도는 회차. 구간이 3일로 벌어지면 그동안의 조회가 한 버킷에 몰린다.
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          2L, 1L, BUCKET.minusHours(30));
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          3L, 1L, BUCKET.minusHours(2));
-      run(new InterestObservationTasklet(writer), BUCKET);
-
-      List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
-      assertThat(rows).hasSize(2);
-      assertThat(rows.get(1).get("viewer_count"))
-          .as("30시간 전 조회는 상한 밖이라 빠지고 2시간 전 조회만 잡힌다")
-          .isEqualTo(1L);
-    }
-
-    @Test
-    @DisplayName("같은 버킷을 다시 관측해도 누적이 이중 계산되지 않는다")
-    void isIdempotentWithinSameBucket() throws Exception {
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          1L, 1L, BUCKET.minusMinutes(10));
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          2L, 1L, BUCKET.minusMinutes(5));
-
-      // misfire 복구나 수동 재실행으로 같은 버킷이 두 번 처리될 수 있다
-      run(new InterestObservationTasklet(writer), BUCKET);
-      run(new InterestObservationTasklet(writer), BUCKET);
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 2L));
+      run(interestTasklet(), BUCKET);
 
       List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
       assertThat(rows).hasSize(1);
-      assertThat(rows.get(0).get("viewer_count")).isEqualTo(2L);
-      assertThat(rows.get(0).get("cumulative_viewer_count"))
-          .as("직전 누적을 다시 더하면 4가 된다")
+      assertThat(rows.get(0).get("view_count")).isEqualTo(2L);
+      assertThat(rows.get(0).get("cumulative_view_count"))
+          .as("첫 실행의 5에 다시 2를 더하지 않고 절대값 2로 정정한다")
           .isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("같은 버킷 재실행에서 Redis 필드가 사라지면 기존 행을 0으로 정정한다")
+    void rerunCorrectsMissingRedisFieldToZero() throws Exception {
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 5L));
+      run(interestTasklet(), BUCKET);
+
+      alcoholViewCounter.put(BUCKET, Map.of());
+      run(interestTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
+      assertThat(rows).hasSize(1);
+      assertThat(rows.get(0).get("view_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("cumulative_view_count")).isEqualTo(0L);
     }
 
     @Test
     @DisplayName("누적은 직전 관측 누적에 이번 구간을 더한 값이다")
     void cumulativeAddsOnTopOfPrevious() throws Exception {
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          1L, 1L, PREV_BUCKET.minusMinutes(10));
-      run(new InterestObservationTasklet(writer), PREV_BUCKET);
-
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          2L, 1L, BUCKET.minusMinutes(10));
-      run(new InterestObservationTasklet(writer), BUCKET);
+      alcoholViewCounter.put(PREV_BUCKET, Map.of(1L, 3L));
+      run(interestTasklet(), PREV_BUCKET);
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 2L));
+      run(interestTasklet(), BUCKET);
 
       List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
       assertThat(rows).hasSize(2);
-      assertThat(rows.get(1).get("viewer_count")).isEqualTo(1L);
-      assertThat(rows.get(1).get("cumulative_viewer_count")).isEqualTo(2L);
+      assertThat(rows.get(1).get("view_count")).isEqualTo(2L);
+      assertThat(rows.get(1).get("cumulative_view_count")).isEqualTo(5L);
       assertThat(rows.get(1).get("prev_bucket_at")).isNotNull();
+    }
+
+    @Test
+    @DisplayName("누적과 재실행은 같은 시각의 WEEK와 MONTH 행을 참조하지 않는다")
+    void isolatesHourRowsFromRollups() throws Exception {
+      LocalDateTime hourPrevious = PREV_BUCKET.minusHours(1);
+      jdbc.update(
+          """
+          INSERT INTO alcohol_interest_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
+             view_count, cumulative_view_count)
+          VALUES (1, 'HOUR', ?, ?, NULL, 3, 3),
+                 (1, 'WEEK', ?, ?, NULL, 90, 90),
+                 (1, 'MONTH', ?, ?, NULL, 99, 99),
+                 (1, 'WEEK', ?, ?, NULL, 80, 170),
+                 (1, 'MONTH', ?, ?, NULL, 88, 187)
+          """,
+          hourPrevious,
+          hourPrevious,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET);
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 2L));
+
+      run(interestTasklet(), BUCKET);
+      run(interestTasklet(), BUCKET);
+
+      List<Map<String, Object>> hourRows = rowsOf("alcohol_interest_observations", "HOUR");
+      assertThat(hourRows).hasSize(2);
+      assertThat(hourRows.get(1).get("prev_bucket_at")).isEqualTo(Timestamp.valueOf(hourPrevious));
+      assertThat(hourRows.get(1).get("view_count")).isEqualTo(2L);
+      assertThat(hourRows.get(1).get("cumulative_view_count")).isEqualTo(5L);
+      assertThat(rowsOf("alcohol_interest_observations", "WEEK").get(1).get("view_count"))
+          .isEqualTo(80L);
+      assertThat(rowsOf("alcohol_interest_observations", "MONTH").get(1).get("view_count"))
+          .isEqualTo(88L);
     }
   }
 
@@ -679,12 +679,10 @@ class ObservationTaskletSqlTest {
     @Test
     @DisplayName("흐름 축은 이번 버킷에 관측이 없으면 직전 값을 끌어오지 않고 0이다")
     void flowAxisDoesNotCarryForward() throws Exception {
-      jdbc.update(
-          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
-          1L, 1L, PREV_BUCKET.minusMinutes(10));
-      run(new InterestObservationTasklet(writer), PREV_BUCKET);
+      alcoholViewCounter.put(PREV_BUCKET, Map.of(1L, 1L));
+      run(interestTasklet(), PREV_BUCKET);
       // 이번 구간에는 조회가 없다
-      run(new InterestObservationTasklet(writer), BUCKET);
+      run(interestTasklet(), BUCKET);
 
       run(snapshotTasklet(), BUCKET);
 
@@ -756,6 +754,27 @@ class ObservationTaskletSqlTest {
       run(snapshotTasklet(), BUCKET);
 
       assertThat(rowsOf("alcohol_popularity_snapshots")).hasSize(1);
+    }
+  }
+
+  private static final class InMemoryAlcoholViewCounter implements AlcoholViewCounter {
+
+    private final Map<LocalDateTime, Map<Long, Long>> countsByBucket = new HashMap<>();
+    private final List<LocalDateTime> requestedBuckets = new ArrayList<>();
+
+    @Override
+    public void increment(Long alcoholId) {
+      throw new UnsupportedOperationException("배치 테스트는 조회만 지원합니다.");
+    }
+
+    @Override
+    public Map<Long, Long> findCounts(LocalDateTime bucketAt) {
+      requestedBuckets.add(bucketAt);
+      return countsByBucket.getOrDefault(bucketAt, Map.of());
+    }
+
+    private void put(LocalDateTime bucketAt, Map<Long, Long> counts) {
+      countsByBucket.put(bucketAt, Map.copyOf(counts));
     }
   }
 }
