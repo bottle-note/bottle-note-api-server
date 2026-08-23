@@ -1,6 +1,7 @@
 package app.batch.bottlenote.job.popularity;
 
 import app.batch.bottlenote.BatchQuartzJob;
+import app.bottlenote.alcohols.repository.RedisAlcoholViewCounter;
 import org.quartz.DisallowConcurrentExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
@@ -32,6 +34,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
+@Import(RedisAlcoholViewCounter.class)
 public class PopularityObservationJobConfig {
 
   public static final String JOB_NAME = "popularityObservationJob";

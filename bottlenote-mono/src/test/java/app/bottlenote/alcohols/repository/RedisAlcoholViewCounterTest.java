@@ -21,7 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
 @Tag("unit")
@@ -31,7 +31,7 @@ class RedisAlcoholViewCounterTest {
 
   private static final String BUCKET_KEY = "popularity:view:2026082314";
 
-  @Mock private RedisTemplate<String, Object> redisTemplate;
+  @Mock private StringRedisTemplate redisTemplate;
 
   private SimpleMeterRegistry meterRegistry;
   private RedisAlcoholViewCounter counter;
@@ -54,8 +54,8 @@ class RedisAlcoholViewCounterTest {
         .execute(
             anyRedisScript(),
             eq(List.of(BUCKET_KEY)),
-            eq(42L),
-            eq(RedisAlcoholViewCounter.RETENTION.toSeconds()));
+            eq("42"),
+            eq(String.valueOf(RedisAlcoholViewCounter.RETENTION.toSeconds())));
   }
 
   @Test
@@ -65,8 +65,8 @@ class RedisAlcoholViewCounterTest {
     when(redisTemplate.execute(
             anyRedisScript(),
             eq(List.of(BUCKET_KEY)),
-            eq(42L),
-            eq(RedisAlcoholViewCounter.RETENTION.toSeconds())))
+            eq("42"),
+            eq(String.valueOf(RedisAlcoholViewCounter.RETENTION.toSeconds()))))
         .thenThrow(new DataAccessResourceFailureException("redis unavailable"));
 
     // when & then
@@ -75,8 +75,8 @@ class RedisAlcoholViewCounterTest {
         .execute(
             anyRedisScript(),
             eq(List.of(BUCKET_KEY)),
-            eq(42L),
-            eq(RedisAlcoholViewCounter.RETENTION.toSeconds()));
+            eq("42"),
+            eq(String.valueOf(RedisAlcoholViewCounter.RETENTION.toSeconds())));
     verify(redisTemplate, never()).opsForHash();
     assertThat(meterRegistry.get("popularity_view_counter_failures_total").counter().count())
         .isEqualTo(1.0);

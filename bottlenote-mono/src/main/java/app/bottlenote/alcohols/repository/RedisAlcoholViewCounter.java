@@ -15,7 +15,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
 
@@ -42,13 +42,13 @@ public class RedisAlcoholViewCounter implements AlcoholViewCounter {
         """);
   }
 
-  private final RedisTemplate<String, Object> redisTemplate;
+  private final StringRedisTemplate redisTemplate;
   private final Clock clock;
   private final Counter failureCounter;
 
   @Autowired
   public RedisAlcoholViewCounter(
-      RedisTemplate<String, Object> redisTemplate, ObjectProvider<MeterRegistry> meterRegistry) {
+      StringRedisTemplate redisTemplate, ObjectProvider<MeterRegistry> meterRegistry) {
     this(
         redisTemplate,
         Clock.system(BUCKET_ZONE),
@@ -56,7 +56,7 @@ public class RedisAlcoholViewCounter implements AlcoholViewCounter {
   }
 
   RedisAlcoholViewCounter(
-      RedisTemplate<String, Object> redisTemplate, Clock clock, MeterRegistry meterRegistry) {
+      StringRedisTemplate redisTemplate, Clock clock, MeterRegistry meterRegistry) {
     this.redisTemplate = redisTemplate;
     this.clock = clock;
     this.failureCounter =
@@ -69,7 +69,11 @@ public class RedisAlcoholViewCounter implements AlcoholViewCounter {
   public void increment(Long alcoholId) {
     String key = keyOf(LocalDateTime.now(clock));
     try {
-      redisTemplate.execute(INCREMENT_SCRIPT, List.of(key), alcoholId, RETENTION.toSeconds());
+      redisTemplate.execute(
+          INCREMENT_SCRIPT,
+          List.of(key),
+          String.valueOf(alcoholId),
+          String.valueOf(RETENTION.toSeconds()));
     } catch (RuntimeException exception) {
       failureCounter.increment();
       log.warn(

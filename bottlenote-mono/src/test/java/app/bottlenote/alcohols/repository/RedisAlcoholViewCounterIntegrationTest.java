@@ -18,9 +18,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -36,7 +34,7 @@ class RedisAlcoholViewCounterIntegrationTest {
   static final RedisContainer REDIS = new RedisContainer(DockerImageName.parse("redis:7.0.12"));
 
   private LettuceConnectionFactory connectionFactory;
-  private RedisTemplate<String, Object> redisTemplate;
+  private StringRedisTemplate redisTemplate;
   private RedisAlcoholViewCounter counter;
 
   @BeforeEach
@@ -47,12 +45,8 @@ class RedisAlcoholViewCounterIntegrationTest {
     connectionFactory.afterPropertiesSet();
     connectionFactory.start();
 
-    redisTemplate = new RedisTemplate<>();
+    redisTemplate = new StringRedisTemplate();
     redisTemplate.setConnectionFactory(connectionFactory);
-    redisTemplate.setKeySerializer(new StringRedisSerializer());
-    redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
-    redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-    redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
     redisTemplate.afterPropertiesSet();
     redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
 
@@ -74,8 +68,7 @@ class RedisAlcoholViewCounterIntegrationTest {
     Object count = redisTemplate.opsForHash().get(BUCKET_KEY, "42");
     Long ttl = redisTemplate.getExpire(BUCKET_KEY, TimeUnit.SECONDS);
 
-    assertThat(count).isInstanceOf(Number.class);
-    assertThat(((Number) count).longValue()).isEqualTo(2L);
+    assertThat(count).isEqualTo("2");
     assertThat(ttl).isBetween(Duration.ofHours(71).toSeconds(), Duration.ofHours(72).toSeconds());
   }
 
