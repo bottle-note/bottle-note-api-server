@@ -72,6 +72,23 @@ schedules:
       sync:
         enable: false
 
+# 인기도 관측 파이프라인
+# 가중치와 정규화 기준은 아직 확정되지 않았다.
+# 축별 시계열이 쌓인 뒤 실제 분포를 보고 정한다 — 지금 값은 출발점이지 결정된 산식이 아니다.
+popularity:
+  observation:
+    weights:
+      interest: 0.25
+      rating: 0.25
+      pick: 0.25
+      engagement: 0.25
+    # 각 축을 0~1로 누르는 분모. 이 값에 도달하면 해당 축은 만점이다.
+    reference:
+      interest: 50
+      rating: 100
+      pick: 200
+      engagement: 300
+
 batch:
   visitor-telemetry:
     enabled: false

@@ -78,6 +78,12 @@ jobs:
       - name: run unit tests
         run: ./gradlew unit_test
 
+      # batch 모듈은 unit_test가 꺼져 있고 batch_test로 분리되어 있다.
+      # 도커가 필요 없는 인기도 관측 테스트만 골라 PR 단계에서 돌린다.
+      # 나머지 batch 테스트(컨텍스트·Testcontainers)는 배포 워크플로가 맡는다.
+      - name: run batch popularity tests
+        run: ./gradlew :bottlenote-batch:batch_test --tests "app.batch.bottlenote.job.popularity.*"
+
       - name: upload test results
         if: always()
         uses: actions/upload-artifact@v7
@@ -86,6 +92,8 @@ jobs:
           path: |
             */build/reports/tests/unit_test/
             */build/test-results/unit_test/
+            */build/reports/tests/batch_test/
+            */build/test-results/batch_test/
 
   rule-tests:
     needs: prepare
