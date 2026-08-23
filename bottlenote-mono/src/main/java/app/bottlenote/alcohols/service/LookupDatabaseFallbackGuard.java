@@ -1,6 +1,8 @@
 package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -51,7 +53,11 @@ final class LookupDatabaseFallbackGuard {
 
     if (!allowLoad(now)) {
       log.warn("Alcohol lookup DB fallback circuit가 열려 추가 조회를 생략합니다.");
-      return cached == null ? List.of() : cached.items();
+      if (cached == null) {
+        // 캐시도 없는 완전 실패를 빈 목록으로 감추면 장애가 정상 응답으로 보인다.
+        throw new AlcoholException(AlcoholExceptionCode.ALCOHOL_LOOKUP_UNAVAILABLE);
+      }
+      return cached.items();
     }
 
     return singleFlight(() -> invoke(loader, now));
@@ -64,7 +70,6 @@ final class LookupDatabaseFallbackGuard {
       lastSuccess.set(new CachedResult(items, now));
       consecutiveFailures.set(0);
       openUntilMillis.set(0);
-      halfOpenProbe.set(false);
       return items;
     } catch (RuntimeException exception) {
       int failures = consecutiveFailures.incrementAndGet();
@@ -75,12 +80,14 @@ final class LookupDatabaseFallbackGuard {
             failures,
             openDuration);
       }
-      halfOpenProbe.set(false);
       CachedResult cached = lastSuccess.get();
       if (cached != null) {
         return cached.items();
       }
       throw exception;
+    } finally {
+      // Error로 빠져나가도 probe 플래그가 남으면 circuit이 영구히 열린 채로 고정된다.
+      halfOpenProbe.set(false);
     }
   }
 
@@ -117,9 +124,10 @@ final class LookupDatabaseFallbackGuard {
         List<AlcoholLookupSnapshotItem> items = loader.get();
         created.complete(items);
         return items;
-      } catch (RuntimeException exception) {
-        created.completeExceptionally(exception);
-        throw exception;
+      } catch (Throwable throwable) {
+        // Error도 반드시 전달해야 join() 대기자가 영원히 묶이지 않는다.
+        created.completeExceptionally(throwable);
+        throw throwable;
       } finally {
         inFlight.compareAndSet(created, null);
       }
@@ -134,6 +142,9 @@ final class LookupDatabaseFallbackGuard {
       Throwable cause = exception.getCause();
       if (cause instanceof RuntimeException runtimeException) {
         throw runtimeException;
+      }
+      if (cause instanceof Error error) {
+        throw error;
       }
       throw exception;
     }

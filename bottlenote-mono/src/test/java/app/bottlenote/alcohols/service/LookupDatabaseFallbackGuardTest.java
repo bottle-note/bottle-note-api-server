@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -69,15 +71,50 @@ class LookupDatabaseFallbackGuardTest {
           .isInstanceOf(IllegalStateException.class);
     }
 
-    List<AlcoholLookupSnapshotItem> blocked =
-        guard.load(
-            () -> {
-              calls.incrementAndGet();
-              throw new IllegalStateException("should not run");
-            });
+    // 캐시된 성공 결과가 없는 완전 실패는 빈 목록으로 감추지 않고 503으로 노출한다.
+    assertThatThrownBy(
+            () ->
+                guard.load(
+                    () -> {
+                      calls.incrementAndGet();
+                      throw new IllegalStateException("should not run");
+                    }))
+        .isInstanceOf(AlcoholException.class)
+        .hasMessage(AlcoholExceptionCode.ALCOHOL_LOOKUP_UNAVAILABLE.getMessage());
 
     assertThat(calls.get()).isEqualTo(3);
-    assertThat(blocked).isEmpty();
+  }
+
+  @Test
+  @DisplayName("circuit이 열려도 직전 성공 결과가 있으면 그 결과로 응답한다")
+  void load_whenCircuitOpenWithCachedResult_servesCache() {
+    LookupDatabaseFallbackGuard guard =
+        new LookupDatabaseFallbackGuard(
+            Clock.systemUTC(), Duration.ZERO, 1, Duration.ofSeconds(30));
+
+    assertThat(guard.load(() -> List.of(snapshotItem(1L))))
+        .extracting(AlcoholLookupSnapshotItem::alcoholId)
+        .containsExactly(1L);
+
+    // 실패해도 직전 성공 결과가 있으면 그것으로 응답하고, 이때 circuit이 열린다.
+    assertThat(
+            guard.load(
+                () -> {
+                  throw new IllegalStateException("db down");
+                }))
+        .extracting(AlcoholLookupSnapshotItem::alcoholId)
+        .containsExactly(1L);
+
+    AtomicInteger blockedCalls = new AtomicInteger();
+    assertThat(
+            guard.load(
+                () -> {
+                  blockedCalls.incrementAndGet();
+                  throw new IllegalStateException("should not run");
+                }))
+        .extracting(AlcoholLookupSnapshotItem::alcoholId)
+        .containsExactly(1L);
+    assertThat(blockedCalls.get()).isZero();
   }
 
   @Test

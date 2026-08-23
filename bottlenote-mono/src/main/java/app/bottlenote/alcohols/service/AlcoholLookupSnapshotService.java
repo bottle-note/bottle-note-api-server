@@ -5,6 +5,8 @@ import app.bottlenote.alcohols.domain.AlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import app.bottlenote.alcohols.service.AlcoholLookupService.AlcoholLookupSyncResult;
 import java.time.Clock;
 import java.time.Duration;
@@ -175,12 +177,18 @@ public class AlcoholLookupSnapshotService {
     return findDatabaseItemsForRequest();
   }
 
+  /**
+   * Redis와 DB가 모두 실패한 완전 장애는 빈 목록으로 감추지 않고 503으로 노출한다. 빈 목록으로 응답하면 "위스키 없음"과 구분되지 않고, 클라이언트나 CDN이 그
+   * 응답을 캐시해 장애가 끝난 뒤에도 영향이 남는다.
+   */
   private List<AlcoholLookupSnapshotItem> findDatabaseItemsForRequest() {
     try {
       return fallbackGuard.load(this::loadDatabaseItems);
+    } catch (AlcoholException e) {
+      throw e;
     } catch (RuntimeException e) {
-      log.warn("Alcohol lookup DB fallback 실패. 빈 목록으로 응답합니다.", e);
-      return List.of();
+      log.warn("Alcohol lookup DB fallback 실패. 503으로 응답합니다.", e);
+      throw new AlcoholException(AlcoholExceptionCode.ALCOHOL_LOOKUP_UNAVAILABLE);
     }
   }
 

@@ -2,12 +2,15 @@ package app.bottlenote.alcohols.service;
 
 import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
 import java.time.Clock;
@@ -116,11 +119,15 @@ class AlcoholLookupSnapshotServiceTest {
         new AlcoholLookupSnapshotService(
             alcoholQueryRepository, snapshotStore, false, 1000L, guard);
 
+    // Redis와 DB가 모두 실패한 완전 장애는 빈 목록이 아니라 503으로 노출한다.
     for (int i = 0; i < 3; i++) {
-      assertThat(snapshotService.findFilteredItems("macallan", null, null, null)).isEmpty();
+      assertThatThrownBy(() -> snapshotService.findFilteredItems("macallan", null, null, null))
+          .isInstanceOf(AlcoholException.class)
+          .hasMessage(AlcoholExceptionCode.ALCOHOL_LOOKUP_UNAVAILABLE.getMessage());
     }
     int calls = alcoholQueryRepository.findAllLookupItemsCount();
-    assertThat(snapshotService.findFilteredItems("macallan", null, null, null)).isEmpty();
+    assertThatThrownBy(() -> snapshotService.findFilteredItems("macallan", null, null, null))
+        .isInstanceOf(AlcoholException.class);
 
     assertThat(calls).isEqualTo(3);
     assertThat(alcoholQueryRepository.findAllLookupItemsCount()).isEqualTo(3);
