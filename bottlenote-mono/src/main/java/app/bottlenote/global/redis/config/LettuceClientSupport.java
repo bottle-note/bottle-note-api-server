@@ -63,12 +63,18 @@ public final class LettuceClientSupport {
   }
 
   public static ClientOptions clientOptions(Duration connectTimeout) {
-    return ClientOptions.builder()
+    ClientOptions.Builder builder = ClientOptions.builder();
+    configureClientOptions(builder, connectTimeout);
+    return builder.build();
+  }
+
+  public static void configureClientOptions(
+      ClientOptions.Builder builder, Duration connectTimeout) {
+    builder
         .autoReconnect(true)
         .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS)
         .requestQueueSize(REQUEST_QUEUE_SIZE)
-        .socketOptions(socketOptions(connectTimeout))
-        .build();
+        .socketOptions(socketOptions(connectTimeout));
   }
 
   public static LettuceClientConfiguration clientConfiguration(Duration commandTimeout) {
