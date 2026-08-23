@@ -60,21 +60,20 @@ final class LookupDatabaseFallbackGuard {
       return cached.items();
     }
 
-    return singleFlight(() -> invoke(loader, now));
+    return singleFlight(() -> invoke(loader));
   }
 
-  private List<AlcoholLookupSnapshotItem> invoke(
-      Supplier<List<AlcoholLookupSnapshotItem>> loader, Instant now) {
+  private List<AlcoholLookupSnapshotItem> invoke(Supplier<List<AlcoholLookupSnapshotItem>> loader) {
     try {
       List<AlcoholLookupSnapshotItem> items = List.copyOf(loader.get());
-      lastSuccess.set(new CachedResult(items, now));
+      lastSuccess.set(new CachedResult(items, clock.instant()));
       consecutiveFailures.set(0);
       openUntilMillis.set(0);
       return items;
     } catch (RuntimeException exception) {
       int failures = consecutiveFailures.incrementAndGet();
       if (failures >= failureThreshold) {
-        openUntilMillis.set(now.toEpochMilli() + openDuration.toMillis());
+        openUntilMillis.set(clock.instant().toEpochMilli() + openDuration.toMillis());
         log.warn(
             "Alcohol lookup DB fallback circuit를 엽니다. failures={}, openDuration={}",
             failures,

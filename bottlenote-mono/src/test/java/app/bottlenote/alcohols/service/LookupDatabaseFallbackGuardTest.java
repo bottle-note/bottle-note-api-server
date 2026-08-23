@@ -53,6 +53,31 @@ class LookupDatabaseFallbackGuardTest {
   }
 
   @Test
+  @DisplayName("DB 조회가 오래 걸려도 성공 결과 TTL은 완료 시점부터 계산한다")
+  void load_whenLoaderIsSlow_startsResultTtlAfterCompletion() {
+    MutableClock clock = new MutableClock(Instant.parse("2026-08-23T00:00:00Z"));
+    LookupDatabaseFallbackGuard guard =
+        new LookupDatabaseFallbackGuard(clock, Duration.ofSeconds(30), 3, Duration.ofSeconds(30));
+    AtomicInteger calls = new AtomicInteger();
+
+    guard.load(
+        () -> {
+          calls.incrementAndGet();
+          clock.advance(Duration.ofSeconds(31));
+          return List.of(snapshotItem(1L));
+        });
+    List<AlcoholLookupSnapshotItem> second =
+        guard.load(
+            () -> {
+              calls.incrementAndGet();
+              return List.of(snapshotItem(2L));
+            });
+
+    assertThat(calls.get()).isEqualTo(1);
+    assertThat(second).extracting(AlcoholLookupSnapshotItem::alcoholId).containsExactly(1L);
+  }
+
+  @Test
   @DisplayName("연속 실패가 임계치를 넘으면 circuit을 열어 추가 DB 조회를 생략한다")
   void load_whenFailuresReachThreshold_opensCircuit() {
     LookupDatabaseFallbackGuard guard =
@@ -83,6 +108,35 @@ class LookupDatabaseFallbackGuardTest {
         .hasMessage(AlcoholExceptionCode.ALCOHOL_LOOKUP_UNAVAILABLE.getMessage());
 
     assertThat(calls.get()).isEqualTo(3);
+  }
+
+  @Test
+  @DisplayName("DB 조회가 오래 걸려도 circuit 차단 시간은 실패 시점부터 계산한다")
+  void load_whenFailureIsSlow_startsCircuitOpenDurationAfterFailure() {
+    MutableClock clock = new MutableClock(Instant.parse("2026-08-23T00:00:00Z"));
+    LookupDatabaseFallbackGuard guard =
+        new LookupDatabaseFallbackGuard(clock, Duration.ZERO, 1, Duration.ofSeconds(30));
+    AtomicInteger calls = new AtomicInteger();
+
+    assertThatThrownBy(
+            () ->
+                guard.load(
+                    () -> {
+                      calls.incrementAndGet();
+                      clock.advance(Duration.ofSeconds(31));
+                      throw new IllegalStateException("db down");
+                    }))
+        .isInstanceOf(IllegalStateException.class);
+
+    assertThatThrownBy(
+            () ->
+                guard.load(
+                    () -> {
+                      calls.incrementAndGet();
+                      throw new IllegalStateException("should not run");
+                    }))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(calls.get()).isEqualTo(1);
   }
 
   @Test
@@ -220,6 +274,10 @@ class LookupDatabaseFallbackGuardTest {
     @Override
     public Instant instant() {
       return instant;
+    }
+
+    private void advance(Duration duration) {
+      instant = instant.plus(duration);
     }
   }
 }
