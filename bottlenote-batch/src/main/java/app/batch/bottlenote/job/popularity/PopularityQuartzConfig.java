@@ -1,6 +1,7 @@
 package app.batch.bottlenote.job.popularity;
 
 import app.batch.bottlenote.job.popularity.PopularityObservationJobConfig.PopularityObservationQuartzJob;
+import app.batch.bottlenote.job.popularity.PopularityWeeklyRollupJobConfig.PopularityWeeklyRollupQuartzJob;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -21,6 +22,8 @@ public class PopularityQuartzConfig {
 
   private static final String JOB_KEY = "popularityObservationJob";
   private static final String TRIGGER_KEY = "popularityObservationTrigger";
+  private static final String WEEKLY_JOB_KEY = "popularityWeeklyRollupJob";
+  private static final String WEEKLY_TRIGGER_KEY = "popularityWeeklyRollupTrigger";
 
   /**
    * 매시 20분. 버킷 간격을 바꾸면 이 표현식도 함께 바꿔야 한다.
@@ -31,6 +34,9 @@ public class PopularityQuartzConfig {
    * <p>둘, 기존 일배치(베스트 리뷰·인기 주류)가 매일 0시 정각에 돌고 같은 커넥션 풀을 쓴다. 가까이 붙으면 네 축이 커넥션을 얻지 못해 관측이 실패한다.
    */
   private static final String HOURLY_CRON = "0 20 * * * ?";
+
+  /** 월요일 02:50. 매시 20분 HOUR Job과 자정 일배치의 시작 시점을 피한다. */
+  private static final String WEEKLY_CRON = "0 50 2 ? * MON";
 
   @Bean
   public JobDetail popularityObservationJobDetail() {
@@ -49,6 +55,26 @@ public class PopularityQuartzConfig {
         .withSchedule(
             CronScheduleBuilder.cronSchedule(HOURLY_CRON)
                 // 인스턴스 재기동 등으로 놓친 실행이 몰려 돌지 않게 한 번만 따라잡는다
+                .withMisfireHandlingInstructionFireAndProceed())
+        .build();
+  }
+
+  @Bean
+  public JobDetail popularityWeeklyRollupJobDetail() {
+    return JobBuilder.newJob(PopularityWeeklyRollupQuartzJob.class)
+        .withIdentity(WEEKLY_JOB_KEY)
+        .storeDurably()
+        .requestRecovery(true)
+        .build();
+  }
+
+  @Bean
+  public Trigger popularityWeeklyRollupJobTrigger() {
+    return TriggerBuilder.newTrigger()
+        .forJob(popularityWeeklyRollupJobDetail())
+        .withIdentity(WEEKLY_TRIGGER_KEY)
+        .withSchedule(
+            CronScheduleBuilder.cronSchedule(WEEKLY_CRON)
                 .withMisfireHandlingInstructionFireAndProceed())
         .build();
   }
