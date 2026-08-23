@@ -295,6 +295,59 @@ class ObservationTaskletSqlTest {
     }
 
     @Test
+    @DisplayName("직전 HOUR 없이 첫 관측한 값이 재실행 전에 사라지면 0으로 정정한다")
+    void rerunCorrectsFirstObservationWithNoPreviousBucket() throws Exception {
+      // 직전 HOUR 관측이 없는 상태에서 첫 실행이 nonzero로 적재된다
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,1,4.0)");
+      run(new RatingObservationTasklet(writer), BUCKET);
+      assertThat(rowsOf("alcohol_rating_observations").get(0).get("rating_count")).isEqualTo(1L);
+
+      // 원본이 사라진 채 같은 버킷을 재실행한다 — previous는 여전히 비어 있다
+      jdbc.update("DELETE FROM ratings WHERE alcohol_id = 1");
+      run(new RatingObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_rating_observations");
+      assertThat(rows)
+          .as("행 수가 늘지 않고 기존 행이 0으로 정정된다")
+          .hasSize(1);
+      assertThat(rows.get(0).get("rating_count")).isEqualTo(0L);
+      assertThat(((Number) rows.get(0).get("rating_sum")).doubleValue()).isEqualTo(0.0);
+      assertThat(rows.get(0).get("delta_rating_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("prev_bucket_at")).isNull();
+    }
+
+    @Test
+    @DisplayName("직전 HOUR가 0이어도 이번 버킷에 잘못된 nonzero가 남아 있으면 정정한다")
+    void rerunCorrectsEvenWhenPreviousBucketIsZero() throws Exception {
+      // 직전 HOUR는 명시적으로 0으로 기록돼 있다
+      jdbc.update(
+          """
+          INSERT INTO alcohol_rating_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
+             rating_count, rating_sum, delta_rating_count, delta_rating_sum)
+          VALUES (1, 'HOUR', ?, ?, NULL, 0, 0.0, 0, 0.0)
+          """,
+          PREV_BUCKET,
+          PREV_BUCKET);
+
+      // 이번 버킷은 첫 실행에서 nonzero로 잘못 적재된다
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,1,4.0)");
+      run(new RatingObservationTasklet(writer), BUCKET);
+      assertThat(rowsOf("alcohol_rating_observations").get(1).get("rating_count")).isEqualTo(1L);
+
+      // 원본이 사라진 채 같은 버킷을 재실행한다 — previous(직전 HOUR)는 여전히 0이다
+      jdbc.update("DELETE FROM ratings WHERE alcohol_id = 1");
+      run(new RatingObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_rating_observations");
+      assertThat(rows).hasSize(2);
+      assertThat(rows.get(1).get("rating_count"))
+          .as("직전이 0이라고 건너뛰면 1회차의 잘못된 1이 남는다")
+          .isEqualTo(0L);
+      assertThat(rows.get(1).get("delta_rating_count")).isEqualTo(0L);
+    }
+
+    @Test
     @DisplayName("평점이 모두 사라지면 0으로 떨어뜨려 기록한다")
     void writesZeroWhenAllRatingsDisappear() throws Exception {
       jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,1,4.0)");
@@ -386,6 +439,28 @@ class ObservationTaskletSqlTest {
       assertThat(rows).hasSize(2);
       assertThat(rows.get(1).get("pick_count")).isEqualTo(1L);
       assertThat(rows.get(1).get("delta_pick_count")).isEqualTo(-1L);
+    }
+
+    @Test
+    @DisplayName("직전 HOUR 없이 첫 관측한 값이 재실행 전에 사라지면 0으로 정정한다")
+    void rerunCorrectsFirstObservationWithNoPreviousBucket() throws Exception {
+      // 직전 HOUR 관측이 없는 상태에서 첫 실행이 nonzero로 적재된다
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,1,'PICK')");
+      run(new PickObservationTasklet(writer), BUCKET);
+      assertThat(rowsOf("alcohol_pick_observations").get(0).get("pick_count")).isEqualTo(1L);
+
+      // 원본이 사라진 채 같은 버킷을 재실행한다 — previous는 여전히 비어 있다
+      jdbc.update("DELETE FROM picks WHERE alcohol_id = 1");
+      run(new PickObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_pick_observations");
+      assertThat(rows)
+          .as("행 수가 늘지 않고 기존 행이 0으로 정정된다")
+          .hasSize(1);
+      assertThat(rows.get(0).get("pick_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("unpick_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("delta_pick_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("prev_bucket_at")).isNull();
     }
 
     @Test
@@ -550,6 +625,34 @@ class ObservationTaskletSqlTest {
           .as("직전과 값이 같다고 건너뛰면 1회차의 잘못된 2가 남는다")
           .isEqualTo(1L);
       assertThat(rows.get(1).get("delta_review_count")).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("직전 HOUR 없이 첫 관측한 값이 재실행 전에 사라지면 0으로 정정한다")
+    void rerunCorrectsFirstObservationWithNoPreviousBucket() throws Exception {
+      // 직전 HOUR 관측이 없는 상태에서 첫 실행이 nonzero로 적재된다
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (10,1,1,'PUBLIC','ACTIVE')");
+      jdbc.update("INSERT INTO likes (review_id, user_id, status) VALUES (10,1,'LIKE')");
+      run(new EngagementObservationTasklet(writer), BUCKET);
+      assertThat(rowsOf("alcohol_engagement_observations").get(0).get("review_count"))
+          .isEqualTo(1L);
+
+      // 원본이 사라진 채 같은 버킷을 재실행한다 — previous는 여전히 비어 있다
+      jdbc.update("DELETE FROM likes WHERE review_id = 10");
+      jdbc.update("UPDATE reviews SET status='PRIVATE' WHERE id=10");
+      run(new EngagementObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_engagement_observations");
+      assertThat(rows)
+          .as("행 수가 늘지 않고 기존 행이 0으로 정정된다")
+          .hasSize(1);
+      assertThat(rows.get(0).get("review_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("like_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("delta_review_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("delta_like_count")).isEqualTo(0L);
+      assertThat(rows.get(0).get("prev_bucket_at")).isNull();
     }
 
     @Test

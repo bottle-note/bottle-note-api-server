@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -130,20 +131,30 @@ public class PickObservationTasklet implements Tasklet {
           });
     }
 
-    // 픽이 전부 취소되어 집계에서 사라진 주류도 0으로 남긴다
+    // 직전 관측과 현재 버킷 행을 함께 봐야 원본이 사라진 재실행도 0으로 정정할 수 있다.
+    Set<Long> zeroCandidates = new HashSet<>(previous.keySet());
+    zeroCandidates.addAll(alreadyWritten);
+
     int zeroed = 0;
-    for (Map.Entry<Long, Snapshot> entry : previous.entrySet()) {
-      Long alcoholId = entry.getKey();
+    for (Long alcoholId : zeroCandidates) {
       if (current.containsKey(alcoholId)) {
         continue;
       }
-      Snapshot before = entry.getValue();
-      if (before.isZero()) {
+      Snapshot before = previous.get(alcoholId);
+      // 직전이 0이어도 이번 버킷에 이미 잘못된 nonzero 행이 있으면 정정해야 한다
+      if (before != null && before.isZero() && !alreadyWritten.contains(alcoholId)) {
         continue;
       }
+      long beforePick = before == null ? 0L : before.pickCount();
       rows.add(
           new Object[] {
-            alcoholId, bucketAt, observedAt, before.bucketAt(), 0L, 0L, -before.pickCount()
+            alcoholId,
+            bucketAt,
+            observedAt,
+            before == null ? null : before.bucketAt(),
+            0L,
+            0L,
+            -beforePick
           });
       zeroed++;
     }
