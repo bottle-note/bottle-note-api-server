@@ -1,6 +1,7 @@
 package app.bottlenote.global.redis.config;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.SocketOptions;
 import io.lettuce.core.resource.ClientResources;
 import java.time.Duration;
@@ -76,12 +77,32 @@ public final class LettuceClientSupport {
 
   public static LettuceClientConfiguration clientConfiguration(
       Duration commandTimeout, ClientResources clientResources) {
+    return clientConfiguration(commandTimeout, commandTimeout, clientResources);
+  }
+
+  public static LettuceClientConfiguration clientConfiguration(
+      Duration commandTimeout, Duration connectTimeout, ClientResources clientResources) {
+    return clientConfiguration(commandTimeout, connectTimeout, clientResources, null);
+  }
+
+  public static LettuceClientConfiguration sentinelClientConfiguration(Duration timeout) {
+    return clientConfiguration(timeout, timeout, null, ReadFrom.MASTER);
+  }
+
+  private static LettuceClientConfiguration clientConfiguration(
+      Duration commandTimeout,
+      Duration connectTimeout,
+      ClientResources clientResources,
+      ReadFrom readFrom) {
     LettuceClientConfiguration.LettuceClientConfigurationBuilder builder =
         LettuceClientConfiguration.builder()
             .commandTimeout(commandTimeout)
-            .clientOptions(clientOptions(commandTimeout));
+            .clientOptions(clientOptions(connectTimeout));
     if (clientResources != null) {
       builder.clientResources(clientResources);
+    }
+    if (readFrom != null) {
+      builder.readFrom(readFrom);
     }
     return builder.build();
   }
@@ -93,7 +114,11 @@ public final class LettuceClientSupport {
           "LettuceConnectionFactory가 필요합니다. 실제 타입: " + redisConnectionFactory.getClass().getName());
     }
     LettuceClientConfiguration clientConfig =
-        clientConfiguration(commandTimeout, sourceClientResources(source));
+        clientConfiguration(
+            commandTimeout,
+            sourceConnectTimeout(source),
+            sourceClientResources(source),
+            source.getClientConfiguration().getReadFrom().orElse(null));
 
     RedisClusterConfiguration clusterConfiguration = source.getClusterConfiguration();
     if (clusterConfiguration != null
@@ -146,5 +171,14 @@ public final class LettuceClientSupport {
       return source.getNativeClient().getResources();
     }
     throw new IllegalStateException("Lettuce ClientResources를 확인할 수 없습니다.");
+  }
+
+  private static Duration sourceConnectTimeout(LettuceConnectionFactory source) {
+    return source
+        .getClientConfiguration()
+        .getClientOptions()
+        .map(ClientOptions::getSocketOptions)
+        .map(SocketOptions::getConnectTimeout)
+        .orElse(source.getClientConfiguration().getCommandTimeout());
   }
 }

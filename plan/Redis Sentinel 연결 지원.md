@@ -12,6 +12,7 @@
 4. 개발 환경에서는 Sentinel 비밀번호와 Redis 데이터 노드 비밀번호가 동일한 `redis-dev-secret/password`를 사용하지만 애플리케이션 속성은 분리한다.
 5. standalone과 cluster mode의 기존 동작 및 TCP keepalive, TCP_USER_TIMEOUT, command timeout 정책은 유지한다.
 6. 로컬 포트포워드만으로 Sentinel이 반환하는 클러스터 내부 master 주소까지 라우팅할 수 없으므로, 실제 Sentinel 인증·master 조회와 애플리케이션 연결 검증을 분리하되 최종적으로 클러스터 네트워크에서 backend 연결을 확인한다.
+7. Sentinel mode는 `ReadFrom.MASTER`를 사용해 Lettuce의 Sentinel topology refresh 경로를 활성화하고, 전용 factory도 이 설정을 보존한다.
 
 ### Success Criteria
 
@@ -83,7 +84,7 @@
 - Files (advisory): 없음
 - Depends: Task 2, Task 4
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ## Progress Log
 
@@ -93,3 +94,5 @@
 - 2026.08.23: Task 2 완료 - 전용 Lettuce factory의 Sentinel 설정 보존, Redis 관련 단위 테스트 8건 통과
 - 2026.08.23: Task 3 완료 - 세 backend의 Sentinel 및 데이터 노드 환경변수 바인딩 추가, YAML 파싱과 processResources 통과
 - 2026.08.23: Task 4 완료 - 개발 SOPS Secret 2개 전환, 복호화 계약 검증과 KSOPS 렌더 검증 통과
+- 2026.08.23: Grok 설계 검토 반영 - Sentinel topology refresh 활성화, 전용 factory의 command/connect timeout 분리, username 기본값 회귀 제거
+- 2026.08.23: Task 5 완료 - 포트포워드 Sentinel 인증과 master 조회 성공, 개발 Pod에서 source 및 전용 factory PING 성공, 임시 파일 정리
