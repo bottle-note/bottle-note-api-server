@@ -69,23 +69,6 @@ public class AlcoholInterestObservation {
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  public static AlcoholInterestObservation of(
-      Long alcoholId,
-      LocalDateTime bucketAt,
-      LocalDateTime observedAt,
-      LocalDateTime prevBucketAt,
-      Long viewerCount,
-      Long cumulativeViewerCount) {
-    return AlcoholInterestObservation.builder()
-        .alcoholId(alcoholId)
-        .bucketAt(bucketAt)
-        .observedAt(observedAt)
-        .prevBucketAt(prevBucketAt)
-        .viewerCount(viewerCount)
-        .cumulativeViewerCount(cumulativeViewerCount)
-        .build();
-  }
-
   @PrePersist
   protected void onCreate() {
     if (this.createdAt == null) {
