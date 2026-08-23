@@ -1,7 +1,10 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,8 +33,8 @@ import org.hibernate.annotations.Comment;
     name = "alcohol_popularity_snapshots",
     uniqueConstraints = {
       @UniqueConstraint(
-          name = "uk_popularity_snapshot_alcohol_bucket",
-          columnNames = {"alcohol_id", "bucket_at"})
+          name = "uk_popularity_snapshot_granularity_bucket_alcohol",
+          columnNames = {"bucket_granularity", "bucket_at", "alcohol_id"})
     })
 @Getter
 @Builder
@@ -48,9 +51,22 @@ public class AlcoholPopularitySnapshot {
   @Column(name = "alcohol_id", nullable = false)
   private Long alcoholId;
 
-  @Comment("적재 버킷 시각(정시 절삭)")
+  @Comment("기간 단위")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "bucket_granularity", nullable = false, length = 8)
+  private BucketGranularity bucketGranularity;
+
+  @Comment("기간 시작 시각")
   @Column(name = "bucket_at", nullable = false)
   private LocalDateTime bucketAt;
+
+  @Comment("Batch가 Snapshot 계산을 완료한 시각")
+  @Column(name = "observed_at", nullable = false)
+  private LocalDateTime observedAt;
+
+  @Comment("같은 기간 단위에서 직전 Snapshot의 기간 시작 시각")
+  @Column(name = "prev_bucket_at")
+  private LocalDateTime prevBucketAt;
 
   @Comment("관심도 원시값")
   @Column(name = "interest_value", nullable = false)

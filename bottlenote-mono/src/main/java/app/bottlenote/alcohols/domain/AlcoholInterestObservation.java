@@ -1,7 +1,10 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,8 +29,8 @@ import org.hibernate.annotations.Comment;
     name = "alcohol_interest_observations",
     uniqueConstraints = {
       @UniqueConstraint(
-          name = "uk_interest_obs_alcohol_bucket",
-          columnNames = {"alcohol_id", "bucket_at"})
+          name = "uk_interest_obs_granularity_bucket_alcohol",
+          columnNames = {"bucket_granularity", "bucket_at", "alcohol_id"})
     })
 @Getter
 @Builder
@@ -44,7 +47,12 @@ public class AlcoholInterestObservation {
   @Column(name = "alcohol_id", nullable = false)
   private Long alcoholId;
 
-  @Comment("관측 버킷 시각(정시 절삭)")
+  @Comment("기간 단위")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "bucket_granularity", nullable = false, length = 8)
+  private BucketGranularity bucketGranularity;
+
+  @Comment("기간 시작 시각")
   @Column(name = "bucket_at", nullable = false)
   private LocalDateTime bucketAt;
 
@@ -57,13 +65,13 @@ public class AlcoholInterestObservation {
   @Column(name = "prev_bucket_at")
   private LocalDateTime prevBucketAt;
 
-  @Comment("직전 관측 이후 구간의 고유 조회 사용자 수")
-  @Column(name = "viewer_count", nullable = false)
-  private Long viewerCount;
+  @Comment("해당 기간의 주류 상세 조회 요청 수")
+  @Column(name = "view_count", nullable = false)
+  private Long viewCount;
 
-  @Comment("관측 시작 이후 누적 조회 사용자 수")
-  @Column(name = "cumulative_viewer_count", nullable = false)
-  private Long cumulativeViewerCount;
+  @Comment("관측 시작부터 해당 기간 종료까지의 누적 상세 조회 요청 수")
+  @Column(name = "cumulative_view_count", nullable = false)
+  private Long cumulativeViewCount;
 
   @Comment("생성일시")
   @Column(name = "created_at", nullable = false, updatable = false)
