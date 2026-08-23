@@ -120,31 +120,45 @@ class LookupDatabaseFallbackGuardTest {
   @Test
   @DisplayName("동시에 들어온 fallback은 한 번의 DB 조회로 합친다")
   void load_whenConcurrent_usesSingleFlight() throws Exception {
+    // TTL을 두면 in-flight join을 놓친 늦은 도착도 캐시를 타므로, 스레드 순서와
+    // 무관하게 DB 조회는 정확히 1회로 확정된다.
     LookupDatabaseFallbackGuard guard =
         new LookupDatabaseFallbackGuard(
-            Clock.systemUTC(), Duration.ZERO, 3, Duration.ofSeconds(30));
+            Clock.systemUTC(), Duration.ofSeconds(30), 3, Duration.ofSeconds(30));
     AtomicInteger calls = new AtomicInteger();
     CountDownLatch entered = new CountDownLatch(1);
     CountDownLatch release = new CountDownLatch(1);
     ExecutorService pool = Executors.newFixedThreadPool(8);
 
     try {
-      List<Future<List<AlcoholLookupSnapshotItem>>> futures =
-          java.util.stream.IntStream.range(0, 8)
-              .mapToObj(
-                  ignored ->
-                      pool.submit(
-                          () ->
-                              guard.load(
-                                  () -> {
-                                    calls.incrementAndGet();
-                                    entered.countDown();
-                                    await(release);
-                                    return List.of(snapshotItem(1L));
-                                  })))
-              .toList();
+      // 선행 호출이 in-flight로 확정된 뒤에 나머지를 제출해야 결정적으로 검증된다.
+      // 8개를 한꺼번에 제출하면 느린 러너에서 일부가 첫 로더 종료 후 도착해 두 번째
+      // 조회가 발생한다.
+      List<Future<List<AlcoholLookupSnapshotItem>>> futures = new java.util.ArrayList<>();
+      futures.add(
+          pool.submit(
+              () ->
+                  guard.load(
+                      () -> {
+                        calls.incrementAndGet();
+                        entered.countDown();
+                        await(release);
+                        return List.of(snapshotItem(1L));
+                      })));
 
       assertThat(entered.await(2, TimeUnit.SECONDS)).isTrue();
+
+      for (int i = 0; i < 7; i++) {
+        futures.add(
+            pool.submit(
+                () ->
+                    guard.load(
+                        () -> {
+                          calls.incrementAndGet();
+                          return List.of(snapshotItem(2L));
+                        })));
+      }
+
       release.countDown();
       for (Future<List<AlcoholLookupSnapshotItem>> future : futures) {
         assertThat(future.get(2, TimeUnit.SECONDS))

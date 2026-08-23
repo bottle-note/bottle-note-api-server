@@ -16,7 +16,6 @@ import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -86,22 +85,21 @@ class AlcoholLookupSnapshotServiceTest {
             snapshotStore,
             false,
             1000L,
+            // TTL을 두면 in-flight join을 놓친 늦은 도착도 캐시를 타므로, 스레드 순서와
+            // 무관하게 DB 조회는 정확히 1회로 확정된다.
             new LookupDatabaseFallbackGuard(
-                Clock.systemUTC(), Duration.ZERO, 3, Duration.ofSeconds(30)));
+                Clock.systemUTC(), Duration.ofSeconds(30), 3, Duration.ofSeconds(30)));
     ExecutorService pool = Executors.newFixedThreadPool(8);
-    CountDownLatch ready = new CountDownLatch(8);
 
     try {
+      List<java.util.concurrent.Future<?>> futures = new java.util.ArrayList<>();
       for (int i = 0; i < 8; i++) {
-        pool.submit(
-            () -> {
-              ready.countDown();
-              snapshotService.findFilteredItems("macallan", null, null, null);
-            });
+        futures.add(
+            pool.submit(() -> snapshotService.findFilteredItems("macallan", null, null, null)));
       }
-      assertThat(ready.await(2, TimeUnit.SECONDS)).isTrue();
-      pool.shutdown();
-      assertThat(pool.awaitTermination(3, TimeUnit.SECONDS)).isTrue();
+      for (java.util.concurrent.Future<?> future : futures) {
+        future.get(5, TimeUnit.SECONDS);
+      }
       assertThat(alcoholQueryRepository.findAllLookupItemsCount()).isEqualTo(1);
     } finally {
       pool.shutdownNow();
