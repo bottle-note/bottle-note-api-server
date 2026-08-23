@@ -1,7 +1,10 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,8 +31,8 @@ import org.hibernate.annotations.Comment;
     name = "alcohol_engagement_observations",
     uniqueConstraints = {
       @UniqueConstraint(
-          name = "uk_engagement_obs_alcohol_bucket",
-          columnNames = {"alcohol_id", "bucket_at"})
+          name = "uk_engagement_obs_granularity_bucket_alcohol",
+          columnNames = {"bucket_granularity", "bucket_at", "alcohol_id"})
     })
 @Getter
 @Builder
@@ -46,7 +49,12 @@ public class AlcoholEngagementObservation {
   @Column(name = "alcohol_id", nullable = false)
   private Long alcoholId;
 
-  @Comment("관측 버킷 시각(정시 절삭)")
+  @Comment("기간 단위")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "bucket_granularity", nullable = false, length = 8)
+  private BucketGranularity bucketGranularity;
+
+  @Comment("기간 시작 시각")
   @Column(name = "bucket_at", nullable = false)
   private LocalDateTime bucketAt;
 
