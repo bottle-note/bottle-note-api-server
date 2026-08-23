@@ -9,7 +9,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +67,7 @@ public class RedisAlcoholViewCounter implements AlcoholViewCounter {
 
   @Override
   public void increment(Long alcoholId) {
-    String key = KEY_PREFIX + BUCKET_FORMATTER.format(LocalDateTime.now(clock));
+    String key = keyOf(LocalDateTime.now(clock));
     try {
       redisTemplate.execute(INCREMENT_SCRIPT, List.of(key), alcoholId, RETENTION.toSeconds());
     } catch (RuntimeException exception) {
@@ -75,6 +77,29 @@ public class RedisAlcoholViewCounter implements AlcoholViewCounter {
           key,
           alcoholId,
           exception.getClass().getSimpleName());
+    }
+  }
+
+  @Override
+  public Map<Long, Long> findCounts(LocalDateTime bucketAt) {
+    Map<Object, Object> entries = redisTemplate.opsForHash().entries(keyOf(bucketAt));
+    Map<Long, Long> counts = new LinkedHashMap<>(entries.size());
+    entries.forEach((alcoholId, count) -> counts.put(parseLong(alcoholId), parseLong(count)));
+    return Map.copyOf(counts);
+  }
+
+  private static String keyOf(LocalDateTime bucketAt) {
+    return KEY_PREFIX + BUCKET_FORMATTER.format(bucketAt);
+  }
+
+  private static long parseLong(Object value) {
+    if (value instanceof Number number) {
+      return number.longValue();
+    }
+    try {
+      return Long.parseLong(String.valueOf(value));
+    } catch (NumberFormatException exception) {
+      throw new IllegalStateException("Redis 인기도 조회 카운터 값이 숫자가 아닙니다.", exception);
     }
   }
 }
