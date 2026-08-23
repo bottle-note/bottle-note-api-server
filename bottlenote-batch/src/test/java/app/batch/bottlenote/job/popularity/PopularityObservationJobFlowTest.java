@@ -9,6 +9,8 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -39,6 +41,8 @@ import org.springframework.test.context.TestPropertySource;
  */
 @Tag("batch")
 @DisplayName("[batch] 인기도 관측 Job 흐름")
+// 실행 기록을 static으로 공유하므로 같은 스레드에서 순차로 돌아야 한다
+@Execution(ExecutionMode.SAME_THREAD)
 @SpringBootTest(classes = PopularityObservationJobFlowTest.TestConfig.class)
 @TestPropertySource(
     properties = {
