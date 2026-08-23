@@ -31,8 +31,20 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PopularitySnapshotTasklet implements Tasklet {
 
+  /**
+   * 관심도만 이번 버킷 관측으로 한정한다.
+   *
+   * <p>흐름 축은 "이번 구간에 몇 명이 봤나"라서 직전 값을 끌어오면 안 된다. 끌어오면 조회가 없던 시간에도 과거 조회수가 그대로 찍혀 관심이 식지 않는 것처럼
+   * 보인다. 관측이 없으면 0이 맞는 해석이다.
+   */
   private static final String INTEREST_SQL =
-      latestSql("alcohol_interest_observations", "viewer_count");
+      """
+      SELECT o.alcohol_id, o.bucket_at, o.viewer_count AS observed_value
+      FROM alcohol_interest_observations o
+      JOIN alcohols a ON a.id = o.alcohol_id AND a.deleted_at IS NULL
+      WHERE o.bucket_at = ?
+      """;
+
   private static final String RATING_SQL =
       latestSql("alcohol_rating_observations", "rating_count");
   private static final String PICK_SQL = latestSql("alcohol_pick_observations", "pick_count");
@@ -66,7 +78,11 @@ public class PopularitySnapshotTasklet implements Tasklet {
         popularity_score = VALUES(popularity_score)
       """;
 
-  /** 이번 버킷 시점에서 각 주류의 최신 관측을 고른다. 희소 저장이라 이번 버킷이 아닐 수 있다. */
+  /**
+   * 상태 축용. 이번 버킷 시점에서 각 주류의 최신 관측을 고른다.
+   *
+   * <p>희소 저장이라 이번 버킷이 아닐 수 있고, 그때는 직전 값이 여전히 유효하다 — 누적이기 때문이다.
+   */
   private static String latestSql(String table, String valueExpression) {
     return """
         SELECT o.alcohol_id, o.bucket_at, %s AS observed_value
