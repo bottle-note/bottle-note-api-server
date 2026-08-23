@@ -16,6 +16,9 @@ public record ObservationBucket(BucketGranularity granularity, LocalDateTime sta
   /** BatchQuartzJob이 넘기는 실행 시각 파라미터 이름. */
   public static final String EXECUTION_TIME_PARAM = "localDateTime";
 
+  /** 인기도 Job이 별도로 선택한 닫힌 시간 버킷 파라미터 이름. */
+  public static final String BUCKET_AT_PARAM = "observationBucketAt";
+
   public ObservationBucket {
     Objects.requireNonNull(granularity, "granularity는 null일 수 없습니다.");
     Objects.requireNonNull(startAt, "startAt은 null일 수 없습니다.");
@@ -50,6 +53,11 @@ public record ObservationBucket(BucketGranularity granularity, LocalDateTime sta
    * {@link #of(BucketGranularity, LocalDateTime)}으로 기간 전체를 사용한다.
    */
   public static LocalDateTime from(JobParameters jobParameters) {
+    LocalDateTime selectedBucketAt =
+        jobParameters == null ? null : jobParameters.getLocalDateTime(BUCKET_AT_PARAM);
+    if (selectedBucketAt != null) {
+      return truncate(selectedBucketAt);
+    }
     LocalDateTime executionTime =
         jobParameters == null ? null : jobParameters.getLocalDateTime(EXECUTION_TIME_PARAM);
     return truncate(executionTime == null ? LocalDateTime.now() : executionTime);

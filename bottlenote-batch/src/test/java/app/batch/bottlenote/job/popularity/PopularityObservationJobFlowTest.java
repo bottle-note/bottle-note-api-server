@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.quartz.JobDetail;
+import org.quartz.Trigger;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -105,6 +107,43 @@ class PopularityObservationJobFlowTest {
     // 병렬이라 실패 시점에 따라 일부가 덜 돌 수 있지만, 실패 축 자신은 반드시 시도된다
     assertThat(EXECUTED).contains("interest");
     assertThat(EXECUTED).doesNotContain("snapshot");
+  }
+
+  @Test
+  @DisplayName("기존 Quartz Job과 Trigger identity를 유지한다")
+  void preservesQuartzIdentity() {
+    PopularityQuartzConfig config = new PopularityQuartzConfig();
+
+    JobDetail jobDetail = config.popularityObservationJobDetail();
+    Trigger trigger = config.popularityObservationJobTrigger();
+
+    assertThat(jobDetail.getKey().getName()).isEqualTo("popularityObservationJob");
+    assertThat(trigger.getKey().getName()).isEqualTo("popularityObservationTrigger");
+    assertThat(trigger.getJobKey()).isEqualTo(jobDetail.getKey());
+  }
+
+  @Test
+  @DisplayName("매시 20분 실행은 직전 완료 시간 버킷을 Job parameter로 선택한다")
+  void selectsPreviousClosedHour() {
+    LocalDateTime executionTime = LocalDateTime.of(2026, 8, 23, 14, 20);
+    JobParametersBuilder builder =
+        new JobParametersBuilder()
+            .addLocalDateTime(ObservationBucket.EXECUTION_TIME_PARAM, executionTime);
+    PopularityObservationJobConfig.PopularityObservationQuartzJob quartzJob =
+        new PopularityObservationJobConfig.PopularityObservationQuartzJob(null, null);
+
+    quartzJob.customizeJobParameters(builder, executionTime);
+
+    JobParameters parameters = builder.toJobParameters();
+    assertThat(parameters.getLocalDateTime(ObservationBucket.EXECUTION_TIME_PARAM))
+        .isEqualTo(executionTime);
+    assertThat(parameters.getLocalDateTime(ObservationBucket.BUCKET_AT_PARAM))
+        .isEqualTo(LocalDateTime.of(2026, 8, 23, 13, 0));
+    assertThat(parameters.getParameter(ObservationBucket.BUCKET_AT_PARAM).isIdentifying()).isFalse();
+    assertThat(
+            PopularityObservationJobConfig.PopularityObservationQuartzJob.closedHourAt(
+                LocalDateTime.of(2026, 8, 23, 0, 20)))
+        .isEqualTo(LocalDateTime.of(2026, 8, 22, 23, 0));
   }
 
   @Configuration

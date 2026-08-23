@@ -2,10 +2,12 @@ package app.batch.bottlenote.job.popularity;
 
 import app.batch.bottlenote.BatchQuartzJob;
 import app.bottlenote.alcohols.repository.RedisAlcoholViewCounter;
+import java.time.LocalDateTime;
 import org.quartz.DisallowConcurrentExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.job.builder.FlowBuilder;
@@ -120,6 +122,17 @@ public class PopularityObservationJobConfig {
   public static class PopularityObservationQuartzJob extends BatchQuartzJob {
     public PopularityObservationQuartzJob(JobLauncher jobLauncher, JobRegistry jobRegistry) {
       super(jobLauncher, jobRegistry, JOB_NAME, JOB_NAME);
+    }
+
+    @Override
+    protected void customizeJobParameters(
+        JobParametersBuilder jobParameters, LocalDateTime executionTime) {
+      jobParameters.addLocalDateTime(
+          ObservationBucket.BUCKET_AT_PARAM, closedHourAt(executionTime), false);
+    }
+
+    static LocalDateTime closedHourAt(LocalDateTime executionTime) {
+      return ObservationBucket.truncate(executionTime).minusHours(1);
     }
   }
 }

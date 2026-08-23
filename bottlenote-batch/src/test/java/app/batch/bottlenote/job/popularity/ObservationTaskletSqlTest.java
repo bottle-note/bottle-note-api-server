@@ -755,6 +755,89 @@ class ObservationTaskletSqlTest {
 
       assertThat(rowsOf("alcohol_popularity_snapshots")).hasSize(1);
     }
+
+    @Test
+    @DisplayName("시간 Snapshot은 HOUR 기간 메타데이터와 직전 시간 버킷을 기록한다")
+    void writesHourMetadataAndPreviousBucket() throws Exception {
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,1,'PICK')");
+      run(new PickObservationTasklet(writer), PREV_BUCKET);
+      run(snapshotTasklet(), PREV_BUCKET);
+
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,2,'PICK')");
+      run(new PickObservationTasklet(writer), BUCKET);
+      run(snapshotTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_popularity_snapshots", "HOUR");
+      assertThat(rows).hasSize(2);
+      assertThat(rows).allSatisfy(row -> assertThat(row.get("observed_at")).isNotNull());
+      assertThat(rows.get(0).get("prev_bucket_at")).isNull();
+      assertThat(rows.get(1).get("prev_bucket_at")).isEqualTo(Timestamp.valueOf(PREV_BUCKET));
+    }
+
+    @Test
+    @DisplayName("시간 Snapshot은 같은 시각의 주간·월간 축 행을 읽지 않는다")
+    void readsOnlyHourAxes() throws Exception {
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,1,'PICK')");
+      run(new PickObservationTasklet(writer), BUCKET);
+      jdbc.update(
+          """
+          INSERT INTO alcohol_pick_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
+             pick_count, unpick_count, delta_pick_count)
+          VALUES (1, 'WEEK', ?, ?, NULL, 90, 0, 90),
+                 (1, 'MONTH', ?, ?, NULL, 99, 0, 99)
+          """,
+          BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET);
+
+      run(snapshotTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_popularity_snapshots", "HOUR");
+      assertThat(rows)
+          .singleElement()
+          .satisfies(row -> assertThat(row.get("pick_value")).isEqualTo(1L));
+    }
+
+    @Test
+    @DisplayName("같은 시간 재실행에서 원천 행이 사라지면 기존 Snapshot 값을 0으로 정정한다")
+    void rerunCorrectsMissingSourceToZero() throws Exception {
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,1,'PICK')");
+      run(new PickObservationTasklet(writer), BUCKET);
+      run(snapshotTasklet(), BUCKET);
+      jdbc.update("DELETE FROM alcohol_pick_observations WHERE bucket_granularity = 'HOUR'");
+
+      run(snapshotTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_popularity_snapshots", "HOUR");
+      assertThat(rows).hasSize(1);
+      assertThat(rows.get(0).get("pick_value")).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("시간 Snapshot 재실행은 같은 시각의 주간·월간 Snapshot을 변경하지 않는다")
+    void preservesRollupSnapshotsAtSameTime() throws Exception {
+      jdbc.update(
+          """
+          INSERT INTO alcohol_popularity_snapshots
+            (alcohol_id, bucket_granularity, bucket_at, observed_at)
+          VALUES (1, 'WEEK', ?, ?), (1, 'MONTH', ?, ?)
+          """,
+          BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET);
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,1,'PICK')");
+      run(new PickObservationTasklet(writer), BUCKET);
+
+      run(snapshotTasklet(), BUCKET);
+      run(snapshotTasklet(), BUCKET);
+
+      assertThat(rowsOf("alcohol_popularity_snapshots", "HOUR")).hasSize(1);
+      assertThat(rowsOf("alcohol_popularity_snapshots", "WEEK")).hasSize(1);
+      assertThat(rowsOf("alcohol_popularity_snapshots", "MONTH")).hasSize(1);
+    }
   }
 
   private static final class InMemoryAlcoholViewCounter implements AlcoholViewCounter {
