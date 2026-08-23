@@ -1,7 +1,9 @@
 package app.batch.bottlenote.job.popularity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -12,6 +14,49 @@ import org.springframework.batch.core.JobParametersBuilder;
 @Tag("batch")
 @DisplayName("[batch] 관측 버킷 시각")
 class ObservationBucketTest {
+
+  @Test
+  @DisplayName("시간 버킷은 시작을 포함하고 종료를 제외한다")
+  void hour_containsStartButExcludesEnd() {
+    ObservationBucket bucket =
+        ObservationBucket.of(BucketGranularity.HOUR, LocalDateTime.of(2026, 8, 23, 14, 37));
+
+    assertThat(bucket.startAt()).isEqualTo(LocalDateTime.of(2026, 8, 23, 14, 0));
+    assertThat(bucket.endAt()).isEqualTo(LocalDateTime.of(2026, 8, 23, 15, 0));
+    assertThat(bucket.contains(bucket.startAt())).isTrue();
+    assertThat(bucket.contains(bucket.endAt().minusNanos(1))).isTrue();
+    assertThat(bucket.contains(bucket.endAt())).isFalse();
+  }
+
+  @Test
+  @DisplayName("주 버킷은 월요일 자정부터 다음 월요일 자정 전까지다")
+  void week_startsOnMondayAndEndsAtNextMonday() {
+    ObservationBucket bucket =
+        ObservationBucket.of(BucketGranularity.WEEK, LocalDateTime.of(2026, 8, 23, 23, 59));
+
+    assertThat(bucket.startAt()).isEqualTo(LocalDateTime.of(2026, 8, 17, 0, 0));
+    assertThat(bucket.endAt()).isEqualTo(LocalDateTime.of(2026, 8, 24, 0, 0));
+    assertThat(bucket.contains(bucket.endAt())).isFalse();
+  }
+
+  @Test
+  @DisplayName("월 버킷은 월초 자정부터 다음 달 월초 자정 전까지다")
+  void month_usesCalendarMonthBoundaries() {
+    ObservationBucket bucket =
+        ObservationBucket.of(BucketGranularity.MONTH, LocalDateTime.of(2026, 2, 28, 23, 59));
+
+    assertThat(bucket.startAt()).isEqualTo(LocalDateTime.of(2026, 2, 1, 0, 0));
+    assertThat(bucket.endAt()).isEqualTo(LocalDateTime.of(2026, 3, 1, 0, 0));
+    assertThat(bucket.contains(bucket.endAt())).isFalse();
+  }
+
+  @Test
+  @DisplayName("버킷 시작 시각이 아닌 값으로는 값 객체를 만들 수 없다")
+  void constructor_rejectsNonBoundaryStartAt() {
+    assertThatThrownBy(
+            () -> new ObservationBucket(BucketGranularity.HOUR, LocalDateTime.of(2026, 8, 23, 14, 1)))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
   @Test
   @DisplayName("실행 시각이 정시가 아니어도 정시로 절삭한다")
