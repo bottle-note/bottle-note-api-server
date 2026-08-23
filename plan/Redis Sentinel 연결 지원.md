@@ -53,10 +53,10 @@
 - Files (advisory): `LettuceClientSupport`, `LettuceClientSupportTest`
 - Depends: Task 1
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-2
-- [ ] 컴파일 통과 / Redis 단위 테스트 통과 / ArchUnit 룰 통과
+- [x] 컴파일 통과 / Redis 단위 테스트 8건 통과 / ArchUnit 룰 통과
 
 ### Task 3: backend Sentinel 속성 바인딩
 - Acceptance: product-api, admin-api, batch가 동일한 Spring Boot Sentinel 환경변수 계약을 제공하고 standalone/cluster 설정과 호환된다.
@@ -90,3 +90,4 @@
 - 2026.08.23: WHAT과 delegated 실행 범위 승인
 - 2026.08.23: Tasks 1-5 분해 완료
 - 2026.08.23: Task 1 완료 - Sentinel master/nodes 및 분리 인증 factory 구현, 관련 단위 테스트 2건과 rule 검증 통과
+- 2026.08.23: Task 2 완료 - 전용 Lettuce factory의 Sentinel 설정 보존, Redis 관련 단위 테스트 8건 통과
