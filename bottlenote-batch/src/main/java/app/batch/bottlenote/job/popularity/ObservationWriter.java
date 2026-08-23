@@ -1,5 +1,6 @@
 package app.batch.bottlenote.job.popularity;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Component;
 /**
  * 관측 행 적재 공통 헬퍼.
  *
- * <p>같은 버킷을 다시 관측하는 경우(재실행)를 대비해 upsert로 쓴다. 유니크 키가 (alcohol_id, bucket_at)이므로 중복 실행이 행을 늘리지 않는다.
+ * <p>같은 버킷을 다시 관측하는 경우(재실행)를 대비해 upsert로 쓴다. 유니크 키가 (bucket_granularity, bucket_at,
+ * alcohol_id)이므로 중복 실행이 행을 늘리지 않는다.
  */
 @Slf4j
 @Component
@@ -36,10 +38,16 @@ public class ObservationWriter {
    *
    * <p>재실행에서 값이 직전과 같다고 건너뛰면, 1회차가 잘못 쓴 행이 그대로 남아 하향 정정이 되지 않는다.
    */
-  public Set<Long> findAlcoholIdsAt(String table, LocalDateTime bucketAt) {
+  public Set<Long> findAlcoholIdsAt(
+      String table, BucketGranularity bucketGranularity, LocalDateTime bucketAt) {
     return new HashSet<>(
         jdbcTemplate.queryForList(
-            "SELECT alcohol_id FROM " + table + " WHERE bucket_at = ?", Long.class, bucketAt));
+            "SELECT alcohol_id FROM "
+                + table
+                + " WHERE bucket_granularity = ? AND bucket_at = ?",
+            Long.class,
+            bucketGranularity.name(),
+            bucketAt));
   }
 
   public void batchInsert(String sql, List<Object[]> rows) {
