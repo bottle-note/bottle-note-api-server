@@ -1,6 +1,7 @@
 package app.batch.bottlenote.job.popularity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.quartz.JobDetail;
+import org.quartz.JobExecutionException;
 import org.quartz.Trigger;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
@@ -19,6 +21,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.repeat.RepeatStatus;
@@ -60,6 +63,7 @@ class PopularityObservationJobFlowTest {
   static volatile String failingAxis = null;
 
   @Autowired private JobLauncher jobLauncher;
+  @Autowired private JobRegistry jobRegistry;
   @Autowired private Job popularityObservationJob;
 
   private JobExecution run() throws Exception {
@@ -95,6 +99,20 @@ class PopularityObservationJobFlowTest {
     // 성공한 축의 관측은 이미 일어났고, 적재만 건너뛴다
     assertThat(EXECUTED).doesNotContain("snapshot");
     assertThat(EXECUTED).contains("pick");
+  }
+
+  @Test
+  @DisplayName("한 축이 실패하면 Quartz에도 JobExecutionException으로 전파된다")
+  void oneAxisFails_thenQuartzPropagatesJobExecutionException() {
+    failingAxis = "pick";
+    TestablePopularityObservationQuartzJob quartzJob =
+        new TestablePopularityObservationQuartzJob(jobLauncher, jobRegistry);
+
+    assertThatThrownBy(quartzJob::execute)
+        .isInstanceOf(JobExecutionException.class)
+        .hasCauseInstanceOf(IllegalStateException.class)
+        .hasRootCauseMessage("Spring Batch job popularityObservationJob ended with status FAILED");
+    assertThat(EXECUTED).doesNotContain("snapshot");
   }
 
   @Test
@@ -144,6 +162,18 @@ class PopularityObservationJobFlowTest {
             PopularityObservationJobConfig.PopularityObservationQuartzJob.closedHourAt(
                 LocalDateTime.of(2026, 8, 23, 0, 20)))
         .isEqualTo(LocalDateTime.of(2026, 8, 22, 23, 0));
+  }
+
+  private static class TestablePopularityObservationQuartzJob
+      extends PopularityObservationJobConfig.PopularityObservationQuartzJob {
+
+    TestablePopularityObservationQuartzJob(JobLauncher jobLauncher, JobRegistry jobRegistry) {
+      super(jobLauncher, jobRegistry);
+    }
+
+    void execute() throws JobExecutionException {
+      executeInternal(null);
+    }
   }
 
   @Configuration
