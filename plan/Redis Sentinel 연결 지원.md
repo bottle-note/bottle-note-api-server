@@ -86,6 +86,14 @@
 - Size: S
 - Status: [x] done
 
+### Task 6: Batch Sentinel failover 재연결 보완
+- Acceptance: Spring Boot 자동 구성 Redis factory를 사용하는 batch도 Sentinel master 전환 후 기존 replica 연결에 고착되지 않고 새 master로 재연결한다.
+- Verification: Batch Redis customizer 단위 테스트, 전체 verify, 개발 `batch_1.0.14` 배포 후 강제 failover와 VisitorTelemetry 소비 확인
+- Files (advisory): Batch Redis configuration과 테스트, 공용 Lettuce socket policy
+- Depends: Task 5
+- Size: S
+- Status: [x] done
+
 ## Progress Log
 
 - 2026.08.23: WHAT과 delegated 실행 범위 승인
@@ -98,3 +106,7 @@
 - 2026.08.23: Task 5 완료 - 포트포워드 Sentinel 인증과 master 조회 성공, 개발 Pod에서 source 및 전용 factory PING 성공, 임시 파일 정리
 - 2026.08.23: Self-review 반영 - Sentinel raw master/nodes 선검증과 lazy connection에 맞는 초기화 로그로 보정
 - 2026.08.23: Claude Fable 최종 리뷰 반영 - batch standalone의 빈 Sentinel/cluster 바인딩 제거, 운영 username 동작 보존, 누락 분기 테스트 추가
+- 2026.08.23: 개발 failover 검증에서 product/admin은 정상 전환했으나 batch shared connection이 이전 master에 고착되어 READONLY를 지속 재현
+- 2026.08.23: Task 6 구현·커밋·푸시·PR과 개발 `batch_1.0.14` 배포·재검증을 사용자 승인
+- 2026.08.23: Task 6 완료 - Batch Boot Redis auto-configuration에 Sentinel topology와 공용 socket 복원력 customizer를 적용하고 단위 테스트 10건 및 전체 L3 검증 통과
+- 2026.08.23: Self-review에서 Lettuce 기본 connect timeout 단위를 보정하고 최종 auto-configured factory wiring 테스트를 추가
