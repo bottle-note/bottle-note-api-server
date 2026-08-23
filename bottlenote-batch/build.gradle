@@ -25,6 +25,8 @@ dependencies {
 	// Test
 	testImplementation libs.bundles.testcontainers.complete
 	testImplementation libs.spring.batch.test
+	// Job 흐름 검증용 인메모리 DB — 도커 없이 돌릴 수 있어야 한다
+	testImplementation libs.h2
 
 	//security 필요없지만 mono 호환성을 위해
 	implementation libs.spring.boot.starter.security
