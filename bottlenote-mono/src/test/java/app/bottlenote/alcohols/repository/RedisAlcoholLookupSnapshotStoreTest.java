@@ -66,7 +66,9 @@ class RedisAlcoholLookupSnapshotStoreTest {
     assertThat(sourceFactory.getClientConfiguration().getCommandTimeout())
         .isEqualTo(Duration.ofSeconds(15));
     assertThat(socketOptions.getKeepAlive().isEnabled()).isTrue();
-    assertThat(socketOptions.getTcpUserTimeout().isEnabled()).isFalse();
+    assertThat(socketOptions.getTcpUserTimeout().isEnabled()).isTrue();
+    assertThat(socketOptions.getTcpUserTimeout().getTcpUserTimeout())
+        .isEqualTo(Duration.ofSeconds(30));
     assertThat(options.getDisconnectedBehavior())
         .isEqualTo(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS);
     assertThat(readFactory.getShareNativeConnection()).isTrue();

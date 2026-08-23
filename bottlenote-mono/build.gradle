@@ -2,6 +2,11 @@ dependencies {
 	// ===== Platform/BOM =====
 	implementation platform(libs.netty.bom)
 
+	// Lettuce의 TCP_USER_TIMEOUT은 리눅스 epoll 트랜스포트에서만 적용된다.
+	// 앱 파드는 전부 kubernetes.io/arch=arm64에 고정되어 있어 classifier는 하나면 된다.
+	// 없으면 JDK NIO로 자동 폴백하므로 로컬(macOS)에서도 기동에는 문제가 없다.
+	runtimeOnly variantOf(libs.netty.epoll) { classifier('linux-aarch_64') }
+
 	// ===== Core =====
 	implementation libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.graphql

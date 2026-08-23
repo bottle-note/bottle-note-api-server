@@ -43,6 +43,12 @@ public class RedisConfig {
 
     log.info("========================================");
     log.info("Mode: {}", redisMode);
+    boolean epoll = LettuceClientSupport.isEpollAvailable();
+    log.info(
+        "Epoll: {} / TCP_USER_TIMEOUT({}): {}",
+        epoll ? "available" : "unavailable",
+        LettuceClientSupport.TCP_USER_TIMEOUT,
+        epoll ? "applied" : "ignored (JDK NIO fallback)");
     switch (redisMode.toLowerCase()) {
       case "cluster" -> {
         RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();

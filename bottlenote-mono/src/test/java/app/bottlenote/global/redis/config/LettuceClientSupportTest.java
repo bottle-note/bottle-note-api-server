@@ -1,6 +1,7 @@
 package app.bottlenote.global.redis.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
@@ -17,16 +18,31 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 class LettuceClientSupportTest {
 
   @Test
-  @DisplayName("KeepAlive는 idle 60초, interval 10초, count 3이고 TcpUserTimeout은 끈다")
-  void socketOptions_enablesKeepAliveWithoutTcpUserTimeout() {
+  @DisplayName("KeepAlive는 idle 60초, interval 10초, count 3이고 TcpUserTimeout은 30초로 켠다")
+  void socketOptions_enablesKeepAliveAndTcpUserTimeout() {
     SocketOptions socketOptions = LettuceClientSupport.socketOptions(Duration.ofSeconds(15));
 
     assertThat(socketOptions.getKeepAlive().isEnabled()).isTrue();
     assertThat(socketOptions.getKeepAlive().getIdle()).isEqualTo(Duration.ofSeconds(60));
     assertThat(socketOptions.getKeepAlive().getInterval()).isEqualTo(Duration.ofSeconds(10));
     assertThat(socketOptions.getKeepAlive().getCount()).isEqualTo(3);
-    assertThat(socketOptions.getTcpUserTimeout().isEnabled()).isFalse();
     assertThat(socketOptions.getConnectTimeout()).isEqualTo(Duration.ofSeconds(15));
+  }
+
+  @Test
+  @DisplayName("TcpUserTimeout은 in-flight 반열림을 끊기 위해 30초로 켜 둔다")
+  void socketOptions_boundsUnacknowledgedDataWithTcpUserTimeout() {
+    SocketOptions socketOptions = LettuceClientSupport.socketOptions(Duration.ofSeconds(15));
+
+    assertThat(socketOptions.getTcpUserTimeout().isEnabled()).isTrue();
+    assertThat(socketOptions.getTcpUserTimeout().getTcpUserTimeout())
+        .isEqualTo(Duration.ofSeconds(30));
+  }
+
+  @Test
+  @DisplayName("epoll 가용 여부 확인은 클래스가 없어도 예외 없이 판정한다")
+  void isEpollAvailable_neverThrows() {
+    assertThatCode(LettuceClientSupport::isEpollAvailable).doesNotThrowAnyException();
   }
 
   @Test

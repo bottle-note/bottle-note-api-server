@@ -17,9 +17,18 @@ public final class LettuceClientSupport {
   public static final Duration KEEP_ALIVE_INTERVAL = Duration.ofSeconds(10);
   public static final int KEEP_ALIVE_COUNT = 3;
   public static final int REQUEST_QUEUE_SIZE = 2048;
+  public static final Duration TCP_USER_TIMEOUT = Duration.ofSeconds(30);
+
+  private static final String EPOLL_CLASS = "io.netty.channel.epoll.Epoll";
 
   private LettuceClientSupport() {}
 
+  /**
+   * keepalive는 연결이 유휴일 때만 프로브를 보내므로, 미확인 데이터가 쌓인 채 끊긴 반열림 연결은 감지하지 못한다. 그 경우 커널 재전송(tcp_retries2)이
+   * 만료될 때까지 15~30분이 걸린다. TCP_USER_TIMEOUT이 그 상한을 30초로 끊는다.
+   *
+   * <p>단 이 옵션은 리눅스 epoll 트랜스포트에서만 적용된다. epoll이 없으면 Lettuce가 경고만 남기고 무시하므로 기동에는 영향이 없다.
+   */
   public static SocketOptions socketOptions(Duration connectTimeout) {
     return SocketOptions.builder()
         .connectTimeout(connectTimeout)
@@ -30,7 +39,25 @@ public final class LettuceClientSupport {
                 .interval(KEEP_ALIVE_INTERVAL)
                 .count(KEEP_ALIVE_COUNT)
                 .build())
+        .tcpUserTimeout(
+            SocketOptions.TcpUserTimeoutOptions.builder()
+                .enable()
+                .tcpUserTimeout(TCP_USER_TIMEOUT)
+                .build())
         .build();
+  }
+
+  /**
+   * epoll 네이티브 트랜스포트 가용 여부. 클래스 자체가 runtimeOnly라 컴파일 시점에는 참조할 수 없으므로 리플렉션으로 확인한다. 반환값이 false면
+   * TCP_USER_TIMEOUT은 적용되지 않는다.
+   */
+  public static boolean isEpollAvailable() {
+    try {
+      Class<?> epoll = Class.forName(EPOLL_CLASS);
+      return Boolean.TRUE.equals(epoll.getMethod("isAvailable").invoke(null));
+    } catch (ReflectiveOperationException | LinkageError e) {
+      return false;
+    }
   }
 
   public static ClientOptions clientOptions(Duration connectTimeout) {

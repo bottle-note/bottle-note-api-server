@@ -134,8 +134,9 @@ class AccessControlConfigurationTest {
                     assertThat(options.getSocketOptions().getKeepAlive().getInterval())
                         .isEqualTo(Duration.ofSeconds(10));
                     assertThat(options.getSocketOptions().getKeepAlive().getCount()).isEqualTo(3);
-                    assertThat(options.getSocketOptions().getTcpUserTimeout().isEnabled())
-                        .isFalse();
+                    assertThat(options.getSocketOptions().getTcpUserTimeout().isEnabled()).isTrue();
+                    assertThat(options.getSocketOptions().getTcpUserTimeout().getTcpUserTimeout())
+                        .isEqualTo(Duration.ofSeconds(30));
                     assertThat(options.getDisconnectedBehavior())
                         .isEqualTo(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS);
                     assertThat(options.getRequestQueueSize()).isEqualTo(2048);
