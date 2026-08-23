@@ -120,15 +120,42 @@ public class PickObservationTasklet implements Tasklet {
           });
     }
 
+    // 픽이 전부 취소되어 집계에서 사라진 주류도 0으로 남긴다
+    int zeroed = 0;
+    for (Map.Entry<Long, Snapshot> entry : previous.entrySet()) {
+      Long alcoholId = entry.getKey();
+      if (current.containsKey(alcoholId)) {
+        continue;
+      }
+      Snapshot before = entry.getValue();
+      if (before.isZero()) {
+        continue;
+      }
+      rows.add(
+          new Object[] {
+            alcoholId, bucketAt, observedAt, before.bucketAt(), 0L, 0L, -before.pickCount()
+          });
+      zeroed++;
+    }
+
     writer.batchInsert(INSERT_SQL, rows);
     contribution.incrementWriteCount(rows.size());
-    log.info("선호도 관측 완료. bucketAt={}, 적재={}행, 변화 없어 건너뜀={}행", bucketAt, rows.size(), skipped);
+    log.info(
+        "선호도 관측 완료. bucketAt={}, 적재={}행(0으로 떨어짐 {}행), 변화 없어 건너뜀={}행",
+        bucketAt,
+        rows.size(),
+        zeroed,
+        skipped);
     return RepeatStatus.FINISHED;
   }
 
   private record Snapshot(long pickCount, long unpickCount, LocalDateTime bucketAt) {
     boolean sameValueAs(Snapshot other) {
       return pickCount == other.pickCount && unpickCount == other.unpickCount;
+    }
+
+    boolean isZero() {
+      return pickCount == 0L && unpickCount == 0L;
     }
   }
 }

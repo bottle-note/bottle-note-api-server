@@ -167,14 +167,51 @@ public class EngagementObservationTasklet implements Tasklet {
           });
     }
 
+    // 리뷰가 전부 삭제·비공개로 바뀌어 집계에서 사라진 주류도 0으로 남긴다
+    int zeroed = 0;
+    for (Map.Entry<Long, long[]> entry : previous.entrySet()) {
+      Long alcoholId = entry.getKey();
+      if (current.containsKey(alcoholId)) {
+        continue;
+      }
+      long[] before = entry.getValue();
+      if (isAllZero(before)) {
+        continue;
+      }
+      rows.add(
+          new Object[] {
+            alcoholId,
+            bucketAt,
+            observedAt,
+            previousBucket.get(alcoholId),
+            0L, 0L, 0L, 0L,
+            -before[0], -before[1], -before[2], -before[3]
+          });
+      zeroed++;
+    }
+
     writer.batchInsert(INSERT_SQL, rows);
     contribution.incrementWriteCount(rows.size());
-    log.info("참여도 관측 완료. bucketAt={}, 적재={}행, 변화 없어 건너뜀={}행", bucketAt, rows.size(), skipped);
+    log.info(
+        "참여도 관측 완료. bucketAt={}, 적재={}행(0으로 떨어짐 {}행), 변화 없어 건너뜀={}행",
+        bucketAt,
+        rows.size(),
+        zeroed,
+        skipped);
     return RepeatStatus.FINISHED;
   }
 
   private static long[] slot(Map<Long, long[]> target, long alcoholId) {
     return target.computeIfAbsent(alcoholId, key -> new long[4]);
+  }
+
+  private static boolean isAllZero(long[] counts) {
+    for (long value : counts) {
+      if (value != 0L) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static boolean sameValues(long[] before, long[] now) {
