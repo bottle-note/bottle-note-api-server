@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * 인기도 관측 스케줄.
  *
- * <p>매시 정각에 돈다. Quartz가 JDBC JobStore + 클러스터 모드로 동작하므로 인스턴스가 여럿이어도 한 번만 실행된다.
+ * <p>매시 20분에 돈다. Quartz가 JDBC JobStore + 클러스터 모드로 동작하므로 인스턴스가 여럿이어도 한 번만 실행된다.
  *
  * <p>기존 인기 주류 잡과 별개로 등록한다 — 신구가 당분간 공존한다.
  */
@@ -23,12 +23,14 @@ public class PopularityQuartzConfig {
   private static final String TRIGGER_KEY = "popularityObservationTrigger";
 
   /**
-   * 매시 2분. 버킷 간격을 바꾸면 이 표현식도 함께 바꿔야 한다.
+   * 매시 20분. 버킷 간격을 바꾸면 이 표현식도 함께 바꿔야 한다.
    *
-   * <p>정각을 피하는 이유가 있다. 조회 이력은 Redis에서 DB로 매분 0초에 동기화되는데, 관측도 정각에 돌면 직전 1분치가 아직 안 넘어온 상태로 세어진다.
-   * 그 조회는 뒤늦게 이전 구간 시각으로 기록되므로 다음 버킷에도 잡히지 않아 영구히 유실된다.
+   * <p>정각을 피하는 이유가 둘이다. 하나, 조회 이력은 Redis에서 DB로 매분 0초에 동기화되는데 관측도 정각에 돌면 직전 1분치가 아직 안 넘어온 상태로
+   * 세어진다. 그 조회는 뒤늦게 이전 구간 시각으로 기록되므로 다음 버킷에도 잡히지 않아 영구히 유실된다.
+   *
+   * <p>둘, 기존 일배치(베스트 리뷰·인기 주류)가 매일 0시 정각에 돌고 같은 커넥션 풀을 쓴다. 가까이 붙으면 네 축이 커넥션을 얻지 못해 관측이 실패한다.
    */
-  private static final String HOURLY_CRON = "0 2 * * * ?";
+  private static final String HOURLY_CRON = "0 20 * * * ?";
 
   @Bean
   public JobDetail popularityObservationJobDetail() {
