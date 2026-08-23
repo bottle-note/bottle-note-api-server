@@ -4,6 +4,7 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT
 
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.AlcoholViewCounter;
 import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlcoholQueryService {
   private static final int MAX_FRIENDS_SIZE = 6;
   private final AlcoholQueryRepository alcoholQueryRepository;
+  private final AlcoholViewCounter alcoholViewCounter;
   private final AlcoholViewHistoryService viewHistoryService;
   private final ReviewFacade reviewFacade;
   private final FollowFacade followFacade;
@@ -46,16 +48,20 @@ public class AlcoholQueryService {
         Optional.ofNullable(alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId))
             .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
 
-    // 조회 기록 저장 (게스트 사용자 제외)
-    if (userId > 0) viewHistoryService.recordView(userId, alcoholDetailItem);
-
     FriendsDetailResponse friendInfos = getFriendInfos(alcoholId, userId);
 
-    return AlcoholDetailResponse.builder()
-        .alcohols(alcoholDetailItem)
-        .friendsInfo(friendInfos)
-        .reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
-        .build();
+    AlcoholDetailResponse response =
+        AlcoholDetailResponse.builder()
+            .alcohols(alcoholDetailItem)
+            .friendsInfo(friendInfos)
+            .reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
+            .build();
+
+    if (userId > 0) {
+      viewHistoryService.recordView(userId, alcoholDetailItem);
+    }
+    alcoholViewCounter.increment(alcoholId);
+    return response;
   }
 
   /**
