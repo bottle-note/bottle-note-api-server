@@ -72,10 +72,10 @@
 - Files (advisory): 개발 SOPS Secret 2개, parent submodule pointer
 - Depends: Task 3
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 3-4
-- [ ] 설정 바인딩 테스트 통과 / SOPS 검증 통과 / 렌더 결과의 환경변수 key 확인
+- [x] 설정 바인딩 검증 통과 / SOPS 검증 통과 / KSOPS 렌더 결과의 환경변수 key 확인
 
 ### Task 5: 실제 개발 Sentinel 연결 검증
 - Acceptance: 실제 개발 Sentinel 인증·master 조회가 성공하고 클러스터 네트워크에서 backend가 Sentinel을 통해 데이터 노드에 연결한다.
@@ -92,3 +92,4 @@
 - 2026.08.23: Task 1 완료 - Sentinel master/nodes 및 분리 인증 factory 구현, 관련 단위 테스트 2건과 rule 검증 통과
 - 2026.08.23: Task 2 완료 - 전용 Lettuce factory의 Sentinel 설정 보존, Redis 관련 단위 테스트 8건 통과
 - 2026.08.23: Task 3 완료 - 세 backend의 Sentinel 및 데이터 노드 환경변수 바인딩 추가, YAML 파싱과 processResources 통과
+- 2026.08.23: Task 4 완료 - 개발 SOPS Secret 2개 전환, 복호화 계약 검증과 KSOPS 렌더 검증 통과
