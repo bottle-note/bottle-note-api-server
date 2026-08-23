@@ -1,5 +1,6 @@
 package app.batch.bottlenote.job.popularity;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,18 +66,20 @@ public class EngagementObservationTasklet implements Tasklet {
       FROM alcohol_engagement_observations o
       JOIN (SELECT alcohol_id, MAX(bucket_at) AS max_bucket
             FROM alcohol_engagement_observations
-            WHERE bucket_at < ?
+            WHERE bucket_granularity = 'HOUR' AND bucket_at < ?
             GROUP BY alcohol_id) latest
-        ON o.alcohol_id = latest.alcohol_id AND o.bucket_at = latest.max_bucket
+        ON o.alcohol_id = latest.alcohol_id
+       AND o.bucket_granularity = 'HOUR'
+       AND o.bucket_at = latest.max_bucket
       """;
 
   private static final String INSERT_SQL =
       """
       INSERT INTO alcohol_engagement_observations
-        (alcohol_id, bucket_at, observed_at, prev_bucket_at,
+        (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
          review_count, like_count, dislike_count, reply_count,
          delta_review_count, delta_like_count, delta_dislike_count, delta_reply_count)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, 'HOUR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         observed_at = VALUES(observed_at),
         prev_bucket_at = VALUES(prev_bucket_at),
@@ -145,7 +148,8 @@ public class EngagementObservationTasklet implements Tasklet {
             },
             bucketAt);
 
-    Set<Long> alreadyWritten = writer.findAlcoholIdsAt(TABLE, bucketAt);
+    Set<Long> alreadyWritten =
+        writer.findAlcoholIdsAt(TABLE, BucketGranularity.HOUR, bucketAt);
 
     List<Object[]> rows = new ArrayList<>();
     int skipped = 0;

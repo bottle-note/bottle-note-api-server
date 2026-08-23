@@ -2,6 +2,7 @@ package app.batch.bottlenote.job.popularity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,14 @@ class ObservationTaskletSqlTest {
 
   private List<Map<String, Object>> rowsOf(String table) {
     return jdbc.queryForList("SELECT * FROM " + table + " ORDER BY alcohol_id, bucket_at");
+  }
+
+  private List<Map<String, Object>> rowsOf(String table, String granularity) {
+    return jdbc.queryForList(
+        "SELECT * FROM "
+            + table
+            + " WHERE bucket_granularity = ? ORDER BY alcohol_id, bucket_at",
+        granularity);
   }
 
   @Nested
@@ -285,6 +294,48 @@ class ObservationTaskletSqlTest {
       assertThat(rows.get(1).get("rating_count")).isEqualTo(0L);
       assertThat(rows.get(1).get("delta_rating_count")).isEqualTo(-1L);
     }
+
+    @Test
+    @DisplayName("같은 시각의 주간·월간 행과 격리해 시간 관측을 재실행한다")
+    void isolatesHourRowsFromRollups() throws Exception {
+      LocalDateTime hourPrevious = PREV_BUCKET.minusHours(1);
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,1,4.0)");
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,2,5.0)");
+      jdbc.update(
+          """
+          INSERT INTO alcohol_rating_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
+             rating_count, rating_sum, delta_rating_count, delta_rating_sum)
+          VALUES (1, 'HOUR', ?, ?, NULL, 1, 4.0, 1, 4.0),
+                 (1, 'WEEK', ?, ?, NULL, 90, 90.0, 90, 90.0),
+                 (1, 'MONTH', ?, ?, NULL, 99, 99.0, 99, 99.0),
+                 (1, 'WEEK', ?, ?, NULL, 80, 80.0, -10, -10.0),
+                 (1, 'MONTH', ?, ?, NULL, 88, 88.0, -11, -11.0)
+          """,
+          hourPrevious,
+          hourPrevious,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET);
+
+      run(new RatingObservationTasklet(writer), BUCKET);
+      run(new RatingObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> hourRows = rowsOf("alcohol_rating_observations", "HOUR");
+      assertThat(hourRows).hasSize(2);
+      assertThat(hourRows.get(1).get("prev_bucket_at")).isEqualTo(Timestamp.valueOf(hourPrevious));
+      assertThat(hourRows.get(1).get("rating_count")).isEqualTo(2L);
+      assertThat(hourRows.get(1).get("delta_rating_count")).isEqualTo(1L);
+      assertThat(rowsOf("alcohol_rating_observations", "WEEK").get(1).get("rating_count"))
+          .isEqualTo(80L);
+      assertThat(rowsOf("alcohol_rating_observations", "MONTH").get(1).get("rating_count"))
+          .isEqualTo(88L);
+    }
   }
 
   @Nested
@@ -320,6 +371,48 @@ class ObservationTaskletSqlTest {
       assertThat(rows).hasSize(2);
       assertThat(rows.get(1).get("pick_count")).isEqualTo(1L);
       assertThat(rows.get(1).get("delta_pick_count")).isEqualTo(-1L);
+    }
+
+    @Test
+    @DisplayName("같은 시각의 주간·월간 행과 격리해 시간 관측을 재실행한다")
+    void isolatesHourRowsFromRollups() throws Exception {
+      LocalDateTime hourPrevious = PREV_BUCKET.minusHours(1);
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,1,'PICK')");
+      jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,2,'PICK')");
+      jdbc.update(
+          """
+          INSERT INTO alcohol_pick_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
+             pick_count, unpick_count, delta_pick_count)
+          VALUES (1, 'HOUR', ?, ?, NULL, 1, 0, 1),
+                 (1, 'WEEK', ?, ?, NULL, 90, 9, 90),
+                 (1, 'MONTH', ?, ?, NULL, 99, 9, 99),
+                 (1, 'WEEK', ?, ?, NULL, 80, 8, -10),
+                 (1, 'MONTH', ?, ?, NULL, 88, 8, -11)
+          """,
+          hourPrevious,
+          hourPrevious,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET);
+
+      run(new PickObservationTasklet(writer), BUCKET);
+      run(new PickObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> hourRows = rowsOf("alcohol_pick_observations", "HOUR");
+      assertThat(hourRows).hasSize(2);
+      assertThat(hourRows.get(1).get("prev_bucket_at")).isEqualTo(Timestamp.valueOf(hourPrevious));
+      assertThat(hourRows.get(1).get("pick_count")).isEqualTo(2L);
+      assertThat(hourRows.get(1).get("delta_pick_count")).isEqualTo(1L);
+      assertThat(rowsOf("alcohol_pick_observations", "WEEK").get(1).get("pick_count"))
+          .isEqualTo(80L);
+      assertThat(rowsOf("alcohol_pick_observations", "MONTH").get(1).get("pick_count"))
+          .isEqualTo(88L);
     }
   }
 
@@ -488,6 +581,55 @@ class ObservationTaskletSqlTest {
       assertThat(rows.get(0).get("review_count")).isEqualTo(1L);
       assertThat(rows.get(0).get("like_count")).isEqualTo(1L);
       assertThat(rows.get(0).get("dislike_count")).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("같은 시각의 주간·월간 행과 격리해 시간 관측을 재실행한다")
+    void isolatesHourRowsFromRollups() throws Exception {
+      LocalDateTime hourPrevious = PREV_BUCKET.minusHours(1);
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (10,1,1,'PUBLIC','ACTIVE'), (11,1,2,'PUBLIC','ACTIVE')");
+      jdbc.update("INSERT INTO likes (review_id, user_id, status) VALUES (10,1,'LIKE')");
+      jdbc.update(
+          """
+          INSERT INTO alcohol_engagement_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
+             review_count, like_count, dislike_count, reply_count,
+             delta_review_count, delta_like_count, delta_dislike_count, delta_reply_count)
+          VALUES (1, 'HOUR', ?, ?, NULL, 1, 0, 0, 0, 1, 0, 0, 0),
+                 (1, 'WEEK', ?, ?, NULL, 90, 90, 9, 90, 90, 90, 9, 90),
+                 (1, 'MONTH', ?, ?, NULL, 99, 99, 9, 99, 99, 99, 9, 99),
+                 (1, 'WEEK', ?, ?, NULL, 80, 80, 8, 80, -10, -10, -1, -10),
+                 (1, 'MONTH', ?, ?, NULL, 88, 88, 8, 88, -11, -11, -1, -11)
+          """,
+          hourPrevious,
+          hourPrevious,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          PREV_BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET,
+          BUCKET);
+
+      run(new EngagementObservationTasklet(writer), BUCKET);
+      run(new EngagementObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> hourRows = rowsOf("alcohol_engagement_observations", "HOUR");
+      assertThat(hourRows).hasSize(2);
+      assertThat(hourRows.get(1).get("prev_bucket_at")).isEqualTo(Timestamp.valueOf(hourPrevious));
+      assertThat(hourRows.get(1).get("review_count")).isEqualTo(2L);
+      assertThat(hourRows.get(1).get("like_count")).isEqualTo(1L);
+      assertThat(hourRows.get(1).get("delta_review_count")).isEqualTo(1L);
+      assertThat(hourRows.get(1).get("delta_like_count")).isEqualTo(1L);
+      assertThat(
+              rowsOf("alcohol_engagement_observations", "WEEK").get(1).get("review_count"))
+          .isEqualTo(80L);
+      assertThat(
+              rowsOf("alcohol_engagement_observations", "MONTH").get(1).get("review_count"))
+          .isEqualTo(88L);
     }
   }
 

@@ -1,5 +1,6 @@
 package app.batch.bottlenote.job.popularity;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,17 +44,19 @@ public class PickObservationTasklet implements Tasklet {
       FROM alcohol_pick_observations o
       JOIN (SELECT alcohol_id, MAX(bucket_at) AS max_bucket
             FROM alcohol_pick_observations
-            WHERE bucket_at < ?
+            WHERE bucket_granularity = 'HOUR' AND bucket_at < ?
             GROUP BY alcohol_id) latest
-        ON o.alcohol_id = latest.alcohol_id AND o.bucket_at = latest.max_bucket
+        ON o.alcohol_id = latest.alcohol_id
+       AND o.bucket_granularity = 'HOUR'
+       AND o.bucket_at = latest.max_bucket
       """;
 
   private static final String INSERT_SQL =
       """
       INSERT INTO alcohol_pick_observations
-        (alcohol_id, bucket_at, observed_at, prev_bucket_at,
+        (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
          pick_count, unpick_count, delta_pick_count)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, 'HOUR', ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         observed_at = VALUES(observed_at),
         prev_bucket_at = VALUES(prev_bucket_at),
@@ -97,7 +100,8 @@ public class PickObservationTasklet implements Tasklet {
             },
             bucketAt);
 
-    Set<Long> alreadyWritten = writer.findAlcoholIdsAt(TABLE, bucketAt);
+    Set<Long> alreadyWritten =
+        writer.findAlcoholIdsAt(TABLE, BucketGranularity.HOUR, bucketAt);
 
     List<Object[]> rows = new ArrayList<>();
     int skipped = 0;
