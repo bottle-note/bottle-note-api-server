@@ -1,9 +1,7 @@
 package app.bottlenote.global.security.accesscontrol;
 
+import app.bottlenote.global.redis.config.LettuceClientSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.lettuce.core.ClientOptions;
-import io.lettuce.core.SocketOptions;
-import io.lettuce.core.resource.ClientResources;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
@@ -17,10 +15,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -111,43 +106,8 @@ public class AccessControlConfiguration {
 
   static LettuceConnectionFactory createDedicatedConnectionFactory(
       RedisConnectionFactory redisConnectionFactory, AccessControlProperties properties) {
-    if (!(redisConnectionFactory instanceof LettuceConnectionFactory source)) {
-      throw new IllegalStateException(
-          "access-control requires LettuceConnectionFactory; got "
-              + redisConnectionFactory.getClass().getName());
-    }
-    Duration commandTimeout = resolveCommandTimeout(properties);
-    ClientResources clientResources = sourceClientResources(source);
-    LettuceClientConfiguration clientConfig =
-        LettuceClientConfiguration.builder()
-            .clientResources(clientResources)
-            .commandTimeout(commandTimeout)
-            .clientOptions(
-                ClientOptions.builder()
-                    .socketOptions(SocketOptions.builder().connectTimeout(commandTimeout).build())
-                    .build())
-            .build();
-
-    RedisClusterConfiguration clusterConfiguration = source.getClusterConfiguration();
-    if (clusterConfiguration != null
-        && clusterConfiguration.getClusterNodes() != null
-        && !clusterConfiguration.getClusterNodes().isEmpty()) {
-      LettuceConnectionFactory factory =
-          new LettuceConnectionFactory(clusterConfiguration, clientConfig);
-      factory.setShareNativeConnection(true);
-      return factory;
-    }
-
-    RedisStandaloneConfiguration standaloneConfiguration = source.getStandaloneConfiguration();
-    if (standaloneConfiguration == null) {
-      throw new IllegalStateException(
-          "access-control could not resolve Redis standalone/cluster configuration");
-    }
-    LettuceConnectionFactory factory =
-        new LettuceConnectionFactory(standaloneConfiguration, clientConfig);
-    factory.setShareNativeConnection(true);
-    factory.setDatabase(source.getDatabase());
-    return factory;
+    return LettuceClientSupport.dedicatedFactory(
+        redisConnectionFactory, resolveCommandTimeout(properties));
   }
 
   private static StringRedisTemplate createDedicatedTemplate(
@@ -157,23 +117,10 @@ public class AccessControlConfiguration {
     LettuceConnectionFactory factory =
         createDedicatedConnectionFactory(redisConnectionFactory, properties);
     ownedFactories.add(factory);
-    factory.afterPropertiesSet();
-    factory.start();
+    LettuceClientSupport.start(factory);
     StringRedisTemplate template = new StringRedisTemplate(factory);
     template.afterPropertiesSet();
     return template;
-  }
-
-  private static ClientResources sourceClientResources(LettuceConnectionFactory source) {
-    ClientResources configuredResources = source.getClientResources();
-    if (configuredResources != null) {
-      return configuredResources;
-    }
-    if (source.getNativeClient() != null) {
-      return source.getNativeClient().getResources();
-    }
-    throw new IllegalStateException(
-        "access-control source Lettuce client resources are unavailable");
   }
 
   private static void destroyFactoriesReverse(

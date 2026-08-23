@@ -102,6 +102,13 @@ alcohol:
     local-cache:
       enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:true}
       version-check-interval-ms: ${ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS:1000}
+    # 전역 spring.data.redis.timeout(15s)은 유지하고 룩업 읽기만 fail-fast
+    redis:
+      read-timeout: 2s
+    db-fallback:
+      result-ttl: 30s
+      circuit-failure-threshold: 3
+      circuit-open-duration: 30s
 
 curation:
   spec-sync:

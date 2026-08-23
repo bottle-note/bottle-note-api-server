@@ -1,0 +1,75 @@
+package app.bottlenote.global.redis.config;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SocketOptions;
+import java.time.Duration;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+
+@Tag("unit")
+@DisplayName("LettuceClientSupport 소켓 복원력 정책 테스트")
+class LettuceClientSupportTest {
+
+  @Test
+  @DisplayName("KeepAlive는 idle 60초, interval 10초, count 3이고 TcpUserTimeout은 끈다")
+  void socketOptions_enablesKeepAliveWithoutTcpUserTimeout() {
+    SocketOptions socketOptions = LettuceClientSupport.socketOptions(Duration.ofSeconds(15));
+
+    assertThat(socketOptions.getKeepAlive().isEnabled()).isTrue();
+    assertThat(socketOptions.getKeepAlive().getIdle()).isEqualTo(Duration.ofSeconds(60));
+    assertThat(socketOptions.getKeepAlive().getInterval()).isEqualTo(Duration.ofSeconds(10));
+    assertThat(socketOptions.getKeepAlive().getCount()).isEqualTo(3);
+    assertThat(socketOptions.getTcpUserTimeout().isEnabled()).isFalse();
+    assertThat(socketOptions.getConnectTimeout()).isEqualTo(Duration.ofSeconds(15));
+  }
+
+  @Test
+  @DisplayName("끊긴 연결에서는 명령을 거절하고 요청 큐를 유한하게 둔다")
+  void clientOptions_rejectsCommandsWhenDisconnectedAndBoundsQueue() {
+    ClientOptions clientOptions = LettuceClientSupport.clientOptions(Duration.ofSeconds(2));
+
+    assertThat(clientOptions.getDisconnectedBehavior())
+        .isEqualTo(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS);
+    assertThat(clientOptions.getRequestQueueSize()).isEqualTo(2048);
+    assertThat(clientOptions.isAutoReconnect()).isTrue();
+    assertThat(clientOptions.isPingBeforeActivateConnection()).isTrue();
+  }
+
+  @Test
+  @DisplayName("전용 factory는 command timeout만 바꾸고 공용 소켓 정책과 연결 공유를 유지한다")
+  void dedicatedFactory_reusesSocketPolicyWithCallerTimeout() {
+    LettuceClientConfiguration sourceConfig =
+        LettuceClientSupport.clientConfiguration(Duration.ofSeconds(15));
+    LettuceConnectionFactory source =
+        new LettuceConnectionFactory(
+            new RedisStandaloneConfiguration("127.0.0.1", 6379), sourceConfig);
+    LettuceClientSupport.start(source);
+
+    try {
+      LettuceConnectionFactory dedicated =
+          LettuceClientSupport.dedicatedFactory(source, Duration.ofMillis(200));
+      LettuceClientSupport.start(dedicated);
+      try {
+        ClientOptions options = dedicated.getClientConfiguration().getClientOptions().orElseThrow();
+        assertThat(dedicated.getClientConfiguration().getCommandTimeout())
+            .isEqualTo(Duration.ofMillis(200));
+        assertThat(options.getSocketOptions().getKeepAlive().isEnabled()).isTrue();
+        assertThat(options.getDisconnectedBehavior())
+            .isEqualTo(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS);
+        assertThat(dedicated.getShareNativeConnection()).isTrue();
+        assertThat(dedicated.getValidateConnection()).isFalse();
+        assertThat(dedicated).isNotSameAs(source);
+      } finally {
+        dedicated.destroy();
+      }
+    } finally {
+      source.destroy();
+    }
+  }
+}

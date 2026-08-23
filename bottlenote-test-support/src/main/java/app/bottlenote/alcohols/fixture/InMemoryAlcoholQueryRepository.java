@@ -14,11 +14,13 @@ import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,6 +29,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 
   private final Map<Long, Alcohol> alcohols = new HashMap<>();
+  private final AtomicInteger findAllLookupItemsCount = new AtomicInteger();
+  private Duration findAllLookupItemsDelay = Duration.ZERO;
+  private RuntimeException findAllLookupItemsFailure;
 
   @Override
   public Alcohol save(Alcohol alcohol) {
@@ -37,6 +42,18 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
     }
     alcohols.put(id, alcohol);
     return alcohol;
+  }
+
+  public int findAllLookupItemsCount() {
+    return findAllLookupItemsCount.get();
+  }
+
+  public void delayLookupItems(Duration delay) {
+    this.findAllLookupItemsDelay = delay == null ? Duration.ZERO : delay;
+  }
+
+  public void failLookupItems(RuntimeException failure) {
+    this.findAllLookupItemsFailure = failure;
   }
 
   @Override
@@ -79,6 +96,18 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 
   @Override
   public List<AlcoholLookupItem> findAllLookupItems() {
+    findAllLookupItemsCount.incrementAndGet();
+    if (!findAllLookupItemsDelay.isZero() && !findAllLookupItemsDelay.isNegative()) {
+      try {
+        Thread.sleep(findAllLookupItemsDelay.toMillis());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IllegalStateException(e);
+      }
+    }
+    if (findAllLookupItemsFailure != null) {
+      throw findAllLookupItemsFailure;
+    }
     return alcohols.values().stream()
         .filter(alcohol -> alcohol.getDeletedAt() == null)
         .map(

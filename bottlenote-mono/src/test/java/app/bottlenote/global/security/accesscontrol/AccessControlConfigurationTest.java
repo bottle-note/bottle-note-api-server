@@ -3,6 +3,7 @@ package app.bottlenote.global.security.accesscontrol;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.lettuce.core.ClientOptions;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.List;
@@ -124,6 +125,22 @@ class AccessControlConfigurationTest {
                         .isEqualTo(Duration.ofMillis(200));
                     assertThat(factory.getClientResources()).isSameAs(sharedClientResources);
                     assertThat(factory.getShareNativeConnection()).isTrue();
+                    assertThat(factory.getValidateConnection()).isFalse();
+                    ClientOptions options =
+                        factory.getClientConfiguration().getClientOptions().orElseThrow();
+                    assertThat(options.getSocketOptions().getKeepAlive().isEnabled()).isTrue();
+                    assertThat(options.getSocketOptions().getKeepAlive().getIdle())
+                        .isEqualTo(Duration.ofSeconds(60));
+                    assertThat(options.getSocketOptions().getKeepAlive().getInterval())
+                        .isEqualTo(Duration.ofSeconds(10));
+                    assertThat(options.getSocketOptions().getKeepAlive().getCount()).isEqualTo(3);
+                    assertThat(options.getSocketOptions().getTcpUserTimeout().isEnabled())
+                        .isFalse();
+                    assertThat(options.getDisconnectedBehavior())
+                        .isEqualTo(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS);
+                    assertThat(options.getRequestQueueSize()).isEqualTo(2048);
+                    assertThat(options.isAutoReconnect()).isTrue();
+                    assertThat(options.isPingBeforeActivateConnection()).isTrue();
                   });
 
           // 전용 factory/template은 Spring 타입 후보에 포함되지 않는다
