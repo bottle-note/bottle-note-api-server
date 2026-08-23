@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -62,7 +64,12 @@ public abstract class BatchQuartzJob extends QuartzJobBean {
 							.addString("jobName", schedulerName);
 			customizeJobParameters(jobParam, startedAt);
 
-			jobLauncher.run(job, jobParam.toJobParameters());
+			JobExecution execution = jobLauncher.run(job, jobParam.toJobParameters());
+			if (execution.getStatus() != BatchStatus.COMPLETED) {
+				throw new IllegalStateException(
+						"Spring Batch job %s ended with status %s"
+								.formatted(batchJobName, execution.getStatus()));
+			}
 			log.info("[BATCH SUCCESS] {} scheduler completed successfully at: {}", schedulerName, now());
 		} catch (Exception e) {
 			log.error("[BATCH FAILURE] {} scheduler failed: {}", schedulerName, e.getMessage());
