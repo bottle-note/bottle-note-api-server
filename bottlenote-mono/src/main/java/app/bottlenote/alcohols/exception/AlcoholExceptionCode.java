@@ -32,7 +32,9 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   REGION_PARENT_CYCLE(HttpStatus.BAD_REQUEST, "자기 자신 또는 하위 지역을 부모로 지정할 수 없습니다."),
   REGION_MAX_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "지역 계층 구조는 최대 2단계까지 가능합니다."),
   REGION_REORDER_DUPLICATE_ID(HttpStatus.BAD_REQUEST, "중복된 지역 ID로 정렬을 요청할 수 없습니다."),
-  REGION_REORDER_SCOPE_MISMATCH(HttpStatus.BAD_REQUEST, "부모 지역이 다른 지역은 함께 정렬할 수 없습니다.");
+  REGION_REORDER_SCOPE_MISMATCH(HttpStatus.BAD_REQUEST, "부모 지역이 다른 지역은 함께 정렬할 수 없습니다."),
+  ALCOHOL_LOOKUP_UNAVAILABLE(
+      HttpStatus.SERVICE_UNAVAILABLE, "위스키 조회를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.");
 
   private final HttpStatus httpStatus;
   private final String message;

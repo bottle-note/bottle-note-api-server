@@ -11,8 +11,10 @@ public class InMemoryAlcoholLookupSnapshotStore implements AlcoholLookupSnapshot
   private List<AlcoholLookupSnapshotItem> snapshot = new ArrayList<>();
   private final AtomicLong version = new AtomicLong();
   private int findAllCount;
+  private int findVersionCount;
   private int replaceAllCount;
   private boolean readFailure;
+  private boolean versionReadFailure;
 
   @Override
   public List<AlcoholLookupSnapshotItem> findAll() {
@@ -25,7 +27,8 @@ public class InMemoryAlcoholLookupSnapshotStore implements AlcoholLookupSnapshot
 
   @Override
   public Optional<String> findVersion() {
-    if (readFailure) {
+    findVersionCount++;
+    if (readFailure || versionReadFailure) {
       throw new IllegalStateException("snapshot version read failed");
     }
     if (version.get() == 0L) {
@@ -45,11 +48,19 @@ public class InMemoryAlcoholLookupSnapshotStore implements AlcoholLookupSnapshot
     return findAllCount;
   }
 
+  public int findVersionCount() {
+    return findVersionCount;
+  }
+
   public int replaceAllCount() {
     return replaceAllCount;
   }
 
   public void failReads() {
     readFailure = true;
+  }
+
+  public void failVersionReads() {
+    versionReadFailure = true;
   }
 }

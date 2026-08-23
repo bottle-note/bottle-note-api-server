@@ -1,7 +1,5 @@
 package app.bottlenote.global.redis.config;
 
-import io.lettuce.core.ClientOptions;
-import io.lettuce.core.SocketOptions;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +43,12 @@ public class RedisConfig {
 
     log.info("========================================");
     log.info("Mode: {}", redisMode);
+    boolean epoll = LettuceClientSupport.isEpollAvailable();
+    log.info(
+        "Epoll: {} / TCP_USER_TIMEOUT({}): {}",
+        epoll ? "available" : "unavailable",
+        LettuceClientSupport.TCP_USER_TIMEOUT,
+        epoll ? "applied" : "ignored (JDK NIO fallback)");
     switch (redisMode.toLowerCase()) {
       case "cluster" -> {
         RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();
@@ -85,22 +89,18 @@ public class RedisConfig {
   public RedisConnectionFactory redisConnectionFactory() {
     LettuceClientConfiguration clientConfig = createLettuceClientConfiguration();
 
-    return switch (redisMode.toLowerCase()) {
-      case "cluster" -> createClusterConnectionFactory(clientConfig);
-      case "sentinel" -> createSentinelConnectionFactory(clientConfig);
-      default -> createStandaloneConnectionFactory(clientConfig);
-    };
+    LettuceConnectionFactory factory =
+        switch (redisMode.toLowerCase()) {
+          case "cluster" -> createClusterConnectionFactory(clientConfig);
+          case "sentinel" -> createSentinelConnectionFactory(clientConfig);
+          default -> createStandaloneConnectionFactory(clientConfig);
+        };
+    LettuceClientSupport.applySharedConnectionPolicy(factory);
+    return factory;
   }
 
   private LettuceClientConfiguration createLettuceClientConfiguration() {
-    SocketOptions socketOptions = SocketOptions.builder().connectTimeout(redisTimeout).build();
-
-    ClientOptions clientOptions = ClientOptions.builder().socketOptions(socketOptions).build();
-
-    return LettuceClientConfiguration.builder()
-        .clientOptions(clientOptions)
-        .commandTimeout(redisTimeout)
-        .build();
+    return LettuceClientSupport.clientConfiguration(redisTimeout);
   }
 
   private LettuceConnectionFactory createStandaloneConnectionFactory(

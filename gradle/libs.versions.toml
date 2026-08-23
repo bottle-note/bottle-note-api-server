@@ -142,6 +142,8 @@ loki-logback-appender = { module = "com.github.loki4j:loki-logback-appender", ve
 
 # Network
 netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
+# 버전은 netty BOM이 정한다. netty-transport와 버전이 어긋나면 런타임에 실패한다.
+netty-epoll = { module = "io.netty:netty-transport-native-epoll" }
 
 # Schema Management
 flyway-core = { module = "org.flywaydb:flyway-core" }
