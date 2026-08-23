@@ -3,6 +3,7 @@ package app.batch.bottlenote.job.popularity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -55,14 +56,25 @@ class PopularityObservationPropertiesTest {
   }
 
   @Test
+  @DisplayName("정규화 기준은 시간 주 월별로 독립 관리한다")
+  void referencesAreIndependentByGranularity() {
+    PopularityObservationProperties properties = new PopularityObservationProperties();
+    properties.getReference().getWeek().setInterest(700L);
+
+    assertThat(properties.referenceFor(BucketGranularity.HOUR).getInterest()).isEqualTo(50L);
+    assertThat(properties.referenceFor(BucketGranularity.WEEK).getInterest()).isEqualTo(700L);
+    assertThat(properties.referenceFor(BucketGranularity.MONTH).getInterest()).isEqualTo(50L);
+  }
+
+  @Test
   @DisplayName("정규화 기준이 0 이하면 기동에 실패한다")
   void startupFailsWhenReferenceIsNotPositive() {
     PopularityObservationProperties properties = new PopularityObservationProperties();
-    properties.getReference().setPick(0L);
+    properties.getReference().getMonth().setPick(0L);
 
     assertThatThrownBy(properties::verifyOnStartup)
         .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("정규화 기준");
+        .hasMessageContaining("MONTH 선호도 정규화 기준");
   }
 
   @Test

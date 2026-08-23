@@ -82,12 +82,23 @@ popularity:
       rating: 0.25
       pick: 0.25
       engagement: 0.25
-    # 각 축을 0~1로 누르는 분모. 이 값에 도달하면 해당 축은 만점이다.
+    # 단위별 각 축을 0~1로 누르는 분모. 실제 분포를 확인하기 전까지 같은 임시값을 쓴다.
     reference:
-      interest: 50
-      rating: 100
-      pick: 200
-      engagement: 300
+      hour:
+        interest: 50
+        rating: 100
+        pick: 200
+        engagement: 300
+      week:
+        interest: 50
+        rating: 100
+        pick: 200
+        engagement: 300
+      month:
+        interest: 50
+        rating: 100
+        pick: 200
+        engagement: 300
 
 batch:
   visitor-telemetry:

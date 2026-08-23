@@ -126,7 +126,7 @@ public class PopularitySnapshotTasklet implements Tasklet {
     targets.addAll(writer.findAlcoholIdsAt(TABLE, BucketGranularity.HOUR, bucketAt));
 
     var weights = properties.getWeights();
-    var reference = properties.getReference();
+    var reference = properties.referenceFor(BucketGranularity.HOUR);
 
     List<Object[]> rows = new ArrayList<>(targets.size());
     for (Long alcoholId : targets) {

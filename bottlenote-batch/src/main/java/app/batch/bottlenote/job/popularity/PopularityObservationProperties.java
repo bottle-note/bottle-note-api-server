@@ -1,5 +1,6 @@
 package app.batch.bottlenote.job.popularity;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class PopularityObservationProperties {
 
   private Weights weights = new Weights();
-  private Reference reference = new Reference();
+  private References reference = new References();
 
   /**
    * 잘못된 설정으로 조용히 오작동하느니 기동에 실패하는 편이 낫다.
@@ -39,15 +40,11 @@ public class PopularityObservationProperties {
       throw new IllegalStateException("인기도 관측 설정이 올바르지 않습니다: " + String.join(", ", errors));
     }
     log.info(
-        "인기도 관측 설정 로드. 가중치=[관심 {}, 평가 {}, 선호 {}, 참여 {}], 정규화 기준=[{}, {}, {}, {}]",
+        "인기도 관측 설정 로드. 가중치=[관심 {}, 평가 {}, 선호 {}, 참여 {}], HOUR/WEEK/MONTH 정규화 기준 적용",
         weights.interest,
         weights.rating,
         weights.pick,
-        weights.engagement,
-        reference.interest,
-        reference.rating,
-        reference.pick,
-        reference.engagement);
+        weights.engagement);
   }
 
   /** 설정 오류를 조용히 넘기지 않기 위해 기동 시 검증한다. */
@@ -64,16 +61,27 @@ public class PopularityObservationProperties {
     checkWeight(weights.pick, "선호도 가중치", errors);
     checkWeight(weights.engagement, "참여도 가중치", errors);
 
-    checkReference(reference.interest, "관심도 정규화 기준", errors);
-    checkReference(reference.rating, "평가도 정규화 기준", errors);
-    checkReference(reference.pick, "선호도 정규화 기준", errors);
-    checkReference(reference.engagement, "참여도 정규화 기준", errors);
+    for (BucketGranularity granularity : BucketGranularity.values()) {
+      Reference periodReference = referenceFor(granularity);
+      checkReference(periodReference.interest, granularity + " 관심도 정규화 기준", errors);
+      checkReference(periodReference.rating, granularity + " 평가도 정규화 기준", errors);
+      checkReference(periodReference.pick, granularity + " 선호도 정규화 기준", errors);
+      checkReference(periodReference.engagement, granularity + " 참여도 정규화 기준", errors);
+    }
 
     return errors;
   }
 
   public boolean isValid() {
     return validate().isEmpty();
+  }
+
+  public Reference referenceFor(BucketGranularity granularity) {
+    return switch (granularity) {
+      case HOUR -> reference.hour;
+      case WEEK -> reference.week;
+      case MONTH -> reference.month;
+    };
   }
 
   private void checkWeight(BigDecimal value, String name, List<String> errors) {
@@ -95,6 +103,14 @@ public class PopularityObservationProperties {
     private BigDecimal rating = new BigDecimal("0.25");
     private BigDecimal pick = new BigDecimal("0.25");
     private BigDecimal engagement = new BigDecimal("0.25");
+  }
+
+  @Getter
+  @Setter
+  public static class References {
+    private Reference hour = new Reference();
+    private Reference week = new Reference();
+    private Reference month = new Reference();
   }
 
   /** 각 축을 0~1로 누르는 분모. 이 값에 도달하면 해당 축은 만점이다. */
