@@ -93,6 +93,31 @@ class ObservationTaskletSqlTest {
     }
 
     @Test
+    @DisplayName("오래 멈췄다 재개하면 구간을 24시간으로 잘라낸다")
+    void clampsWindowAfterLongOutage() throws Exception {
+      LocalDateTime longAgo = BUCKET.minusDays(3);
+      jdbc.update(
+          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
+          1L, 1L, longAgo.minusMinutes(10));
+      run(new InterestObservationTasklet(writer), longAgo);
+
+      // 3일 전 관측 이후 처음 도는 회차. 구간이 3일로 벌어지면 그동안의 조회가 한 버킷에 몰린다.
+      jdbc.update(
+          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
+          2L, 1L, BUCKET.minusHours(30));
+      jdbc.update(
+          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
+          3L, 1L, BUCKET.minusHours(2));
+      run(new InterestObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
+      assertThat(rows).hasSize(2);
+      assertThat(rows.get(1).get("viewer_count"))
+          .as("30시간 전 조회는 상한 밖이라 빠지고 2시간 전 조회만 잡힌다")
+          .isEqualTo(1L);
+    }
+
+    @Test
     @DisplayName("같은 버킷을 다시 관측해도 누적이 이중 계산되지 않는다")
     void isIdempotentWithinSameBucket() throws Exception {
       jdbc.update(
@@ -388,6 +413,44 @@ class ObservationTaskletSqlTest {
           .as("조회가 없던 시간에 과거 조회수가 찍히면 관심이 식지 않는 것처럼 보인다")
           .isEqualTo(0L);
       assertThat(rows.get(0).get("interest_source_bucket_at")).isNull();
+    }
+
+    @Test
+    @DisplayName("축 하나가 기준값의 절반이면 그 축 가중치의 절반만 점수에 실린다")
+    void scoreReflectsNormalizationAndWeight() throws Exception {
+      // 기본 정규화 기준: pick=200, 가중치 0.25 → 100건이면 0.5 * 0.25 = 0.125
+      for (int i = 1; i <= 100; i++) {
+        jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,?,'PICK')", i);
+      }
+      run(new PickObservationTasklet(writer), BUCKET);
+
+      run(snapshotTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_popularity_snapshots");
+      assertThat(rows).hasSize(1);
+      assertThat(((Number) rows.get(0).get("pick_value")).longValue()).isEqualTo(100L);
+      assertThat(new java.math.BigDecimal(rows.get(0).get("pick_score").toString()))
+          .isEqualByComparingTo("0.5");
+      assertThat(new java.math.BigDecimal(rows.get(0).get("popularity_score").toString()))
+          .as("나머지 세 축은 0이므로 0.5 * 0.25만 남는다")
+          .isEqualByComparingTo("0.125");
+    }
+
+    @Test
+    @DisplayName("기준값을 넘겨도 축 점수는 1을 넘지 않는다")
+    void axisScoreIsCappedAtOne() throws Exception {
+      for (int i = 1; i <= 300; i++) {
+        jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,?,'PICK')", i);
+      }
+      run(new PickObservationTasklet(writer), BUCKET);
+
+      run(snapshotTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_popularity_snapshots");
+      assertThat(new java.math.BigDecimal(rows.get(0).get("pick_score").toString()))
+          .isEqualByComparingTo("1.0");
+      assertThat(new java.math.BigDecimal(rows.get(0).get("popularity_score").toString()))
+          .isEqualByComparingTo("0.25");
     }
 
     @Test
