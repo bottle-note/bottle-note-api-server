@@ -350,6 +350,101 @@ class ObservationTaskletSqlTest {
     }
 
     @Test
+    @DisplayName("네 지표의 증감을 각각 따로 기록한다")
+    void recordsEachDeltaSeparately() throws Exception {
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (10,1,1,'PUBLIC','ACTIVE')");
+      jdbc.update("INSERT INTO likes (review_id, user_id, status) VALUES (10,1,'LIKE')");
+      run(new EngagementObservationTasklet(writer), PREV_BUCKET);
+
+      // 리뷰 +1, 좋아요 +2, 취소 +1, 댓글 +3
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (11,1,2,'PUBLIC','ACTIVE')");
+      jdbc.update("INSERT INTO likes (review_id, user_id, status) VALUES (10,2,'LIKE')");
+      jdbc.update("INSERT INTO likes (review_id, user_id, status) VALUES (11,3,'LIKE')");
+      jdbc.update("INSERT INTO likes (review_id, user_id, status) VALUES (11,4,'DISLIKE')");
+      jdbc.update("INSERT INTO review_replies (review_id, user_id, status) VALUES (10,1,'NORMAL')");
+      jdbc.update("INSERT INTO review_replies (review_id, user_id, status) VALUES (11,2,'NORMAL')");
+      jdbc.update("INSERT INTO review_replies (review_id, user_id, status) VALUES (11,3,'NORMAL')");
+      run(new EngagementObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_engagement_observations");
+      assertThat(rows).hasSize(2);
+      Map<String, Object> now = rows.get(1);
+      assertThat(now.get("review_count")).isEqualTo(2L);
+      assertThat(now.get("like_count")).isEqualTo(3L);
+      assertThat(now.get("dislike_count")).isEqualTo(1L);
+      assertThat(now.get("reply_count")).isEqualTo(3L);
+      // 지표별 증감이 서로 섞이지 않아야 한다
+      assertThat(now.get("delta_review_count")).isEqualTo(1L);
+      assertThat(now.get("delta_like_count")).isEqualTo(2L);
+      assertThat(now.get("delta_dislike_count")).isEqualTo(1L);
+      assertThat(now.get("delta_reply_count")).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("값이 그대로면 두 번째 관측에서 행을 남기지 않는다")
+    void skipsWhenUnchanged() throws Exception {
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (10,1,1,'PUBLIC','ACTIVE')");
+      run(new EngagementObservationTasklet(writer), PREV_BUCKET);
+      run(new EngagementObservationTasklet(writer), BUCKET);
+
+      assertThat(rowsOf("alcohol_engagement_observations")).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("리뷰가 모두 비공개로 바뀌면 0으로 떨어뜨려 기록한다")
+    void writesZeroWhenAllReviewsBecomePrivate() throws Exception {
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (10,1,1,'PUBLIC','ACTIVE')");
+      jdbc.update("INSERT INTO likes (review_id, user_id, status) VALUES (10,1,'LIKE')");
+      run(new EngagementObservationTasklet(writer), PREV_BUCKET);
+
+      // 집계 결과에서 아예 빠진다 — 남기지 않으면 최종 적재가 과거 값을 계속 끌어온다
+      jdbc.update("UPDATE reviews SET status='PRIVATE' WHERE id=10");
+      run(new EngagementObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_engagement_observations");
+      assertThat(rows).hasSize(2);
+      assertThat(rows.get(1).get("review_count")).isEqualTo(0L);
+      assertThat(rows.get(1).get("like_count")).isEqualTo(0L);
+      assertThat(rows.get(1).get("delta_review_count")).isEqualTo(-1L);
+      assertThat(rows.get(1).get("delta_like_count")).isEqualTo(-1L);
+    }
+
+    @Test
+    @DisplayName("재실행하면 줄어든 값도 정정한다")
+    void reRunCorrectsDownward() throws Exception {
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (10,1,1,'PUBLIC','ACTIVE')");
+      run(new EngagementObservationTasklet(writer), PREV_BUCKET);
+
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (11,1,2,'PUBLIC','ACTIVE')");
+      run(new EngagementObservationTasklet(writer), BUCKET);
+      assertThat(rowsOf("alcohol_engagement_observations").get(1).get("review_count"))
+          .isEqualTo(2L);
+
+      // 직전 버킷과 같은 값으로 돌아간 상태에서 재실행한다
+      jdbc.update("DELETE FROM reviews WHERE id=11");
+      run(new EngagementObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_engagement_observations");
+      assertThat(rows).hasSize(2);
+      assertThat(rows.get(1).get("review_count"))
+          .as("직전과 값이 같다고 건너뛰면 1회차의 잘못된 2가 남는다")
+          .isEqualTo(1L);
+      assertThat(rows.get(1).get("delta_review_count")).isEqualTo(0L);
+    }
+
+    @Test
     @DisplayName("삭제·차단·숨김 댓글은 참여로 세지 않는다")
     void excludesNonNormalReplies() throws Exception {
       jdbc.update(
