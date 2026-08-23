@@ -38,7 +38,7 @@ spring:
       mode: ${REDIS_MODE:standalone} # standalone/cluster/sentinel
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:16379}
-      username: ${SPRING_DATA_REDIS_USERNAME:${REDIS_USERNAME:default}}
+      username: ${SPRING_DATA_REDIS_USERNAME:${REDIS_USERNAME:}}
       password: ${SPRING_DATA_REDIS_PASSWORD:${REDIS_PASSWORD:}}
       timeout: 15s # 연결 타임아웃
       cluster:

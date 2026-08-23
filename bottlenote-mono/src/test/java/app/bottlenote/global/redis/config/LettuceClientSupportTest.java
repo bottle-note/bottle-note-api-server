@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
 import io.lettuce.core.SocketOptions;
 import java.time.Duration;
 import org.junit.jupiter.api.DisplayName;
@@ -77,6 +78,8 @@ class LettuceClientSupportTest {
         ClientOptions options = dedicated.getClientConfiguration().getClientOptions().orElseThrow();
         assertThat(dedicated.getClientConfiguration().getCommandTimeout())
             .isEqualTo(Duration.ofMillis(200));
+        assertThat(options.getSocketOptions().getConnectTimeout())
+            .isEqualTo(Duration.ofSeconds(15));
         assertThat(options.getSocketOptions().getKeepAlive().isEnabled()).isTrue();
         assertThat(options.getDisconnectedBehavior())
             .isEqualTo(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS);
@@ -105,7 +108,7 @@ class LettuceClientSupportTest {
     sentinel.setSentinelPassword(RedisPassword.of("sentinel-password"));
     LettuceConnectionFactory source =
         new LettuceConnectionFactory(
-            sentinel, LettuceClientSupport.clientConfiguration(Duration.ofSeconds(15)));
+            sentinel, LettuceClientSupport.sentinelClientConfiguration(Duration.ofSeconds(15)));
     LettuceClientSupport.start(source);
 
     try {
@@ -125,6 +128,15 @@ class LettuceClientSupportTest {
             .isEqualTo(RedisPassword.of("sentinel-password"));
         assertThat(dedicated.getClientConfiguration().getCommandTimeout())
             .isEqualTo(Duration.ofMillis(200));
+        assertThat(dedicated.getClientConfiguration().getReadFrom()).contains(ReadFrom.MASTER);
+        assertThat(
+                dedicated
+                    .getClientConfiguration()
+                    .getClientOptions()
+                    .orElseThrow()
+                    .getSocketOptions()
+                    .getConnectTimeout())
+            .isEqualTo(Duration.ofSeconds(15));
         assertThat(dedicated.getShareNativeConnection()).isTrue();
         assertThat(dedicated.getValidateConnection()).isFalse();
       } finally {

@@ -78,7 +78,10 @@ public class RedisConfig {
   @Bean
   @ConditionalOnMissingBean(RedisConnectionFactory.class)
   public RedisConnectionFactory redisConnectionFactory() {
-    LettuceClientConfiguration clientConfig = createLettuceClientConfiguration();
+    LettuceClientConfiguration clientConfig =
+        "sentinel".equalsIgnoreCase(redisMode)
+            ? LettuceClientSupport.sentinelClientConfiguration(redisTimeout)
+            : LettuceClientSupport.clientConfiguration(redisTimeout);
 
     LettuceConnectionFactory factory =
         switch (redisMode.toLowerCase()) {
@@ -88,10 +91,6 @@ public class RedisConfig {
         };
     LettuceClientSupport.applySharedConnectionPolicy(factory);
     return factory;
-  }
-
-  private LettuceClientConfiguration createLettuceClientConfiguration() {
-    return LettuceClientSupport.clientConfiguration(redisTimeout);
   }
 
   private LettuceConnectionFactory createStandaloneConnectionFactory(

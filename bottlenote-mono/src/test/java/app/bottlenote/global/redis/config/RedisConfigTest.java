@@ -3,6 +3,7 @@ package app.bottlenote.global.redis.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.lettuce.core.ReadFrom;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +45,7 @@ class RedisConfigTest {
     assertThat(sentinel.getSentinelPassword()).isEqualTo(RedisPassword.of("sentinel-password"));
     assertThat(factory.getShareNativeConnection()).isTrue();
     assertThat(factory.getValidateConnection()).isFalse();
+    assertThat(factory.getClientConfiguration().getReadFrom()).contains(ReadFrom.MASTER);
   }
 
   @Test
