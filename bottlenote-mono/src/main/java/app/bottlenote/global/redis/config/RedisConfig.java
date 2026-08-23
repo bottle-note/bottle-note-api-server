@@ -13,6 +13,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -39,8 +41,6 @@ public class RedisConfig {
   @Order(Integer.MAX_VALUE - 100)
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {
-    validateRedisMode();
-
     log.info("========================================");
     log.info("Mode: {}", redisMode);
     boolean epoll = LettuceClientSupport.isEpollAvailable();
@@ -73,15 +73,6 @@ public class RedisConfig {
     }
     log.info("✅ Redis connection successfully established");
     log.info("========================================");
-  }
-
-  private void validateRedisMode() {
-    if ("sentinel".equalsIgnoreCase(redisMode)) {
-      throw new UnsupportedOperationException(
-          "Redis Sentinel mode is not yet supported. "
-              + "Please use 'standalone' or 'cluster' mode. "
-              + "Configure spring.data.redis.mode property accordingly.");
-    }
   }
 
   @Bean
@@ -153,7 +144,34 @@ public class RedisConfig {
 
   private LettuceConnectionFactory createSentinelConnectionFactory(
       LettuceClientConfiguration clientConfig) {
-    throw new UnsupportedOperationException("Sentinel mode not yet implemented");
+    RedisConnectionDetails.Sentinel sentinel = redisConnectionDetails.getSentinel();
+
+    if (sentinel == null
+        || !StringUtils.hasText(sentinel.getMaster())
+        || sentinel.getNodes() == null
+        || sentinel.getNodes().isEmpty()) {
+      throw new IllegalArgumentException("Redis Sentinel 모드에서 master와 nodes 설정이 필요합니다.");
+    }
+
+    RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration();
+    sentinelConfig.master(sentinel.getMaster());
+    sentinel.getNodes().forEach(node -> sentinelConfig.sentinel(node.host(), node.port()));
+    sentinelConfig.setDatabase(sentinel.getDatabase());
+
+    if (StringUtils.hasText(redisConnectionDetails.getUsername())) {
+      sentinelConfig.setUsername(redisConnectionDetails.getUsername());
+    }
+    if (StringUtils.hasText(redisConnectionDetails.getPassword())) {
+      sentinelConfig.setPassword(RedisPassword.of(redisConnectionDetails.getPassword()));
+    }
+    if (StringUtils.hasText(sentinel.getUsername())) {
+      sentinelConfig.setSentinelUsername(sentinel.getUsername());
+    }
+    if (StringUtils.hasText(sentinel.getPassword())) {
+      sentinelConfig.setSentinelPassword(RedisPassword.of(sentinel.getPassword()));
+    }
+
+    return new LettuceConnectionFactory(sentinelConfig, clientConfig);
   }
 
   @Bean
