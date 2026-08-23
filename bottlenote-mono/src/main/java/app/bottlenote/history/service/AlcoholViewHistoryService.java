@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -35,11 +34,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 @RequiredArgsConstructor
 public class AlcoholViewHistoryService {
-  private static final String VIEW_COUNT_KEY = "stats:alcohol:views";
   private static final long DEFAULT_HISTORY_TTL = 30;
   private final RedisAlcoholViewHistoryRepository redisViewHistoryRepository;
   private final AlcoholsViewHistoryRepository historyRepository;
-  private final RedisTemplate<String, Object> redisTemplate;
   private final EntityManager entityManager;
   private final HmacCursorCodec cursorCodec;
 
@@ -64,14 +61,6 @@ public class AlcoholViewHistoryService {
 
     // 저장
     redisViewHistoryRepository.save(viewHistory);
-
-    // RedisTemplate 활용한 통계 기록 - 주류별 조회수 증가
-    String alcoholViewKey = VIEW_COUNT_KEY + ":" + alcohol.getAlcoholId();
-    redisTemplate.opsForValue().increment(alcoholViewKey);
-
-    // 인기 주류 순위에 반영 (Sorted Set 사용)
-    // String popularAlcoholsKey = "popular:alcohols:" + alcohol.getType().name().toLowerCase();
-    // redisTemplate.opsForZSet().incrementScore(popularAlcoholsKey, alcohol.getId(), 1);
 
     log.debug("Recorded alcohol view: userId={}, alcoholId={}", userId, alcohol.getAlcoholId());
   }
