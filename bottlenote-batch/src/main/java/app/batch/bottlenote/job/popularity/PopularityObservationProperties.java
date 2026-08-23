@@ -1,10 +1,12 @@
 package app.batch.bottlenote.job.popularity;
 
+import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>정규화는 전역 최댓값을 쓰지 않는다. 같은 버킷 안 다른 주류의 최댓값으로 나누면 자기 값이 그대로인데도 점수가 흔들려 시계열이 무의미해진다.
  */
+@Slf4j
 @Getter
 @Setter
 @Component
@@ -23,6 +26,29 @@ public class PopularityObservationProperties {
 
   private Weights weights = new Weights();
   private Reference reference = new Reference();
+
+  /**
+   * 잘못된 설정으로 조용히 오작동하느니 기동에 실패하는 편이 낫다.
+   *
+   * <p>가중치 합이 1이 아니면 점수 범위가 무너지고, 정규화 기준이 0 이하면 모든 축이 0점이 된다. 둘 다 데이터가 쌓인 뒤에야 드러나므로 여기서 막는다.
+   */
+  @PostConstruct
+  void verifyOnStartup() {
+    List<String> errors = validate();
+    if (!errors.isEmpty()) {
+      throw new IllegalStateException("인기도 관측 설정이 올바르지 않습니다: " + String.join(", ", errors));
+    }
+    log.info(
+        "인기도 관측 설정 로드. 가중치=[관심 {}, 평가 {}, 선호 {}, 참여 {}], 정규화 기준=[{}, {}, {}, {}]",
+        weights.interest,
+        weights.rating,
+        weights.pick,
+        weights.engagement,
+        reference.interest,
+        reference.rating,
+        reference.pick,
+        reference.engagement);
+  }
 
   /** 설정 오류를 조용히 넘기지 않기 위해 기동 시 검증한다. */
   public List<String> validate() {

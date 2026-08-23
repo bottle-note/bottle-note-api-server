@@ -1,7 +1,6 @@
 package app.batch.bottlenote.job.popularity;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +30,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PopularitySnapshotTasklet implements Tasklet {
-
-  private static final int SCALE = 4;
 
   private static final String INTEREST_SQL =
       latestSql("alcohol_interest_observations", "viewer_count");
@@ -114,18 +111,19 @@ public class PopularitySnapshotTasklet implements Tasklet {
       Axis p = pick.getOrDefault(alcoholId, Axis.EMPTY);
       Axis e = engagement.getOrDefault(alcoholId, Axis.EMPTY);
 
-      BigDecimal interestScore = normalize(i.value(), reference.getInterest());
-      BigDecimal ratingScore = normalize(r.value(), reference.getRating());
-      BigDecimal pickScore = normalize(p.value(), reference.getPick());
-      BigDecimal engagementScore = normalize(e.value(), reference.getEngagement());
+      BigDecimal interestScore =
+          PopularityScoring.normalize(i.value(), reference.getInterest());
+      BigDecimal ratingScore = PopularityScoring.normalize(r.value(), reference.getRating());
+      BigDecimal pickScore = PopularityScoring.normalize(p.value(), reference.getPick());
+      BigDecimal engagementScore =
+          PopularityScoring.normalize(e.value(), reference.getEngagement());
 
       BigDecimal popularity =
-          interestScore
-              .multiply(weights.getInterest())
-              .add(ratingScore.multiply(weights.getRating()))
-              .add(pickScore.multiply(weights.getPick()))
-              .add(engagementScore.multiply(weights.getEngagement()))
-              .setScale(SCALE, RoundingMode.HALF_UP);
+          PopularityScoring.weightedSum(
+              interestScore, weights.getInterest(),
+              ratingScore, weights.getRating(),
+              pickScore, weights.getPick(),
+              engagementScore, weights.getEngagement());
 
       rows.add(
           new Object[] {
@@ -159,17 +157,6 @@ public class PopularitySnapshotTasklet implements Tasklet {
             },
             bucketAt);
     return result;
-  }
-
-  /** 기준값에 도달하면 만점이고 그 위로는 더 오르지 않는다. */
-  private BigDecimal normalize(long value, long reference) {
-    if (value <= 0L || reference <= 0L) {
-      return BigDecimal.ZERO.setScale(SCALE, RoundingMode.HALF_UP);
-    }
-    BigDecimal score =
-        BigDecimal.valueOf(value)
-            .divide(BigDecimal.valueOf(reference), SCALE, RoundingMode.HALF_UP);
-    return score.min(BigDecimal.ONE.setScale(SCALE, RoundingMode.HALF_UP));
   }
 
   /** 관측이 아예 없는 축. 값은 0이고 출처 버킷은 없다. */
