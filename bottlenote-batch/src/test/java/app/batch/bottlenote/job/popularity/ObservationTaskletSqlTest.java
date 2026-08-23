@@ -198,6 +198,30 @@ class ObservationTaskletSqlTest {
     }
 
     @Test
+    @DisplayName("재실행하면 값이 줄어든 것도 정정한다")
+    void reRunCorrectsDownward() throws Exception {
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,1,4.0)");
+      run(new RatingObservationTasklet(writer), PREV_BUCKET);
+
+      // 1회차: 평점이 3개인 상태로 기록된다
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,2,4.0)");
+      jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,3,4.0)");
+      run(new RatingObservationTasklet(writer), BUCKET);
+      assertThat(rowsOf("alcohol_rating_observations").get(1).get("rating_count")).isEqualTo(3L);
+
+      // 두 건이 취소되어 직전 버킷과 같은 값으로 돌아간 상태에서 재실행한다
+      jdbc.update("DELETE FROM ratings WHERE user_id IN (2,3)");
+      run(new RatingObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_rating_observations");
+      assertThat(rows).hasSize(2);
+      assertThat(rows.get(1).get("rating_count"))
+          .as("직전과 값이 같다고 건너뛰면 1회차의 잘못된 3이 남는다")
+          .isEqualTo(1L);
+      assertThat(rows.get(1).get("delta_rating_count")).isEqualTo(0L);
+    }
+
+    @Test
     @DisplayName("평점이 모두 사라지면 0으로 떨어뜨려 기록한다")
     void writesZeroWhenAllRatingsDisappear() throws Exception {
       jdbc.update("INSERT INTO ratings (alcohol_id, user_id, rating) VALUES (1,1,4.0)");

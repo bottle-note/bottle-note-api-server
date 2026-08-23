@@ -31,6 +31,9 @@ public class InterestObservationTasklet implements Tasklet {
 
   private static final String TABLE = "alcohol_interest_observations";
 
+  /** 구간 상한. 이보다 오래 멈췄다면 그 사이 조회는 포기한다. */
+  private static final int MAX_WINDOW_HOURS = 24;
+
   private static final String AGGREGATE_SQL =
       """
       SELECT alcohol_id, COUNT(*) AS viewer_count
@@ -74,10 +77,16 @@ public class InterestObservationTasklet implements Tasklet {
     LocalDateTime previousBucket = writer.findPreviousBucket(TABLE, bucketAt);
     LocalDateTime from = previousBucket != null ? previousBucket : bucketAt.minusHours(1);
 
-    // 직전 관측이 이번 버킷 이후면(시계 역행·수동 재실행) 구간이 음수가 된다
-    if (!from.isBefore(bucketAt)) {
-      log.warn("관심도 관측 구간이 비어 있어 건너뜁니다. from={}, bucketAt={}", from, bucketAt);
-      return RepeatStatus.FINISHED;
+    // 배치가 오래 멈췄다 재개하면 구간이 며칠로 벌어져 그동안의 조회가 한 버킷에 몰린다.
+    // 흐름 축은 어차피 놓친 구간을 되살릴 수 없으니, 몰아 넣기보다 상한에서 끊는 편이 낫다.
+    LocalDateTime floor = bucketAt.minusHours(MAX_WINDOW_HOURS);
+    if (from.isBefore(floor)) {
+      log.warn(
+          "관심도 관측 구간이 상한을 넘어 잘라냅니다. from={}, floor={}, bucketAt={}",
+          from,
+          floor,
+          bucketAt);
+      from = floor;
     }
 
     Map<Long, Long> viewerCounts = new HashMap<>();

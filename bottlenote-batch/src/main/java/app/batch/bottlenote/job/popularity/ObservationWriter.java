@@ -1,7 +1,9 @@
 package app.batch.bottlenote.job.popularity;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,6 +29,17 @@ public class ObservationWriter {
         "SELECT MAX(bucket_at) FROM " + table + " WHERE bucket_at < ?",
         LocalDateTime.class,
         bucketAt);
+  }
+
+  /**
+   * 이번 버킷에 이미 적재된 주류.
+   *
+   * <p>재실행에서 값이 직전과 같다고 건너뛰면, 1회차가 잘못 쓴 행이 그대로 남아 하향 정정이 되지 않는다.
+   */
+  public Set<Long> findAlcoholIdsAt(String table, LocalDateTime bucketAt) {
+    return new HashSet<>(
+        jdbcTemplate.queryForList(
+            "SELECT alcohol_id FROM " + table + " WHERE bucket_at = ?", Long.class, bucketAt));
   }
 
   public void batchInsert(String sql, List<Object[]> rows) {

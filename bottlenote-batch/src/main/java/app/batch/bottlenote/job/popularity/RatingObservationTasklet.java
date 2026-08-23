@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -101,6 +102,8 @@ public class RatingObservationTasklet implements Tasklet {
             },
             bucketAt);
 
+    Set<Long> alreadyWritten = writer.findAlcoholIdsAt("alcohol_rating_observations", bucketAt);
+
     List<Object[]> rows = new ArrayList<>();
     int skipped = 0;
 
@@ -110,7 +113,8 @@ public class RatingObservationTasklet implements Tasklet {
       Snapshot before = previous.get(alcoholId);
 
       // 상태 축은 값이 그대로면 행을 남기지 않는다 — 갭은 prev_bucket_at으로 따라간다
-      if (before != null && before.sameValueAs(now)) {
+      // 이번 버킷 행이 이미 있으면 재실행이다. 값이 같아도 다시 써야 1회차의 잘못된 값이 정정된다.
+      if (before != null && before.sameValueAs(now) && !alreadyWritten.contains(alcoholId)) {
         skipped++;
         continue;
       }

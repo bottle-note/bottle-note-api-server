@@ -22,8 +22,13 @@ public class PopularityQuartzConfig {
   private static final String JOB_KEY = "popularityObservationJob";
   private static final String TRIGGER_KEY = "popularityObservationTrigger";
 
-  /** 매시 정각. 버킷 간격을 바꾸면 이 표현식도 함께 바꿔야 한다. */
-  private static final String HOURLY_CRON = "0 0 * * * ?";
+  /**
+   * 매시 2분. 버킷 간격을 바꾸면 이 표현식도 함께 바꿔야 한다.
+   *
+   * <p>정각을 피하는 이유가 있다. 조회 이력은 Redis에서 DB로 매분 0초에 동기화되는데, 관측도 정각에 돌면 직전 1분치가 아직 안 넘어온 상태로 세어진다.
+   * 그 조회는 뒤늦게 이전 구간 시각으로 기록되므로 다음 버킷에도 잡히지 않아 영구히 유실된다.
+   */
+  private static final String HOURLY_CRON = "0 2 * * * ?";
 
   @Bean
   public JobDetail popularityObservationJobDetail() {

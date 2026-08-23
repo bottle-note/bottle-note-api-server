@@ -7,8 +7,11 @@ spring:
     username: ${DB_USERNAME:localhost_bottle_note_username}
     password: ${DB_PASSWORD:localhost_bottle_note_password}
     hikari:
-      maximum-pool-size: 3
-      minimum-idle: 1
+      # 인기도 관측이 네 축을 병렬로 돌리고, 같은 풀을 Quartz JobStore와 Batch 메타데이터가 함께 쓴다.
+      # 3이면 네 번째 축이 대기하다 connection-timeout에 걸리고, Quartz 클러스터 체크인까지 밀려
+      # 다른 노드가 이 노드를 죽은 것으로 보고 복구 실행을 띄운다.
+      maximum-pool-size: 8
+      minimum-idle: 2
       idle-timeout: 600000
       max-lifetime: 1800000
       connection-timeout: 30000

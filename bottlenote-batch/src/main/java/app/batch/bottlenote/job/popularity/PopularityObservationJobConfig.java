@@ -1,6 +1,7 @@
 package app.batch.bottlenote.job.popularity;
 
 import app.batch.bottlenote.BatchQuartzJob;
+import org.quartz.DisallowConcurrentExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -106,7 +107,13 @@ public class PopularityObservationJobConfig {
     return new StepBuilder(name, jobRepository).tasklet(target, tx).build();
   }
 
+  /**
+   * 이전 실행이 끝나기 전에 다음 정각이 오면 두 실행이 겹친다.
+   *
+   * <p>겹치면 뒤 실행이 앞 실행의 미커밋 관측을 보지 못해 직전 버킷을 잘못 잡고, 관심도 구간이 중복 계산된다.
+   */
   @Component
+  @DisallowConcurrentExecution
   public static class PopularityObservationQuartzJob extends BatchQuartzJob {
     public PopularityObservationQuartzJob(JobLauncher jobLauncher, JobRegistry jobRegistry) {
       super(jobLauncher, jobRegistry, JOB_NAME, JOB_NAME);
