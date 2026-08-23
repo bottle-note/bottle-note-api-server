@@ -2,6 +2,7 @@ package app.batch.bottlenote.job.popularity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.domain.AlcoholViewCounter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -55,6 +56,20 @@ class ObservationTaskletSqlTest {
             .toJobParameters();
     JobExecution jobExecution =
         MetaDataInstanceFactory.createJobExecution("popularityObservationJob", 1L, 1L, parameters);
+    StepExecution stepExecution = jobExecution.createStepExecution("step");
+    ChunkContext chunkContext = new ChunkContext(new StepContext(stepExecution));
+    tasklet.execute(stepExecution.createStepContribution(), chunkContext);
+  }
+
+  private void run(Tasklet tasklet, BucketGranularity granularity, LocalDateTime bucket)
+      throws Exception {
+    JobParameters parameters =
+        new JobParametersBuilder()
+            .addString(PopularityRollupTasklet.GRANULARITY_PARAM, granularity.name())
+            .addLocalDateTime(ObservationBucket.BUCKET_AT_PARAM, bucket)
+            .toJobParameters();
+    JobExecution jobExecution =
+        MetaDataInstanceFactory.createJobExecution("popularityRollupJob", 1L, 1L, parameters);
     StepExecution stepExecution = jobExecution.createStepExecution("step");
     ChunkContext chunkContext = new ChunkContext(new StepContext(stepExecution));
     tasklet.execute(stepExecution.createStepContribution(), chunkContext);
@@ -837,6 +852,83 @@ class ObservationTaskletSqlTest {
       assertThat(rowsOf("alcohol_popularity_snapshots", "HOUR")).hasSize(1);
       assertThat(rowsOf("alcohol_popularity_snapshots", "WEEK")).hasSize(1);
       assertThat(rowsOf("alcohol_popularity_snapshots", "MONTH")).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("주간 Snapshot은 WEEK 축과 정규화 기준 및 같은 단위 직전 버킷을 사용한다")
+    void writesWeekSnapshotFromWeekAxes() throws Exception {
+      LocalDateTime week = LocalDateTime.of(2026, 8, 17, 0, 0);
+      LocalDateTime previousWeek = week.minusWeeks(1);
+      jdbc.update(
+          """
+          INSERT INTO alcohol_interest_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, view_count)
+          VALUES (1, 'HOUR', ?, ?, 999), (1, 'WEEK', ?, ?, 20)
+          """,
+          week,
+          week,
+          week,
+          week);
+      jdbc.update(
+          """
+          INSERT INTO alcohol_rating_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, rating_count)
+          VALUES (1, 'WEEK', ?, ?, 4)
+          """,
+          week,
+          week);
+      jdbc.update(
+          """
+          INSERT INTO alcohol_pick_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at, pick_count)
+          VALUES (1, 'WEEK', ?, ?, 6)
+          """,
+          week,
+          week);
+      jdbc.update(
+          """
+          INSERT INTO alcohol_engagement_observations
+            (alcohol_id, bucket_granularity, bucket_at, observed_at,
+             review_count, like_count, reply_count)
+          VALUES (1, 'WEEK', ?, ?, 2, 3, 4)
+          """,
+          week,
+          week);
+      jdbc.update(
+          """
+          INSERT INTO alcohol_popularity_snapshots
+            (alcohol_id, bucket_granularity, bucket_at, observed_at)
+          VALUES (1, 'WEEK', ?, ?), (1, 'HOUR', ?, ?)
+          """,
+          previousWeek,
+          previousWeek,
+          week.minusHours(1),
+          week.minusHours(1));
+
+      PopularityObservationProperties properties = new PopularityObservationProperties();
+      properties.getReference().getWeek().setInterest(40L);
+      properties.getReference().getWeek().setRating(8L);
+      properties.getReference().getWeek().setPick(12L);
+      properties.getReference().getWeek().setEngagement(18L);
+
+      run(
+          new PopularitySnapshotTasklet(writer, properties),
+          BucketGranularity.WEEK,
+          week);
+
+      assertThat(rowsOf("alcohol_popularity_snapshots", "WEEK"))
+          .hasSize(2)
+          .last()
+          .satisfies(
+              row -> {
+                assertThat(row.get("prev_bucket_at")).isEqualTo(Timestamp.valueOf(previousWeek));
+                assertThat(row.get("interest_value")).isEqualTo(20L);
+                assertThat(row.get("rating_value")).isEqualTo(4L);
+                assertThat(row.get("pick_value")).isEqualTo(6L);
+                assertThat(row.get("engagement_value")).isEqualTo(9L);
+                assertThat(new java.math.BigDecimal(row.get("popularity_score").toString()))
+                    .isEqualByComparingTo("0.5");
+              });
     }
   }
 
