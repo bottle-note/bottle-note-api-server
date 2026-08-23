@@ -29,6 +29,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EngagementObservationTasklet implements Tasklet {
 
+  private static final String TABLE = "alcohol_engagement_observations";
+
   private static final String REVIEW_SQL =
       """
       SELECT alcohol_id, COUNT(*) AS review_count
@@ -143,7 +145,7 @@ public class EngagementObservationTasklet implements Tasklet {
             },
             bucketAt);
 
-    Set<Long> alreadyWritten = writer.findAlcoholIdsAt("alcohol_engagement_observations", bucketAt);
+    Set<Long> alreadyWritten = writer.findAlcoholIdsAt(TABLE, bucketAt);
 
     List<Object[]> rows = new ArrayList<>();
     int skipped = 0;

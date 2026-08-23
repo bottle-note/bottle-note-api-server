@@ -102,7 +102,7 @@ public class RatingObservationTasklet implements Tasklet {
             },
             bucketAt);
 
-    Set<Long> alreadyWritten = writer.findAlcoholIdsAt("alcohol_rating_observations", bucketAt);
+    Set<Long> alreadyWritten = writer.findAlcoholIdsAt(TABLE, bucketAt);
 
     List<Object[]> rows = new ArrayList<>();
     int skipped = 0;

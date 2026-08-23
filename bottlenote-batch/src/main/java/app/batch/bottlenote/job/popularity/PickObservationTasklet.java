@@ -26,6 +26,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PickObservationTasklet implements Tasklet {
 
+  private static final String TABLE = "alcohol_pick_observations";
+
   private static final String AGGREGATE_SQL =
       """
       SELECT alcohol_id,
@@ -95,7 +97,7 @@ public class PickObservationTasklet implements Tasklet {
             },
             bucketAt);
 
-    Set<Long> alreadyWritten = writer.findAlcoholIdsAt("alcohol_pick_observations", bucketAt);
+    Set<Long> alreadyWritten = writer.findAlcoholIdsAt(TABLE, bucketAt);
 
     List<Object[]> rows = new ArrayList<>();
     int skipped = 0;
