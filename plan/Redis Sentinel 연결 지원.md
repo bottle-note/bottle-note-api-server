@@ -64,7 +64,7 @@
 - Files (advisory): 세 backend의 `application-datasource.yml`, 관련 configuration tests
 - Depends: Task 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 4: 개발 Secret의 Sentinel 환경변수 전환
 - Acceptance: 개발 product/admin 공유 Secret과 batch Secret이 Sentinel master/nodes/인증 및 데이터 노드 인증을 평문 노출 없이 제공하고 기존 host/port 의존을 제거한다.
@@ -91,3 +91,4 @@
 - 2026.08.23: Tasks 1-5 분해 완료
 - 2026.08.23: Task 1 완료 - Sentinel master/nodes 및 분리 인증 factory 구현, 관련 단위 테스트 2건과 rule 검증 통과
 - 2026.08.23: Task 2 완료 - 전용 Lettuce factory의 Sentinel 설정 보존, Redis 관련 단위 테스트 8건 통과
+- 2026.08.23: Task 3 완료 - 세 backend의 Sentinel 및 데이터 노드 환경변수 바인딩 추가, YAML 파싱과 processResources 통과
