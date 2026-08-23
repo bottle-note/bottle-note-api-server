@@ -1,5 +1,6 @@
 package app.batch.bottlenote.job.popularity;
 
+import app.batch.bottlenote.job.popularity.PopularityMonthlyRollupJobConfig.PopularityMonthlyRollupQuartzJob;
 import app.batch.bottlenote.job.popularity.PopularityObservationJobConfig.PopularityObservationQuartzJob;
 import app.batch.bottlenote.job.popularity.PopularityWeeklyRollupJobConfig.PopularityWeeklyRollupQuartzJob;
 import org.quartz.CronScheduleBuilder;
@@ -13,7 +14,8 @@ import org.springframework.context.annotation.Configuration;
 /**
  * 인기도 관측 스케줄.
  *
- * <p>매시 20분에 돈다. Quartz가 JDBC JobStore + 클러스터 모드로 동작하므로 인스턴스가 여럿이어도 한 번만 실행된다.
+ * <p>HOUR·WEEK·MONTH 세 Job을 등록한다. Quartz가 JDBC JobStore + 클러스터 모드로 동작하므로 같은 Job은 인스턴스가 여럿이어도 한
+ * 번만 실행된다.
  *
  * <p>기존 인기 주류 잡과 별개로 등록한다 — 신구가 당분간 공존한다.
  */
@@ -24,6 +26,8 @@ public class PopularityQuartzConfig {
   private static final String TRIGGER_KEY = "popularityObservationTrigger";
   private static final String WEEKLY_JOB_KEY = "popularityWeeklyRollupJob";
   private static final String WEEKLY_TRIGGER_KEY = "popularityWeeklyRollupTrigger";
+  private static final String MONTHLY_JOB_KEY = "popularityMonthlyRollupJob";
+  private static final String MONTHLY_TRIGGER_KEY = "popularityMonthlyRollupTrigger";
 
   /**
    * 매시 20분. 버킷 간격을 바꾸면 이 표현식도 함께 바꿔야 한다.
@@ -37,6 +41,14 @@ public class PopularityQuartzConfig {
 
   /** 월요일 02:50. 매시 20분 HOUR Job과 자정 일배치의 시작 시점을 피한다. */
   private static final String WEEKLY_CRON = "0 50 2 ? * MON";
+
+  /**
+   * 매월 1일 03:50. 직전 달력 월이 닫힌 뒤 처음 도는 시각이다.
+   *
+   * <p>주간 롤업보다 한 시간 뒤에 둔다. 1일이 월요일이면 두 Job이 같은 HOUR 원본을 읽는데, 정리 Step이 주간 롤업 중에 원본을 지우면 그 주의 값이
+   * 어긋난다.
+   */
+  private static final String MONTHLY_CRON = "0 50 3 1 * ?";
 
   @Bean
   public JobDetail popularityObservationJobDetail() {
@@ -75,6 +87,26 @@ public class PopularityQuartzConfig {
         .withIdentity(WEEKLY_TRIGGER_KEY)
         .withSchedule(
             CronScheduleBuilder.cronSchedule(WEEKLY_CRON)
+                .withMisfireHandlingInstructionFireAndProceed())
+        .build();
+  }
+
+  @Bean
+  public JobDetail popularityMonthlyRollupJobDetail() {
+    return JobBuilder.newJob(PopularityMonthlyRollupQuartzJob.class)
+        .withIdentity(MONTHLY_JOB_KEY)
+        .storeDurably()
+        .requestRecovery(true)
+        .build();
+  }
+
+  @Bean
+  public Trigger popularityMonthlyRollupJobTrigger() {
+    return TriggerBuilder.newTrigger()
+        .forJob(popularityMonthlyRollupJobDetail())
+        .withIdentity(MONTHLY_TRIGGER_KEY)
+        .withSchedule(
+            CronScheduleBuilder.cronSchedule(MONTHLY_CRON)
                 .withMisfireHandlingInstructionFireAndProceed())
         .build();
   }
