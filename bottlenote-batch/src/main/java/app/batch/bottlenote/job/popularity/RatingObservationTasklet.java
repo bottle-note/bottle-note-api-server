@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,28 +140,32 @@ public class RatingObservationTasklet implements Tasklet {
           });
     }
 
-    // 이번 집계에 없는데 직전 관측이 있던 주류는 0으로 떨어진 것이다.
-    // 남기지 않으면 최종 적재가 사라진 값을 계속 끌어온다.
+    // 직전 관측과 현재 버킷 행을 함께 봐야 원본이 사라진 재실행도 0으로 정정할 수 있다.
+    Set<Long> zeroCandidates = new HashSet<>(previous.keySet());
+    zeroCandidates.addAll(alreadyWritten);
+
     int zeroed = 0;
-    for (Map.Entry<Long, Snapshot> entry : previous.entrySet()) {
-      Long alcoholId = entry.getKey();
+    for (Long alcoholId : zeroCandidates) {
       if (current.containsKey(alcoholId)) {
         continue;
       }
-      Snapshot before = entry.getValue();
-      if (before.isZero()) {
+      Snapshot before = previous.get(alcoholId);
+      // 직전이 0이어도 이번 버킷에 이미 잘못된 nonzero 행이 있으면 정정해야 한다
+      if (before != null && before.isZero() && !alreadyWritten.contains(alcoholId)) {
         continue;
       }
+      BigDecimal beforeSum = before == null ? BigDecimal.ZERO : before.sum();
+      long beforeCount = before == null ? 0L : before.count();
       rows.add(
           new Object[] {
             alcoholId,
             bucketAt,
             observedAt,
-            before.bucketAt(),
+            before == null ? null : before.bucketAt(),
             0L,
             BigDecimal.ZERO,
-            -before.count(),
-            before.sum().negate()
+            -beforeCount,
+            beforeSum.negate()
           });
       zeroed++;
     }
