@@ -31,6 +31,10 @@ public interface JpaAlcoholPopularitySnapshotRepository
   // 도메인 포트에 Pageable을 노출하지 않기 위해 여기서 감싼다
   @Override
   default List<AlcoholPopularitySnapshot> findTopByBucketAt(LocalDateTime bucketAt, int limit) {
+    // Pageable.ofSize는 0 이하에서 예외를 던진다. 조회 파라미터가 그대로 흘러들 수 있으므로 여기서 막는다.
+    if (limit <= 0) {
+      return List.of();
+    }
     return queryTopByBucketAt(bucketAt, Pageable.ofSize(limit));
   }
 }
