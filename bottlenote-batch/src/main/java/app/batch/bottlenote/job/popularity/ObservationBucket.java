@@ -1,31 +1,53 @@
 package app.batch.bottlenote.job.popularity;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import org.springframework.batch.core.JobParameters;
 
 /**
- * 관측 버킷 시각.
+ * 관측 기간 값 객체.
  *
- * <p>네 축이 같은 버킷으로 묶이려면 잡 전체가 하나의 시각을 공유해야 한다. 행마다 now()를 다시 부르면 자정이나 정시 경계에서 같은 실행의 결과가 두 버킷으로
- * 갈린다.
+ * <p>기간은 시작을 포함하고 종료를 제외하는 {@code [startAt, endAt)} 반개구간이다. 행마다 {@code now()}를 다시 부르면 정시 경계에서 같은 실행의
+ * 결과가 두 버킷으로 갈릴 수 있으므로, Job 실행 시각으로 한 번만 만든다.
  */
-public final class ObservationBucket {
+public record ObservationBucket(BucketGranularity granularity, LocalDateTime startAt) {
 
   /** BatchQuartzJob이 넘기는 실행 시각 파라미터 이름. */
   public static final String EXECUTION_TIME_PARAM = "localDateTime";
 
-  private ObservationBucket() {}
+  public ObservationBucket {
+    Objects.requireNonNull(granularity, "granularity는 null일 수 없습니다.");
+    Objects.requireNonNull(startAt, "startAt은 null일 수 없습니다.");
+    if (!granularity.startAt(startAt).equals(startAt)) {
+      throw new IllegalArgumentException("startAt은 버킷 시작 시각이어야 합니다.");
+    }
+  }
 
-  /** 정시로 절삭한다. 버킷 간격을 바꾸려면 여기만 고치면 된다. */
+  public static ObservationBucket of(BucketGranularity granularity, LocalDateTime dateTime) {
+    Objects.requireNonNull(granularity, "granularity는 null일 수 없습니다.");
+    return new ObservationBucket(granularity, granularity.startAt(dateTime));
+  }
+
+  public LocalDateTime endAt() {
+    return granularity.endAt(startAt);
+  }
+
+  public boolean contains(LocalDateTime dateTime) {
+    Objects.requireNonNull(dateTime, "dateTime은 null일 수 없습니다.");
+    return !dateTime.isBefore(startAt) && dateTime.isBefore(endAt());
+  }
+
+  /** 기존 시간 관측 Job에서 사용하는 정시 절삭 호환 메서드. */
   public static LocalDateTime truncate(LocalDateTime executionTime) {
-    return executionTime.truncatedTo(ChronoUnit.HOURS);
+    return of(BucketGranularity.HOUR, executionTime).startAt();
   }
 
   /**
    * 잡 파라미터에서 버킷 시각을 얻는다.
    *
-   * <p>파라미터가 없으면(수동 실행 등) 현재 시각으로 대신한다.
+   * <p>기존 시간 관측 Job은 시작 시각만 저장하므로 호환을 위해 {@link LocalDateTime}을 반환한다. 신규 주간·월간 Job은
+   * {@link #of(BucketGranularity, LocalDateTime)}으로 기간 전체를 사용한다.
    */
   public static LocalDateTime from(JobParameters jobParameters) {
     LocalDateTime executionTime =
