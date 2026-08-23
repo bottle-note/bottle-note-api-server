@@ -40,6 +40,15 @@ class ObservationBucketTest {
   }
 
   @Test
+  @DisplayName("파라미터 이름이 배치가 실제로 넘기는 값과 같다")
+  void parameterNameMatchesWhatTheSchedulerSends() {
+    // BatchQuartzJob은 이 상수가 아니라 리터럴 "localDateTime"으로 파라미터를 넣는다.
+    // 상수만 바꾸면 조회가 빗나가 각 축이 제각각 now()로 폴백하고, 정시 경계에서 버킷이 갈린다.
+    // 다른 테스트는 모두 이 상수를 넣고 이 상수로 읽어 동어반복이므로 여기서만 잡을 수 있다.
+    assertThat(ObservationBucket.EXECUTION_TIME_PARAM).isEqualTo("localDateTime");
+  }
+
+  @Test
   @DisplayName("잡 파라미터의 실행 시각을 버킷으로 쓴다")
   void from_usesJobParameter() {
     JobParameters parameters =

@@ -85,6 +85,30 @@ class ObservationTaskletSqlTest {
     }
 
     @Test
+    @DisplayName("구간 시작은 포함하고 끝은 제외한다")
+    void windowIncludesStartAndExcludesEnd() throws Exception {
+      // 조회 이력은 매분 0초에 동기화되므로 정각 경계에 값이 몰릴 수 있다.
+      // 경계를 잘못 잡으면 매시간 누락되거나 두 버킷에 이중 계산된다.
+      // 두 경계를 서로 다른 주류에 두어야 어느 쪽이 잡혔는지 구분된다.
+      // 한 주류에 하나씩 넣으면 경계를 뒤집어도 합계가 같아 통과해 버린다.
+      jdbc.update(
+          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
+          1L, 1L, PREV_BUCKET);
+      jdbc.update(
+          "INSERT INTO alcohols_view_histories (user_id, alcohol_id, view_at) VALUES (?,?,?)",
+          2L, 2L, BUCKET);
+
+      run(new InterestObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
+      assertThat(rows)
+          .as("시작 경계(주류 1)만 잡히고 끝 경계(주류 2)는 다음 버킷 몫이다")
+          .hasSize(1);
+      assertThat(rows.get(0).get("alcohol_id")).isEqualTo(1L);
+      assertThat(rows.get(0).get("viewer_count")).isEqualTo(1L);
+    }
+
+    @Test
     @DisplayName("조회가 없는 주류는 행을 남기지 않는다")
     void writesNothingForUnviewedAlcohol() throws Exception {
       run(new InterestObservationTasklet(writer), BUCKET);
@@ -323,6 +347,26 @@ class ObservationTaskletSqlTest {
       assertThat(rows.get(0).get("like_count")).isEqualTo(2L);
       assertThat(rows.get(0).get("reply_count")).isEqualTo(3L);
       assertThat(rows.get(0).get("review_count")).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("삭제·차단·숨김 댓글은 참여로 세지 않는다")
+    void excludesNonNormalReplies() throws Exception {
+      jdbc.update(
+          "INSERT INTO reviews (id, alcohol_id, user_id, status, active_status)"
+              + " VALUES (10,1,1,'PUBLIC','ACTIVE')");
+      jdbc.update("INSERT INTO review_replies (review_id, user_id, status) VALUES (10,1,'NORMAL')");
+      jdbc.update("INSERT INTO review_replies (review_id, user_id, status) VALUES (10,2,'DELETED')");
+      jdbc.update("INSERT INTO review_replies (review_id, user_id, status) VALUES (10,3,'BLOCKED')");
+      jdbc.update("INSERT INTO review_replies (review_id, user_id, status) VALUES (10,4,'HIDDEN')");
+
+      run(new EngagementObservationTasklet(writer), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_engagement_observations");
+      assertThat(rows).hasSize(1);
+      assertThat(rows.get(0).get("reply_count"))
+          .as("NORMAL 하나만 남아야 한다")
+          .isEqualTo(1L);
     }
 
     @Test
