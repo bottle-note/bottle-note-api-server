@@ -97,3 +97,4 @@
 - 2026.08.23: Grok 설계 검토 반영 - Sentinel topology refresh 활성화, 전용 factory의 command/connect timeout 분리, username 기본값 회귀 제거
 - 2026.08.23: Task 5 완료 - 포트포워드 Sentinel 인증과 master 조회 성공, 개발 Pod에서 source 및 전용 factory PING 성공, 임시 파일 정리
 - 2026.08.23: Self-review 반영 - Sentinel raw master/nodes 선검증과 lazy connection에 맞는 초기화 로그로 보정
+- 2026.08.23: Claude Fable 최종 리뷰 반영 - batch standalone의 빈 Sentinel/cluster 바인딩 제거, 운영 username 동작 보존, 누락 분기 테스트 추가

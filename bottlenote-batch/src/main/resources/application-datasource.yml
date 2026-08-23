@@ -30,19 +30,12 @@ spring:
 
   data:
     redis:
-      mode: ${REDIS_MODE:standalone} # standalone/cluster/sentinel
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:16379}
       username: ${SPRING_DATA_REDIS_USERNAME:${REDIS_USERNAME:}}
       password: ${SPRING_DATA_REDIS_PASSWORD:${REDIS_PASSWORD:}}
       timeout: 15s
-      cluster:
-        nodes: ${REDIS_CLUSTER_NODES:}
-      sentinel:
-        master: ${SPRING_DATA_REDIS_SENTINEL_MASTER:}
-        nodes: ${SPRING_DATA_REDIS_SENTINEL_NODES:}
-        username: ${SPRING_DATA_REDIS_SENTINEL_USERNAME:}
-        password: ${SPRING_DATA_REDIS_SENTINEL_PASSWORD:}
+      # Sentinel/cluster는 빈 기본값을 만들지 않고 Spring Boot 공식 환경변수로 직접 바인딩한다.
 
 --- # default/local 환경
 spring:

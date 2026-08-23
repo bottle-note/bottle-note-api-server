@@ -52,7 +52,26 @@ class RedisConfigTest {
   }
 
   @Test
-  @DisplayName("Sentinel master 또는 nodes가 없으면 설정 오류를 알린다")
+  @DisplayName("Sentinel raw master 또는 nodes가 없으면 details 파싱 전에 설정 오류를 알린다")
+  void redisConnectionFactory_rejectsMissingRawSentinelPropertiesBeforeParsingDetails() {
+    RedisConnectionDetails connectionDetails =
+        new RedisConnectionDetails() {
+          @Override
+          public Sentinel getSentinel() {
+            throw new AssertionError("raw Sentinel 설정 검증보다 details 파싱이 먼저 실행됐다");
+          }
+        };
+    RedisConfig redisConfig = new RedisConfig(connectionDetails);
+    ReflectionTestUtils.setField(redisConfig, "redisMode", "sentinel");
+    ReflectionTestUtils.setField(redisConfig, "redisTimeout", Duration.ofSeconds(15));
+
+    assertThatThrownBy(redisConfig::redisConnectionFactory)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("master와 nodes");
+  }
+
+  @Test
+  @DisplayName("Sentinel connection details의 master 또는 nodes가 없으면 설정 오류를 알린다")
   void redisConnectionFactory_rejectsIncompleteSentinelDetails() {
     RedisConnectionDetails connectionDetails =
         new RedisConnectionDetails() {
@@ -89,6 +108,8 @@ class RedisConfigTest {
     RedisConfig redisConfig = new RedisConfig(connectionDetails);
     ReflectionTestUtils.setField(redisConfig, "redisMode", "sentinel");
     ReflectionTestUtils.setField(redisConfig, "redisTimeout", Duration.ofSeconds(15));
+    ReflectionTestUtils.setField(redisConfig, "sentinelMaster", "bottlenote-master");
+    ReflectionTestUtils.setField(redisConfig, "sentinelNodes", "sentinel-0:26379");
 
     assertThatThrownBy(redisConfig::redisConnectionFactory)
         .isInstanceOf(IllegalArgumentException.class)
