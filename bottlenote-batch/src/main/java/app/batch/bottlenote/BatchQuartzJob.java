@@ -3,6 +3,7 @@ package app.batch.bottlenote;
 
 import static java.time.LocalDateTime.now;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
@@ -50,14 +51,16 @@ public abstract class BatchQuartzJob extends QuartzJobBean {
 	 */
 	@Override
 	protected void executeInternal(@NonNull JobExecutionContext context) throws JobExecutionException {
-		log.info("[BATCH START] {} scheduler started at: {}", schedulerName, now());
+		LocalDateTime startedAt = now();
+		log.info("[BATCH START] {} scheduler started at: {}", schedulerName, startedAt);
 
 		try {
 			Job job = jobRegistry.getJob(batchJobName);
 			JobParametersBuilder jobParam =
 					new JobParametersBuilder()
-							.addLocalDateTime("localDateTime", now())
+							.addLocalDateTime("localDateTime", startedAt)
 							.addString("jobName", schedulerName);
+			customizeJobParameters(jobParam, startedAt);
 
 			jobLauncher.run(job, jobParam.toJobParameters());
 			log.info("[BATCH SUCCESS] {} scheduler completed successfully at: {}", schedulerName, now());
@@ -66,4 +69,8 @@ public abstract class BatchQuartzJob extends QuartzJobBean {
 			throw new JobExecutionException(e);
 		}
 	}
+
+	/** Job별 추가 파라미터를 구성한다. 기본 Job의 실행 식별 파라미터는 변경하지 않는다. */
+	protected void customizeJobParameters(
+			JobParametersBuilder jobParameters, LocalDateTime executionTime) {}
 }

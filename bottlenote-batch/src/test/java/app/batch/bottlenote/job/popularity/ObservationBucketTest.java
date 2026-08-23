@@ -107,6 +107,22 @@ class ObservationBucketTest {
   }
 
   @Test
+  @DisplayName("선택된 관측 버킷은 고유 실행 시각보다 우선한다")
+  void from_prefersSelectedBucketOverExecutionTime() {
+    JobParameters parameters =
+        new JobParametersBuilder()
+            .addLocalDateTime(
+                ObservationBucket.EXECUTION_TIME_PARAM, LocalDateTime.of(2026, 8, 23, 14, 20))
+            .addLocalDateTime(
+                ObservationBucket.BUCKET_AT_PARAM, LocalDateTime.of(2026, 8, 23, 13, 0), false)
+            .toJobParameters();
+
+    assertThat(ObservationBucket.from(parameters))
+        .isEqualTo(LocalDateTime.of(2026, 8, 23, 13, 0));
+    assertThat(parameters.getParameter(ObservationBucket.BUCKET_AT_PARAM).isIdentifying()).isFalse();
+  }
+
+  @Test
   @DisplayName("같은 파라미터로 여러 번 물어도 같은 버킷을 준다")
   void from_isStableAcrossCalls() {
     JobParameters parameters =

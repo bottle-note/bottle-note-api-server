@@ -1,5 +1,6 @@
 package app.batch.bottlenote.job.popularity;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,26 +32,40 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PopularitySnapshotTasklet implements Tasklet {
 
+  private static final String TABLE = "alcohol_popularity_snapshots";
+
   private static final String INTEREST_SQL =
-      latestSql("alcohol_interest_observations", "viewer_count");
+      latestHourSql("alcohol_interest_observations", "view_count");
   private static final String RATING_SQL =
-      latestSql("alcohol_rating_observations", "rating_count");
-  private static final String PICK_SQL = latestSql("alcohol_pick_observations", "pick_count");
+      latestHourSql("alcohol_rating_observations", "rating_count");
+  private static final String PICK_SQL =
+      latestHourSql("alcohol_pick_observations", "pick_count");
   private static final String ENGAGEMENT_SQL =
-      latestSql(
+      latestHourSql(
           "alcohol_engagement_observations", "(review_count + like_count + reply_count)");
+
+  private static final String PREVIOUS_SNAPSHOT_SQL =
+      """
+      SELECT bucket_at
+      FROM alcohol_popularity_snapshots
+      WHERE bucket_granularity = 'HOUR' AND bucket_at < ?
+      ORDER BY bucket_at DESC
+      LIMIT 1
+      """;
 
   private static final String INSERT_SQL =
       """
       INSERT INTO alcohol_popularity_snapshots
-        (alcohol_id, bucket_at,
+        (alcohol_id, bucket_granularity, bucket_at, observed_at, prev_bucket_at,
          interest_value, interest_source_bucket_at, interest_score,
          rating_value, rating_source_bucket_at, rating_score,
          pick_value, pick_source_bucket_at, pick_score,
          engagement_value, engagement_source_bucket_at, engagement_score,
          popularity_score)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, 'HOUR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
+        observed_at = VALUES(observed_at),
+        prev_bucket_at = VALUES(prev_bucket_at),
         interest_value = VALUES(interest_value),
         interest_source_bucket_at = VALUES(interest_source_bucket_at),
         interest_score = VALUES(interest_score),
@@ -71,15 +86,17 @@ public class PopularitySnapshotTasklet implements Tasklet {
    *
    * <p>희소 저장이라 이번 버킷이 아닐 수 있고, 그때는 직전 값이 여전히 유효하다 — 누적이기 때문이다.
    */
-  private static String latestSql(String table, String valueExpression) {
+  private static String latestHourSql(String table, String valueExpression) {
     return """
         SELECT o.alcohol_id, o.bucket_at, %s AS observed_value
         FROM %s o
         JOIN (SELECT alcohol_id, MAX(bucket_at) AS max_bucket
               FROM %s
-              WHERE bucket_at <= ?
+              WHERE bucket_granularity = 'HOUR' AND bucket_at <= ?
               GROUP BY alcohol_id) latest
-          ON o.alcohol_id = latest.alcohol_id AND o.bucket_at = latest.max_bucket
+          ON o.alcohol_id = latest.alcohol_id
+         AND o.bucket_granularity = 'HOUR'
+         AND o.bucket_at = latest.max_bucket
         JOIN alcohols a ON a.id = o.alcohol_id AND a.deleted_at IS NULL
         """
         .formatted(valueExpression, table, table);
@@ -93,6 +110,8 @@ public class PopularitySnapshotTasklet implements Tasklet {
     LocalDateTime bucketAt =
         ObservationBucket.from(
             chunkContext.getStepContext().getStepExecution().getJobParameters());
+    LocalDateTime observedAt = LocalDateTime.now();
+    LocalDateTime previousBucketAt = findPreviousSnapshotBucket(bucketAt);
 
     Map<Long, Axis> interest = loadAxis(INTEREST_SQL, bucketAt);
     Map<Long, Axis> rating = loadAxis(RATING_SQL, bucketAt);
@@ -104,6 +123,7 @@ public class PopularitySnapshotTasklet implements Tasklet {
     targets.addAll(rating.keySet());
     targets.addAll(pick.keySet());
     targets.addAll(engagement.keySet());
+    targets.addAll(writer.findAlcoholIdsAt(TABLE, BucketGranularity.HOUR, bucketAt));
 
     var weights = properties.getWeights();
     var reference = properties.getReference();
@@ -136,7 +156,7 @@ public class PopularitySnapshotTasklet implements Tasklet {
 
       rows.add(
           new Object[] {
-            alcoholId, bucketAt,
+            alcoholId, bucketAt, observedAt, previousBucketAt,
             i.value(), i.bucketAt(), interestScore,
             r.value(), r.bucketAt(), ratingScore,
             p.value(), p.bucketAt(), pickScore,
@@ -149,6 +169,18 @@ public class PopularitySnapshotTasklet implements Tasklet {
     contribution.incrementWriteCount(rows.size());
     log.info("최종 인기도 적재 완료. bucketAt={}, 대상={}종", bucketAt, rows.size());
     return RepeatStatus.FINISHED;
+  }
+
+  private LocalDateTime findPreviousSnapshotBucket(LocalDateTime bucketAt) {
+    return writer
+        .jdbc()
+        .query(
+            PREVIOUS_SNAPSHOT_SQL,
+            (rs, rowNumber) -> rs.getObject("bucket_at", LocalDateTime.class),
+            bucketAt)
+        .stream()
+        .findFirst()
+        .orElse(null);
   }
 
   private Map<Long, Axis> loadAxis(String sql, LocalDateTime bucketAt) {
