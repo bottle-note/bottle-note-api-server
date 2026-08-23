@@ -78,6 +78,23 @@ class PopularityObservationPropertiesTest {
   }
 
   @Test
+  @DisplayName("HOUR 원본 보관 기본값은 45일이다")
+  void defaultRetentionIsFortyFiveDays() {
+    assertThat(new PopularityObservationProperties().getRetention().getHourDays()).isEqualTo(45);
+  }
+
+  @Test
+  @DisplayName("보관 일수를 45일 미만으로 낮추면 기동에 실패한다")
+  void startupFailsWhenRetentionIsBelowMinimum() {
+    PopularityObservationProperties properties = new PopularityObservationProperties();
+    properties.getRetention().setHourDays(30);
+
+    assertThatThrownBy(properties::verifyOnStartup)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("HOUR 관측 보관 일수");
+  }
+
+  @Test
   @DisplayName("가중치가 0~1 범위를 벗어나면 오류로 잡는다")
   void rejectsWeightOutsideUnitRange() {
     PopularityObservationProperties properties = new PopularityObservationProperties();

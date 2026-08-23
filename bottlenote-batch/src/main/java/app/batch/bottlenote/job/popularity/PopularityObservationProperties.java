@@ -27,6 +27,7 @@ public class PopularityObservationProperties {
 
   private Weights weights = new Weights();
   private References reference = new References();
+  private Retention retention = new Retention();
 
   /**
    * 잘못된 설정으로 조용히 오작동하느니 기동에 실패하는 편이 낫다.
@@ -40,11 +41,12 @@ public class PopularityObservationProperties {
       throw new IllegalStateException("인기도 관측 설정이 올바르지 않습니다: " + String.join(", ", errors));
     }
     log.info(
-        "인기도 관측 설정 로드. 가중치=[관심 {}, 평가 {}, 선호 {}, 참여 {}], HOUR/WEEK/MONTH 정규화 기준 적용",
+        "인기도 관측 설정 로드. 가중치=[관심 {}, 평가 {}, 선호 {}, 참여 {}], HOUR/WEEK/MONTH 정규화 기준 적용, HOUR 보관 {}일",
         weights.interest,
         weights.rating,
         weights.pick,
-        weights.engagement);
+        weights.engagement,
+        retention.hourDays);
   }
 
   /** 설정 오류를 조용히 넘기지 않기 위해 기동 시 검증한다. */
@@ -60,6 +62,11 @@ public class PopularityObservationProperties {
     checkWeight(weights.rating, "평가도 가중치", errors);
     checkWeight(weights.pick, "선호도 가중치", errors);
     checkWeight(weights.engagement, "참여도 가중치", errors);
+
+    if (retention.hourDays < Retention.MINIMUM_HOUR_DAYS) {
+      errors.add(
+          "HOUR 관측 보관 일수는 " + Retention.MINIMUM_HOUR_DAYS + " 이상이어야 합니다: " + retention.hourDays);
+    }
 
     for (BucketGranularity granularity : BucketGranularity.values()) {
       Reference periodReference = referenceFor(granularity);
@@ -111,6 +118,19 @@ public class PopularityObservationProperties {
     private Reference hour = new Reference();
     private Reference week = new Reference();
     private Reference month = new Reference();
+  }
+
+  /**
+   * HOUR 원본 보관 기간.
+   *
+   * <p>정리는 월간 Job이 하므로 실제 보관은 이 값보다 길어질 수 있다. 짧게 줄이면 롤업 검증과 재실행 여유가 사라지므로 하한을 둔다.
+   */
+  @Getter
+  @Setter
+  public static class Retention {
+    static final int MINIMUM_HOUR_DAYS = 45;
+
+    private int hourDays = MINIMUM_HOUR_DAYS;
   }
 
   /** 각 축을 0~1로 누르는 분모. 이 값에 도달하면 해당 축은 만점이다. */
