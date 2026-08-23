@@ -28,6 +28,9 @@ class RedisConfigTest {
     RedisConfig redisConfig = new RedisConfig(connectionDetails);
     ReflectionTestUtils.setField(redisConfig, "redisMode", "sentinel");
     ReflectionTestUtils.setField(redisConfig, "redisTimeout", Duration.ofSeconds(15));
+    ReflectionTestUtils.setField(redisConfig, "sentinelMaster", "bottlenote-master");
+    ReflectionTestUtils.setField(
+        redisConfig, "sentinelNodes", "sentinel-0:26379,sentinel-1:26379,sentinel-2:26379");
 
     LettuceConnectionFactory factory =
         (LettuceConnectionFactory) redisConfig.redisConnectionFactory();

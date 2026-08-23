@@ -38,6 +38,12 @@ public class RedisConfig {
   @Value("${spring.data.redis.timeout:15s}")
   private Duration redisTimeout;
 
+  @Value("${spring.data.redis.sentinel.master:}")
+  private String sentinelMaster;
+
+  @Value("${spring.data.redis.sentinel.nodes:}")
+  private String sentinelNodes;
+
   @Order(Integer.MAX_VALUE - 100)
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {
@@ -71,13 +77,18 @@ public class RedisConfig {
         }
       }
     }
-    log.info("✅ Redis connection successfully established");
+    log.info("Redis connection configuration initialized");
     log.info("========================================");
   }
 
   @Bean
   @ConditionalOnMissingBean(RedisConnectionFactory.class)
   public RedisConnectionFactory redisConnectionFactory() {
+    if ("sentinel".equalsIgnoreCase(redisMode)
+        && (!StringUtils.hasText(sentinelMaster) || !StringUtils.hasText(sentinelNodes))) {
+      throw new IllegalArgumentException("Redis Sentinel 모드에서 master와 nodes 설정이 필요합니다.");
+    }
+
     LettuceClientConfiguration clientConfig =
         "sentinel".equalsIgnoreCase(redisMode)
             ? LettuceClientSupport.sentinelClientConfiguration(redisTimeout)
