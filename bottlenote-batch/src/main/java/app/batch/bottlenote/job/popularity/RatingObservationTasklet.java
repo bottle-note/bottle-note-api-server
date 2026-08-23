@@ -131,9 +131,40 @@ public class RatingObservationTasklet implements Tasklet {
           });
     }
 
+    // 이번 집계에 없는데 직전 관측이 있던 주류는 0으로 떨어진 것이다.
+    // 남기지 않으면 최종 적재가 사라진 값을 계속 끌어온다.
+    int zeroed = 0;
+    for (Map.Entry<Long, Snapshot> entry : previous.entrySet()) {
+      Long alcoholId = entry.getKey();
+      if (current.containsKey(alcoholId)) {
+        continue;
+      }
+      Snapshot before = entry.getValue();
+      if (before.isZero()) {
+        continue;
+      }
+      rows.add(
+          new Object[] {
+            alcoholId,
+            bucketAt,
+            observedAt,
+            before.bucketAt(),
+            0L,
+            BigDecimal.ZERO,
+            -before.count(),
+            before.sum().negate()
+          });
+      zeroed++;
+    }
+
     writer.batchInsert(INSERT_SQL, rows);
     contribution.incrementWriteCount(rows.size());
-    log.info("평가도 관측 완료. bucketAt={}, 적재={}행, 변화 없어 건너뜀={}행", bucketAt, rows.size(), skipped);
+    log.info(
+        "평가도 관측 완료. bucketAt={}, 적재={}행(0으로 떨어짐 {}행), 변화 없어 건너뜀={}행",
+        bucketAt,
+        rows.size(),
+        zeroed,
+        skipped);
     return RepeatStatus.FINISHED;
   }
 
@@ -144,6 +175,10 @@ public class RatingObservationTasklet implements Tasklet {
 
     boolean sameValueAs(Snapshot other) {
       return count == other.count && sum.compareTo(other.sum) == 0;
+    }
+
+    boolean isZero() {
+      return count == 0L && sum.signum() == 0;
     }
   }
 }
