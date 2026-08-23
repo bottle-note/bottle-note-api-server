@@ -96,3 +96,4 @@
 - 2026.08.23: Task 4 완료 - 개발 SOPS Secret 2개 전환, 복호화 계약 검증과 KSOPS 렌더 검증 통과
 - 2026.08.23: Grok 설계 검토 반영 - Sentinel topology refresh 활성화, 전용 factory의 command/connect timeout 분리, username 기본값 회귀 제거
 - 2026.08.23: Task 5 완료 - 포트포워드 Sentinel 인증과 master 조회 성공, 개발 Pod에서 source 및 전용 factory PING 성공, 임시 파일 정리
+- 2026.08.23: Self-review 반영 - Sentinel raw master/nodes 선검증과 lazy connection에 맞는 초기화 로그로 보정
