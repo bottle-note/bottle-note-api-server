@@ -815,7 +815,7 @@ class ObservationTaskletSqlTest {
     @Test
     @DisplayName("축 하나가 기준값의 절반이면 그 축 가중치의 절반만 점수에 실린다")
     void scoreReflectsNormalizationAndWeight() throws Exception {
-      // 기본 정규화 기준: pick=200, 가중치 0.25 → 100건이면 0.5 * 0.25 = 0.125
+      // 기본 정규화 기준: pick=200, 가중치 0.20 → 100건이면 0.5 * 0.20 = 0.10
       for (int i = 1; i <= 100; i++) {
         jdbc.update("INSERT INTO picks (alcohol_id, user_id, status) VALUES (1,?,'PICK')", i);
       }
@@ -829,8 +829,40 @@ class ObservationTaskletSqlTest {
       assertThat(new java.math.BigDecimal(rows.get(0).get("pick_score").toString()))
           .isEqualByComparingTo("0.5");
       assertThat(new java.math.BigDecimal(rows.get(0).get("popularity_score").toString()))
-          .as("나머지 세 축은 0이므로 0.5 * 0.25만 남는다")
-          .isEqualByComparingTo("0.125");
+          .as("나머지 세 축은 0이므로 0.5 * 0.20만 남는다")
+          .isEqualByComparingTo("0.1000");
+    }
+
+    @Test
+    @DisplayName("시간 조회 1건은 최종 점수에 0.001만 기여한다")
+    void singleInterestContributesOneTenthPercent() throws Exception {
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 1L));
+      run(interestTasklet(), BUCKET);
+
+      run(snapshotTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_popularity_snapshots");
+      assertThat(rows).hasSize(1);
+      assertThat(new java.math.BigDecimal(rows.get(0).get("interest_score").toString()))
+          .isEqualByComparingTo("0.0200");
+      assertThat(new java.math.BigDecimal(rows.get(0).get("popularity_score").toString()))
+          .isEqualByComparingTo("0.0010");
+    }
+
+    @Test
+    @DisplayName("시간 조회가 기준값에 도달해도 최종 점수 기여는 0.05다")
+    void interestContributionIsLimitedToFivePercent() throws Exception {
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 50L));
+      run(interestTasklet(), BUCKET);
+
+      run(snapshotTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_popularity_snapshots");
+      assertThat(rows).hasSize(1);
+      assertThat(new java.math.BigDecimal(rows.get(0).get("interest_score").toString()))
+          .isEqualByComparingTo("1.0000");
+      assertThat(new java.math.BigDecimal(rows.get(0).get("popularity_score").toString()))
+          .isEqualByComparingTo("0.0500");
     }
 
     @Test
@@ -847,7 +879,7 @@ class ObservationTaskletSqlTest {
       assertThat(new java.math.BigDecimal(rows.get(0).get("pick_score").toString()))
           .isEqualByComparingTo("1.0");
       assertThat(new java.math.BigDecimal(rows.get(0).get("popularity_score").toString()))
-          .isEqualByComparingTo("0.25");
+          .isEqualByComparingTo("0.20");
     }
 
     @Test

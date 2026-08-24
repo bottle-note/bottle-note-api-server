@@ -106,10 +106,10 @@ public class PopularityObservationProperties {
   @Getter
   @Setter
   public static class Weights {
-    private BigDecimal interest = new BigDecimal("0.25");
-    private BigDecimal rating = new BigDecimal("0.25");
-    private BigDecimal pick = new BigDecimal("0.25");
-    private BigDecimal engagement = new BigDecimal("0.25");
+    private BigDecimal interest = new BigDecimal("0.05");
+    private BigDecimal rating = new BigDecimal("0.35");
+    private BigDecimal pick = new BigDecimal("0.20");
+    private BigDecimal engagement = new BigDecimal("0.40");
   }
 
   @Getter

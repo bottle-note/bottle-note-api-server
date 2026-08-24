@@ -29,11 +29,14 @@ class PopularityObservationPropertiesTest {
   }
 
   @Test
-  @DisplayName("기본 가중치는 네 축 균등이고 합이 정확히 1이다")
+  @DisplayName("기본 가중치는 조회 영향을 낮추고 합이 정확히 1이다")
   void defaultWeightsSumToOne() {
     var weights = new PopularityObservationProperties().getWeights();
 
-    assertThat(weights.getInterest()).isEqualByComparingTo("0.25");
+    assertThat(weights.getInterest()).isEqualByComparingTo("0.05");
+    assertThat(weights.getRating()).isEqualByComparingTo("0.35");
+    assertThat(weights.getPick()).isEqualByComparingTo("0.20");
+    assertThat(weights.getEngagement()).isEqualByComparingTo("0.40");
     assertThat(
             weights
                 .getInterest()
