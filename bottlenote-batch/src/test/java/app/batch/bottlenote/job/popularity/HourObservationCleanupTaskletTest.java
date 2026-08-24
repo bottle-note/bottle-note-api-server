@@ -6,10 +6,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import app.bottlenote.alcohols.constant.BucketGranularity;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -65,10 +67,34 @@ class HourObservationCleanupTaskletTest {
 
     execute();
 
-    // 2번 주류는 월간 롤업이 없어 같은 시간대라도 원본을 남긴다
-    assertThat(hourKeys()).containsExactly(key(2L, JUNE));
+    // 1번 주류의 최신 HOUR와 월간 롤업이 없는 2번 주류의 HOUR는 기준값으로 남긴다
+    assertThat(hourKeys())
+        .containsExactly(key(2L, JUNE), key(1L, JUNE.plusDays(9).plusHours(5)));
     assertThat(rollupCount(BucketGranularity.WEEK)).isEqualTo(3);
     assertThat(rollupCount(BucketGranularity.MONTH)).isEqualTo(1);
+  }
+
+  @Test
+  @DisplayName("영역별 마지막 HOUR를 남기고 새 기준값이 생기면 이전 anchor를 지운다")
+  void keepsLatestHourAnchorForEachArea() {
+    LocalDateTime recentSnapshot = TARGET_MONTH.plusDays(1);
+    insertHour(1L, JUNE);
+    insertSnapshot(1L, BucketGranularity.HOUR, recentSnapshot);
+    insertRollup(1L, BucketGranularity.WEEK, JUNE);
+    insertRollup(1L, BucketGranularity.MONTH, JUNE);
+
+    execute();
+
+    for (String table : HourObservationCleanupTasklet.TABLES.subList(0, 4)) {
+      assertThat(hourKeysOf(table)).containsExactly(key(1L, JUNE));
+    }
+    assertThat(hourKeysOf("alcohol_popularity_snapshots"))
+        .containsExactly(key(1L, JUNE), key(1L, recentSnapshot));
+
+    insertObservations(1L, BucketGranularity.HOUR, recentSnapshot);
+    execute();
+
+    assertThat(hourKeys()).containsExactly(key(1L, recentSnapshot));
   }
 
   @Test
@@ -146,7 +172,9 @@ class HourObservationCleanupTaskletTest {
   @Test
   @DisplayName("재실행해도 남은 원본과 상위 롤업이 그대로다")
   void rerunKeepsSameResult() {
+    LocalDateTime latestAnchor = JUNE.plusHours(1);
     insertHour(1L, JUNE);
+    insertHour(1L, latestAnchor);
     insertHour(2L, JUNE);
     insertRollup(1L, BucketGranularity.WEEK, JUNE);
     insertRollup(1L, BucketGranularity.MONTH, JUNE);
@@ -156,9 +184,38 @@ class HourObservationCleanupTaskletTest {
     List<String> afterFirstRun = hourKeys();
     execute();
 
-    assertThat(hourKeys()).isEqualTo(afterFirstRun).containsExactly(key(2L, JUNE));
+    assertThat(hourKeys())
+        .isEqualTo(afterFirstRun)
+        .containsExactly(key(2L, JUNE), key(1L, latestAnchor));
     assertThat(rollupCount(BucketGranularity.WEEK)).isEqualTo(2);
     assertThat(rollupCount(BucketGranularity.MONTH)).isEqualTo(1);
+  }
+
+  @Test
+  @Timeout(30)
+  @DisplayName("5천 개 anchor를 한 chunk로 처리해도 반복 없이 종료한다")
+  void finishesWhenFullChunkKeepsAnchors() {
+    List<Object[]> alcoholRows =
+        LongStream.rangeClosed(3, HourObservationCleanupTasklet.CHUNK_SIZE)
+            .mapToObj(id -> new Object[] {id})
+            .toList();
+    jdbc.batchUpdate("INSERT INTO alcohols (id, deleted_at) VALUES (?, NULL)", alcoholRows);
+
+    insertForAllAlcohols("alcohol_interest_observations", BucketGranularity.HOUR, JUNE);
+    insertForAllAlcohols("alcohol_popularity_snapshots", BucketGranularity.HOUR, JUNE);
+    insertForAllAlcohols(
+        "alcohol_popularity_snapshots", BucketGranularity.HOUR, TARGET_MONTH.plusDays(1));
+    for (String table : HourObservationCleanupTasklet.TABLES) {
+      insertForAllAlcohols(table, BucketGranularity.WEEK, JUNE);
+      insertForAllAlcohols(table, BucketGranularity.MONTH, JUNE);
+    }
+
+    execute();
+
+    assertThat(hourCount("alcohol_interest_observations"))
+        .isEqualTo(HourObservationCleanupTasklet.CHUNK_SIZE);
+    assertThat(hourCount("alcohol_popularity_snapshots"))
+        .isEqualTo(HourObservationCleanupTasklet.CHUNK_SIZE * 2);
   }
 
   @Test
@@ -202,6 +259,48 @@ class HourObservationCleanupTaskletTest {
           bucketAt,
           bucketAt);
     }
+  }
+
+  private void insertSnapshot(
+      long alcoholId, BucketGranularity granularity, LocalDateTime bucketAt) {
+    jdbc.update(
+        "INSERT INTO alcohol_popularity_snapshots "
+            + "(alcohol_id, bucket_granularity, bucket_at, observed_at) VALUES (?, ?, ?, ?)",
+        alcoholId,
+        granularity.name(),
+        bucketAt,
+        bucketAt);
+  }
+
+  private void insertObservations(
+      long alcoholId, BucketGranularity granularity, LocalDateTime bucketAt) {
+    for (String table : HourObservationCleanupTasklet.TABLES.subList(0, 4)) {
+      jdbc.update(
+          "INSERT INTO "
+              + table
+              + " (alcohol_id, bucket_granularity, bucket_at, observed_at) VALUES (?, ?, ?, ?)",
+          alcoholId,
+          granularity.name(),
+          bucketAt,
+          bucketAt);
+    }
+  }
+
+  private void insertForAllAlcohols(
+      String table, BucketGranularity granularity, LocalDateTime bucketAt) {
+    jdbc.update(
+        "INSERT INTO "
+            + table
+            + " (alcohol_id, bucket_granularity, bucket_at, observed_at)"
+            + " SELECT id, ?, ?, ? FROM alcohols",
+        granularity.name(),
+        bucketAt,
+        bucketAt);
+  }
+
+  private int hourCount(String table) {
+    return jdbc.queryForObject(
+        "SELECT COUNT(*) FROM " + table + " WHERE bucket_granularity = 'HOUR'", Integer.class);
   }
 
   /** 다섯 영역이 같은 키 집합을 갖는지 확인하고 그 키를 돌려준다. */
