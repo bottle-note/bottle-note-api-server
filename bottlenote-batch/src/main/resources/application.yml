@@ -78,10 +78,10 @@ schedules:
 popularity:
   observation:
     weights:
-      interest: 0.25
-      rating: 0.25
-      pick: 0.25
-      engagement: 0.25
+      interest: 0.05
+      rating: 0.35
+      pick: 0.20
+      engagement: 0.40
     # 단위별 각 축을 0~1로 누르는 분모. 실제 분포를 확인하기 전까지 같은 임시값을 쓴다.
     reference:
       hour:
