@@ -20,7 +20,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -28,7 +28,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 /**
  * 인기도 관측 Job.
  *
- * <p>네 축을 병렬로 관측한 뒤 합류해서 최종 인기도를 적재한다. 축끼리 의존이 없으므로 병렬이 가능하고, 한 축이 무거워져도 전체 소요가 넷의 합이 되지 않는다.
+ * <p>네 축을 독립 Flow로 관측한 뒤 합류해서 최종 인기도를 적재한다. 정각의 기존 Job과 동시에 점유하는 DB 연결을 줄이도록 Flow 실행은 직렬화한다.
  *
  * <p>split 안의 flow가 하나라도 실패하면 전체 flow가 실패로 끝나 뒤따르는 적재 Step은 실행되지 않는다. 이때 성공한 축의 관측 행은 남고, 최종 테이블만
  * 갱신되지 않아 조회가 직전 버킷을 계속 본다.
@@ -51,8 +51,8 @@ public class PopularityObservationJobConfig {
   public Job popularityObservationJob(
       JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 
-    Flow parallelObservation =
-        new FlowBuilder<Flow>("popularityParallelObservation")
+    Flow axisObservation =
+        new FlowBuilder<Flow>("popularityAxisObservation")
             .split(popularityObservationTaskExecutor())
             .add(
                 flowOf("interestObservationFlow", interestStep(jobRepository, transactionManager)),
@@ -64,7 +64,7 @@ public class PopularityObservationJobConfig {
             .build();
 
     return new JobBuilder(JOB_NAME, jobRepository)
-        .start(parallelObservation)
+        .start(axisObservation)
         .next(popularitySnapshotStep(jobRepository, transactionManager))
         .end()
         .build();
@@ -72,10 +72,7 @@ public class PopularityObservationJobConfig {
 
   @Bean
   public TaskExecutor popularityObservationTaskExecutor() {
-    SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("popularity-obs-");
-    // 축이 넷이므로 그 이상 동시에 뜰 일이 없다
-    executor.setConcurrencyLimit(4);
-    return executor;
+    return new SyncTaskExecutor();
   }
 
   private Flow flowOf(String name, Step step) {

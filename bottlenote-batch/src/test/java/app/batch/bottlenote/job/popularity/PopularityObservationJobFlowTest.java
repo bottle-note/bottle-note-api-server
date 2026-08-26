@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.quartz.CronTrigger;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionException;
-import org.quartz.Trigger;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -32,6 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.test.context.TestPropertySource;
@@ -39,7 +40,7 @@ import org.springframework.test.context.TestPropertySource;
 /**
  * Job 흐름 계약 검증.
  *
- * <p>네 축을 병렬로 돌린 뒤 합류해서 적재하는데, <b>한 축이라도 실패하면 적재가 실행되지 않아야 한다.</b> 이것이 이 파이프라인의 핵심 계약이라 실제로 Job을
+ * <p>네 축을 독립 Flow로 순차 실행한 뒤 합류해서 적재하는데, <b>한 축이라도 실패하면 적재가 실행되지 않아야 한다.</b> 이것이 이 파이프라인의 핵심 계약이라 실제로 Job을
  * 실행해서 확인한다.
  *
  * <p>인메모리 DB를 쓰므로 도커 없이 돈다. 관측 SQL 자체는 여기서 검증하지 않는다 — Tasklet을 기록용 테스트 더블로 갈아끼우고 흐름만 본다.
@@ -85,7 +86,7 @@ class PopularityObservationJobFlowTest {
 
     assertThat(execution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
     assertThat(EXECUTED)
-        .containsExactlyInAnyOrder("interest", "rating", "pick", "engagement", "snapshot");
+        .containsExactly("interest", "rating", "pick", "engagement", "snapshot");
   }
 
   @Test
@@ -128,22 +129,35 @@ class PopularityObservationJobFlowTest {
   }
 
   @Test
-  @DisplayName("기존 Quartz Job과 Trigger identity를 유지한다")
-  void preservesQuartzIdentity() {
+  @DisplayName("시간 경계에 실행하면서 기존 Quartz identity를 유지한다")
+  void runsAtHourBoundaryAndPreservesQuartzIdentity() {
     PopularityQuartzConfig config = new PopularityQuartzConfig();
 
     JobDetail jobDetail = config.popularityObservationJobDetail();
-    Trigger trigger = config.popularityObservationJobTrigger();
+    CronTrigger trigger = (CronTrigger) config.popularityObservationJobTrigger();
 
     assertThat(jobDetail.getKey().getName()).isEqualTo("popularityObservationJob");
+    assertThat(jobDetail.requestsRecovery()).isFalse();
     assertThat(trigger.getKey().getName()).isEqualTo("popularityObservationTrigger");
     assertThat(trigger.getJobKey()).isEqualTo(jobDetail.getKey());
+    assertThat(trigger.getCronExpression()).isEqualTo("0 0 * * * ?");
+    assertThat(trigger.getMisfireInstruction())
+        .isEqualTo(CronTrigger.MISFIRE_INSTRUCTION_DO_NOTHING);
   }
 
   @Test
-  @DisplayName("매시 20분 실행은 직전 완료 시간 버킷을 Job parameter로 선택한다")
+  @DisplayName("시간 관측 축은 자정 Job과 동시에 점유하는 DB 연결을 줄이도록 직렬 실행한다")
+  void serializesAxisObservation() {
+    PopularityObservationJobConfig config =
+        new PopularityObservationJobConfig(null, null, null, null, null);
+
+    assertThat(config.popularityObservationTaskExecutor()).isInstanceOf(SyncTaskExecutor.class);
+  }
+
+  @Test
+  @DisplayName("시간 경계 실행은 직전 완료 시간 버킷을 Job parameter로 선택한다")
   void selectsPreviousClosedHour() {
-    LocalDateTime executionTime = LocalDateTime.of(2026, 8, 23, 14, 20);
+    LocalDateTime executionTime = LocalDateTime.of(2026, 8, 23, 14, 0);
     JobParametersBuilder builder =
         new JobParametersBuilder()
             .addLocalDateTime(ObservationBucket.EXECUTION_TIME_PARAM, executionTime);
@@ -160,7 +174,7 @@ class PopularityObservationJobFlowTest {
     assertThat(parameters.getParameter(ObservationBucket.BUCKET_AT_PARAM).isIdentifying()).isFalse();
     assertThat(
             PopularityObservationJobConfig.PopularityObservationQuartzJob.closedHourAt(
-                LocalDateTime.of(2026, 8, 23, 0, 20)))
+                LocalDateTime.of(2026, 8, 23, 0, 0)))
         .isEqualTo(LocalDateTime.of(2026, 8, 22, 23, 0));
   }
 
