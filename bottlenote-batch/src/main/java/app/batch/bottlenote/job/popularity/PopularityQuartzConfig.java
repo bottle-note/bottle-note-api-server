@@ -29,17 +29,10 @@ public class PopularityQuartzConfig {
   private static final String MONTHLY_JOB_KEY = "popularityMonthlyRollupJob";
   private static final String MONTHLY_TRIGGER_KEY = "popularityMonthlyRollupTrigger";
 
-  /**
-   * 매시 20분. 버킷 간격을 바꾸면 이 표현식도 함께 바꿔야 한다.
-   *
-   * <p>정각을 피하는 이유가 둘이다. 하나, 조회 이력은 Redis에서 DB로 매분 0초에 동기화되는데 관측도 정각에 돌면 직전 1분치가 아직 안 넘어온 상태로
-   * 세어진다. 그 조회는 뒤늦게 이전 구간 시각으로 기록되므로 다음 버킷에도 잡히지 않아 영구히 유실된다.
-   *
-   * <p>둘, 기존 일배치(베스트 리뷰·인기 주류)가 매일 0시 정각에 돌고 같은 커넥션 풀을 쓴다. 가까이 붙으면 네 축이 커넥션을 얻지 못해 관측이 실패한다.
-   */
-  private static final String HOURLY_CRON = "0 20 * * * ?";
+  /** 닫힌 HOUR 상태의 관측 시점 오차를 최소화하도록 매시 정각에 실행한다. */
+  private static final String HOURLY_CRON = "0 0 * * * ?";
 
-  /** 월요일 02:50. 매시 20분 HOUR Job과 자정 일배치의 시작 시점을 피한다. */
+  /** 월요일 02:50. 매시 정각 HOUR Job과 자정 일배치의 시작 시점을 피한다. */
   private static final String WEEKLY_CRON = "0 50 2 ? * MON";
 
   /**
@@ -52,10 +45,10 @@ public class PopularityQuartzConfig {
 
   @Bean
   public JobDetail popularityObservationJobDetail() {
+    // 현재 상태로 과거 HOUR를 복원할 수 없으므로 recovery 실행을 등록하지 않는다
     return JobBuilder.newJob(PopularityObservationQuartzJob.class)
         .withIdentity(JOB_KEY)
         .storeDurably()
-        .requestRecovery(true)
         .build();
   }
 
@@ -66,8 +59,8 @@ public class PopularityQuartzConfig {
         .withIdentity(TRIGGER_KEY)
         .withSchedule(
             CronScheduleBuilder.cronSchedule(HOURLY_CRON)
-                // 인스턴스 재기동 등으로 놓친 실행이 몰려 돌지 않게 한 번만 따라잡는다
-                .withMisfireHandlingInstructionFireAndProceed())
+                // 지연된 현재 상태를 과거 HOUR에 기록할 수 없으므로 놓친 실행은 건너뛴다
+                .withMisfireHandlingInstructionDoNothing())
         .build();
   }
 
