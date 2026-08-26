@@ -12,6 +12,7 @@ import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import com.querydsl.core.types.Order;
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,7 @@ class UserQuerySupporterTest {
   @DisplayName("마이보틀 조회 결과가 pageSize보다 많으면 응답 목록에서는 lookahead 항목을 제거한다")
   @Test
   void myBottlePageItems_whenHasLookahead_removesLookaheadFromResponseItems() {
-    var request = new MyBottlePageableCriteria(1L, null, null, null, null, null, 2, 1L);
+    var request = new MyBottlePageableCriteria(1L, null, null, null, null, null, 2, 1L, Set.of());
     var items = List.of("first", "second", "lookahead");
 
     var pageItems = supporter.myBottlePageItems(request, items);
@@ -72,7 +73,7 @@ class UserQuerySupporterTest {
   @DisplayName("마이보틀 조회 결과가 pageSize 이하면 응답 목록을 그대로 유지한다")
   @Test
   void myBottlePageItems_whenNoLookahead_keepsResponseItems() {
-    var request = new MyBottlePageableCriteria(1L, null, null, null, null, null, 3, 1L);
+    var request = new MyBottlePageableCriteria(1L, null, null, null, null, null, 3, 1L, Set.of());
     var items = List.of("first", "second");
 
     var pageItems = supporter.myBottlePageItems(request, items);
@@ -103,7 +104,7 @@ class UserQuerySupporterTest {
   void encodeMyBottleCursor_whenSortValueIsNull_omitsSortKeyFromCursor() {
     var request =
         new MyBottlePageableCriteria(
-            1L, null, null, MyBottleSortType.REVIEW, SortOrder.DESC, null, 10, 1L);
+            1L, null, null, MyBottleSortType.REVIEW, SortOrder.DESC, null, 10, 1L, Set.of());
 
     String cursor =
         supporter.encodeMyBottleCursor(
@@ -118,13 +119,13 @@ class UserQuerySupporterTest {
   void myBottleSeek_whenCursorSortValueIsNull_buildsNullTailSeek() {
     var request =
         new MyBottlePageableCriteria(
-            1L, null, null, MyBottleSortType.LATEST, SortOrder.DESC, null, 10, 1L);
+            1L, null, null, MyBottleSortType.LATEST, SortOrder.DESC, null, 10, 1L, Set.of());
     String cursor =
         supporter.encodeMyBottleCursor(
             MyBottleType.PICK, request, 5L, null, null, null, cursorCodec);
     var requestWithCursor =
         new MyBottlePageableCriteria(
-            1L, null, null, MyBottleSortType.LATEST, SortOrder.DESC, cursor, 10, 1L);
+            1L, null, null, MyBottleSortType.LATEST, SortOrder.DESC, cursor, 10, 1L, Set.of());
 
     var seek = supporter.myBottleSeek(MyBottleType.PICK, requestWithCursor, cursorCodec);
 

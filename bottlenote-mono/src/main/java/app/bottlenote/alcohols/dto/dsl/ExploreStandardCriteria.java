@@ -29,41 +29,6 @@ public record ExploreStandardCriteria(
     Integer size,
     LocalDateTime popularityBucketAt) {
 
-  public ExploreStandardCriteria(
-      Long userId,
-      List<String> keywords,
-      AlcoholCategoryGroup category,
-      List<Long> regionIds,
-      List<Long> distilleryIds,
-      Long curationId,
-      SearchSortType sortType,
-      SortOrder sortOrder,
-      BigDecimal ratingFrom,
-      BigDecimal ratingTo,
-      Long seed,
-      String cursor,
-      Integer size) {
-    this(
-        userId,
-        keywords,
-        category,
-        regionIds,
-        distilleryIds,
-        curationId,
-        sortType,
-        sortOrder,
-        ratingFrom,
-        ratingTo,
-        seed,
-        cursor,
-        size,
-        null);
-  }
-
-  public static ExploreStandardCriteria of(ExploreStandardRequest request, Long userId, long seed) {
-    return of(request, userId, seed, null);
-  }
-
   public static ExploreStandardCriteria of(
       ExploreStandardRequest request,
       Long userId,

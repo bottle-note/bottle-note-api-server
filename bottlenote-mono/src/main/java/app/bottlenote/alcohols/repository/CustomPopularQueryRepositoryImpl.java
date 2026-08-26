@@ -34,13 +34,13 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
   }
 
   @Override
-  public List<PopularItem> getPopularByViewsWeekly(Long userId, int limit) {
+  public List<PopularItem> getPopularByInterestWeekly(Long userId, int limit) {
     return getPopularBySnapshot(
         userId, limit, BucketGranularity.WEEK, alcoholPopularitySnapshot.interestScore);
   }
 
   @Override
-  public List<PopularItem> getPopularByViewsMonthly(Long userId, int limit) {
+  public List<PopularItem> getPopularByInterestMonthly(Long userId, int limit) {
     return getPopularBySnapshot(
         userId, limit, BucketGranularity.MONTH, alcoholPopularitySnapshot.interestScore);
   }
@@ -124,7 +124,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         alcohol.korName,
         alcohol.engName,
         rating.ratingPoint.rating.avg().coalesce(0.0),
-        rating.id.alcoholId.count(),
+        rating.id.alcoholId.countDistinct(),
         alcohol.korCategory,
         alcohol.engCategory,
         alcohol.imageUrl,
