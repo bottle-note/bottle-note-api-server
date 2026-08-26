@@ -3,7 +3,6 @@ package app.bottlenote.alcohols.repository;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
 import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
@@ -25,7 +24,7 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -51,16 +50,8 @@ public class AlcoholQuerySupporter {
   }
 
   /** 주어진 주류가 인기 순위에 포함되는지 확인 */
-  public BooleanExpression isHot5(NumberPath<Long> id) {
-    LocalDateTime now = LocalDateTime.now();
-    return select(popularAlcohol.count())
-        .from(popularAlcohol)
-        .where(
-            popularAlcohol.alcoholId.eq(id),
-            popularAlcohol.year.eq(now.getYear()),
-            popularAlcohol.month.eq(now.getMonthValue()),
-            popularAlcohol.day.eq(now.getDayOfMonth()))
-        .gt(0L);
+  public BooleanExpression isHot5(NumberPath<Long> id, Collection<Long> hotAlcoholIds) {
+    return hotAlcoholIds.isEmpty() ? Expressions.asBoolean(false) : id.in(hotAlcoholIds);
   }
 
   /** 사용자가 주류에 찜하기를 했는지 확인하는 서브쿼리 생성 */
@@ -124,15 +115,12 @@ public class AlcoholQuerySupporter {
   /** 정렬 조건에 따른 OrderSpecifier 생성 */
   public OrderSpecifier<?> sortBy(SearchSortType searchSortType, SortOrder sortOrder) {
     // 평점 없는 알코올의 AVG(rating) NULL → ORDER BY 시 NULL-first 로 정렬 불안정 유발
-    // coalesce(0.0) 로 결정적 정렬 + POPULAR 산식 NULL 전파 방지
+    // coalesce(0.0) 로 결정적 정렬
     NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg().coalesce(0.0);
     NumberExpression<Long> reviewCount = review.id.countDistinct();
     NumberExpression<Long> pickCount = picks.id.countDistinct();
     return switch (searchSortType) {
-      case POPULAR ->
-          sortOrder == SortOrder.DESC
-              ? avgRating.add(reviewCount).desc()
-              : avgRating.add(reviewCount).asc();
+      case POPULAR -> throw new IllegalArgumentException("POPULAR uses snapshot score");
       case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
       case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
       case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
@@ -180,7 +168,7 @@ public class AlcoholQuerySupporter {
     NumberExpression<Long> reviewCount = review.id.countDistinct();
     NumberExpression<Long> pickCount = picks.id.countDistinct();
     return switch (searchSortType) {
-      case POPULAR -> avgRating.add(reviewCount);
+      case POPULAR -> throw new IllegalArgumentException("POPULAR uses snapshot score");
       case RATING -> avgRating;
       case PICK -> pickCount;
       case REVIEW -> reviewCount;

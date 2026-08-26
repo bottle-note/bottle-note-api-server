@@ -2,7 +2,6 @@ package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.PopularQueryRepository;
 import app.bottlenote.alcohols.dto.response.PopularItem;
-import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +19,11 @@ public class AlcoholPopularService {
 
   @Transactional(readOnly = true)
   public List<PopularItem> getPopularOfWeek(Integer top, Long userId) {
+    if (top == null || top <= 0) {
+      return List.of();
+    }
     PageRequest pageRequest = PageRequest.of(0, top);
-    List<PopularItem> popularItemList =
-        popularQueryRepository.getPopularOfWeeks(userId, pageRequest);
-    Collections.shuffle(popularItemList);
-    return popularItemList;
+    return popularQueryRepository.getPopularOfWeeks(userId, pageRequest);
   }
 
   @Transactional(readOnly = true)

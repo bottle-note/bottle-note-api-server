@@ -73,6 +73,25 @@ class PopularIntegrationTest extends IntegrationTestSupport {
       assertTrue(alcoholIds(response).contains(visible.getId()));
       assertFalse(alcoholIds(response).contains(deleted.getId()));
     }
+
+    @Test
+    @DisplayName("WEEK Snapshot이 없으면 legacy 인기 점수로 보충하지 않는다")
+    void getPopularOfWeek_doesNotFallbackToLegacyPopularity() throws Exception {
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      alcoholTestFactory.persistPopularAlcohol(alcohol.getId(), new BigDecimal("0.9"));
+
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/week", 5);
+
+      assertTrue(response.getAlcohols().isEmpty());
+    }
+
+    @Test
+    @DisplayName("조회 개수가 0이면 빈 목록을 반환한다")
+    void getPopularOfWeek_withZeroTop_returnsEmptyList() throws Exception {
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/week", 0);
+
+      assertTrue(response.getAlcohols().isEmpty());
+    }
   }
 
   @Nested

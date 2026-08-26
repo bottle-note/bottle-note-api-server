@@ -2,7 +2,9 @@ package app.bottlenote.alcohols.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.constant.SearchSortType;
+import app.bottlenote.alcohols.domain.AlcoholPopularitySnapshotRepository;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.AlcoholViewCounter;
 import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
@@ -12,6 +14,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.PaginationException;
@@ -20,6 +23,7 @@ import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlcoholQueryService {
   private static final int MAX_FRIENDS_SIZE = 6;
   private final AlcoholQueryRepository alcoholQueryRepository;
+  private final AlcoholPopularitySnapshotRepository alcoholPopularitySnapshotRepository;
   private final AlcoholViewCounter alcoholViewCounter;
   private final AlcoholViewHistoryService viewHistoryService;
   private final ReviewFacade reviewFacade;
@@ -82,7 +87,9 @@ public class AlcoholQueryService {
   public KeysetPageResponse<ExploreStandardResponse> getStandardExplore(
       ExploreStandardRequest request, Long userId) {
     long resolvedSeed = resolveSeed(request, userId);
-    ExploreStandardCriteria criteria = ExploreStandardCriteria.of(request, userId, resolvedSeed);
+    LocalDateTime popularityBucketAt = resolvePopularityBucketAt(request, userId);
+    ExploreStandardCriteria criteria =
+        ExploreStandardCriteria.of(request, userId, resolvedSeed, popularityBucketAt);
     KeysetPageResponse<List<AlcoholDetailItem>> page =
         alcoholQueryRepository.getStandardExplore(criteria);
     return KeysetPageResponse.of(new ExploreStandardResponse(page.content()), page.pagination());
@@ -109,5 +116,20 @@ public class AlcoholQueryService {
       }
     }
     return ThreadLocalRandom.current().nextLong();
+  }
+
+  private LocalDateTime resolvePopularityBucketAt(ExploreStandardRequest request, Long userId) {
+    if (request.sortType() != SearchSortType.POPULAR) {
+      return null;
+    }
+    if (request.cursor() != null) {
+      return CursorKeys.requireExtraTime(
+          cursorCodec.verify(
+              request.cursor(), ExploreStandardCriteria.of(request, userId, 0L).context()),
+          "bucketAt");
+    }
+    return alcoholPopularitySnapshotRepository
+        .findLatestBucketAt(BucketGranularity.HOUR)
+        .orElse(null);
   }
 }

@@ -26,4 +26,7 @@ public interface AlcoholPopularitySnapshotRepository
   /** 지정한 버킷 안에서만 점수순으로 상위를 고른다. */
   List<AlcoholPopularitySnapshot> findTopByBucket(
       BucketGranularity bucketGranularity, LocalDateTime bucketAt, int limit);
+
+  /** 최신 전역 버킷의 최종 인기도 상위 주류 ID를 조회한다. */
+  List<Long> findLatestTopAlcoholIds(BucketGranularity bucketGranularity, int limit);
 }

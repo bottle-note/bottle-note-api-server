@@ -401,6 +401,21 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("HOUR Snapshot이 없으면 POPULAR 목록은 비어 있다")
+    void popular_without_snapshot_returns_empty_page() throws Exception {
+      alcoholTestFactory.persistAlcohols(3);
+
+      exchangeGet(
+              b -> b.param("sortType", "POPULAR").param("sortOrder", "DESC").param("size", "3"))
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items")
+          .asArray()
+          .isEmpty();
+    }
+
+    @Test
     @DisplayName("POPULAR 커서는 최초 HOUR Snapshot 버킷을 다음 페이지까지 유지한다")
     void popular_cursor_keeps_first_snapshot_bucket() throws Exception {
       List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(6);

@@ -36,7 +36,17 @@ public interface JpaAlcoholsViewHistoryRepository
                     AND p.status = app.bottlenote.picks.constant.PicksStatus.PICK
               ) THEN true
               ELSE false END),
-          COALESCE((SELECT CAST(MAX(pa.popularScore) AS double) FROM popular_alcohol pa WHERE pa.alcoholId = a.id.alcoholId), 0.0),
+          COALESCE((
+              SELECT CAST(s.popularityScore AS double)
+              FROM alcohol_popularity_snapshot s
+              WHERE s.alcoholId = a.id.alcoholId
+                AND s.bucketGranularity = app.bottlenote.alcohols.constant.BucketGranularity.HOUR
+                AND s.bucketAt = (
+                    SELECT MAX(s2.bucketAt)
+                    FROM alcohol_popularity_snapshot s2
+                    WHERE s2.bucketGranularity = app.bottlenote.alcohols.constant.BucketGranularity.HOUR
+                )
+          ), 0.0),
           a.viewAt)
       FROM alcohols_view_history a
       JOIN alcohol al ON al.id = a.id.alcoholId

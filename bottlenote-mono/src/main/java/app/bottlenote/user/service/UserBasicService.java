@@ -6,6 +6,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCES
 import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
+import app.bottlenote.alcohols.facade.AlcoholPopularityFacade;
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.image.ImageUtil;
@@ -23,6 +24,7 @@ import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -37,6 +39,7 @@ public class UserBasicService {
   private static final String REFERENCE_TYPE_PROFILE = "PROFILE";
 
   private final UserRepository userRepository;
+  private final AlcoholPopularityFacade alcoholPopularityFacade;
   private final UserFilterManager userFilterManager;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -144,7 +147,9 @@ public class UserBasicService {
           }
 
           MyBottlePageableCriteria criteria =
-              MyBottlePageableCriteria.of(myBottleRequest, userId, currentUserId);
+              MyBottlePageableCriteria.of(myBottleRequest, userId, currentUserId)
+                  .withHotAlcoholIds(
+                      Set.copyOf(alcoholPopularityFacade.findWeeklyTopAlcoholIds(5)));
 
           return switch (myBottleType) {
             case REVIEW -> userRepository.getReviewMyBottle(criteria);
