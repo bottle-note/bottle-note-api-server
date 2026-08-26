@@ -2,16 +2,15 @@ package app.bottlenote.alcohols.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
-import app.bottlenote.history.fixture.AlcoholsViewHistoryTestFactory;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
@@ -30,216 +29,153 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 class PopularIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private AlcoholTestFactory alcoholTestFactory;
-  @Autowired private UserTestFactory userTestFactory;
   @Autowired private RatingTestFactory ratingTestFactory;
-  @Autowired private AlcoholsViewHistoryTestFactory viewHistoryTestFactory;
+  @Autowired private UserTestFactory userTestFactory;
 
   @Nested
   @DisplayName("주간 인기 API")
   class WeeklyPopularApi {
 
     @Test
-    @DisplayName("주간 인기 위스키를 조회할 수 있다")
-    void test_getPopularOfWeek() throws Exception {
-      // given
-      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(5);
-      for (int i = 0; i < alcohols.size(); i++) {
-        alcoholTestFactory.persistPopularAlcohol(
-            alcohols.get(i).getId(), BigDecimal.valueOf(0.5 - i * 0.1));
-      }
+    @DisplayName("최신 WEEK Snapshot의 최종 인기도순으로 조회한다")
+    void getPopularOfWeek_ordersByLatestWeeklyPopularitySnapshot() throws Exception {
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(3);
+      LocalDateTime previousBucket = weeklyBucket().minusWeeks(1);
+      LocalDateTime latestBucket = weeklyBucket();
+      alcoholTestFactory.persistPopularitySnapshot(
+          alcohols.get(0).getId(),
+          BucketGranularity.WEEK,
+          previousBucket,
+          score("0.1"),
+          score("1.0"));
+      persistSnapshot(alcohols.get(0), BucketGranularity.WEEK, latestBucket, "0.3", "0.2");
+      persistSnapshot(alcohols.get(1), BucketGranularity.WEEK, latestBucket, "0.1", "0.9");
+      persistSnapshot(alcohols.get(2), BucketGranularity.WEEK, latestBucket, "0.2", "0.5");
 
-      // when
-      MvcTestResult result =
-          mockMvcTester
-              .get()
-              .uri("/api/v1/popular/week")
-              .param("top", "5")
-              .contentType(APPLICATION_JSON)
-              .with(csrf())
-              .exchange();
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/week", 3);
 
-      // then
-      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
-      assertNotNull(response);
-      assertEquals(5, response.getAlcohols().size());
+      assertEquals(
+          List.of(alcohols.get(1).getId(), alcohols.get(2).getId(), alcohols.get(0).getId()),
+          alcoholIds(response));
+      assertEquals(0.9, response.getAlcohols().getFirst().popularScore());
     }
 
     @Test
-    @DisplayName("삭제 처리된 알코올은 주간 인기 위스키에서 제외된다")
-    void popularOfWeek_excludes_deleted_alcohol() throws Exception {
+    @DisplayName("삭제 처리된 알코올은 WEEK Snapshot 인기 목록에서 제외한다")
+    void getPopularOfWeek_excludesDeletedAlcohol() throws Exception {
       Alcohol visible = alcoholTestFactory.persistAlcohol();
       Alcohol deleted = alcoholTestFactory.persistDeletedAlcohol();
-      alcoholTestFactory.persistPopularAlcohol(visible.getId(), BigDecimal.valueOf(0.4));
-      alcoholTestFactory.persistPopularAlcohol(deleted.getId(), BigDecimal.valueOf(0.9));
+      persistSnapshot(visible, BucketGranularity.WEEK, weeklyBucket(), "0.4", "0.4");
+      persistSnapshot(deleted, BucketGranularity.WEEK, weeklyBucket(), "0.9", "0.9");
 
-      MvcTestResult result =
-          mockMvcTester
-              .get()
-              .uri("/api/v1/popular/week")
-              .param("top", "5")
-              .contentType(APPLICATION_JSON)
-              .with(csrf())
-              .exchange();
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/week", 5);
 
-      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
-      assertTrue(
-          response.getAlcohols().stream()
-              .anyMatch(item -> item.alcoholId().equals(visible.getId())));
-      assertFalse(
-          response.getAlcohols().stream()
-              .anyMatch(item -> item.alcoholId().equals(deleted.getId())));
+      assertTrue(alcoholIds(response).contains(visible.getId()));
+      assertFalse(alcoholIds(response).contains(deleted.getId()));
     }
   }
 
   @Nested
-  @DisplayName("조회수 기반 인기 API")
-  class ViewBasedPopularApi {
+  @DisplayName("관심도 기반 인기 API")
+  class InterestPopularApi {
 
     @Test
-    @DisplayName("주간 조회수 기반 인기 위스키를 조회할 수 있다")
-    void test_getPopularViewWeekly() throws Exception {
-      // given
-      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(5);
-      List<User> users = createUsers(5);
+    @DisplayName("주간 목록은 WEEK Snapshot 관심도순으로 조회한다")
+    void getPopularViewWeekly_ordersByWeeklyInterestSnapshot() throws Exception {
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(3);
+      LocalDateTime bucket = weeklyBucket();
+      persistSnapshot(alcohols.get(0), BucketGranularity.WEEK, bucket, "0.8", "0.1");
+      persistSnapshot(alcohols.get(1), BucketGranularity.WEEK, bucket, "0.3", "0.9");
+      persistSnapshot(alcohols.get(2), BucketGranularity.WEEK, bucket, "0.5", "0.5");
 
-      // 조회수 데이터 생성 (alcohol별로 다른 조회수)
-      LocalDateTime now = LocalDateTime.now();
-      for (int i = 0; i < alcohols.size(); i++) {
-        Alcohol alcohol = alcohols.get(i);
-        int viewCount = 5 - i;
-        for (int j = 0; j < viewCount; j++) {
-          viewHistoryTestFactory.persistAlcoholsViewHistory(
-              users.get(j).getId(), alcohol.getId(), now.minusDays(j));
-        }
-      }
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/view/week", 3);
 
-      // when
-      MvcTestResult result =
-          mockMvcTester
-              .get()
-              .uri("/api/v1/popular/view/week")
-              .param("top", "5")
-              .contentType(APPLICATION_JSON)
-              .with(csrf())
-              .exchange();
-
-      // then
-      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
-      assertNotNull(response);
-      assertEquals(5, response.getAlcohols().size());
-      assertEquals(5, response.getTotalCount());
+      assertEquals(
+          List.of(alcohols.get(0).getId(), alcohols.get(2).getId(), alcohols.get(1).getId()),
+          alcoholIds(response));
+      assertEquals(0.8, response.getAlcohols().getFirst().popularScore());
     }
 
     @Test
-    @DisplayName("삭제 처리된 알코올은 조회수 기반 인기 위스키에서 제외된다")
-    void popularByViews_excludes_deleted_alcohol() throws Exception {
+    @DisplayName("주간 Snapshot에 없는 주류를 평점으로 보충하지 않는다")
+    void getPopularViewWeekly_doesNotFillMissingSnapshotWithRating() throws Exception {
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(2);
+      User user = userTestFactory.persistUser();
+      persistSnapshot(alcohols.getFirst(), BucketGranularity.WEEK, weeklyBucket(), "0.5", "0.5");
+      ratingTestFactory.persistRating(user, alcohols.get(1), 5);
+
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/view/week", 10);
+
+      assertEquals(List.of(alcohols.getFirst().getId()), alcoholIds(response));
+    }
+
+    @Test
+    @DisplayName("삭제 처리된 알코올은 WEEK Snapshot 관심도 목록에서 제외한다")
+    void getPopularViewWeekly_excludesDeletedAlcohol() throws Exception {
       Alcohol visible = alcoholTestFactory.persistAlcohol();
       Alcohol deleted = alcoholTestFactory.persistDeletedAlcohol();
-      List<User> users = createUsers(2);
-      LocalDateTime now = LocalDateTime.now();
-      viewHistoryTestFactory.persistAlcoholsViewHistory(users.get(0).getId(), visible.getId(), now);
-      viewHistoryTestFactory.persistAlcoholsViewHistory(users.get(0).getId(), deleted.getId(), now);
-      viewHistoryTestFactory.persistAlcoholsViewHistory(
-          users.get(1).getId(), deleted.getId(), now.minusDays(1));
+      persistSnapshot(visible, BucketGranularity.WEEK, weeklyBucket(), "0.4", "0.4");
+      persistSnapshot(deleted, BucketGranularity.WEEK, weeklyBucket(), "0.9", "0.9");
 
-      MvcTestResult result =
-          mockMvcTester
-              .get()
-              .uri("/api/v1/popular/view/week")
-              .param("top", "5")
-              .contentType(APPLICATION_JSON)
-              .with(csrf())
-              .exchange();
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/view/week", 5);
 
-      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
-      assertTrue(
-          response.getAlcohols().stream()
-              .anyMatch(item -> item.alcoholId().equals(visible.getId())));
-      assertFalse(
-          response.getAlcohols().stream()
-              .anyMatch(item -> item.alcoholId().equals(deleted.getId())));
+      assertTrue(alcoholIds(response).contains(visible.getId()));
+      assertFalse(alcoholIds(response).contains(deleted.getId()));
     }
 
     @Test
-    @DisplayName("조회 기록이 부족하면 평점 높은 주류로 채워서 반환한다")
-    void test_getPopularViewWeekly_fillWithRating() throws Exception {
-      // given
-      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(10);
-      List<User> users = createUsers(5);
+    @DisplayName("월간 목록은 MONTH Snapshot 관심도순으로 조회한다")
+    void getPopularViewMonthly_ordersByMonthlyInterestSnapshot() throws Exception {
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(3);
+      LocalDateTime bucket = monthlyBucket();
+      persistSnapshot(alcohols.get(0), BucketGranularity.MONTH, bucket, "0.2", "0.9");
+      persistSnapshot(alcohols.get(1), BucketGranularity.MONTH, bucket, "0.7", "0.1");
+      persistSnapshot(alcohols.get(2), BucketGranularity.MONTH, bucket, "0.4", "0.5");
 
-      // 조회수 데이터 생성 (5개 주류만)
-      LocalDateTime now = LocalDateTime.now();
-      for (int i = 0; i < 5; i++) {
-        Alcohol alcohol = alcohols.get(i);
-        int viewCount = 5 - i;
-        for (int j = 0; j < viewCount; j++) {
-          viewHistoryTestFactory.persistAlcoholsViewHistory(
-              users.get(j).getId(), alcohol.getId(), now.minusDays(j));
-        }
-      }
+      PopularsOfWeekResponse response = getPopular("/api/v1/popular/view/monthly", 3);
 
-      // 평점 데이터 생성 (나머지 5개 주류)
-      for (int i = 5; i < 10; i++) {
-        ratingTestFactory.persistRating(users.get(0).getId(), alcohols.get(i).getId(), 5);
-        ratingTestFactory.persistRating(users.get(1).getId(), alcohols.get(i).getId(), 4);
-      }
-
-      // when
-      MvcTestResult result =
-          mockMvcTester
-              .get()
-              .uri("/api/v1/popular/view/week")
-              .param("top", "10")
-              .contentType(APPLICATION_JSON)
-              .with(csrf())
-              .exchange();
-
-      // then
-      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
-      assertNotNull(response);
-      assertEquals(10, response.getTotalCount());
-      assertTrue(response.getAlcohols().size() >= 5);
-    }
-
-    @Test
-    @DisplayName("월간 조회수 기반 인기 위스키를 조회할 수 있다")
-    void test_getPopularViewMonthly() throws Exception {
-      // given
-      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(5);
-      List<User> users = createUsers(5);
-
-      // 조회수 데이터 생성 (월간 범위)
-      LocalDateTime now = LocalDateTime.now();
-      for (int i = 0; i < alcohols.size(); i++) {
-        Alcohol alcohol = alcohols.get(i);
-        int viewCount = 5 - i;
-        for (int j = 0; j < viewCount; j++) {
-          viewHistoryTestFactory.persistAlcoholsViewHistory(
-              users.get(j).getId(), alcohol.getId(), now.minusDays(j * 7));
-        }
-      }
-
-      // when
-      MvcTestResult result =
-          mockMvcTester
-              .get()
-              .uri("/api/v1/popular/view/monthly")
-              .param("top", "5")
-              .contentType(APPLICATION_JSON)
-              .with(csrf())
-              .exchange();
-
-      // then
-      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
-      assertNotNull(response);
-      assertEquals(5, response.getAlcohols().size());
-      assertEquals(5, response.getTotalCount());
+      assertEquals(
+          List.of(alcohols.get(1).getId(), alcohols.get(2).getId(), alcohols.get(0).getId()),
+          alcoholIds(response));
+      assertEquals(0.7, response.getAlcohols().getFirst().popularScore());
     }
   }
 
-  private List<User> createUsers(int count) {
-    return java.util.stream.IntStream.range(0, count)
-        .mapToObj(i -> userTestFactory.persistUser())
-        .toList();
+  private PopularsOfWeekResponse getPopular(String path, int top) throws Exception {
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri(path)
+            .param("top", String.valueOf(top))
+            .contentType(APPLICATION_JSON)
+            .with(csrf())
+            .exchange();
+    return extractData(result, PopularsOfWeekResponse.class);
+  }
+
+  private void persistSnapshot(
+      Alcohol alcohol,
+      BucketGranularity granularity,
+      LocalDateTime bucketAt,
+      String interestScore,
+      String popularityScore) {
+    alcoholTestFactory.persistPopularitySnapshot(
+        alcohol.getId(), granularity, bucketAt, score(interestScore), score(popularityScore));
+  }
+
+  private static List<Long> alcoholIds(PopularsOfWeekResponse response) {
+    return response.getAlcohols().stream().map(item -> item.alcoholId()).toList();
+  }
+
+  private static BigDecimal score(String value) {
+    return new BigDecimal(value);
+  }
+
+  private static LocalDateTime weeklyBucket() {
+    return BucketGranularity.WEEK.startAt(LocalDateTime.now());
+  }
+
+  private static LocalDateTime monthlyBucket() {
+    return BucketGranularity.MONTH.startAt(LocalDateTime.now());
   }
 }
