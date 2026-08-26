@@ -1,16 +1,20 @@
 package app.bottlenote.alcohols.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.constant.AlcoholType;
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -366,7 +370,16 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("비-RANDOM 정렬(POPULAR)은 같은 조건에서 같은 순서를 유지한다")
     void non_random_sort_is_stable() throws Exception {
-      alcoholTestFactory.persistAlcohols(10);
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(10);
+      LocalDateTime bucketAt = BucketGranularity.HOUR.startAt(LocalDateTime.now());
+      for (int i = 0; i < alcohols.size(); i++) {
+        alcoholTestFactory.persistPopularitySnapshot(
+            alcohols.get(i).getId(),
+            BucketGranularity.HOUR,
+            bucketAt,
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(i + 1, 1));
+      }
 
       MvcTestResult first =
           exchangeGet(
@@ -385,6 +398,66 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .extractingPath("$.data.items[*].alcoholId")
           .asArray()
           .containsExactlyElementsOf(firstIds);
+    }
+
+    @Test
+    @DisplayName("POPULAR 커서는 최초 HOUR Snapshot 버킷을 다음 페이지까지 유지한다")
+    void popular_cursor_keeps_first_snapshot_bucket() throws Exception {
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(6);
+      LocalDateTime firstBucket = BucketGranularity.HOUR.startAt(LocalDateTime.now()).minusHours(1);
+      for (int i = 0; i < alcohols.size(); i++) {
+        alcoholTestFactory.persistPopularitySnapshot(
+            alcohols.get(i).getId(),
+            BucketGranularity.HOUR,
+            firstBucket,
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(i + 1, 1));
+      }
+
+      MvcTestResult first =
+          exchangeGet(
+              b -> b.param("sortType", "POPULAR").param("sortOrder", "DESC").param("size", "3"));
+      String nextCursor =
+          com.jayway.jsonpath.JsonPath.read(
+              first.getMvcResult().getResponse().getContentAsString(),
+              "$.meta.pagination.nextCursor");
+      List<Integer> firstIds =
+          com.jayway.jsonpath.JsonPath.read(
+              first.getMvcResult().getResponse().getContentAsString(), "$.data.items[*].alcoholId");
+      assertThat(firstIds)
+          .containsExactly(
+              alcohols.get(5).getId().intValue(),
+              alcohols.get(4).getId().intValue(),
+              alcohols.get(3).getId().intValue());
+
+      LocalDateTime nextBucket = firstBucket.plusHours(1);
+      for (int i = 0; i < alcohols.size(); i++) {
+        alcoholTestFactory.persistPopularitySnapshot(
+            alcohols.get(i).getId(),
+            BucketGranularity.HOUR,
+            nextBucket,
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(alcohols.size() - i, 1));
+      }
+
+      MvcTestResult second =
+          exchangeGet(
+              b ->
+                  b.param("sortType", "POPULAR")
+                      .param("sortOrder", "DESC")
+                      .param("cursor", nextCursor)
+                      .param("size", "3"));
+
+      second
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .containsExactly(
+              alcohols.get(2).getId().intValue(),
+              alcohols.get(1).getId().intValue(),
+              alcohols.get(0).getId().intValue());
     }
   }
 }

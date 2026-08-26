@@ -2,7 +2,9 @@ package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;
+import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholPopularitySnapshot;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.domain.Distillery;
@@ -12,6 +14,7 @@ import app.bottlenote.alcohols.domain.TastingTag;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -541,5 +544,39 @@ public class AlcoholTestFactory {
     em.persist(popularAlcohol);
     em.flush();
     return popularAlcohol;
+  }
+
+  /** 인기도 Snapshot 생성 */
+  @Transactional
+  @NotNull
+  public AlcoholPopularitySnapshot persistPopularitySnapshot(
+      @NotNull Long alcoholId,
+      @NotNull BucketGranularity granularity,
+      @NotNull LocalDateTime bucketAt,
+      @NotNull BigDecimal interestScore,
+      @NotNull BigDecimal popularityScore) {
+    AlcoholPopularitySnapshot snapshot =
+        AlcoholPopularitySnapshot.builder()
+            .alcoholId(alcoholId)
+            .bucketGranularity(granularity)
+            .bucketAt(bucketAt)
+            .observedAt(bucketAt.plusHours(1))
+            .interestValue(interestScore.movePointRight(4).longValue())
+            .interestSourceBucketAt(bucketAt)
+            .interestScore(interestScore)
+            .ratingValue(0L)
+            .ratingSourceBucketAt(bucketAt)
+            .ratingScore(BigDecimal.ZERO)
+            .pickValue(0L)
+            .pickSourceBucketAt(bucketAt)
+            .pickScore(BigDecimal.ZERO)
+            .engagementValue(0L)
+            .engagementSourceBucketAt(bucketAt)
+            .engagementScore(BigDecimal.ZERO)
+            .popularityScore(popularityScore)
+            .build();
+    em.persist(snapshot);
+    em.flush();
+    return snapshot;
   }
 }
