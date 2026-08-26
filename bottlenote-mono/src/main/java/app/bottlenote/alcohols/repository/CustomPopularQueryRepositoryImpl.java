@@ -124,7 +124,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         alcohol.korName,
         alcohol.engName,
         rating.ratingPoint.rating.avg().coalesce(0.0),
-        rating.id.alcoholId.countDistinct(),
+        rating.id.userId.countDistinct(),
         alcohol.korCategory,
         alcohol.engCategory,
         alcohol.imageUrl,
