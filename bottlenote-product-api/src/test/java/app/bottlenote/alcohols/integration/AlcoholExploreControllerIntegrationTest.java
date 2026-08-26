@@ -474,5 +474,55 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
               alcohols.get(1).getId().intValue(),
               alcohols.get(0).getId().intValue());
     }
+
+    @Test
+    @DisplayName("POPULAR ASC는 동점 점수를 ID 오름차순으로 끊어 다음 페이지를 이어간다")
+    void popular_asc_cursor_keeps_tie_break_order() throws Exception {
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(5);
+      LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now()).minusHours(1);
+      List<BigDecimal> scores =
+          List.of(
+              new BigDecimal("0.1"),
+              new BigDecimal("0.2"),
+              new BigDecimal("0.2"),
+              new BigDecimal("0.2"),
+              new BigDecimal("0.3"));
+      for (int i = 0; i < alcohols.size(); i++) {
+        alcoholTestFactory.persistPopularitySnapshot(
+            alcohols.get(i).getId(),
+            BucketGranularity.HOUR,
+            bucket,
+            BigDecimal.ZERO,
+            scores.get(i));
+      }
+
+      MvcTestResult first =
+          exchangeGet(
+              b -> b.param("sortType", "POPULAR").param("sortOrder", "ASC").param("size", "2"));
+      String cursor =
+          com.jayway.jsonpath.JsonPath.read(
+              first.getMvcResult().getResponse().getContentAsString(),
+              "$.meta.pagination.nextCursor");
+
+      first
+          .assertThat()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .containsExactly(
+              alcohols.get(0).getId().intValue(), alcohols.get(1).getId().intValue());
+      exchangeGet(
+              b ->
+                  b.param("sortType", "POPULAR")
+                      .param("sortOrder", "ASC")
+                      .param("cursor", cursor)
+                      .param("size", "2"))
+          .assertThat()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .containsExactly(
+              alcohols.get(2).getId().intValue(), alcohols.get(3).getId().intValue());
+    }
   }
 }

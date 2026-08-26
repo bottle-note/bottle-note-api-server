@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.domain.PopularQueryRepository;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.MyBottleResponse;
@@ -35,6 +36,7 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private PopularQueryRepository popularQueryRepository;
   @Autowired private ReviewTestFactory reviewTestFactory;
+  @Autowired private RatingTestFactory ratingTestFactory;
   @Autowired private UserTestFactory userTestFactory;
 
   @Test
@@ -58,6 +60,36 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
             -1L, List.of(tag.getId()), List.of(Long.MAX_VALUE), Pageable.ofSize(6));
 
     assertThat(result).singleElement().extracting(PopularItem::popularScore).isEqualTo(0.4);
+  }
+
+  @Test
+  @DisplayName("봄 추천의 평점 개수는 여러 허용 태그와 조인되어도 중복 집계하지 않는다")
+  void springRecommendation_countsRatingsWithoutTagJoinDuplication() {
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    TastingTag firstTag =
+        TastingTag.builder().korName("봄 태그 1").engName("Spring Tag 1").build();
+    TastingTag secondTag =
+        TastingTag.builder().korName("봄 태그 2").engName("Spring Tag 2").build();
+    alcoholTestFactory.appendTastingTag(alcohol, firstTag);
+    alcoholTestFactory.appendTastingTag(alcohol, secondTag);
+    for (int i = 0; i < 3; i++) {
+      ratingTestFactory.persistRating(userTestFactory.persistUser(), alcohol, 4);
+    }
+    alcoholTestFactory.persistPopularitySnapshot(
+        alcohol.getId(),
+        BucketGranularity.WEEK,
+        BucketGranularity.WEEK.startAt(LocalDateTime.now()),
+        BigDecimal.ZERO,
+        new BigDecimal("0.4"));
+
+    List<PopularItem> result =
+        popularQueryRepository.getSpringItems(
+            -1L,
+            List.of(firstTag.getId(), secondTag.getId()),
+            List.of(Long.MAX_VALUE),
+            Pageable.ofSize(6));
+
+    assertThat(result).singleElement().extracting(PopularItem::ratingCount).isEqualTo(3L);
   }
 
   @Test
