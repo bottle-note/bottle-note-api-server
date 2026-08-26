@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.AlcoholViewCounter;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.fixture.InMemoryAlcoholPopularitySnapshotRepository;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
@@ -45,6 +46,7 @@ class AlcoholQueryServiceTest {
     alcoholQueryService =
         new AlcoholQueryService(
             alcoholQueryRepository,
+            new InMemoryAlcoholPopularitySnapshotRepository(),
             alcoholViewCounter,
             viewHistoryService,
             reviewFacade,

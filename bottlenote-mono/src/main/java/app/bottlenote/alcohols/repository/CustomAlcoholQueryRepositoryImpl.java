@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.repository;
 
 import static app.bottlenote.alcohols.constant.AlcoholType.WHISKY;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholPopularitySnapshot.alcoholPopularitySnapshot;
 import static app.bottlenote.alcohols.domain.QDistillery.distillery;
 import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
@@ -26,6 +27,7 @@ import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
@@ -332,9 +334,12 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                       "sort",
                       sortById.getOrDefault(item.getAlcoholId(), "0"));
               Map<String, String> extra =
-                  criteria.sortType() == SearchSortType.RANDOM
-                      ? Map.of("seed", String.valueOf(criteria.seed()))
-                      : Map.of();
+                  switch (criteria.sortType()) {
+                    case RANDOM -> Map.of("seed", String.valueOf(criteria.seed()));
+                    case POPULAR ->
+                        Map.of("bucketAt", criteria.popularityBucketAt().toString());
+                    default -> Map.of();
+                  };
               return cursorCodec.encode(context, keys, extra);
             });
     return KeysetPageResponse.of(slice.items(), slice.pagination());
@@ -350,6 +355,10 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         criteria.cursor() == null
             ? null
             : cursorCodec.verify(criteria.cursor(), criteria.context());
+
+    if (sortType == SearchSortType.POPULAR) {
+      return fetchPopularityCandidates(criteria, claims, fetchSize);
+    }
 
     if (sortType == SearchSortType.RANDOM) {
       NumberExpression<Long> crc = supporter.crc32Rank(criteria.seed());
@@ -438,6 +447,55 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     return toSeekKeys(rows, sortScore);
   }
 
+  private List<ExploreSeekKey> fetchPopularityCandidates(
+      ExploreStandardCriteria criteria, CursorClaims claims, int fetchSize) {
+    if (criteria.popularityBucketAt() == null) {
+      return List.of();
+    }
+
+    NumberExpression<BigDecimal> score = alcoholPopularitySnapshot.popularityScore;
+    var query =
+        queryFactory
+            .select(alcohol.id, score)
+            .from(alcohol)
+            .join(region)
+            .on(alcohol.region.id.eq(region.id))
+            .join(distillery)
+            .on(alcohol.distillery.id.eq(distillery.id))
+            .join(alcoholPopularitySnapshot)
+            .on(
+                alcoholPopularitySnapshot
+                    .alcoholId
+                    .eq(alcohol.id)
+                    .and(
+                        alcoholPopularitySnapshot.bucketGranularity.eq(
+                            app.bottlenote.alcohols.constant.BucketGranularity.HOUR))
+                    .and(
+                        alcoholPopularitySnapshot.bucketAt.eq(criteria.popularityBucketAt())));
+    if (criteria.hasRatingRange()) {
+      query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
+    }
+
+    OrderSpecifier<BigDecimal> scoreOrder =
+        criteria.sortOrder() == SortOrder.DESC ? score.desc() : score.asc();
+    List<Tuple> rows =
+        query
+            .where(
+                supporter.keywordsMatch(criteria.keywords()),
+                supporter.eqCategory(criteria.category()),
+                supporter.inRegionIds(criteria.regionIds()),
+                supporter.inDistilleryIds(criteria.distilleryIds()),
+                supporter.eqCurationId(criteria.curationId()),
+                supporter.isNotDeleted(),
+                popularitySeek(claims, criteria.sortOrder(), score))
+            .groupBy(alcohol.id, score)
+            .having(ratingInRange(criteria.ratingFrom(), criteria.ratingTo()))
+            .orderBy(scoreOrder, alcohol.id.asc())
+            .limit(fetchSize)
+            .fetch();
+    return toSeekKeys(rows, score);
+  }
+
   private static List<ExploreSeekKey> toSeekKeys(
       List<Tuple> rows, Expression<? extends Number> sortExpr) {
     return rows.stream()
@@ -457,6 +515,18 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     long lastCrc = CursorKeys.requireLong(claims, "sort");
     long lastId = CursorKeys.requireLong(claims, "id");
     return crc.gt(lastCrc).or(crc.eq(lastCrc).and(alcohol.id.gt(lastId)));
+  }
+
+  private static BooleanExpression popularitySeek(
+      CursorClaims claims, SortOrder sortOrder, NumberExpression<BigDecimal> score) {
+    if (claims == null) {
+      return null;
+    }
+    BigDecimal lastScore = CursorKeys.requireBigDecimal(claims, "sort");
+    long lastId = CursorKeys.requireLong(claims, "id");
+    BooleanExpression moved =
+        sortOrder == SortOrder.DESC ? score.lt(lastScore) : score.gt(lastScore);
+    return moved.or(score.eq(lastScore).and(alcohol.id.gt(lastId)));
   }
 
   private static BooleanExpression aggregateSeek(
@@ -509,11 +579,11 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   }
 
   private static boolean needsRatingJoin(SearchSortType sortType) {
-    return sortType == SearchSortType.RATING || sortType == SearchSortType.POPULAR;
+    return sortType == SearchSortType.RATING;
   }
 
   private static boolean needsReviewJoin(SearchSortType sortType) {
-    return sortType == SearchSortType.REVIEW || sortType == SearchSortType.POPULAR;
+    return sortType == SearchSortType.REVIEW;
   }
 
   private static boolean needsPicksJoin(SearchSortType sortType) {

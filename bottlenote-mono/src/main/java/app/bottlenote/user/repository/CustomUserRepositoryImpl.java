@@ -111,7 +111,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         alcohol.engName.as("alcoholEngName"),
                         alcohol.korCategory.as("korCategoryName"),
                         alcohol.imageUrl.as("imageUrl"),
-                        alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")),
+                        alcoholQuerySupporter
+                            .isHot5(alcohol.id, request.hotAlcoholIds())
+                            .as("isHot5")),
                     review.id.as("reviewId"),
                     review.id.isNotNull().as("isMyReview"),
                     review.lastModifyAt.as("reviewModifyAt"),
@@ -234,7 +236,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         alcohol.engName.as("alcoholEngName"),
                         alcohol.korCategory.as("korCategoryName"),
                         alcohol.imageUrl.as("imageUrl"),
-                        alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")),
+                        alcoholQuerySupporter
+                            .isHot5(alcohol.id, request.hotAlcoholIds())
+                            .as("isHot5")),
                     rating.ratingPoint.rating.as("myRatingPoint"),
                     ratingQuerySupporter.averageRatingSubQuery(alcohol.id),
                     ratingQuerySupporter.averageRatingCountSubQuery(alcohol.id),
@@ -306,7 +310,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         alcohol.engName.as("alcoholEngName"),
                         alcohol.korCategory.as("korCategoryName"),
                         alcohol.imageUrl.as("imageUrl"),
-                        alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")),
+                        alcoholQuerySupporter
+                            .isHot5(alcohol.id, request.hotAlcoholIds())
+                            .as("isHot5")),
                     pickQuerySupporter.isPickedBothSubQuery(currentUserId, targetUserId),
                     pickQuerySupporter.totalPicksCountSubQuery(alcohol.id),
                     picks.lastModifyAt.as("lastModifyAt"),

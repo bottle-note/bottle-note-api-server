@@ -1,5 +1,6 @@
 package app.bottlenote.global.pagination;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /** 커서 sortKeys/extra 값 접근 헬퍼. 키 누락과 파싱 실패를 모두 INVALID_CURSOR(400)로 변환한다. */
@@ -94,6 +95,26 @@ public final class CursorKeys {
       throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
     }
     return parseLong(value);
+  }
+
+  public static LocalDateTime requireExtraTime(CursorClaims claims, String key) {
+    String value = claims == null ? null : claims.extra().get(key);
+    if (value == null || value.isBlank()) {
+      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+    }
+    try {
+      return LocalDateTime.parse(value);
+    } catch (RuntimeException exception) {
+      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+    }
+  }
+
+  public static BigDecimal requireBigDecimal(CursorClaims claims, String key) {
+    try {
+      return new BigDecimal(require(claims, key));
+    } catch (RuntimeException exception) {
+      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+    }
   }
 
   private static Long parseLong(String value) {

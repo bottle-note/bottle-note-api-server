@@ -47,4 +47,28 @@ public interface JpaAlcoholPopularitySnapshotRepository
     }
     return queryTopByBucket(bucketGranularity, bucketAt, Pageable.ofSize(limit));
   }
+
+  @Query(
+      """
+      select s.alcoholId from alcohol_popularity_snapshot s
+      join alcohol a on a.id = s.alcoholId
+      where s.bucketGranularity = :bucketGranularity
+        and a.deletedAt is null
+        and s.bucketAt = (
+          select max(s2.bucketAt) from alcohol_popularity_snapshot s2
+          where s2.bucketGranularity = :bucketGranularity
+        )
+      order by s.popularityScore desc, s.alcoholId asc
+      """)
+  List<Long> queryLatestTopAlcoholIds(
+      @Param("bucketGranularity") BucketGranularity bucketGranularity, Pageable pageable);
+
+  @Override
+  default List<Long> findLatestTopAlcoholIds(
+      BucketGranularity bucketGranularity, int limit) {
+    if (limit <= 0) {
+      return List.of();
+    }
+    return queryLatestTopAlcoholIds(bucketGranularity, Pageable.ofSize(limit));
+  }
 }
