@@ -103,7 +103,7 @@ public class AlcoholQueryService {
     if (request.cursor() != null) {
       String seed =
           cursorCodec
-              .verify(request.cursor(), ExploreStandardCriteria.of(request, userId, 0L).context())
+              .verify(request.cursor(), ExploreStandardCriteria.of(request, userId, 0L, null).context())
               .extra()
               .get("seed");
       if (seed == null || seed.isBlank()) {
@@ -125,7 +125,7 @@ public class AlcoholQueryService {
     if (request.cursor() != null) {
       return CursorKeys.requireExtraTime(
           cursorCodec.verify(
-              request.cursor(), ExploreStandardCriteria.of(request, userId, 0L).context()),
+              request.cursor(), ExploreStandardCriteria.of(request, userId, 0L, null).context()),
           "bucketAt");
     }
     return alcoholPopularitySnapshotRepository

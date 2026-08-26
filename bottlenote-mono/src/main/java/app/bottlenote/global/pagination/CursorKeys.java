@@ -50,12 +50,7 @@ public final class CursorKeys {
   }
 
   public static LocalDateTime requireTime(CursorClaims claims, String key) {
-    String value = require(claims, key);
-    try {
-      return LocalDateTime.parse(value);
-    } catch (RuntimeException exception) {
-      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
-    }
+    return parseTime(require(claims, key));
   }
 
   /** 값이 없으면 null, 있으면 파싱 실패 시 INVALID_CURSOR. */
@@ -81,11 +76,7 @@ public final class CursorKeys {
     if (value == null) {
       return null;
     }
-    try {
-      return LocalDateTime.parse(value);
-    } catch (RuntimeException exception) {
-      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
-    }
+    return parseTime(value);
   }
 
   /** extra 값이 없거나 숫자가 아니면 INVALID_CURSOR. RANDOM seed 복원에 쓴다. */
@@ -102,11 +93,7 @@ public final class CursorKeys {
     if (value == null || value.isBlank()) {
       throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
     }
-    try {
-      return LocalDateTime.parse(value);
-    } catch (RuntimeException exception) {
-      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
-    }
+    return parseTime(value);
   }
 
   public static BigDecimal requireBigDecimal(CursorClaims claims, String key) {
@@ -121,6 +108,14 @@ public final class CursorKeys {
     try {
       return Long.valueOf(value);
     } catch (NumberFormatException exception) {
+      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+    }
+  }
+
+  private static LocalDateTime parseTime(String value) {
+    try {
+      return LocalDateTime.parse(value);
+    } catch (RuntimeException exception) {
       throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
     }
   }

@@ -51,24 +51,24 @@ public class AlcoholPopularQueryController {
     return GlobalResponse.ok(response);
   }
 
-  /** 주간 조회수 기반 인기 위스키 리스트 조회 */
-  @AlcoholPopularApiDocs.GetPopularByViewsWeekly
+  /** 주간 관심도 기반 인기 위스키 리스트 조회 */
+  @AlcoholPopularApiDocs.GetPopularByInterestWeekly
   @GetMapping("/popular/view/week")
-  public ResponseEntity<GlobalResponse> getPopularByViewsWeekly(
+  public ResponseEntity<GlobalResponse> getPopularByInterestWeekly(
       @RequestParam(defaultValue = "20") Integer top) {
     Long userId = getUserIdByContext().orElse(-1L);
-    var populars = alcoholPopularService.getPopularByViewsWeekly(top, userId);
+    var populars = alcoholPopularService.getPopularByInterestWeekly(top, userId);
     var response = PopularsOfWeekResponse.of(populars.size(), populars);
     return GlobalResponse.ok(response);
   }
 
-  /** 월간 조회수 기반 인기 위스키 리스트 조회 */
-  @AlcoholPopularApiDocs.GetPopularByViewsMonthly
+  /** 월간 관심도 기반 인기 위스키 리스트 조회 */
+  @AlcoholPopularApiDocs.GetPopularByInterestMonthly
   @GetMapping("/popular/view/monthly")
-  public ResponseEntity<GlobalResponse> getPopularByViewsMonthly(
+  public ResponseEntity<GlobalResponse> getPopularByInterestMonthly(
       @RequestParam(defaultValue = "20") Integer top) {
     Long userId = getUserIdByContext().orElse(-1L);
-    var populars = alcoholPopularService.getPopularByViewsMonthly(top, userId);
+    var populars = alcoholPopularService.getPopularByInterestMonthly(top, userId);
     var response = PopularsOfWeekResponse.of(populars.size(), populars);
     return GlobalResponse.ok(response);
   }

@@ -52,24 +52,24 @@ public final class AlcoholPopularApiDocs {
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
-      summary = "이번 주 조회수 기준 인기 위스키를 조회한다",
-      description = "최근 한 주간 상세 페이지를 많이 본 순서로 순위를 매깁니다. 별점이나 리뷰가 아니라 조회 이력만 봅니다.",
+      summary = "이번 주 관심도 기준 인기 위스키를 조회한다",
+      description = "최신 WEEK 인기도 Snapshot의 관심도 점수 순서로 조회합니다.",
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "전체 건수와 조회수 상위 위스키 목록",
+              description = "전체 건수와 관심도 상위 위스키 목록",
               content = @Content(schema = @Schema(implementation = PopularsOfWeekResponse.class))))
-  public @interface GetPopularByViewsWeekly {}
+  public @interface GetPopularByInterestWeekly {}
 
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
-      summary = "이번 달 조회수 기준 인기 위스키를 조회한다",
-      description = "최근 한 달간 상세 페이지를 많이 본 순서로 순위를 매깁니다. 주간 집계보다 순위가 천천히 바뀝니다.",
+      summary = "이번 달 관심도 기준 인기 위스키를 조회한다",
+      description = "최신 MONTH 인기도 Snapshot의 관심도 점수 순서로 조회합니다.",
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "전체 건수와 조회수 상위 위스키 목록",
+              description = "전체 건수와 관심도 상위 위스키 목록",
               content = @Content(schema = @Schema(implementation = PopularsOfWeekResponse.class))))
-  public @interface GetPopularByViewsMonthly {}
+  public @interface GetPopularByInterestMonthly {}
 }

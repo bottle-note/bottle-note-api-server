@@ -40,12 +40,12 @@ public class AlcoholPopularService {
   }
 
   @Transactional(readOnly = true)
-  public List<PopularItem> getPopularByViewsWeekly(Integer top, Long userId) {
-    return popularQueryRepository.getPopularByViewsWeekly(userId, top);
+  public List<PopularItem> getPopularByInterestWeekly(Integer top, Long userId) {
+    return popularQueryRepository.getPopularByInterestWeekly(userId, top);
   }
 
   @Transactional(readOnly = true)
-  public List<PopularItem> getPopularByViewsMonthly(Integer top, Long userId) {
-    return popularQueryRepository.getPopularByViewsMonthly(userId, top);
+  public List<PopularItem> getPopularByInterestMonthly(Integer top, Long userId) {
+    return popularQueryRepository.getPopularByInterestMonthly(userId, top);
   }
 }

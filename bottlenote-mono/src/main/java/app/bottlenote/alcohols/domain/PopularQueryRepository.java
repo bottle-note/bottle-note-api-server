@@ -11,7 +11,7 @@ public interface PopularQueryRepository {
   List<PopularItem> getSpringItems(
       Long userId, List<Long> tags, List<Long> excludedTags, Pageable size);
 
-  List<PopularItem> getPopularByViewsWeekly(Long userId, int limit);
+  List<PopularItem> getPopularByInterestWeekly(Long userId, int limit);
 
-  List<PopularItem> getPopularByViewsMonthly(Long userId, int limit);
+  List<PopularItem> getPopularByInterestMonthly(Long userId, int limit);
 }

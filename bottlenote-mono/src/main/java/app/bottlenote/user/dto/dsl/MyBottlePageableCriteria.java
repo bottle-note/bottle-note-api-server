@@ -17,18 +17,6 @@ public record MyBottlePageableCriteria(
     Long currentUserId,
     Set<Long> hotAlcoholIds) {
 
-  public MyBottlePageableCriteria(
-      Long userId,
-      String keyword,
-      Long regionId,
-      MyBottleSortType sortType,
-      SortOrder sortOrder,
-      String cursor,
-      Integer size,
-      Long currentUserId) {
-    this(userId, keyword, regionId, sortType, sortOrder, cursor, size, currentUserId, Set.of());
-  }
-
   public static MyBottlePageableCriteria of(
       MyBottleRequest request, Long userId, Long currentUserId) {
     return new MyBottlePageableCriteria(
