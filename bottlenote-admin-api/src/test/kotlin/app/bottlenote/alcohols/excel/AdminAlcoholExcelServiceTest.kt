@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.domain.Alcohol
 import app.bottlenote.alcohols.domain.Distillery
 import app.bottlenote.alcohols.domain.Region
 import app.bottlenote.alcohols.domain.TastingTag
+import app.bottlenote.alcohols.dto.response.CategoryItem
 import app.bottlenote.alcohols.exception.AlcoholException
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository
@@ -14,6 +15,7 @@ import app.bottlenote.alcohols.fixture.InMemoryRegionRepository
 import app.bottlenote.alcohols.fixture.InMemoryTastingTagRepository
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DataValidationConstraint
+import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.assertj.core.api.Assertions.assertThat
@@ -24,6 +26,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.test.util.ReflectionTestUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
@@ -65,23 +68,44 @@ class AdminAlcoholExcelServiceTest {
 			)
 		tagOak = tastingTagRepository.save(TastingTag.builder().korName("오크").engName("Oak").build())
 		tagPeat = tastingTagRepository.save(TastingTag.builder().korName("피트").engName("Peat").build())
+
+		// 카테고리 참조 시드 (실제 API 카테고리 바인딩 경로와 동일)
+		alcoholQueryRepository.save(
+			Alcohol.builder()
+				.korName("__category_seed__")
+				.engName("__category_seed__")
+				.abv("0%")
+				.type(AlcoholType.WHISKY)
+				.korCategory("싱글 몰트")
+				.engCategory("Single Malt")
+				.categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
+				.region(region)
+				.distillery(distillery)
+				.age("-")
+				.cask("-")
+				.description("category seed")
+				.volume("-")
+				.build(),
+		)
 	}
 
 	@Nested
 	@DisplayName("템플릿 생성")
 	inner class Template {
 		@Test
-		@DisplayName("고정 시트·1행 한글 필드명·2행 설명·이미지 열 제외·참조 시트와 안내를 가진다")
+		@DisplayName("1페이지 사용 안내·참조 시트·마지막 입력 시트와 헤더 스타일을 가진다")
 		fun template_hasFixedStructureWithoutImageColumn() {
 			val bytes = service.createTemplateWorkbook()
 
 			WorkbookFactory.create(ByteArrayInputStream(bytes)).use { workbook ->
-				assertThat(workbook.numberOfSheets).isEqualTo(5)
-				assertThat(workbook.getSheetName(0)).isEqualTo(AlcoholExcelSchema.DATA_SHEET_NAME)
+				assertThat(workbook.numberOfSheets).isEqualTo(6)
+				assertThat(workbook.getSheetName(0)).isEqualTo(AlcoholExcelSchema.GUIDE_SHEET_NAME)
 				assertThat(workbook.getSheetName(1)).isEqualTo(AlcoholExcelSchema.REGION_SHEET_NAME)
 				assertThat(workbook.getSheetName(2)).isEqualTo(AlcoholExcelSchema.DISTILLERY_SHEET_NAME)
 				assertThat(workbook.getSheetName(3)).isEqualTo(AlcoholExcelSchema.TASTING_TAG_SHEET_NAME)
-				assertThat(workbook.getSheetName(4)).isEqualTo(AlcoholExcelSchema.GUIDE_SHEET_NAME)
+				assertThat(workbook.getSheetName(4)).isEqualTo(AlcoholExcelSchema.CATEGORY_SHEET_NAME)
+				assertThat(workbook.getSheetName(5)).isEqualTo(AlcoholExcelSchema.DATA_SHEET_NAME)
+				assertThat(workbook.getSheetName(workbook.activeSheetIndex)).isEqualTo(AlcoholExcelSchema.GUIDE_SHEET_NAME)
 
 				val dataSheet = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
 				val headerRow = dataSheet.getRow(0)
@@ -89,7 +113,10 @@ class AdminAlcoholExcelServiceTest {
 
 				assertThat(AlcoholExcelSchema.HEADERS).hasSize(14)
 				AlcoholExcelSchema.HEADERS.forEachIndexed { index, expected ->
-					assertThat(headerRow.getCell(index).stringCellValue).isEqualTo(expected)
+					val headerCell = headerRow.getCell(index)
+					assertThat(headerCell.stringCellValue).isEqualTo(expected)
+					assertThat(headerCell.cellStyle.fillForegroundColor).isEqualTo(IndexedColors.DARK_BLUE.index)
+					assertThat(workbook.getFontAt(headerCell.cellStyle.fontIndexAsInt).bold).isTrue()
 					assertThat(descriptionRow.getCell(index).stringCellValue)
 						.isEqualTo(AlcoholExcelSchema.DESCRIPTIONS[index])
 				}
@@ -98,7 +125,7 @@ class AdminAlcoholExcelServiceTest {
 				assertThat(headers).doesNotContain("이미지", "imageUrl", "image_url", "이미지 URL")
 				assertThat(headers.joinToString()).doesNotContain("imageUrl")
 
-				// 데이터 입력 행은 비어 있어야 한다
+				// 실제 입력 시트 데이터 행은 비어 있어야 한다
 				assertThat(dataSheet.getRow(2)).isNull()
 
 				val regionSheet = workbook.getSheet(AlcoholExcelSchema.REGION_SHEET_NAME)
@@ -110,8 +137,14 @@ class AdminAlcoholExcelServiceTest {
 				val tagSheet = workbook.getSheet(AlcoholExcelSchema.TASTING_TAG_SHEET_NAME)
 				assertThat(tagSheet.getRow(1).getCell(0).stringCellValue).isEqualTo("오크")
 
+				val categorySheet = workbook.getSheet(AlcoholExcelSchema.CATEGORY_SHEET_NAME)
+				assertThat(categorySheet.getRow(0).getCell(0).stringCellValue).isEqualTo("카테고리 그룹")
+				assertThat(categorySheet.getRow(1).getCell(0).stringCellValue).isEqualTo("싱글몰트 위스키")
+				assertThat(categorySheet.getRow(1).getCell(1).stringCellValue).isEqualTo("싱글 몰트")
+				assertThat(categorySheet.getRow(1).getCell(2).stringCellValue).isEqualTo("Single Malt")
+
 				val guideSheet = workbook.getSheet(AlcoholExcelSchema.GUIDE_SHEET_NAME)
-				assertThat(guideSheet.getRow(0).getCell(0).stringCellValue).contains("입력")
+				assertThat(guideSheet.getRow(0).getCell(0).stringCellValue).contains("템플릿")
 
 				// 내부 필드명 미노출
 				val allText =
@@ -130,8 +163,9 @@ class AdminAlcoholExcelServiceTest {
 				val validations = dataSheet.dataValidations
 				assertThat(validations).isNotEmpty
 				assertThat(
-					validations.any { it.validationConstraint.operator == DataValidationConstraint.OperatorType.BETWEEN ||
-						it.validationConstraint.validationType == DataValidationConstraint.ValidationType.LIST },
+					validations.any {
+						it.validationConstraint.validationType == DataValidationConstraint.ValidationType.LIST
+					},
 				).isTrue()
 			}
 		}
@@ -349,6 +383,13 @@ class AdminAlcoholExcelServiceTest {
 		@Test
 		@DisplayName("파일 내부 중복은 오류, 기존 DB 강한 중복은 warning 이다")
 		fun validate_duplicateInFileIsError_andDbMatchIsWarning() {
+			// 카테고리 시드 제거 후 실제 중복 후보만 남긴다
+			alcoholQueryRepository.findAll().toList().forEach { alcohol ->
+				if (alcohol.korName == "__category_seed__") {
+					ReflectionTestUtils.setField(alcohol, "deletedAt", java.time.LocalDateTime.now())
+				}
+			}
+
 			alcoholQueryRepository.save(
 				Alcohol.builder()
 					.korName("글렌피딕 12년")
@@ -367,27 +408,28 @@ class AdminAlcoholExcelServiceTest {
 					.build(),
 			)
 
-			val file = workbookAsMultipart { workbook ->
-				val values =
-					listOf(
-						"글렌피딕 12년",
-						"Glenfiddich 12",
-						"40%",
-						"위스키",
-						"싱글 몰트",
-						"Single Malt",
-						"싱글몰트 위스키",
-						"스페이사이드",
-						"글렌피딕",
-						"12",
-						"Oak",
-						"desc",
-						"700ml",
-						"오크",
-					)
-				writeDataRow(workbook, values, rowIndex = 2)
-				writeDataRow(workbook, values, rowIndex = 3)
-			}
+			val file =
+				workbookAsMultipart { workbook ->
+					val values =
+						listOf(
+							"글렌피딕 12년",
+							"Glenfiddich 12",
+							"40%",
+							"위스키",
+							"싱글 몰트",
+							"Single Malt",
+							"싱글몰트 위스키",
+							"스페이사이드",
+							"글렌피딕",
+							"12",
+							"Oak",
+							"desc",
+							"700ml",
+							"오크",
+						)
+					writeDataRow(workbook, values, rowIndex = 2)
+					writeDataRow(workbook, values, rowIndex = 3)
+				}
 
 			val result = service.validate(file)
 			assertThat(result.totalRows).isEqualTo(2)
@@ -427,6 +469,36 @@ class AdminAlcoholExcelServiceTest {
 			val result = service.validate(file)
 			assertThat(result.totalRows).isEqualTo(1)
 			assertThat(result.validRows).isEqualTo(1)
+		}
+
+		@Test
+		@DisplayName("없는 카테고리 조합은 CATEGORY_NOT_FOUND 오류다")
+		fun validate_whenUnknownCategory_returnsCategoryNotFound() {
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(
+						workbook,
+						listOf(
+							"테스트",
+							"Test",
+							"40%",
+							"위스키",
+							"없는카테고리",
+							"Unknown",
+							"싱글몰트 위스키",
+							"스페이사이드",
+							"글렌피딕",
+							"12",
+							"Oak",
+							"desc",
+							"700ml",
+							"오크",
+						),
+					)
+				}
+
+			val result = service.validate(file)
+			assertThat(result.rows[0].errors.map { it.code }).contains("CATEGORY_NOT_FOUND")
 		}
 
 		@Test
