@@ -282,6 +282,55 @@ class AdminAlcoholExcelServiceTest {
 		}
 
 		@Test
+		@DisplayName("40과 40.00은 파일 내부 중복으로 본다")
+		fun validate_whenAbvScaleDiffers_isDuplicateInFile() {
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(
+						workbook,
+						listOf(
+							"글렌피딕 12년",
+							"Glenfiddich 12",
+							"40",
+							"위스키",
+							"SINGLE_MALT|싱글 몰트|Single Malt",
+							"싱글몰트 위스키",
+							region.id.toString(),
+							distillery.id.toString(),
+							"12",
+							"Oak",
+							"desc",
+							"700",
+							tagOak.id.toString(),
+						),
+						rowIndex = 2,
+					)
+					writeDataRow(
+						workbook,
+						listOf(
+							"글렌피딕 12년",
+							"Glenfiddich 12",
+							"40.00",
+							"위스키",
+							"SINGLE_MALT|싱글 몰트|Single Malt",
+							"싱글몰트 위스키",
+							region.id.toString(),
+							distillery.id.toString(),
+							"12",
+							"Oak",
+							"desc",
+							"700.00",
+							tagOak.id.toString(),
+						),
+						rowIndex = 3,
+					)
+				}
+
+			val result = service.validate(file)
+			assertThat(result.rows).allMatch { row -> row.errors.any { it.code == "DUPLICATE_IN_FILE" } }
+		}
+
+		@Test
 		@DisplayName("xlsx 가 아니면 INVALID_FILE_TYPE 이다")
 		fun validate_whenNotXlsx_returnsInvalidFileType() {
 			val file = MockMultipartFile("file", "data.csv", "text/csv", "a,b,c".toByteArray())

@@ -14,6 +14,8 @@ import app.bottlenote.alcohols.dto.response.CategoryItem
 import app.bottlenote.alcohols.excel.AlcoholExcelSchema.Column
 import app.bottlenote.alcohols.exception.AlcoholException
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode
+import org.apache.poi.openxml4j.opc.OPCPackage
+import org.apache.poi.openxml4j.util.ZipSecureFile
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellStyle
@@ -31,6 +33,7 @@ import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.util.CellRangeAddressList
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
@@ -133,7 +136,8 @@ class AdminAlcoholExcelServiceImpl(
 			val tagsById = tastingTagRepository.findAll().associateBy { it.id }
 			val categories = alcoholQueryRepository.findAllCategoryItems()
 			val categoriesById = categories.associateBy { categoryStableId(it) }
-			val existingAlcohols = alcoholQueryRepository.findAll().filter { it.deletedAt == null }
+			// 전체 Alcohol 엔티티 대신 매칭용 요약 projection만 적재한다.
+			val existingTargets = alcoholQueryRepository.findAllMatchTargets()
 
 			val parsedRows = mutableListOf<ParsedRow>()
 			val lastRow = dataSheet.lastRowNum
@@ -147,7 +151,12 @@ class AdminAlcoholExcelServiceImpl(
 				throw AlcoholException(AlcoholExceptionCode.EXCEL_ROW_LIMIT_EXCEEDED)
 			}
 
-			val identityCounts = parsedRows.groupingBy { it.identityKey }.eachCount()
+			// 파일 내부 중복은 정규화된 숫자 기준으로 판정한다.
+			val identityCounts =
+				parsedRows
+					.map { it to it.normalizedIdentityKey() }
+					.groupingBy { it.second }
+					.eachCount()
 			val results =
 				parsedRows.map { parsed ->
 					validateParsedRow(
@@ -156,7 +165,7 @@ class AdminAlcoholExcelServiceImpl(
 						distilleriesById = distilleriesById,
 						tagsById = tagsById,
 						categoriesById = categoriesById,
-						existingAlcohols = existingAlcohols,
+						existingTargets = existingTargets,
 						identityCounts = identityCounts,
 					)
 				}
@@ -185,12 +194,22 @@ class AdminAlcoholExcelServiceImpl(
 		}
 	}
 
-	private fun openSecureWorkbook(bytes: ByteArray): Workbook =
-		try {
-			XSSFWorkbook(ByteArrayInputStream(bytes))
+	private fun openSecureWorkbook(bytes: ByteArray): Workbook {
+		val previousMinInflateRatio = ZipSecureFile.getMinInflateRatio()
+		val previousMaxEntrySize = ZipSecureFile.getMaxEntrySize()
+		return try {
+			// zip-bomb 방어: 과도 압축 OOXML 거부
+			ZipSecureFile.setMinInflateRatio(0.01)
+			ZipSecureFile.setMaxEntrySize(AlcoholExcelSchema.MAX_FILE_BYTES)
+			val pkg = OPCPackage.open(ByteArrayInputStream(bytes))
+			XSSFWorkbook(pkg)
 		} catch (_: Exception) {
 			throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+		} finally {
+			ZipSecureFile.setMinInflateRatio(previousMinInflateRatio)
+			ZipSecureFile.setMaxEntrySize(previousMaxEntrySize)
 		}
+	}
 
 	private fun validateWorkbookStructure(workbook: Workbook) {
 		AlcoholExcelSchema.SHEET_ORDER.forEach { name ->
@@ -256,7 +275,7 @@ class AdminAlcoholExcelServiceImpl(
 		distilleriesById: Map<Long?, app.bottlenote.alcohols.domain.Distillery>,
 		tagsById: Map<Long?, app.bottlenote.alcohols.domain.TastingTag>,
 		categoriesById: Map<String, CategoryItem>,
-		existingAlcohols: List<Alcohol>,
+		existingTargets: List<AlcoholMatchTargetItem>,
 		identityCounts: Map<IdentityKey, Int>,
 	): AdminAlcoholExcelRowResult {
 		val errors = mutableListOf<AdminAlcoholExcelIssue>()
@@ -404,7 +423,7 @@ class AdminAlcoholExcelServiceImpl(
 			}
 		}
 
-		if (identityCounts[parsed.identityKey]?.let { it > 1 } == true) {
+		if (identityCounts[parsed.normalizedIdentityKey()]?.let { it > 1 } == true) {
 			errors +=
 				issue(
 					"DUPLICATE_IN_FILE",
@@ -414,14 +433,13 @@ class AdminAlcoholExcelServiceImpl(
 		}
 
 		val candidateIds =
-			if (korName != null && distilleryId != null && abvDisplay != null && volumeDisplay != null) {
-				existingAlcohols
-					.filter { alcohol ->
-						normalizeIdentity(alcohol.korName) == normalizeIdentity(korName) &&
-							alcohol.distillery?.id == distilleryId &&
-							normalizeIdentity(stripUnit(alcohol.abv)) == normalizeIdentity(abvNormalized?.toPlainString()) &&
-							normalizeIdentity(stripUnit(alcohol.volume)) == normalizeIdentity(volumeNormalized?.toPlainString())
-					}.mapNotNull { it.id }
+			if (korName != null && distilleryId != null && abvNormalized != null) {
+				existingTargets
+					.filter { target ->
+						normalizeIdentity(target.korName()) == normalizeIdentity(korName) &&
+							target.distilleryId() == distilleryId &&
+							normalizeNumericIdentity(target.abv()) == normalizeNumericIdentity(abvNormalized)
+					}.mapNotNull { it.alcoholId() }
 			} else {
 				emptyList()
 			}
@@ -508,6 +526,19 @@ class AdminAlcoholExcelServiceImpl(
 			.replace("%", "", ignoreCase = true)
 			.replace("ml", "", ignoreCase = true)
 			.trim()
+
+	private fun normalizeNumericIdentity(value: String?): String {
+		val cleaned = stripUnit(value)
+		if (cleaned.isBlank()) return ""
+		return runCatching {
+			BigDecimal(cleaned).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
+		}.getOrElse { normalizeIdentity(cleaned) }
+	}
+
+	private fun normalizeNumericIdentity(value: BigDecimal?): String {
+		if (value == null) return ""
+		return value.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
+	}
 
 	private fun writeHeaderAndDescription(
 		sheet: Sheet,
@@ -753,14 +784,13 @@ class AdminAlcoholExcelServiceImpl(
 		val volume: String,
 		val tastingTagIds: String,
 	) {
-		val identityKey: IdentityKey
-			get() =
-				IdentityKey(
-					normalizeIdentity(korName),
-					normalizeIdentity(distilleryId),
-					normalizeIdentity(abv),
-					normalizeIdentity(volume),
-				)
+		fun normalizedIdentityKey(): IdentityKey =
+			IdentityKey(
+				normalizeIdentity(korName),
+				normalizeIdentity(distilleryId),
+				normalizeNumericIdentity(abv),
+				normalizeNumericIdentity(volume),
+			)
 	}
 
 	private data class IdentityKey(
