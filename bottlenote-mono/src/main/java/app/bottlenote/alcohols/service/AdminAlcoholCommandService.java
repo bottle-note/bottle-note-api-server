@@ -111,6 +111,9 @@ public class AdminAlcoholCommandService {
             .orElseThrow(() -> new AlcoholException(DISTILLERY_NOT_FOUND));
 
     String oldImageUrl = alcohol.getImageUrl();
+    // null/blank imageUrl means keep existing image; do not mutate lifecycle.
+    boolean keepExistingImage = request.imageUrl() == null || request.imageUrl().isBlank();
+    String effectiveImageUrl = keepExistingImage ? oldImageUrl : request.imageUrl();
 
     alcohol.update(
         request.korName(),
@@ -124,7 +127,7 @@ public class AdminAlcoholCommandService {
         distillery,
         request.age(),
         request.cask(),
-        request.imageUrl(),
+        effectiveImageUrl,
         request.description(),
         request.volume());
 
@@ -135,7 +138,9 @@ public class AdminAlcoholCommandService {
       }
     }
 
-    handleImageChange(oldImageUrl, request.imageUrl(), alcoholId);
+    if (!keepExistingImage) {
+      handleImageChange(oldImageUrl, effectiveImageUrl, alcoholId);
+    }
 
     return AdminResultResponse.of(ALCOHOL_UPDATED, alcoholId);
   }
