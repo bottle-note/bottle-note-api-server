@@ -2,7 +2,6 @@ package app.bottlenote.alcohols.excel
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.constant.AlcoholType
-import app.bottlenote.alcohols.domain.Alcohol
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository
 import app.bottlenote.alcohols.domain.DistilleryRepository
 import app.bottlenote.alcohols.domain.RegionRepository
@@ -10,10 +9,14 @@ import app.bottlenote.alcohols.domain.TastingTagRepository
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelIssue
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelRowResult
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelValidateResponse
+import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
+import app.bottlenote.alcohols.dto.response.AdminRegionItem
 import app.bottlenote.alcohols.dto.response.CategoryItem
+import app.bottlenote.alcohols.dto.response.TastingTagNodeItem
 import app.bottlenote.alcohols.excel.AlcoholExcelSchema.Column
 import app.bottlenote.alcohols.exception.AlcoholException
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem
 import org.apache.poi.openxml4j.opc.OPCPackage
 import org.apache.poi.openxml4j.util.ZipSecureFile
 import org.apache.poi.ss.usermodel.BorderStyle
@@ -33,7 +36,7 @@ import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.util.CellRangeAddressList
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
@@ -61,28 +64,28 @@ class AdminAlcoholExcelServiceImpl(
 			val categorySheet = workbook.createSheet(AlcoholExcelSchema.CATEGORY_SHEET_NAME)
 			val dataSheet = workbook.createSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
 
-			val regions = regionRepository.findAllOrderBySortOrderAsc()
-			val distilleries = distilleryRepository.findAllOrderBySortOrderAsc()
-			val tags = tastingTagRepository.findAll()
+			val regions = loadRegions()
+			val distilleries = loadDistilleries()
+			val tags = loadTastingTags()
 			val categories = alcoholQueryRepository.findAllCategoryItems()
 
 			writeGuideSheet(guideSheet, styles)
 			writeReferenceSheet(
 				regionSheet,
 				listOf("ID", "한글 이름", "영문 이름"),
-				regions.map { listOf(it.id?.toString().orEmpty(), it.korName.orEmpty(), it.engName.orEmpty()) },
+				regions.map { listOf(it.id.toString(), it.korName.orEmpty(), it.engName.orEmpty()) },
 				styles,
 			)
 			writeReferenceSheet(
 				distillerySheet,
 				listOf("ID", "한글 이름", "영문 이름"),
-				distilleries.map { listOf(it.id?.toString().orEmpty(), it.korName.orEmpty(), it.engName.orEmpty()) },
+				distilleries.map { listOf(it.id.toString(), it.korName.orEmpty(), it.engName.orEmpty()) },
 				styles,
 			)
 			writeReferenceSheet(
 				tagSheet,
 				listOf("ID", "한글 이름", "영문 이름"),
-				tags.map { listOf(it.id?.toString().orEmpty(), it.korName.orEmpty(), it.engName.orEmpty()) },
+				tags.map { listOf(it.id.toString(), it.korName.orEmpty(), it.engName.orEmpty()) },
 				styles,
 			)
 			// 카테고리는 안정 키(그룹|한글|영문)를 ID 칸에 노출한다.
@@ -131,9 +134,9 @@ class AdminAlcoholExcelServiceImpl(
 
 			rejectFormulas(dataSheet)
 
-			val regionsById = regionRepository.findAllOrderBySortOrderAsc().associateBy { it.id }
-			val distilleriesById = distilleryRepository.findAllOrderBySortOrderAsc().associateBy { it.id }
-			val tagsById = tastingTagRepository.findAll().associateBy { it.id }
+			val regionsById = loadRegions().associateBy { it.id }
+			val distilleriesById = loadDistilleries().associateBy { it.id }
+			val tagsById = loadTastingTags().associateBy { it.id }
 			val categories = alcoholQueryRepository.findAllCategoryItems()
 			val categoriesById = categories.associateBy { categoryStableId(it) }
 			// 전체 Alcohol 엔티티 대신 매칭용 요약 projection만 적재한다.
@@ -154,7 +157,7 @@ class AdminAlcoholExcelServiceImpl(
 			// 파일 내부 중복은 정규화된 숫자 기준으로 판정한다.
 			val identityCounts =
 				parsedRows
-					.map { it to it.normalizedIdentityKey() }
+					.map { it to normalizedIdentityKey(it) }
 					.groupingBy { it.second }
 					.eachCount()
 			val results =
@@ -271,9 +274,9 @@ class AdminAlcoholExcelServiceImpl(
 
 	private fun validateParsedRow(
 		parsed: ParsedRow,
-		regionsById: Map<Long?, app.bottlenote.alcohols.domain.Region>,
-		distilleriesById: Map<Long?, app.bottlenote.alcohols.domain.Distillery>,
-		tagsById: Map<Long?, app.bottlenote.alcohols.domain.TastingTag>,
+		regionsById: Map<Long, AdminRegionItem>,
+		distilleriesById: Map<Long, AdminDistilleryItem>,
+		tagsById: Map<Long, TastingTagNodeItem>,
 		categoriesById: Map<String, CategoryItem>,
 		existingTargets: List<AlcoholMatchTargetItem>,
 		identityCounts: Map<IdentityKey, Int>,
@@ -380,7 +383,7 @@ class AdminAlcoholExcelServiceImpl(
 					errors += issue("REGION_NOT_FOUND", Column.REGION_ID.header, "지역 ID를 찾을 수 없습니다: $parsedId")
 				} else {
 					regionId = parsedId
-					regionName = region.korName
+					regionName = region.korName()
 				}
 			}
 		}
@@ -395,7 +398,7 @@ class AdminAlcoholExcelServiceImpl(
 					errors += issue("DISTILLERY_NOT_FOUND", Column.DISTILLERY_ID.header, "증류소 ID를 찾을 수 없습니다: $parsedId")
 				} else {
 					distilleryId = parsedId
-					distilleryName = distillery.korName
+					distilleryName = distillery.korName()
 				}
 			}
 		}
@@ -423,7 +426,7 @@ class AdminAlcoholExcelServiceImpl(
 			}
 		}
 
-		if (identityCounts[parsed.normalizedIdentityKey()]?.let { it > 1 } == true) {
+		if (identityCounts[normalizedIdentityKey(parsed)]?.let { it > 1 } == true) {
 			errors +=
 				issue(
 					"DUPLICATE_IN_FILE",
@@ -762,11 +765,28 @@ class AdminAlcoholExcelServiceImpl(
 		return listOf(group, kor, eng).joinToString("|")
 	}
 
+	private fun loadRegions(): List<AdminRegionItem> =
+		regionRepository.findAllRegions(null, PageRequest.of(0, 10_000)).content
+
+	private fun loadDistilleries(): List<AdminDistilleryItem> =
+		distilleryRepository.findAllDistilleries(null, PageRequest.of(0, 10_000)).content
+
+	private fun loadTastingTags(): List<TastingTagNodeItem> =
+		tastingTagRepository.findAllTastingTags(null, PageRequest.of(0, 10_000)).content
+
 	private fun normalizeIdentity(value: String?): String {
 		if (value.isNullOrBlank()) return ""
 		val nfkc = Normalizer.normalize(value.trim(), Normalizer.Form.NFKC)
 		return nfkc.lowercase(Locale.ROOT).replace(Regex("\\s+"), " ")
 	}
+
+	private fun normalizedIdentityKey(parsed: ParsedRow): IdentityKey =
+		IdentityKey(
+			normalizeIdentity(parsed.korName),
+			normalizeIdentity(parsed.distilleryId),
+			normalizeNumericIdentity(parsed.abv),
+			normalizeNumericIdentity(parsed.volume),
+		)
 
 	private data class ParsedRow(
 		val rowNumber: Int,
@@ -783,15 +803,7 @@ class AdminAlcoholExcelServiceImpl(
 		val description: String,
 		val volume: String,
 		val tastingTagIds: String,
-	) {
-		fun normalizedIdentityKey(): IdentityKey =
-			IdentityKey(
-				normalizeIdentity(korName),
-				normalizeIdentity(distilleryId),
-				normalizeNumericIdentity(abv),
-				normalizeNumericIdentity(volume),
-			)
-	}
+	)
 
 	private data class IdentityKey(
 		val name: String,
