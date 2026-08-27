@@ -37,7 +37,9 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 	@Test
 	@DisplayName("응답 data는 실제 타입을 가리킨다")
 	fun responseDataReferencesConcreteSchema() {
-		assertNoOperation("응답 data가 빈 object입니다. 담기는 타입을 알려주세요") { operation -> operation.hasEmptyDataSchema() }
+		assertNoOperation("응답 data가 빈 object입니다. 담기는 타입을 알려주세요") { operation ->
+			operation.endpoint() != "GET /v1/alcohols/excel/template" && operation.hasEmptyDataSchema()
+		}
 	}
 
 	@Test

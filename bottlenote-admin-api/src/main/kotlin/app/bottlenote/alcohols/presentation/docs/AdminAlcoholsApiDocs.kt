@@ -1,158 +1,189 @@
 package app.bottlenote.alcohols.presentation.docs
 
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse
+import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelValidateResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem
 import app.bottlenote.alcohols.dto.response.CategoryPairItem
 import app.bottlenote.global.dto.response.AdminResultResponse
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 
-/** 위스키 기본 정보 엔드포인트의 문서 설명. */
 object AdminAlcoholsApiDocs {
-
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "위스키", description = "위스키 기본 정보를 등록·수정·삭제하고 목록·상세·룩업·카테고리 기준 정보를 조회한다")
+	@Tag(name = "알코올", description = "Admin 알코올 조회·등록·수정·삭제·엑셀 검증 API")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키 룩업 목록을 조회한다",
-		description = """
-			검색어, 카테고리, 지역, 증류소, 페이지 번호, 페이지 크기로 위스키 룩업 목록을 조회합니다.
-
-			다른 화면에서 위스키를 빠르게 선택할 때 쓰는 경량 목록이며, Redis 스냅샷을 우선 사용하고 비어 있으면 DB로 폴백합니다.
-			page를 지정하지 않으면 0부터, size를 지정하지 않으면 20건씩 조회합니다.
-			페이지 정보는 meta.page, meta.size, meta.totalElements, meta.totalPages에 담깁니다.
-			""",
-		responses = [
-			ApiResponse(
-				responseCode = "200",
-				description = "위스키 룩업 목록",
-				content = [
-					Content(
-						array = ArraySchema(schema = Schema(implementation = AlcoholLookupItem::class))
-					)
-				]
-			)
-		]
+	@Operation(summary = "알코올 lookup 목록을 조회한다")
+	@ApiResponse(
+		responseCode = "200",
+		description = "lookup 목록",
+		content = [Content(schema = Schema(implementation = AlcoholLookupListEnvelope::class))],
 	)
 	annotation class GetAlcoholLookups
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키 목록을 검색한다",
-		description = "검색어, 카테고리, 지역, 정렬 기준·방향, 페이지 번호·크기, 삭제 데이터 포함 여부로 위스키 목록을 페이지 단위로 조회합니다.",
-		responses = [
-			ApiResponse(
-				responseCode = "200",
-				description = "위스키 목록",
-				content = [
-					Content(
-						array = ArraySchema(schema = Schema(implementation = AdminAlcoholItem::class))
-					)
-				]
-			)
-		]
+	@Operation(summary = "알코올 목록을 검색한다")
+	@ApiResponse(
+		responseCode = "200",
+		description = "검색 결과",
+		content = [Content(schema = Schema(implementation = AlcoholSearchEnvelope::class))],
 	)
 	annotation class SearchAlcohols
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키 상세 정보를 조회한다",
-		description = "위스키 ID로 단일 위스키의 상세 정보를 조회합니다. 지역·증류소·테이스팅 태그 정보와 평점·리뷰·픽 집계를 함께 반환합니다.",
-		responses = [
-			ApiResponse(
-				responseCode = "200",
-				description = "위스키 상세 정보",
-				content = [Content(schema = Schema(implementation = AdminAlcoholDetailResponse::class))]
-			)
-		]
+	@Operation(summary = "알코올 상세를 조회한다")
+	@ApiResponse(
+		responseCode = "200",
+		description = "상세 결과",
+		content = [Content(schema = Schema(implementation = AlcoholDetailEnvelope::class))],
 	)
 	annotation class GetAlcoholDetail
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "카테고리 기준 정보를 조회한다",
-		description = """
-			등록·수정 폼에서 카테고리를 고를 때 쓰는 기준 정보입니다.
-
-			카테고리 그룹(AlcoholCategoryGroup) 이름을 키로, 그 그룹에 속한 한글/영문 카테고리 쌍(CategoryPairItem) 배열을 값으로 갖는 객체를 반환합니다.
-			데이터가 없는 그룹도 빈 배열로 포함되며, 그룹 순서는 enum 선언 순서로 고정됩니다.
-			""",
-		responses = [
-			ApiResponse(
-				responseCode = "200",
-				description = "카테고리 그룹별 카테고리 쌍 목록",
-				content = [
-					Content(schema = Schema(implementation = AlcoholCategoryReferenceSchema::class))
-				]
-			)
-		]
+	@Operation(summary = "카테고리 참조 맵을 조회한다")
+	@ApiResponse(
+		responseCode = "200",
+		description = "카테고리 참조",
+		content = [Content(schema = Schema(implementation = CategoryReferenceEnvelope::class))],
 	)
 	annotation class GetCategoryReference
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키를 등록한다",
-		description = "새 위스키를 등록합니다. 이름, 도수, 타입, 카테고리, 지역, 증류소 등 기본 정보를 입력하며, tastingTagIds로 테이스팅 태그를 함께 연결할 수 있습니다.",
-		responses = [
-			ApiResponse(
-				responseCode = "200",
-				description = "등록 처리 결과",
-				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
-		]
+	@Operation(summary = "알코올을 생성한다")
+	@ApiResponse(
+		responseCode = "200",
+		description = "생성 결과",
+		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))],
 	)
 	annotation class CreateAlcohol
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키 정보를 수정한다",
-		description = "기존 위스키의 기본 정보를 수정합니다. 이미 삭제된 위스키는 수정할 수 없습니다. tastingTagIds를 보내면 기존 연결을 모두 교체합니다.",
-		responses = [
-			ApiResponse(
-				responseCode = "200",
-				description = "수정 처리 결과",
-				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
-		]
+	@Operation(summary = "알코올을 수정한다")
+	@ApiResponse(
+		responseCode = "200",
+		description = "수정 결과",
+		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))],
 	)
 	annotation class UpdateAlcohol
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키를 삭제한다",
-		description = "위스키를 삭제합니다. 이미 삭제된 위스키이거나 리뷰·평점이 하나라도 있으면 삭제할 수 없습니다.",
-		responses = [
-			ApiResponse(
-				responseCode = "200",
-				description = "삭제 처리 결과",
-				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
-		]
+	@Operation(summary = "알코올을 삭제한다")
+	@ApiResponse(
+		responseCode = "200",
+		description = "삭제 결과",
+		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))],
 	)
 	annotation class DeleteAlcohol
-}
 
-@Schema(name = "AlcoholCategoryReference", description = "카테고리 그룹별 한글·영문 카테고리 쌍 목록")
-internal data class AlcoholCategoryReferenceSchema(
-	val SINGLE_MALT: List<CategoryPairItem>,
-	val BLEND: List<CategoryPairItem>,
-	val BLENDED_MALT: List<CategoryPairItem>,
-	val BOURBON: List<CategoryPairItem>,
-	val RYE: List<CategoryPairItem>,
-	val OTHER: List<CategoryPairItem>
-)
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(
+		summary = "알코올 엑셀 템플릿을 다운로드한다",
+		description = "1행 한글 필드명, 2행 한글 설명, 참조 시트와 입력 안내를 포함한 XLSX 템플릿을 반환한다.",
+	)
+	@ApiResponse(
+		responseCode = "200",
+		description = "XLSX 템플릿 바이너리",
+		content = [
+			Content(
+				mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				schema = Schema(type = "string", format = "binary"),
+			),
+		],
+	)
+	annotation class DownloadAlcoholExcelTemplate
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(
+		summary = "알코올 엑셀을 업로드해 검증한다",
+		description = "DB에 저장하지 않고 파싱·검증 결과만 반환한다. 이미지 업로드는 포함하지 않는다.",
+	)
+	@ApiResponse(
+		responseCode = "200",
+		description = "검증 결과",
+		content = [Content(schema = Schema(implementation = AlcoholExcelValidateEnvelope::class))],
+	)
+	annotation class ValidateAlcoholExcel
+
+	@Schema(name = "AlcoholLookupListEnvelope")
+	data class AlcoholLookupListEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: List<AlcoholLookupItem>,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap(),
+	)
+
+	@Schema(name = "AlcoholSearchEnvelope")
+	data class AlcoholSearchEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: List<AdminAlcoholItem>,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap(),
+	)
+
+	@Schema(name = "AlcoholDetailEnvelope")
+	data class AlcoholDetailEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: AdminAlcoholDetailResponse,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap(),
+	)
+
+	@Schema(name = "CategoryReferenceEnvelope")
+	data class CategoryReferenceEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: CategoryReferenceMap,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap(),
+	)
+
+	@Schema(name = "AdminResultEnvelope")
+	data class AdminResultEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: AdminResultResponse,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap(),
+	)
+
+	@Schema(name = "AlcoholExcelValidateEnvelope")
+	data class AlcoholExcelValidateEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: AdminAlcoholExcelValidateResponse,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap(),
+	)
+
+	@Schema(name = "CategoryReferenceMap")
+	data class CategoryReferenceMap(
+		val SINGLE_MALT: List<CategoryPairItem>,
+		val BLEND: List<CategoryPairItem>,
+		val BLENDED_MALT: List<CategoryPairItem>,
+		val BOURBON: List<CategoryPairItem>,
+		val RYE: List<CategoryPairItem>,
+		val OTHER: List<CategoryPairItem>,
+	)
+}

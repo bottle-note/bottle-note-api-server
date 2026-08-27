@@ -16,6 +16,9 @@ dependencies {
 	// OpenAPI
 	implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
+	// XLSX (Admin module only)
+	implementation("org.apache.poi:poi-ooxml:5.3.0")
+
 	// Security
 	implementation(libs.spring.boot.starter.security)
 	implementation(libs.spring.security.test)
