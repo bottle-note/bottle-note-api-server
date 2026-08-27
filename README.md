@@ -78,6 +78,16 @@
 
 ---
 
+## Git hook
+
+Java 21 환경에서 [Lefthook](https://lefthook.dev/)을 설치하고 저장소 루트에서 `lefthook install`을 실행합니다.
+
+- `pre-commit`: `./gradlew spotlessCheck`
+- `commit-msg`: `type(scope): 제목` 형식과 제목 50자 제한 검사
+- 허용 type: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `deps`, `perf`, `build`, `ci`, `revert`
+
+---
+
 보틀노트는 위스키 애호가들이 모여 서로의 의견을 공유하고 <br/>
 더욱 즐겁고 유익한 시음 경험을 할 수 있도록 도와줍니다.
 

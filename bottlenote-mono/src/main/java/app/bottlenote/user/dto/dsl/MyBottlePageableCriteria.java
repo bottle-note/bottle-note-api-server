@@ -33,15 +33,7 @@ public record MyBottlePageableCriteria(
 
   public MyBottlePageableCriteria withHotAlcoholIds(Set<Long> alcoholIds) {
     return new MyBottlePageableCriteria(
-        userId,
-        keyword,
-        regionId,
-        sortType,
-        sortOrder,
-        cursor,
-        size,
-        currentUserId,
-        alcoholIds);
+        userId, keyword, regionId, sortType, sortOrder, cursor, size, currentUserId, alcoholIds);
   }
 
   public String context(MyBottleType tab) {

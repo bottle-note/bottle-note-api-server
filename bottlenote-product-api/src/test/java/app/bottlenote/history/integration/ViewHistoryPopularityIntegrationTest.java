@@ -32,7 +32,8 @@ class ViewHistoryPopularityIntegrationTest extends IntegrationTestSupport {
     User user = userTestFactory.persistUser();
     Alcohol alcohol = alcoholTestFactory.persistAlcohol();
     LocalDateTime currentBucket = BucketGranularity.HOUR.startAt(LocalDateTime.now());
-    viewHistoryTestFactory.persistAlcoholsViewHistory(user.getId(), alcohol.getId(), LocalDateTime.now());
+    viewHistoryTestFactory.persistAlcoholsViewHistory(
+        user.getId(), alcohol.getId(), LocalDateTime.now());
     alcoholTestFactory.persistPopularAlcohol(alcohol.getId(), new BigDecimal("0.9"));
     alcoholTestFactory.persistPopularitySnapshot(
         alcohol.getId(),

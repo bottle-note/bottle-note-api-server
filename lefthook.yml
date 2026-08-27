@@ -1,0 +1,11 @@
+min_version: 2.0.0
+
+pre-commit:
+  commands:
+    spotless:
+      run: ./gradlew spotlessCheck
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: scripts/validate_commit_message.sh "{1}"
