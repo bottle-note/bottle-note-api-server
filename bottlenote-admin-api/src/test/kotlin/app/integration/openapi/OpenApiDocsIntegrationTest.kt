@@ -102,7 +102,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 			operationsOf(fetchSpec()).first { it.endpoint() == "GET /v1/alcohols/excel/template" }
 
 		val content = operation.definition.at("/responses/200/content")
-		assertThat(content.has(AlcoholExcelSchemaContentType)).isTrue()
+		assertThat(content.has(ALCOHOL_EXCEL_CONTENT_TYPE)).isTrue()
 	}
 
 	@Test
@@ -117,7 +117,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	companion object {
-		private const val AlcoholExcelSchemaContentType =
+		private const val ALCOHOL_EXCEL_CONTENT_TYPE =
 			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 	}
 }
