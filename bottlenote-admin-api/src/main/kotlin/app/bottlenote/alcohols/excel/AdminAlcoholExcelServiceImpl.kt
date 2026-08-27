@@ -82,13 +82,13 @@ class AdminAlcoholExcelServiceImpl(
 				tags.map { listOf(it.id?.toString().orEmpty(), it.korName.orEmpty(), it.engName.orEmpty()) },
 				styles,
 			)
-			// 카테고리는 안정적인 행 번호 기반 ID를 템플릿에 노출한다.
+			// 카테고리는 안정 키(그룹|한글|영문)를 ID 칸에 노출한다.
 			writeReferenceSheet(
 				categorySheet,
 				listOf("ID", "카테고리 그룹", "한글 카테고리", "영문 카테고리"),
-				categories.mapIndexed { index, item ->
+				categories.map { item ->
 					listOf(
-						(index + 1).toString(),
+						categoryStableId(item),
 						item.categoryGroup()?.description.orEmpty(),
 						item.korCategory().orEmpty(),
 						item.engCategory().orEmpty(),
@@ -132,10 +132,7 @@ class AdminAlcoholExcelServiceImpl(
 			val distilleriesById = distilleryRepository.findAllOrderBySortOrderAsc().associateBy { it.id }
 			val tagsById = tastingTagRepository.findAll().associateBy { it.id }
 			val categories = alcoholQueryRepository.findAllCategoryItems()
-			val categoriesById =
-				categories
-					.mapIndexed { index, item -> (index + 1L) to item }
-					.toMap()
+			val categoriesById = categories.associateBy { categoryStableId(it) }
 			val existingAlcohols = alcoholQueryRepository.findAll().filter { it.deletedAt == null }
 
 			val parsedRows = mutableListOf<ParsedRow>()
@@ -258,7 +255,7 @@ class AdminAlcoholExcelServiceImpl(
 		regionsById: Map<Long?, app.bottlenote.alcohols.domain.Region>,
 		distilleriesById: Map<Long?, app.bottlenote.alcohols.domain.Distillery>,
 		tagsById: Map<Long?, app.bottlenote.alcohols.domain.TastingTag>,
-		categoriesById: Map<Long, CategoryItem>,
+		categoriesById: Map<String, CategoryItem>,
 		existingAlcohols: List<Alcohol>,
 		identityCounts: Map<IdentityKey, Int>,
 	): AdminAlcoholExcelRowResult {
@@ -326,17 +323,17 @@ class AdminAlcoholExcelServiceImpl(
 			}
 		}
 
-		var categoryId: Long? = null
 		var korCategory: String? = null
 		var engCategory: String? = null
 		if (categoryIdRaw != null) {
-			val parsedId = parseLongId(categoryIdRaw, Column.CATEGORY_ID, errors)
-			if (parsedId != null) {
-				val category = categoriesById[parsedId]
+			val stableId = categoryIdRaw.trim()
+			if (stableId.isBlank()) {
+				errors += issue("INVALID_ID", Column.CATEGORY_ID.header, "${Column.CATEGORY_ID.header} 필드가 잘못 입력되었습니다. 참조 시트의 ID를 입력하세요.")
+			} else {
+				val category = categoriesById[stableId]
 				if (category == null) {
-					errors += issue("CATEGORY_NOT_FOUND", Column.CATEGORY_ID.header, "카테고리 ID를 찾을 수 없습니다: $parsedId")
+					errors += issue("CATEGORY_NOT_FOUND", Column.CATEGORY_ID.header, "카테고리 ID를 찾을 수 없습니다: $stableId")
 				} else {
-					categoryId = parsedId
 					korCategory = category.korCategory()
 					engCategory = category.engCategory()
 					if (matchedCategoryGroup != null && category.categoryGroup() != matchedCategoryGroup) {
@@ -344,7 +341,7 @@ class AdminAlcoholExcelServiceImpl(
 							issue(
 								"CATEGORY_GROUP_MISMATCH",
 								Column.CATEGORY_GROUP.header,
-								"카테고리 ID와 카테고리 그룹이 일치하지 않습니다: ID=$parsedId, 그룹=${matchedCategoryGroup.description}",
+								"카테고리 ID와 카테고리 그룹이 일치하지 않습니다: ID=$stableId, 그룹=${matchedCategoryGroup.description}",
 							)
 					} else if (matchedCategoryGroup == null && category.categoryGroup() != null) {
 						matchedCategoryGroup = category.categoryGroup()
@@ -726,6 +723,13 @@ class AdminAlcoholExcelServiceImpl(
 		field: String?,
 		message: String,
 	) = AdminAlcoholExcelIssue(code = code, field = field, message = message)
+
+	private fun categoryStableId(item: CategoryItem): String {
+		val group = item.categoryGroup()?.name.orEmpty()
+		val kor = item.korCategory().orEmpty()
+		val eng = item.engCategory().orEmpty()
+		return listOf(group, kor, eng).joinToString("|")
+	}
 
 	private fun normalizeIdentity(value: String?): String {
 		if (value.isNullOrBlank()) return ""
