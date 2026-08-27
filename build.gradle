@@ -168,6 +168,79 @@ tasks.register('spotlessCheck') {
 	dependsOn subprojects.findAll { it.tasks.findByName('spotlessCheck') }.collect { it.tasks.spotlessCheck }
 }
 
+/**
+ * lefthook을 로컬 git hooks에 설치한다.
+ * - 목적: pre-commit(spotlessCheck), commit-msg(conventional commit) 강제
+ * - 동작: 바이너리 확보 후 `lefthook install`, hook 파일 존재 검증
+ * - 연결: compileJava에 soft-depend 해서 빌드 경로에서 누락을 줄인다
+ */
+tasks.register('installGitHooks') {
+	description = 'lefthook 기반 git hooks 설치'
+	group = 'verification'
+	onlyIf {
+		// bare clone / CI 등 hooks 설치가 불필요하거나 불가능한 환경은 건너뛴다.
+		def skip = System.getenv('SKIP_GIT_HOOKS') == 'true' || System.getenv('CI') == 'true'
+		!skip && file('.git').exists()
+	}
+	doLast {
+		def lefthookYml = file('lefthook.yml')
+		if (!lefthookYml.exists()) {
+			throw new GradleException('lefthook.yml 이 없습니다.')
+		}
+
+		def toolsDir = file("${rootProject.projectDir}/.tools")
+		def lefthookBin = new File(toolsDir, 'lefthook')
+		toolsDir.mkdirs()
+
+		if (!lefthookBin.exists()) {
+			def osName = System.getProperty('os.name').toLowerCase()
+			def osArch = System.getProperty('os.arch').toLowerCase()
+			def platform
+			if (osName.contains('linux')) {
+				platform = osArch.contains('aarch64') || osArch.contains('arm64') ? 'Linux_arm64' : 'Linux_x86_64'
+			} else if (osName.contains('mac')) {
+				platform = osArch.contains('aarch64') || osArch.contains('arm64') ? 'MacOS_arm64' : 'MacOS_x86_64'
+			} else {
+				throw new GradleException("지원하지 않는 OS입니다: ${osName}")
+			}
+
+			def version = '2.1.11'
+			def archiveName = "lefthook_${version}_${platform}.gz"
+			def url = "https://github.com/evilmartians/lefthook/releases/download/v${version}/${archiveName}"
+			def archive = new File(toolsDir, archiveName)
+			logger.lifecycle("lefthook 다운로드: ${url}")
+			new URL(url).withInputStream { input ->
+				archive.withOutputStream { output -> output << input }
+			}
+			ant.gunzip(src: archive, dest: lefthookBin)
+			lefthookBin.setExecutable(true)
+			archive.delete()
+		}
+
+		exec {
+			commandLine lefthookBin.absolutePath, 'install', '-f'
+			workingDir rootProject.projectDir
+		}
+
+		def hooksDir = file('.git/hooks')
+		['pre-commit', 'commit-msg'].each { hookName ->
+			def hook = new File(hooksDir, hookName)
+			if (!hook.exists()) {
+				throw new GradleException("lefthook install 후에도 ${hookName} hook이 없습니다.")
+			}
+		}
+		logger.lifecycle('git hooks 설치 완료: pre-commit, commit-msg')
+	}
+}
+
+// 자주 도는 컴파일 경로에 hook 설치를 soft-depend 한다.
+// 커밋 전 빌드를 한 번이라도 거치면 hook 누락을 줄일 수 있다.
+subprojects {
+	tasks.matching { it.name == 'compileJava' || it.name == 'compileKotlin' }.configureEach {
+		dependsOn rootProject.tasks.named('installGitHooks')
+	}
+}
+
 tasks.register('integration_test') {
 	description = '전체 모듈 통합 테스트 실행'
 	group = 'verification'
