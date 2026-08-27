@@ -1,11 +1,23 @@
 min_version: 2.0.0
 
+# 로컬 커밋 게이트
+# - pre-commit: 포맷 검사
+# - commit-msg: conventional commit + 제목 50자 제한
+# 설치: ./gradlew installGitHooks
+
 pre-commit:
+  parallel: false
   commands:
     spotless:
       run: ./gradlew spotlessCheck
+      skip:
+        - merge
+        - rebase
 
 commit-msg:
   commands:
     conventional-commit:
       run: scripts/validate_commit_message.sh "{1}"
+      skip:
+        - merge
+        - rebase

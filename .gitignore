@@ -68,6 +68,9 @@ spy.log
 # Local static demo workspace
 .example/
 
+# Local tool binaries (lefthook 등)
+.tools/
+
 */settings.local.json
 /tmp/*
 
