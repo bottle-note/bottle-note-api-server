@@ -10,16 +10,24 @@ import app.bottlenote.alcohols.domain.TastingTagRepository
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelIssue
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelRowResult
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelValidateResponse
+import app.bottlenote.alcohols.dto.response.CategoryItem
 import app.bottlenote.alcohols.excel.AlcoholExcelSchema.Column
 import app.bottlenote.alcohols.exception.AlcoholException
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode
+import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationHelper
+import org.apache.poi.ss.usermodel.FillPatternType
+import org.apache.poi.ss.usermodel.Font
+import org.apache.poi.ss.usermodel.HorizontalAlignment
+import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.Name
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.util.CellRangeAddressList
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -39,32 +47,52 @@ class AdminAlcoholExcelServiceImpl(
 ) : AdminAlcoholExcelService {
 	override fun createTemplateWorkbook(): ByteArray {
 		XSSFWorkbook().use { workbook ->
-			val dataSheet = workbook.createSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+			val styles = TemplateStyles(workbook)
+
+			// 시트 순서: 안내 → 참조 시트들 → 실제 입력 시트(마지막)
+			val guideSheet = workbook.createSheet(AlcoholExcelSchema.GUIDE_SHEET_NAME)
 			val regionSheet = workbook.createSheet(AlcoholExcelSchema.REGION_SHEET_NAME)
 			val distillerySheet = workbook.createSheet(AlcoholExcelSchema.DISTILLERY_SHEET_NAME)
 			val tagSheet = workbook.createSheet(AlcoholExcelSchema.TASTING_TAG_SHEET_NAME)
-			val guideSheet = workbook.createSheet(AlcoholExcelSchema.GUIDE_SHEET_NAME)
+			val categorySheet = workbook.createSheet(AlcoholExcelSchema.CATEGORY_SHEET_NAME)
+			val dataSheet = workbook.createSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
 
-			writeHeaderAndDescription(dataSheet)
+			val regions = regionRepository.findAllOrderBySortOrderAsc()
+			val distilleries = distilleryRepository.findAllOrderBySortOrderAsc()
+			val tags = tastingTagRepository.findAll()
+			val categories = alcoholQueryRepository.findAllCategoryItems()
+
+			writeGuideSheet(guideSheet, styles)
 			writeReferenceSheet(
 				regionSheet,
 				listOf("한글 이름", "영문 이름"),
-				regionRepository.findAllOrderBySortOrderAsc().map { listOf(it.korName.orEmpty(), it.engName.orEmpty()) },
+				regions.map { listOf(it.korName.orEmpty(), it.engName.orEmpty()) },
+				styles,
 			)
 			writeReferenceSheet(
 				distillerySheet,
 				listOf("한글 이름", "영문 이름"),
-				distilleryRepository.findAllOrderBySortOrderAsc().map { listOf(it.korName.orEmpty(), it.engName.orEmpty()) },
+				distilleries.map { listOf(it.korName.orEmpty(), it.engName.orEmpty()) },
+				styles,
 			)
 			writeReferenceSheet(
 				tagSheet,
 				listOf("한글 이름", "영문 이름"),
-				tastingTagRepository.findAll().map { listOf(it.korName.orEmpty(), it.engName.orEmpty()) },
+				tags.map { listOf(it.korName.orEmpty(), it.engName.orEmpty()) },
+				styles,
 			)
-			writeGuideSheet(guideSheet)
-			addDropdownValidations(workbook, dataSheet)
+			writeCategorySheet(categorySheet, categories, styles)
+			writeHeaderAndDescription(dataSheet, styles)
+			addDropdownValidations(
+				workbook = workbook,
+				dataSheet = dataSheet,
+				regionCount = regions.size,
+				distilleryCount = distilleries.size,
+				categoryCount = categories.size,
+			)
 
 			AlcoholExcelSchema.HEADERS.indices.forEach { dataSheet.autoSizeColumn(it) }
+			workbook.setActiveSheet(workbook.getSheetIndex(AlcoholExcelSchema.GUIDE_SHEET_NAME))
 
 			return ByteArrayOutputStream().use { out ->
 				workbook.write(out)
@@ -90,6 +118,14 @@ class AdminAlcoholExcelServiceImpl(
 			val distilleriesByKorName =
 				distilleryRepository.findAllOrderBySortOrderAsc().associateBy { normalizeExact(it.korName) }
 			val tagsByKorName = tastingTagRepository.findAll().associateBy { normalizeExact(it.korName) }
+			val categories =
+				alcoholQueryRepository.findAllCategoryItems().associateBy {
+					CategoryKey(
+						normalizeExact(it.korCategory()),
+						normalizeExact(it.engCategory()),
+						normalizeExact(it.categoryGroup()?.description),
+					)
+				}
 			val existingAlcohols =
 				alcoholQueryRepository.findAll().filter { it.deletedAt == null }
 
@@ -115,6 +151,7 @@ class AdminAlcoholExcelServiceImpl(
 						regionsByKorName,
 						distilleriesByKorName,
 						tagsByKorName,
+						categories,
 						existingAlcohols,
 						identityCounts,
 					)
@@ -150,7 +187,6 @@ class AdminAlcoholExcelServiceImpl(
 
 	private fun openSecureWorkbook(bytes: ByteArray): Workbook {
 		try {
-			// 바이트 배열 기반 OOXML만 허용. 수식 셀은 별도 검사에서 거부한다.
 			return XSSFWorkbook(ByteArrayInputStream(bytes))
 		} catch (_: Exception) {
 			throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
@@ -158,15 +194,7 @@ class AdminAlcoholExcelServiceImpl(
 	}
 
 	private fun validateWorkbookStructure(workbook: Workbook) {
-		val requiredSheets =
-			listOf(
-				AlcoholExcelSchema.DATA_SHEET_NAME,
-				AlcoholExcelSchema.REGION_SHEET_NAME,
-				AlcoholExcelSchema.DISTILLERY_SHEET_NAME,
-				AlcoholExcelSchema.TASTING_TAG_SHEET_NAME,
-				AlcoholExcelSchema.GUIDE_SHEET_NAME,
-			)
-		requiredSheets.forEach { name ->
+		AlcoholExcelSchema.SHEET_ORDER.forEach { name ->
 			if (workbook.getSheet(name) == null) {
 				throw AlcoholException(AlcoholExceptionCode.EXCEL_SHEET_NOT_FOUND)
 			}
@@ -236,6 +264,7 @@ class AdminAlcoholExcelServiceImpl(
 		regionsByKorName: Map<String, app.bottlenote.alcohols.domain.Region>,
 		distilleriesByKorName: Map<String, app.bottlenote.alcohols.domain.Distillery>,
 		tagsByKorName: Map<String, app.bottlenote.alcohols.domain.TastingTag>,
+		categoriesByKey: Map<CategoryKey, CategoryItem>,
 		existingAlcohols: List<Alcohol>,
 		identityCounts: Map<IdentityKey, Int>,
 	): AdminAlcoholExcelRowResult {
@@ -274,7 +303,10 @@ class AdminAlcoholExcelServiceImpl(
 
 		var typeName: String? = null
 		if (typeRaw != null) {
-			val matchedType = AlcoholType.entries.firstOrNull { it.type == typeRaw.trim() || it.name == typeRaw.trim().uppercase(Locale.ROOT) }
+			val matchedType =
+				AlcoholType.entries.firstOrNull {
+					it.type == typeRaw.trim() || it.name == typeRaw.trim().uppercase(Locale.ROOT)
+				}
 			if (matchedType == null) {
 				errors += issue("INVALID_ENUM_VALUE", Column.TYPE.header, "지원하지 않는 주류 종류입니다: $typeRaw")
 			} else {
@@ -283,12 +315,13 @@ class AdminAlcoholExcelServiceImpl(
 		}
 
 		var categoryGroupName: String? = null
+		var matchedCategoryGroup: AlcoholCategoryGroup? = null
 		if (categoryGroupRaw != null) {
-			val matchedGroup =
+			matchedCategoryGroup =
 				AlcoholCategoryGroup.entries.firstOrNull {
 					it.description == categoryGroupRaw.trim() || it.name == categoryGroupRaw.trim().uppercase(Locale.ROOT)
 				}
-			if (matchedGroup == null) {
+			if (matchedCategoryGroup == null) {
 				errors +=
 					issue(
 						"INVALID_ENUM_VALUE",
@@ -296,7 +329,26 @@ class AdminAlcoholExcelServiceImpl(
 						"지원하지 않는 카테고리 그룹입니다: $categoryGroupRaw",
 					)
 			} else {
-				categoryGroupName = matchedGroup.name
+				categoryGroupName = matchedCategoryGroup.name
+			}
+		}
+
+		// 한글/영문 카테고리 + 그룹을 실제 카테고리 참조에 바인딩
+		if (korCategory != null && engCategory != null && matchedCategoryGroup != null) {
+			val key =
+				CategoryKey(
+					normalizeExact(korCategory),
+					normalizeExact(engCategory),
+					normalizeExact(matchedCategoryGroup.description),
+				)
+			val category = categoriesByKey[key]
+			if (category == null) {
+				errors +=
+					issue(
+						"CATEGORY_NOT_FOUND",
+						Column.KOR_CATEGORY.header,
+						"카테고리 참조에서 일치하는 값을 찾을 수 없습니다: $korCategory / $engCategory / ${matchedCategoryGroup.description}",
+					)
 			}
 		}
 
@@ -417,72 +469,156 @@ class AdminAlcoholExcelServiceImpl(
 		)
 	}
 
-	private fun writeHeaderAndDescription(sheet: Sheet) {
+	private fun writeHeaderAndDescription(
+		sheet: Sheet,
+		styles: TemplateStyles,
+	) {
 		val headerRow = sheet.createRow(AlcoholExcelSchema.HEADER_ROW_INDEX)
 		val descriptionRow = sheet.createRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX)
 		AlcoholExcelSchema.HEADERS.forEachIndexed { index, header ->
-			headerRow.createCell(index).setCellValue(header)
-			descriptionRow.createCell(index).setCellValue(AlcoholExcelSchema.DESCRIPTIONS[index])
+			val headerCell = headerRow.createCell(index)
+			headerCell.setCellValue(header)
+			headerCell.cellStyle = styles.header
+
+			val descriptionCell = descriptionRow.createCell(index)
+			descriptionCell.setCellValue(AlcoholExcelSchema.DESCRIPTIONS[index])
+			descriptionCell.cellStyle = styles.description
 		}
+		headerRow.heightInPoints = 22f
+		descriptionRow.heightInPoints = 36f
+		sheet.createFreezePane(0, AlcoholExcelSchema.DATA_START_ROW_INDEX)
 	}
 
 	private fun writeReferenceSheet(
 		sheet: Sheet,
 		headers: List<String>,
 		rows: List<List<String>>,
+		styles: TemplateStyles,
 	) {
 		val headerRow = sheet.createRow(0)
-		headers.forEachIndexed { index, header -> headerRow.createCell(index).setCellValue(header) }
+		headers.forEachIndexed { index, header ->
+			val cell = headerRow.createCell(index)
+			cell.setCellValue(header)
+			cell.cellStyle = styles.header
+		}
 		rows.forEachIndexed { rowIndex, values ->
 			val row = sheet.createRow(rowIndex + 1)
-			values.forEachIndexed { col, value -> row.createCell(col).setCellValue(value) }
+			values.forEachIndexed { col, value ->
+				val cell = row.createCell(col)
+				cell.setCellValue(value)
+				cell.cellStyle = styles.body
+			}
 		}
 		headers.indices.forEach { sheet.autoSizeColumn(it) }
+		sheet.createFreezePane(0, 1)
 	}
 
-	private fun writeGuideSheet(sheet: Sheet) {
+	private fun writeCategorySheet(
+		sheet: Sheet,
+		categories: List<CategoryItem>,
+		styles: TemplateStyles,
+	) {
+		writeReferenceSheet(
+			sheet,
+			listOf("카테고리 그룹", "한글 카테고리", "영문 카테고리"),
+			categories.map {
+				listOf(
+					it.categoryGroup()?.description.orEmpty(),
+					it.korCategory().orEmpty(),
+					it.engCategory().orEmpty(),
+				)
+			},
+			styles,
+		)
+	}
+
+	private fun writeGuideSheet(
+		sheet: Sheet,
+		styles: TemplateStyles,
+	) {
 		val lines =
 			listOf(
-				"입력 안내",
-				"1. '알코올 데이터' 시트의 1행(필드명)과 2행(설명)은 수정하지 마세요.",
-				"2. 3행부터 데이터를 입력합니다. 완전히 빈 행은 무시됩니다.",
-				"3. 주류 종류/카테고리 그룹은 한글 표시값을 입력합니다.",
-				"4. 지역·증류소·테이스팅 태그는 각 참조 시트의 한글 이름과 정확히 일치해야 합니다.",
-				"5. 테이스팅 태그는 여러 개일 때 | 로 구분합니다. 예: 오크|피트",
-				"6. 이미지는 이 템플릿에 포함되지 않습니다. 단건 등록/수정 API에서 별도 처리합니다.",
-				"7. 수식 셀과 외부 링크는 허용되지 않습니다.",
-				"예시) 한글 이름=글렌피딕 12년 / 영문 이름=Glenfiddich 12 / 도수=40% / 주류 종류=위스키 / 카테고리 그룹=싱글몰트 위스키",
+				"BottleNote 알코올 일괄 등록 템플릿",
+				"1페이지(이 시트)는 설명과 예제입니다. 실제 입력은 마지막 시트 '알코올 데이터'에만 작성하세요.",
+				"",
+				"[시트 구성]",
+				"1. 사용 안내: 설명과 예제",
+				"2. 지역: 선택 가능한 지역 한글/영문 이름",
+				"3. 증류소: 선택 가능한 증류소 한글/영문 이름",
+				"4. 테이스팅 태그: 선택 가능한 태그 한글/영문 이름",
+				"5. 카테고리: 선택 가능한 카테고리 그룹/한글/영문 카테고리",
+				"6. 알코올 데이터: 실제 입력 시트(마지막 고정)",
+				"",
+				"[입력 규칙]",
+				"- 알코올 데이터 시트의 1행(필드명)과 2행(설명)은 수정하지 마세요.",
+				"- 3행부터 데이터를 입력합니다. 완전히 빈 행은 무시됩니다.",
+				"- 주류 종류/카테고리 그룹은 한글 표시값을 입력합니다.",
+				"- 지역·증류소·테이스팅 태그는 각 참조 시트의 한글 이름과 정확히 일치해야 합니다.",
+				"- 한글 카테고리·영문 카테고리·카테고리 그룹은 카테고리 시트의 한 행과 함께 일치해야 합니다.",
+				"- 테이스팅 태그는 여러 개일 때 | 로 구분합니다. 예: 오크|피트",
+				"- 이미지는 이 템플릿에 포함되지 않습니다.",
+				"- 수식 셀과 외부 링크는 허용되지 않습니다.",
+				"",
+				"[예제 1행]",
 			)
+
 		lines.forEachIndexed { index, line ->
-			sheet.createRow(index).createCell(0).setCellValue(line)
+			val row = sheet.createRow(index)
+			val cell = row.createCell(0)
+			cell.setCellValue(line)
+			cell.cellStyle = if (index == 0) styles.title else styles.guide
 		}
-		sheet.autoSizeColumn(0)
+
+		val exampleHeaderRowIndex = lines.size
+		val exampleHeaderRow = sheet.createRow(exampleHeaderRowIndex)
+		AlcoholExcelSchema.HEADERS.forEachIndexed { index, header ->
+			val cell = exampleHeaderRow.createCell(index)
+			cell.setCellValue(header)
+			cell.cellStyle = styles.header
+		}
+
+		val exampleRow = sheet.createRow(exampleHeaderRowIndex + 1)
+		AlcoholExcelSchema.EXAMPLE_ROW.forEachIndexed { index, value ->
+			val cell = exampleRow.createCell(index)
+			cell.setCellValue(value)
+			cell.cellStyle = styles.example
+		}
+
+		val noteRow = sheet.createRow(exampleHeaderRowIndex + 3)
+		val noteCell = noteRow.createCell(0)
+		noteCell.setCellValue("위 예제는 참고용입니다. 실제 업로드 값은 마지막 시트 '알코올 데이터'에 작성하세요.")
+		noteCell.cellStyle = styles.guide
+
+		(0 until AlcoholExcelSchema.HEADERS.size).forEach { sheet.autoSizeColumn(it) }
+		sheet.setColumnWidth(0, sheet.getColumnWidth(0).coerceAtLeast(40 * 256))
 	}
 
 	private fun addDropdownValidations(
 		workbook: Workbook,
 		dataSheet: Sheet,
+		regionCount: Int,
+		distilleryCount: Int,
+		categoryCount: Int,
 	) {
 		val helper: DataValidationHelper = dataSheet.dataValidationHelper
 
 		fun namedRange(
 			name: String,
 			sheetName: String,
+			columnLetter: String,
 			rowCount: Int,
 		) {
 			if (rowCount <= 0) return
 			val named: Name = workbook.createName()
 			named.nameName = name
-			named.refersToFormula = "'$sheetName'!\$A\$2:\$A\$${rowCount + 1}"
+			named.refersToFormula = "'$sheetName'!\$${columnLetter}\$2:\$${columnLetter}\$${rowCount + 1}"
 		}
 
-		val regionCount = regionRepository.findAllOrderBySortOrderAsc().size
-		val distilleryCount = distilleryRepository.findAllOrderBySortOrderAsc().size
-		val tagCount = tastingTagRepository.findAll().size
-
-		namedRange("RegionNames", AlcoholExcelSchema.REGION_SHEET_NAME, regionCount)
-		namedRange("DistilleryNames", AlcoholExcelSchema.DISTILLERY_SHEET_NAME, distilleryCount)
-		namedRange("TagNames", AlcoholExcelSchema.TASTING_TAG_SHEET_NAME, tagCount)
+		namedRange("RegionNames", AlcoholExcelSchema.REGION_SHEET_NAME, "A", regionCount)
+		namedRange("DistilleryNames", AlcoholExcelSchema.DISTILLERY_SHEET_NAME, "A", distilleryCount)
+		namedRange("CategoryGroupNames", AlcoholExcelSchema.CATEGORY_SHEET_NAME, "A", categoryCount)
+		namedRange("KorCategoryNames", AlcoholExcelSchema.CATEGORY_SHEET_NAME, "B", categoryCount)
+		namedRange("EngCategoryNames", AlcoholExcelSchema.CATEGORY_SHEET_NAME, "C", categoryCount)
 
 		fun listValidation(
 			columnIndex: Int,
@@ -495,7 +631,13 @@ class AdminAlcoholExcelServiceImpl(
 					explicitList != null -> helper.createExplicitListConstraint(explicitList)
 					else -> return
 				}
-			val address = CellRangeAddressList(AlcoholExcelSchema.DATA_START_ROW_INDEX, AlcoholExcelSchema.DATA_START_ROW_INDEX + 999, columnIndex, columnIndex)
+			val address =
+				CellRangeAddressList(
+					AlcoholExcelSchema.DATA_START_ROW_INDEX,
+					AlcoholExcelSchema.DATA_START_ROW_INDEX + 999,
+					columnIndex,
+					columnIndex,
+				)
 			val validation: DataValidation = helper.createValidation(constraint, address)
 			validation.showErrorBox = true
 			validation.suppressDropDownArrow = true
@@ -507,11 +649,17 @@ class AdminAlcoholExcelServiceImpl(
 			null,
 			AlcoholType.entries.map { it.type }.toTypedArray(),
 		)
-		listValidation(
-			Column.CATEGORY_GROUP.index,
-			null,
-			AlcoholCategoryGroup.entries.map { it.description }.toTypedArray(),
-		)
+		if (categoryCount > 0) {
+			listValidation(Column.CATEGORY_GROUP.index, "CategoryGroupNames", null)
+			listValidation(Column.KOR_CATEGORY.index, "KorCategoryNames", null)
+			listValidation(Column.ENG_CATEGORY.index, "EngCategoryNames", null)
+		} else {
+			listValidation(
+				Column.CATEGORY_GROUP.index,
+				null,
+				AlcoholCategoryGroup.entries.map { it.description }.toTypedArray(),
+			)
+		}
 		if (regionCount > 0) {
 			listValidation(Column.REGION.index, "RegionNames", null)
 		}
@@ -589,4 +737,94 @@ class AdminAlcoholExcelServiceImpl(
 		val abv: String,
 		val volume: String,
 	)
+
+	private data class CategoryKey(
+		val korCategory: String,
+		val engCategory: String,
+		val categoryGroup: String,
+	)
+
+	private class TemplateStyles(
+		workbook: Workbook,
+	) {
+		val title: CellStyle =
+			workbook.createCellStyle().apply {
+				setFont(
+					workbook.createFont().apply {
+						bold = true
+						fontHeightInPoints = 14
+						color = IndexedColors.DARK_BLUE.index
+					},
+				)
+				verticalAlignment = VerticalAlignment.CENTER
+			}
+
+		val header: CellStyle =
+			workbook.createCellStyle().apply {
+				fillForegroundColor = IndexedColors.DARK_BLUE.index
+				fillPattern = FillPatternType.SOLID_FOREGROUND
+				alignment = HorizontalAlignment.CENTER
+				verticalAlignment = VerticalAlignment.CENTER
+				borderBottom = BorderStyle.THIN
+				borderTop = BorderStyle.THIN
+				borderLeft = BorderStyle.THIN
+				borderRight = BorderStyle.THIN
+				setFont(
+					workbook.createFont().apply {
+						bold = true
+						color = IndexedColors.WHITE.index
+						fontHeightInPoints = 11
+					},
+				)
+			}
+
+		val description: CellStyle =
+			workbook.createCellStyle().apply {
+				fillForegroundColor = IndexedColors.LIGHT_CORNFLOWER_BLUE.index
+				fillPattern = FillPatternType.SOLID_FOREGROUND
+				wrapText = true
+				verticalAlignment = VerticalAlignment.CENTER
+				borderBottom = BorderStyle.THIN
+				borderTop = BorderStyle.THIN
+				borderLeft = BorderStyle.THIN
+				borderRight = BorderStyle.THIN
+				setFont(
+					workbook.createFont().apply {
+						italic = true
+						fontHeightInPoints = 10
+						color = IndexedColors.DARK_BLUE.index
+					},
+				)
+			}
+
+		val body: CellStyle =
+			workbook.createCellStyle().apply {
+				verticalAlignment = VerticalAlignment.CENTER
+				borderBottom = BorderStyle.THIN
+				borderTop = BorderStyle.THIN
+				borderLeft = BorderStyle.THIN
+				borderRight = BorderStyle.THIN
+			}
+
+		val example: CellStyle =
+			workbook.createCellStyle().apply {
+				fillForegroundColor = IndexedColors.LIGHT_YELLOW.index
+				fillPattern = FillPatternType.SOLID_FOREGROUND
+				verticalAlignment = VerticalAlignment.CENTER
+				borderBottom = BorderStyle.THIN
+				borderTop = BorderStyle.THIN
+				borderLeft = BorderStyle.THIN
+				borderRight = BorderStyle.THIN
+			}
+
+		val guide: CellStyle =
+			workbook.createCellStyle().apply {
+				wrapText = true
+				verticalAlignment = VerticalAlignment.CENTER
+			}
+
+		private fun CellStyle.setFont(font: Font) {
+			this.setFont(font)
+		}
+	}
 }
