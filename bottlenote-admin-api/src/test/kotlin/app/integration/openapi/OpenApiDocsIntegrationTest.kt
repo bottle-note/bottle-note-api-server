@@ -11,9 +11,11 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	private val envelopeFields = listOf("success", "code", "data", "errors", "meta")
 
-	// Admin의 82 operation은 모두 GlobalResponse 공통 형식을 쓴다 (plan Assumption 6).
-	// product와 달리 공통 형식을 벗어나는 예외 엔드포인트가 없다.
-	private val expectedOperationCount = 82
+	// Admin의 94 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
+	// 템플릿 다운로드(GET /v1/alcohols/excel/template)는 XLSX binary 응답이라 예외다.
+	// 기존 92 + excel template/validate 2 = 94
+	private val expectedOperationCount = 94
+	private val binaryDownloadOperations = setOf("GET /v1/alcohols/excel/template")
 
 	@Test
 	@DisplayName("인증 없이 스펙 문서를 조회할 수 있다")
@@ -45,8 +47,8 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 82개 operation이 누락 없이 포함된다")
-	fun openApiSpecContains82Operations() {
+	@DisplayName("문서에는 94개 operation이 누락 없이 포함된다")
+	fun openApiSpecContains94Operations() {
 		val operations = operationsOf(fetchSpec())
 
 		assertThat(operations)
@@ -62,7 +64,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	@Test
 	@DisplayName("모든 엔드포인트의 성공 응답은 GlobalResponse 공통 형식이다")
 	fun everySuccessResponseUsesGlobalEnvelope() {
-		val operations = operationsOf(fetchSpec())
+		val operations = operationsOf(fetchSpec()).filterNot { it.endpoint() in binaryDownloadOperations }
 
 		assertThat(operations).isNotEmpty()
 		assertThat(operations)
@@ -76,7 +78,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	@Test
 	@DisplayName("공통 형식의 data는 이중으로 감싸지지 않는다")
 	fun globalEnvelopeIsNotNestedInData() {
-		val operations = operationsOf(fetchSpec())
+		val operations = operationsOf(fetchSpec()).filterNot { it.endpoint() in binaryDownloadOperations }
 
 		val doublyWrapped =
 			operations
@@ -91,5 +93,31 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 		assertThat(doublyWrapped)
 			.withFailMessage("공통 형식이 data 안에 중첩된 엔드포인트가 있습니다:%n%s", joined(doublyWrapped))
 			.isEmpty()
+	}
+
+	@Test
+	@DisplayName("엑셀 템플릿 다운로드는 XLSX binary 응답으로 문서화된다")
+	fun excelTemplateDownloadIsDocumentedAsBinary() {
+		val operation =
+			operationsOf(fetchSpec()).first { it.endpoint() == "GET /v1/alcohols/excel/template" }
+
+		val content = operation.definition.at("/responses/200/content")
+		assertThat(content.has(AlcoholExcelSchemaContentType)).isTrue()
+	}
+
+	@Test
+	@DisplayName("엑셀 검증 업로드 엔드포인트가 문서화된다")
+	fun excelValidateEndpointIsDocumented() {
+		val operation =
+			operationsOf(fetchSpec()).first { it.endpoint() == "POST /v1/alcohols/excel/validate" }
+
+		assertThat(operation.summary()).isNotBlank()
+		assertThat(propertyNamesOf(operation.successSchema()))
+			.containsExactlyInAnyOrderElementsOf(envelopeFields)
+	}
+
+	companion object {
+		private const val AlcoholExcelSchemaContentType =
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 	}
 }

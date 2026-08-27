@@ -34,7 +34,15 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   REGION_REORDER_DUPLICATE_ID(HttpStatus.BAD_REQUEST, "중복된 지역 ID로 정렬을 요청할 수 없습니다."),
   REGION_REORDER_SCOPE_MISMATCH(HttpStatus.BAD_REQUEST, "부모 지역이 다른 지역은 함께 정렬할 수 없습니다."),
   ALCOHOL_LOOKUP_UNAVAILABLE(
-      HttpStatus.SERVICE_UNAVAILABLE, "위스키 조회를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      HttpStatus.SERVICE_UNAVAILABLE, "위스키 조회를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."),
+  EXCEL_INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "OOXML .xlsx 파일만 업로드할 수 있습니다."),
+  EXCEL_FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "엑셀 파일 크기는 5MiB를 초과할 수 없습니다."),
+  EXCEL_SHEET_NOT_FOUND(HttpStatus.BAD_REQUEST, "필수 시트가 없거나 시트명이 올바르지 않습니다."),
+  EXCEL_HEADER_MISMATCH(HttpStatus.BAD_REQUEST, "엑셀 헤더(1행)가 고정 템플릿과 일치하지 않습니다."),
+  EXCEL_DESCRIPTION_MISMATCH(HttpStatus.BAD_REQUEST, "엑셀 설명(2행)이 고정 템플릿과 일치하지 않습니다."),
+  EXCEL_DUPLICATE_HEADER(HttpStatus.BAD_REQUEST, "엑셀 헤더에 중복된 필드명이 있습니다."),
+  EXCEL_FORMULA_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "수식 셀은 허용되지 않습니다."),
+  EXCEL_ROW_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "데이터 행은 최대 1,000행까지 검증할 수 있습니다.");
 
   private final HttpStatus httpStatus;
   private final String message;
