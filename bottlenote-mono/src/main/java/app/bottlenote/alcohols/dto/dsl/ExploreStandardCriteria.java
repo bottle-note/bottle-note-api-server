@@ -30,10 +30,7 @@ public record ExploreStandardCriteria(
     LocalDateTime popularityBucketAt) {
 
   public static ExploreStandardCriteria of(
-      ExploreStandardRequest request,
-      Long userId,
-      long seed,
-      LocalDateTime popularityBucketAt) {
+      ExploreStandardRequest request, Long userId, long seed, LocalDateTime popularityBucketAt) {
     return new ExploreStandardCriteria(
         userId,
         request.keywords(),

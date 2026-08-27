@@ -64,8 +64,7 @@ public interface JpaAlcoholPopularitySnapshotRepository
       @Param("bucketGranularity") BucketGranularity bucketGranularity, Pageable pageable);
 
   @Override
-  default List<Long> findLatestTopAlcoholIds(
-      BucketGranularity bucketGranularity, int limit) {
+  default List<Long> findLatestTopAlcoholIds(BucketGranularity bucketGranularity, int limit) {
     if (limit <= 0) {
       return List.of();
     }

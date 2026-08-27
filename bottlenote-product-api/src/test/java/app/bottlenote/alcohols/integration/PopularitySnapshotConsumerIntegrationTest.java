@@ -49,11 +49,7 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
     LocalDateTime bucket = BucketGranularity.WEEK.startAt(LocalDateTime.now());
     alcoholTestFactory.persistPopularAlcohol(alcohol.getId(), new BigDecimal("0.9"));
     alcoholTestFactory.persistPopularitySnapshot(
-        alcohol.getId(),
-        BucketGranularity.WEEK,
-        bucket,
-        BigDecimal.ZERO,
-        new BigDecimal("0.4"));
+        alcohol.getId(), BucketGranularity.WEEK, bucket, BigDecimal.ZERO, new BigDecimal("0.4"));
 
     List<PopularItem> result =
         popularQueryRepository.getSpringItems(
@@ -66,10 +62,8 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
   @DisplayName("봄 추천의 평점 개수는 여러 허용 태그와 조인되어도 중복 집계하지 않는다")
   void springRecommendation_countsRatingsWithoutTagJoinDuplication() {
     Alcohol alcohol = alcoholTestFactory.persistAlcohol();
-    TastingTag firstTag =
-        TastingTag.builder().korName("봄 태그 1").engName("Spring Tag 1").build();
-    TastingTag secondTag =
-        TastingTag.builder().korName("봄 태그 2").engName("Spring Tag 2").build();
+    TastingTag firstTag = TastingTag.builder().korName("봄 태그 1").engName("Spring Tag 1").build();
+    TastingTag secondTag = TastingTag.builder().korName("봄 태그 2").engName("Spring Tag 2").build();
     alcoholTestFactory.appendTastingTag(alcohol, firstTag);
     alcoholTestFactory.appendTastingTag(alcohol, secondTag);
     for (int i = 0; i < 3; i++) {

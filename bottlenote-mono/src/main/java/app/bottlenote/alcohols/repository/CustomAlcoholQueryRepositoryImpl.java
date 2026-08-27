@@ -336,8 +336,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
               Map<String, String> extra =
                   switch (criteria.sortType()) {
                     case RANDOM -> Map.of("seed", String.valueOf(criteria.seed()));
-                    case POPULAR ->
-                        Map.of("bucketAt", criteria.popularityBucketAt().toString());
+                    case POPULAR -> Map.of("bucketAt", criteria.popularityBucketAt().toString());
                     default -> Map.of();
                   };
               return cursorCodec.encode(context, keys, extra);
@@ -470,8 +469,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     .and(
                         alcoholPopularitySnapshot.bucketGranularity.eq(
                             app.bottlenote.alcohols.constant.BucketGranularity.HOUR))
-                    .and(
-                        alcoholPopularitySnapshot.bucketAt.eq(criteria.popularityBucketAt())));
+                    .and(alcoholPopularitySnapshot.bucketAt.eq(criteria.popularityBucketAt())));
     if (criteria.hasRatingRange()) {
       query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
     }

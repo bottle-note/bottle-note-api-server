@@ -405,8 +405,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
     void popular_without_snapshot_returns_empty_page() throws Exception {
       alcoholTestFactory.persistAlcohols(3);
 
-      exchangeGet(
-              b -> b.param("sortType", "POPULAR").param("sortOrder", "DESC").param("size", "3"))
+      exchangeGet(b -> b.param("sortType", "POPULAR").param("sortOrder", "DESC").param("size", "3"))
           .assertThat()
           .hasStatusOk()
           .bodyJson()
@@ -509,8 +508,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .bodyJson()
           .extractingPath("$.data.items[*].alcoholId")
           .asArray()
-          .containsExactly(
-              alcohols.get(0).getId().intValue(), alcohols.get(1).getId().intValue());
+          .containsExactly(alcohols.get(0).getId().intValue(), alcohols.get(1).getId().intValue());
       exchangeGet(
               b ->
                   b.param("sortType", "POPULAR")
@@ -521,8 +519,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .bodyJson()
           .extractingPath("$.data.items[*].alcoholId")
           .asArray()
-          .containsExactly(
-              alcohols.get(2).getId().intValue(), alcohols.get(3).getId().intValue());
+          .containsExactly(alcohols.get(2).getId().intValue(), alcohols.get(3).getId().intValue());
     }
   }
 }

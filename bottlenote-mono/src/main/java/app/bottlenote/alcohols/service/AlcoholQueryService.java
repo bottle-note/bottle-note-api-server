@@ -103,7 +103,8 @@ public class AlcoholQueryService {
     if (request.cursor() != null) {
       String seed =
           cursorCodec
-              .verify(request.cursor(), ExploreStandardCriteria.of(request, userId, 0L, null).context())
+              .verify(
+                  request.cursor(), ExploreStandardCriteria.of(request, userId, 0L, null).context())
               .extra()
               .get("seed");
       if (seed == null || seed.isBlank()) {

@@ -30,7 +30,10 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
   @Override
   public List<PopularItem> getPopularOfWeeks(Long userId, Pageable pageable) {
     return getPopularBySnapshot(
-        userId, pageable.getPageSize(), BucketGranularity.WEEK, alcoholPopularitySnapshot.popularityScore);
+        userId,
+        pageable.getPageSize(),
+        BucketGranularity.WEEK,
+        alcoholPopularitySnapshot.popularityScore);
   }
 
   @Override
@@ -75,16 +78,15 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
             alcohol.engCategory,
             alcohol.imageUrl,
             alcoholPopularitySnapshot.popularityScore)
-        .orderBy(com.querydsl.core.types.dsl.Expressions.numberTemplate(Double.class, "function('rand')").asc())
+        .orderBy(
+            com.querydsl.core.types.dsl.Expressions.numberTemplate(Double.class, "function('rand')")
+                .asc())
         .limit(pageable.getPageSize())
         .fetch();
   }
 
   private List<PopularItem> getPopularBySnapshot(
-      Long userId,
-      int limit,
-      BucketGranularity granularity,
-      NumberPath<BigDecimal> snapshotScore) {
+      Long userId, int limit, BucketGranularity granularity, NumberPath<BigDecimal> snapshotScore) {
     if (limit <= 0) {
       return List.of();
     }
