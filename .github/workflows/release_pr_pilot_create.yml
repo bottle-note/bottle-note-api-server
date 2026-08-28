@@ -1,0 +1,263 @@
+name: release PR pilot create
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_date:
+        description: Release date in YYYY-MM-DD format
+        required: true
+        type: string
+      sequence:
+        description: Positive release sequence number
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-pr-pilot-${{ inputs.release_date }}-${{ inputs.sequence }}
+  cancel-in-progress: false
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_DATE: ${{ inputs.release_date }}
+      SEQUENCE: ${{ inputs.sequence }}
+      REPOSITORY: ${{ github.repository }}
+      REPOSITORY_OWNER: ${{ github.repository_owner }}
+      GITHUB_REF: ${{ github.ref }}
+    steps:
+      - name: checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: validate inputs and create release PR
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
+            echo "::error::workflow_dispatch must be run from refs/heads/main"
+            exit 1
+          }
+          [[ "$RELEASE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || {
+            echo "::error::release_date must use YYYY-MM-DD format"
+            exit 1
+          }
+          normalized_date="$(date -u -d "$RELEASE_DATE" +%F)" || {
+            echo "::error::release_date is not a valid calendar date"
+            exit 1
+          }
+          [[ "$normalized_date" == "$RELEASE_DATE" ]] || {
+            echo "::error::release_date is not a valid calendar date"
+            exit 1
+          }
+          [[ "$SEQUENCE" =~ ^[1-9][0-9]*$ ]] || {
+            echo "::error::sequence must be a positive integer"
+            exit 1
+          }
+
+          release_key="${RELEASE_DATE}/${SEQUENCE}"
+          base="temp/releases/${release_key}"
+          candidate="temp/release-candidates/${release_key}"
+          base_pushed=false
+          candidate_pushed=false
+          created_pr_url=""
+          body_file=""
+
+          cleanup_body_file() {
+            [[ -z "$body_file" ]] || rm -f "$body_file"
+          }
+
+          created_resources_failure() {
+            local message="$1"
+            echo "::error::${message}. Remote resources may already exist; automatic cleanup is disabled and manual cleanup is required."
+            {
+              echo "## Release PR pilot validation failed"
+              echo "- Reason: ${message}"
+              echo "- Base push: \`${base_pushed}\`"
+              echo "- Candidate push: \`${candidate_pushed}\`"
+              echo "- Created PR: ${created_pr_url:-unknown}"
+              echo "- Base ref: \`${base}\`"
+              echo "- Candidate ref: \`${candidate}\`"
+              echo "- Manual cleanup required: \`yes\`"
+              echo "- Automatic cleanup: \`disabled\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+
+          handle_partial_failure() {
+            local status="$1"
+            if [[ "$base_pushed" == true || "$candidate_pushed" == true || -n "$created_pr_url" ]]; then
+              created_resources_failure "workflow failed after creating remote resources (exit ${status})"
+            fi
+            exit "$status"
+          }
+
+          trap 'handle_partial_failure "$?"' ERR
+          trap cleanup_body_file EXIT
+
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          source_sha="$(git rev-parse origin/main)"
+          source_tree="$(git show -s --format=%T "$source_sha")"
+
+          url_encode() {
+            python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["VALUE"], safe=""))'
+          }
+
+          require_missing_remote_ref() {
+            local ref_name="$1"
+            local encoded response
+            encoded="$(VALUE="$ref_name" url_encode)"
+            if response="$(gh api --include "repos/${REPOSITORY}/git/ref/heads/${encoded}" 2>&1)"; then
+              echo "::error::remote ref already exists: ${ref_name}"
+              exit 1
+            fi
+            if [[ "$response" != *" 404 "* ]]; then
+              echo "::error::unable to confirm remote ref is absent: ${ref_name}"
+              exit 1
+            fi
+          }
+
+          require_missing_remote_ref "$base"
+          require_missing_remote_ref "$candidate"
+
+          open_pr_count="$(gh api -X GET "repos/${REPOSITORY}/pulls" \
+            -f state=open \
+            -f base="$base" \
+            -f head="${REPOSITORY_OWNER}:${candidate}" \
+            --jq 'length')" || {
+              echo "::error::unable to check for an existing open PR"
+              exit 1
+            }
+          [[ "$open_pr_count" == "0" ]] || {
+            echo "::error::an open PR already exists for base=${base} head=${candidate}"
+            exit 1
+          }
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --detach "$source_sha"
+          git branch -f "$candidate" "$source_sha"
+          git checkout "$candidate"
+          git commit --allow-empty -m "release: ${release_key}"
+          candidate_sha="$(git rev-parse HEAD)"
+
+          git push origin "${source_sha}:refs/heads/${base}"
+          base_pushed=true
+          git push origin "${candidate_sha}:refs/heads/${candidate}"
+          candidate_pushed=true
+
+          git fetch --no-tags origin \
+            "+refs/heads/${base}:refs/remotes/origin/${base}" \
+            "+refs/heads/${candidate}:refs/remotes/origin/${candidate}"
+          remote_base_sha="$(git rev-parse "origin/${base}")"
+          remote_candidate_sha="$(git rev-parse "origin/${candidate}")"
+          remote_candidate_parent="$(git rev-parse "${remote_candidate_sha}^")"
+          remote_candidate_tree="$(git show -s --format=%T "$remote_candidate_sha")"
+
+          [[ "$remote_base_sha" == "$source_sha" ]] || \
+            created_resources_failure "base branch does not point to the fixed main source SHA"
+          [[ "$remote_candidate_parent" == "$source_sha" ]] || \
+            created_resources_failure "candidate commit parent does not match source SHA"
+          [[ "$remote_candidate_tree" == "$source_tree" ]] || \
+            created_resources_failure "candidate commit tree differs from source tree"
+
+          body_file="$(mktemp)"
+          cat > "$body_file" <<EOF
+          Release PR pilot for ${release_key}.
+
+          Source SHA: ${source_sha}
+
+          <!-- release-pilot-source-sha:${source_sha} -->
+          <!-- release-pilot-key:${release_key} -->
+          EOF
+
+          created_pr_url="$(gh pr create \
+            --base "$base" \
+            --head "$candidate" \
+            --title "release: ${release_key}" \
+            --body-file "$body_file")"
+
+          created_pr_metadata="$(gh pr view "$created_pr_url" --json number,url)" || \
+            created_resources_failure "unable to resolve created PR number and URL"
+          created_pr_values="$(PR_JSON="$created_pr_metadata" python3 - <<'PY'
+          import json
+          import os
+
+          pr = json.loads(os.environ['PR_JSON'])
+          print(pr.get('number') or '')
+          print(pr.get('url') or '')
+          PY
+          )" || created_resources_failure "unable to parse created PR number and URL"
+          readarray -t created_pr_values <<< "$created_pr_values"
+          pr_number="${created_pr_values[0]:-}"
+          pr_url="${created_pr_values[1]:-}"
+          [[ "$pr_number" =~ ^[1-9][0-9]*$ && -n "$pr_url" ]] || \
+            created_resources_failure "created PR number or URL is invalid"
+
+          pr_json="$(gh api "repos/${REPOSITORY}/pulls/${pr_number}")" || \
+            created_resources_failure "unable to re-fetch created PR metadata"
+          PR_JSON="$pr_json" EXPECTED_NUMBER="$pr_number" EXPECTED_URL="$pr_url" \
+            EXPECTED_BASE="$base" EXPECTED_HEAD="$candidate" EXPECTED_SOURCE_SHA="$source_sha" \
+            EXPECTED_RELEASE_KEY="$release_key" python3 - <<'PY' || \
+            created_resources_failure "created PR metadata or body marker validation failed"
+          import json
+          import os
+          import re
+          import sys
+
+          pr = json.loads(os.environ['PR_JSON'])
+          expected_number = int(os.environ['EXPECTED_NUMBER'])
+          expected_url = os.environ['EXPECTED_URL']
+          expected_base = os.environ['EXPECTED_BASE']
+          expected_head = os.environ['EXPECTED_HEAD']
+          expected_source_sha = os.environ['EXPECTED_SOURCE_SHA']
+          expected_release_key = os.environ['EXPECTED_RELEASE_KEY']
+
+          errors = []
+          if pr.get('number') != expected_number:
+              errors.append('PR number does not match the created PR')
+          if pr.get('html_url') != expected_url:
+              errors.append('PR URL does not match the created PR')
+          if ((pr.get('base') or {}).get('ref')) != expected_base:
+              errors.append('PR base ref does not match the expected release ref')
+          if ((pr.get('head') or {}).get('ref')) != expected_head:
+              errors.append('PR head ref does not match the expected candidate ref')
+
+          body = pr.get('body') or ''
+          source_markers = re.findall(r'<!--\s*release-pilot-source-sha:\s*(.*?)\s*-->', body)
+          key_markers = re.findall(r'<!--\s*release-pilot-key:\s*(.*?)\s*-->', body)
+          if len(source_markers) != 1:
+              errors.append('PR body must contain exactly one source SHA marker')
+          elif source_markers[0] != expected_source_sha:
+              errors.append('PR body source SHA marker does not match the fixed main source SHA')
+          if len(key_markers) != 1:
+              errors.append('PR body must contain exactly one release key marker')
+          elif key_markers[0] != expected_release_key:
+              errors.append('PR body release key marker does not match the expected release key')
+
+          if errors:
+              for error in errors:
+                  print(f'::error::{error}', file=sys.stderr)
+              sys.exit(1)
+          PY
+
+          {
+            echo "## Release PR pilot created"
+            echo "- PR: ${pr_url}"
+            echo "- Source SHA: \`${source_sha}\`"
+            echo "- Base ref: \`${base}\`"
+            echo "- Candidate ref: \`${candidate}\`"
+            echo "- Candidate SHA: \`${remote_candidate_sha}\`"
+            echo "- Post-create validation: \`passed\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "[release-pr-pilot] created pr=${pr_url} source_sha=${source_sha} base=${base} candidate=${candidate} candidate_sha=${remote_candidate_sha}"

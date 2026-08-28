@@ -1,0 +1,230 @@
+name: release PR pilot merged validation
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - 'temp/releases/**'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  verify-approved-empty-release-pr:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPOSITORY: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+      PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      PR_MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: verify pilot release PR
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || {
+            echo "::error::invalid PR number"
+            exit 1
+          }
+          [[ "$PR_BASE_REF" =~ ^temp/releases/([0-9]{4}-[0-9]{2}-[0-9]{2})/([1-9][0-9]*)$ ]] || {
+            echo "::error::base ref is not a release pilot ref: $PR_BASE_REF"
+            exit 1
+          }
+          release_date="${BASH_REMATCH[1]}"
+          sequence="${BASH_REMATCH[2]}"
+          release_key="${release_date}/${sequence}"
+          expected_base="temp/releases/${release_key}"
+          expected_head="temp/release-candidates/${release_key}"
+          [[ "$PR_BASE_REF" == "$expected_base" ]] || {
+            echo "::error::base ref does not match derived release key"
+            exit 1
+          }
+          [[ "$PR_HEAD_REF" == "$expected_head" ]] || {
+            echo "::error::head ref must exactly match ${expected_head}"
+            exit 1
+          }
+          [[ "$PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::invalid candidate head SHA"
+            exit 1
+          }
+          [[ "$PR_MERGE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::invalid merge SHA"
+            exit 1
+          }
+          [[ -n "$PR_AUTHOR" && -n "$PR_MERGED_BY" ]] || {
+            echo "::error::PR author and merger must be present"
+            exit 1
+          }
+
+          pr_json="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}")" || {
+            echo "::error::unable to retrieve PR metadata"
+            exit 1
+          }
+          pr_values_text="$(PR_JSON="$pr_json" REPOSITORY="$REPOSITORY" \
+            PR_NUMBER="$PR_NUMBER" PR_BASE_REF="$PR_BASE_REF" PR_HEAD_REF="$PR_HEAD_REF" \
+            PR_HEAD_SHA="$PR_HEAD_SHA" PR_MERGE_SHA="$PR_MERGE_SHA" \
+            EXPECTED_BASE="$expected_base" EXPECTED_HEAD="$expected_head" python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          pr = json.loads(os.environ['PR_JSON'])
+          expected_number = int(os.environ['PR_NUMBER'])
+          expected_base = os.environ['EXPECTED_BASE']
+          expected_head = os.environ['EXPECTED_HEAD']
+          errors = []
+          if ((pr.get('head') or {}).get('repo') or {}).get('full_name') != os.environ['REPOSITORY']:
+              errors.append('PR head repository is not this repository')
+          if ((pr.get('base') or {}).get('repo') or {}).get('full_name') != os.environ['REPOSITORY']:
+              errors.append('PR base repository is not this repository')
+          if pr.get('number') != expected_number:
+              errors.append('API PR number does not match event PR number')
+          if ((pr.get('head') or {}).get('ref')) != os.environ['PR_HEAD_REF'] or os.environ['PR_HEAD_REF'] != expected_head:
+              errors.append('API/event/expected head ref mismatch')
+          if ((pr.get('head') or {}).get('sha')) != os.environ['PR_HEAD_SHA']:
+              errors.append('API head SHA does not match event head SHA')
+          if ((pr.get('base') or {}).get('ref')) != os.environ['PR_BASE_REF'] or os.environ['PR_BASE_REF'] != expected_base:
+              errors.append('API/event/expected base ref mismatch')
+          if pr.get('merge_commit_sha') != os.environ['PR_MERGE_SHA']:
+              errors.append('API merge SHA does not match event merge SHA')
+          if errors:
+              for error in errors:
+                  print(f'::error::{error}', file=sys.stderr)
+              sys.exit(1)
+          for field in ('changed_files', 'additions', 'deletions'):
+              print(pr.get(field))
+          PY
+          )" || {
+            echo "::error::PR API metadata validation failed closed"
+            exit 1
+          }
+          readarray -t pr_values <<< "$pr_values_text"
+          changed_files="${pr_values[0]:-}"
+          additions="${pr_values[1]:-}"
+          deletions="${pr_values[2]:-}"
+          [[ "$changed_files" == "0" && "$additions" == "0" && "$deletions" == "0" ]] || {
+            echo "::error::pilot PR must contain no file changes (changed_files=${changed_files}, additions=${additions}, deletions=${deletions})"
+            exit 1
+          }
+
+          pr_body="$(PR_JSON="$pr_json" python3 - <<'PY'
+          import json
+          import os
+          print(json.loads(os.environ['PR_JSON']).get('body') or '')
+          PY
+          )"
+          source_sha="$(PR_BODY="$pr_body" EXPECTED_KEY="$release_key" python3 - <<'PY'
+          import os
+          import re
+          import sys
+
+          body = os.environ['PR_BODY']
+          expected_key = os.environ['EXPECTED_KEY']
+          source_markers = re.findall(r'<!--\s*release-pilot-source-sha:([0-9a-f]{40})\s*-->', body)
+          key_markers = re.findall(r'<!--\s*release-pilot-key:([0-9]{4}-[0-9]{2}-[0-9]{2}/[1-9][0-9]*)\s*-->', body)
+          if len(source_markers) != 1 or len(key_markers) != 1:
+              print('::error::PR body must contain exactly one source SHA marker and one key marker', file=sys.stderr)
+              sys.exit(1)
+          if key_markers[0] != expected_key:
+              print('::error::PR body release key marker does not match refs', file=sys.stderr)
+              sys.exit(1)
+          print(source_markers[0])
+          PY
+          )"
+
+          reviews_json="$(gh api --paginate --slurp "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews?per_page=100")" || {
+            echo "::error::unable to retrieve PR reviews"
+            exit 1
+          }
+          approver="$(REVIEWS_JSON="$reviews_json" PR_AUTHOR="$PR_AUTHOR" PR_HEAD_SHA="$PR_HEAD_SHA" python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          pages = json.loads(os.environ['REVIEWS_JSON'])
+          reviews = [review for page in pages for review in page]
+          author = os.environ['PR_AUTHOR']
+          pr_head_sha = os.environ['PR_HEAD_SHA']
+          effective_states = {'APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'}
+          latest = {}
+          for review in reviews:
+              login = ((review.get('user') or {}).get('login') or '')
+              state = review.get('state')
+              if not login or state not in effective_states:
+                  continue
+              order = (review.get('submitted_at') or '', review.get('id') or 0)
+              if login not in latest or order > latest[login][0]:
+                  latest[login] = (order, state, review.get('commit_id'))
+          approved = sorted(login for login, (_, state, commit_id) in latest.items()
+                            if login != author and state == 'APPROVED' and commit_id == pr_head_sha)
+          changes_requested = sorted(login for login, (_, state, _) in latest.items()
+                                     if state == 'CHANGES_REQUESTED')
+          if changes_requested:
+              print('::error::latest valid review state is CHANGES_REQUESTED for: ' + ', '.join(changes_requested), file=sys.stderr)
+              sys.exit(1)
+          if not approved:
+              print('::error::an approval from a non-author reviewer is required', file=sys.stderr)
+              sys.exit(1)
+          print(approved[0])
+          PY
+          )"
+
+          git fetch --no-tags origin "$source_sha" "$PR_HEAD_SHA" "$PR_MERGE_SHA"
+          git cat-file -e "${source_sha}^{commit}" || {
+            echo "::error::source SHA is not a commit"
+            exit 1
+          }
+          git cat-file -e "${PR_HEAD_SHA}^{commit}" || {
+            echo "::error::candidate SHA is not a commit"
+            exit 1
+          }
+          git cat-file -e "${PR_MERGE_SHA}^{commit}" || {
+            echo "::error::merge SHA is not a commit"
+            exit 1
+          }
+
+          candidate_parent="$(git rev-parse "${PR_HEAD_SHA}^")"
+          source_tree="$(git show -s --format=%T "$source_sha")"
+          candidate_tree="$(git show -s --format=%T "$PR_HEAD_SHA")"
+          merge_tree="$(git show -s --format=%T "$PR_MERGE_SHA")"
+          [[ "$candidate_parent" == "$source_sha" ]] || {
+            echo "::error::candidate commit parent does not equal source SHA"
+            exit 1
+          }
+          [[ "$candidate_tree" == "$source_tree" ]] || {
+            echo "::error::candidate commit tree differs from source tree"
+            exit 1
+          }
+          [[ "$merge_tree" == "$candidate_tree" ]] || {
+            echo "::error::merge commit tree differs from candidate tree"
+            exit 1
+          }
+
+          result="[release-pr-pilot] approved-and-merged release_key=${release_key} source_sha=${source_sha} pr=${PR_NUMBER} approver=${approver} merged_by=${PR_MERGED_BY} merge_sha=${PR_MERGE_SHA} changed_files=0 deployment=not-triggered-pilot"
+          echo "$result"
+          {
+            echo "## Release PR pilot verification"
+            echo "- Status: \`approved-and-merged\`"
+            echo "- Release key: \`${release_key}\`"
+            echo "- Source SHA: \`${source_sha}\`"
+            echo "- PR: #${PR_NUMBER}"
+            echo "- Approver: \`${approver}\`"
+            echo "- Merged by: \`${PR_MERGED_BY}\`"
+            echo "- Merge SHA: \`${PR_MERGE_SHA}\`"
+            echo "- Changed files: \`0\`"
+            echo "- Deployment: \`not-triggered-pilot\`"
+          } >> "$GITHUB_STEP_SUMMARY"
