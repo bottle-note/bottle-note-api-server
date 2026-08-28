@@ -172,7 +172,7 @@ tasks.register('spotlessCheck') {
  * lefthook을 로컬 git hooks에 설치한다.
  * - 목적: pre-commit(spotlessCheck), commit-msg(conventional commit) 강제
  * - 동작: 바이너리 확보 후 `lefthook install`, hook 파일 존재 검증
- * - 연결: compileJava에 soft-depend 해서 빌드 경로에서 누락을 줄인다
+ * - 실행: 개발자가 `./gradlew installGitHooks`를 명시적으로 호출한다
  */
 tasks.register('installGitHooks') {
 	description = 'lefthook 기반 git hooks 설치'
@@ -192,18 +192,35 @@ tasks.register('installGitHooks') {
 		def lefthookBin = new File(toolsDir, 'lefthook')
 		toolsDir.mkdirs()
 
-		if (!lefthookBin.exists()) {
-			def osName = System.getProperty('os.name').toLowerCase()
-			def osArch = System.getProperty('os.arch').toLowerCase()
-			def platform
-			if (osName.contains('linux')) {
-				platform = osArch.contains('aarch64') || osArch.contains('arm64') ? 'Linux_arm64' : 'Linux_x86_64'
-			} else if (osName.contains('mac')) {
-				platform = osArch.contains('aarch64') || osArch.contains('arm64') ? 'MacOS_arm64' : 'MacOS_x86_64'
-			} else {
-				throw new GradleException("지원하지 않는 OS입니다: ${osName}")
-			}
+		def osName = System.getProperty('os.name').toLowerCase()
+		def osArch = System.getProperty('os.arch').toLowerCase()
+		def platform
+		if (osName.contains('linux')) {
+			platform = osArch.contains('aarch64') || osArch.contains('arm64') ? 'Linux_arm64' : 'Linux_x86_64'
+		} else if (osName.contains('mac')) {
+			platform = osArch.contains('aarch64') || osArch.contains('arm64') ? 'MacOS_arm64' : 'MacOS_x86_64'
+		} else {
+			throw new GradleException("지원하지 않는 OS입니다: ${osName}")
+		}
 
+		def archiveSha256 = [
+			'Linux_x86_64': '435aff51fc767a7f135717a4e3e4f3282c15e0a4ca4e2dfd1b54ef8241ee5f3f',
+			'Linux_arm64' : '9f62dde51baf2769d1c1f8553be669380c3be020ea53e99250234a092cbedc87',
+			'MacOS_x86_64': 'b9ab6e5de57b1fdd1ffe77a9d57fbec34539b50481fa5c38f91f19fe5175dcc5',
+			'MacOS_arm64' : '2d2b312730f3d900354f5f0eb37abf31ff65a033021be761f25a2eb709c9cdbc'
+		][platform]
+		def binarySha256 = [
+			'Linux_x86_64': '9012055ae53e2c4de81b53d0e37d9bea19fc294a5dab86ce5ed62609ad9f0622',
+			'Linux_arm64' : 'c071d602bb6b7716631ae1d643f315ffcb5323a5ab2461c0d3c90457d082b4c5',
+			'MacOS_x86_64': 'aa3f0c83b8ce125dd98f8edab80c04dd8e417b624f5fc108e83188092bf7c091',
+			'MacOS_arm64' : '4d4614636eabd690309b5f97eb426654615bcb0d6aed0f80040bf6f7129779e2'
+		][platform]
+		def sha256 = { File target ->
+			java.security.MessageDigest.getInstance('SHA-256').digest(target.bytes).encodeHex().toString()
+		}
+
+		if (!lefthookBin.exists() || sha256(lefthookBin) != binarySha256) {
+			lefthookBin.delete()
 			def version = '2.1.11'
 			def archiveName = "lefthook_${version}_${platform}.gz"
 			def url = "https://github.com/evilmartians/lefthook/releases/download/v${version}/${archiveName}"
@@ -212,9 +229,17 @@ tasks.register('installGitHooks') {
 			new URL(url).withInputStream { input ->
 				archive.withOutputStream { output -> output << input }
 			}
+			if (sha256(archive) != archiveSha256) {
+				archive.delete()
+				throw new GradleException("lefthook archive checksum mismatch: ${archiveName}")
+			}
 			ant.gunzip(src: archive, dest: lefthookBin)
-			lefthookBin.setExecutable(true)
 			archive.delete()
+			if (sha256(lefthookBin) != binarySha256) {
+				lefthookBin.delete()
+				throw new GradleException("lefthook binary checksum mismatch: ${platform}")
+			}
+			lefthookBin.setExecutable(true)
 		}
 
 		exec {
@@ -222,7 +247,10 @@ tasks.register('installGitHooks') {
 			workingDir rootProject.projectDir
 		}
 
-		def hooksDir = file('.git/hooks')
+		def hooksPath = providers.exec {
+			commandLine 'git', 'rev-parse', '--git-path', 'hooks'
+		}.standardOutput.asText.get().trim()
+		def hooksDir = file(hooksPath)
 		['pre-commit', 'commit-msg'].each { hookName ->
 			def hook = new File(hooksDir, hookName)
 			if (!hook.exists()) {
@@ -230,14 +258,6 @@ tasks.register('installGitHooks') {
 			}
 		}
 		logger.lifecycle('git hooks 설치 완료: pre-commit, commit-msg')
-	}
-}
-
-// 자주 도는 컴파일 경로에 hook 설치를 soft-depend 한다.
-// 커밋 전 빌드를 한 번이라도 거치면 hook 누락을 줄일 수 있다.
-subprojects {
-	tasks.matching { it.name == 'compileJava' || it.name == 'compileKotlin' }.configureEach {
-		dependsOn rootProject.tasks.named('installGitHooks')
 	}
 }
 

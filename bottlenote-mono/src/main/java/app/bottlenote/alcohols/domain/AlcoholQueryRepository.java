@@ -39,6 +39,8 @@ public interface AlcoholQueryRepository {
 
   List<AlcoholMatchTargetItem> findAllMatchTargets();
 
+  List<AlcoholMatchTargetItem> findMatchTargetsByDistilleryIdIn(List<Long> distilleryIds);
+
   List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds);
 
   Boolean existsByAlcoholId(Long alcoholId);

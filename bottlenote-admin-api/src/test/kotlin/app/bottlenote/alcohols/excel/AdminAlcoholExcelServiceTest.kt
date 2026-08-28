@@ -12,8 +12,7 @@ import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository
 import app.bottlenote.alcohols.fixture.InMemoryDistilleryRepository
 import app.bottlenote.alcohols.fixture.InMemoryRegionRepository
 import app.bottlenote.alcohols.fixture.InMemoryTastingTagRepository
-import org.apache.poi.ss.usermodel.CellType
-import org.apache.poi.ss.usermodel.DataValidationConstraint
+import org.apache.poi.common.usermodel.HyperlinkType
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -28,6 +27,8 @@ import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.util.ReflectionTestUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 @Tag("unit")
 @DisplayName("AdminAlcoholExcelService 단위 테스트")
@@ -54,16 +55,16 @@ class AdminAlcoholExcelServiceTest {
 				regionRepository,
 				distilleryRepository,
 				tastingTagRepository,
-				alcoholQueryRepository,
+				alcoholQueryRepository
 			)
 
 		region =
 			regionRepository.save(
-				Region.builder().korName("스페이사이드").engName("Speyside").sortOrder(1).build(),
+				Region.builder().korName("스페이사이드").engName("Speyside").sortOrder(1).build()
 			)
 		distillery =
 			distilleryRepository.save(
-				Distillery.builder().korName("글렌피딕").engName("Glenfiddich").sortOrder(1).build(),
+				Distillery.builder().korName("글렌피딕").engName("Glenfiddich").sortOrder(1).build()
 			)
 		tagOak = tastingTagRepository.save(TastingTag.builder().korName("오크").engName("Oak").build())
 		tagPeat = tastingTagRepository.save(TastingTag.builder().korName("피트").engName("Peat").build())
@@ -83,7 +84,7 @@ class AdminAlcoholExcelServiceTest {
 				.cask("-")
 				.description("category seed")
 				.volume("-")
-				.build(),
+				.build()
 		)
 	}
 
@@ -117,9 +118,13 @@ class AdminAlcoholExcelServiceTest {
 
 				val guideSheet = workbook.getSheet(AlcoholExcelSchema.GUIDE_SHEET_NAME)
 				val guideText =
-					(0..guideSheet.lastRowNum).joinToString("\n") { idx ->
-						guideSheet.getRow(idx)?.getCell(0)?.toString().orEmpty()
-					}
+					(0..guideSheet.lastRowNum)
+						.flatMap { rowIndex ->
+							val row = guideSheet.getRow(rowIndex) ?: return@flatMap emptyList()
+							(0 until row.lastCellNum.coerceAtLeast(0)).map { cellIndex ->
+								row.getCell(cellIndex)?.toString().orEmpty()
+							}
+						}.joinToString("\n")
 				assertThat(guideText).contains("오류 코드")
 				assertThat(guideText).contains("DUPLICATE_CANDIDATE")
 				assertThat(guideText).contains("이미 등록된 위스키입니다")
@@ -150,8 +155,8 @@ class AdminAlcoholExcelServiceTest {
 							"American Oak",
 							"스페이사이드 대표 싱글몰트",
 							"700.00",
-							"${tagOak.id}|${tagPeat.id}",
-						),
+							"${tagOak.id}|${tagPeat.id}"
+						)
 					)
 				}
 
@@ -189,8 +194,8 @@ class AdminAlcoholExcelServiceTest {
 							"Oak",
 							"desc",
 							"700ml",
-							tagOak.id.toString(),
-						),
+							tagOak.id.toString()
+						)
 					)
 				}
 
@@ -218,8 +223,8 @@ class AdminAlcoholExcelServiceTest {
 							"Oak",
 							"desc",
 							"700.00",
-							tagOak.id.toString(),
-						),
+							tagOak.id.toString()
+						)
 					)
 				}
 
@@ -250,7 +255,7 @@ class AdminAlcoholExcelServiceTest {
 					.cask("Oak")
 					.volume("700ml")
 					.description("existing")
-					.build(),
+					.build()
 			)
 
 			val values =
@@ -267,7 +272,7 @@ class AdminAlcoholExcelServiceTest {
 					"Oak",
 					"desc",
 					"700.00",
-					tagOak.id.toString(),
+					tagOak.id.toString()
 				)
 			val file =
 				workbookAsMultipart { workbook ->
@@ -279,6 +284,42 @@ class AdminAlcoholExcelServiceTest {
 			assertThat(result.rows).allMatch { row -> row.errors.any { it.code == "DUPLICATE_IN_FILE" } }
 			assertThat(result.rows).allMatch { row -> row.warnings.any { it.code == "DUPLICATE_CANDIDATE" } }
 			assertThat(result.rows[0].warnings[0].message).contains("이미 등록된 위스키입니다")
+		}
+
+		@Test
+		@DisplayName("이름·증류소·도수가 같아도 용량이 다르면 DB 중복 후보가 아니다")
+		fun validate_whenVolumeDiffers_isNotDbDuplicateCandidate() {
+			alcoholQueryRepository.save(
+				Alcohol.builder()
+					.korName("글렌피딕 12년")
+					.engName("Glenfiddich 12")
+					.abv("40%")
+					.type(AlcoholType.WHISKY)
+					.korCategory("싱글 몰트")
+					.engCategory("Single Malt")
+					.categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
+					.region(region)
+					.distillery(distillery)
+					.age("12")
+					.cask("Oak")
+					.volume("700ml")
+					.description("existing")
+					.build()
+			)
+
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(
+						workbook,
+						validRowValues().toMutableList().apply {
+							set(AlcoholExcelSchema.Column.VOLUME.index, "750.00")
+						}
+					)
+				}
+
+			val result = service.validate(file)
+
+			assertThat(result.rows.single().warnings.map { it.code }).doesNotContain("DUPLICATE_CANDIDATE")
 		}
 
 		@Test
@@ -301,9 +342,9 @@ class AdminAlcoholExcelServiceTest {
 							"Oak",
 							"desc",
 							"700",
-							tagOak.id.toString(),
+							tagOak.id.toString()
 						),
-						rowIndex = 2,
+						rowIndex = 2
 					)
 					writeDataRow(
 						workbook,
@@ -320,13 +361,33 @@ class AdminAlcoholExcelServiceTest {
 							"Oak",
 							"desc",
 							"700.00",
-							tagOak.id.toString(),
+							tagOak.id.toString()
 						),
-						rowIndex = 3,
+						rowIndex = 3
 					)
 				}
 
 			val result = service.validate(file)
+			assertThat(result.rows).allMatch { row -> row.errors.any { it.code == "DUPLICATE_IN_FILE" } }
+		}
+
+		@Test
+		@DisplayName("01과 1 증류소 ID는 파일 내부 중복에서 같은 ID로 본다")
+		fun validate_whenDistilleryIdHasLeadingZero_isDuplicateInFile() {
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(workbook, validRowValues(), rowIndex = 2)
+					writeDataRow(
+						workbook,
+						validRowValues().toMutableList().apply {
+							set(AlcoholExcelSchema.Column.DISTILLERY_ID.index, "0${distillery.id}")
+						},
+						rowIndex = 3
+					)
+				}
+
+			val result = service.validate(file)
+
 			assertThat(result.rows).allMatch { row -> row.errors.any { it.code == "DUPLICATE_IN_FILE" } }
 		}
 
@@ -338,6 +399,161 @@ class AdminAlcoholExcelServiceTest {
 				.isInstanceOf(AlcoholException::class.java)
 				.extracting("exceptionCode")
 				.isEqualTo(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+		}
+
+		@Test
+		@DisplayName("5MB를 초과한 파일은 EXCEL_FILE_TOO_LARGE 예외를 반환한다")
+		fun validate_whenFileExceedsLimit_rejectsFile() {
+			val file =
+				MockMultipartFile(
+					"file",
+					"alcohol-import.xlsx",
+					AlcoholExcelSchema.XLSX_CONTENT_TYPE,
+					ByteArray((AlcoholExcelSchema.MAX_FILE_BYTES + 1).toInt())
+				)
+
+			assertThatThrownBy { service.validate(file) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_FILE_TOO_LARGE)
+		}
+
+		@Test
+		@DisplayName("ZIP entry가 200개를 초과하면 EXCEL_INVALID_FILE_TYPE 예외를 반환한다")
+		fun validate_whenZipHasTooManyEntries_rejectsFile() {
+			val output = ByteArrayOutputStream()
+			ZipOutputStream(output).use { zip ->
+				repeat(201) { index ->
+					zip.putNextEntry(ZipEntry("entry-$index.xml"))
+					zip.write(1)
+					zip.closeEntry()
+				}
+			}
+			val file =
+				MockMultipartFile(
+					"file",
+					"many-parts.xlsx",
+					AlcoholExcelSchema.XLSX_CONTENT_TYPE,
+					output.toByteArray()
+				)
+
+			assertThatThrownBy { service.validate(file) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+		}
+
+		@Test
+		@DisplayName("고정 헤더가 변경되면 EXCEL_HEADER_MISMATCH 예외를 반환한다")
+		fun validate_whenHeaderChanges_rejectsWorkbook() {
+			val file =
+				workbookAsMultipart { workbook ->
+					workbook
+						.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+						.getRow(AlcoholExcelSchema.HEADER_ROW_INDEX)
+						.getCell(AlcoholExcelSchema.Column.KOR_NAME.index)
+						.setCellValue("변경된 헤더")
+				}
+
+			assertThatThrownBy { service.validate(file) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
+		}
+
+		@Test
+		@DisplayName("데이터가 1,000행을 초과하면 EXCEL_ROW_LIMIT_EXCEEDED 예외를 반환한다")
+		fun validate_whenRowsExceedLimit_rejectsWorkbook() {
+			val file =
+				workbookAsMultipart { workbook ->
+					repeat(AlcoholExcelSchema.MAX_DATA_ROWS + 1) { index ->
+						writeDataRow(
+							workbook,
+							validRowValues(),
+							AlcoholExcelSchema.DATA_START_ROW_INDEX + index
+						)
+					}
+				}
+
+			assertThatThrownBy { service.validate(file) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_ROW_LIMIT_EXCEEDED)
+		}
+
+		@Test
+		@DisplayName("Long 범위를 넘는 참조 ID는 INVALID_ID 오류로 반환한다")
+		fun validate_whenReferenceIdOverflows_returnsInvalidId() {
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(
+						workbook,
+						validRowValues().toMutableList().apply {
+							set(AlcoholExcelSchema.Column.REGION_ID.index, "999999999999999999999999")
+						}
+					)
+				}
+
+			val result = service.validate(file)
+
+			assertThat(result.rows.single().errors.map { it.code }).contains("INVALID_ID")
+		}
+
+		@Test
+		@DisplayName("수식 셀이 있으면 EXCEL_FORMULA_NOT_ALLOWED 예외를 반환한다")
+		fun validate_whenFormulaExists_rejectsWorkbook() {
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(workbook, validRowValues())
+					workbook
+						.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+						.getRow(AlcoholExcelSchema.DATA_START_ROW_INDEX)
+						.getCell(AlcoholExcelSchema.Column.ABV.index)
+						.setCellFormula("20+20")
+				}
+
+			assertThatThrownBy { service.validate(file) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_FORMULA_NOT_ALLOWED)
+		}
+
+		@Test
+		@DisplayName("참조 시트에 수식 셀이 있어도 EXCEL_FORMULA_NOT_ALLOWED 예외를 반환한다")
+		fun validate_whenReferenceSheetContainsFormula_rejectsWorkbook() {
+			val file =
+				workbookAsMultipart { workbook ->
+					workbook
+						.getSheet(AlcoholExcelSchema.REGION_SHEET_NAME)
+						.getRow(1)
+						.getCell(0)
+						.setCellFormula("1+1")
+				}
+
+			assertThatThrownBy { service.validate(file) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_FORMULA_NOT_ALLOWED)
+		}
+
+		@Test
+		@DisplayName("외부 하이퍼링크가 있으면 EXCEL_EXTERNAL_LINK_NOT_ALLOWED 예외를 반환한다")
+		fun validate_whenExternalHyperlinkExists_rejectsWorkbook() {
+			val file =
+				workbookAsMultipart { workbook ->
+					val hyperlink = workbook.creationHelper.createHyperlink(HyperlinkType.URL)
+					hyperlink.address = "https://example.com/external"
+					workbook
+						.getSheet(AlcoholExcelSchema.GUIDE_SHEET_NAME)
+						.getRow(0)
+						.getCell(0)
+						.hyperlink = hyperlink
+				}
+
+			assertThatThrownBy { service.validate(file) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_EXTERNAL_LINK_NOT_ALLOWED)
 		}
 	}
 
@@ -353,14 +569,14 @@ class AdminAlcoholExcelServiceTest {
 			"file",
 			"alcohol-import.xlsx",
 			AlcoholExcelSchema.XLSX_CONTENT_TYPE,
-			output.toByteArray(),
+			output.toByteArray()
 		)
 	}
 
 	private fun writeDataRow(
 		workbook: XSSFWorkbook,
 		values: List<String>,
-		rowIndex: Int = 2,
+		rowIndex: Int = 2
 	) {
 		val sheet = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
 		val row = sheet.getRow(rowIndex) ?: sheet.createRow(rowIndex)
@@ -369,4 +585,20 @@ class AdminAlcoholExcelServiceTest {
 			cell.setCellValue(value)
 		}
 	}
+
+	private fun validRowValues(): List<String> = listOf(
+		"글렌피딕 12년",
+		"Glenfiddich 12",
+		"40.00",
+		"위스키",
+		"SINGLE_MALT|싱글 몰트|Single Malt",
+		"싱글몰트 위스키",
+		region.id.toString(),
+		distillery.id.toString(),
+		"12",
+		"Oak",
+		"설명",
+		"700.00",
+		tagOak.id.toString()
+	)
 }

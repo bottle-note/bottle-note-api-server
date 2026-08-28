@@ -13,7 +13,7 @@ data class AdminAlcoholExcelValidateResponse(
 	@Schema(description = "하나 이상의 경고가 있는 행 수")
 	val warningRows: Int,
 	@Schema(description = "행별 검증 결과")
-	val rows: List<AdminAlcoholExcelRowResult>,
+	val rows: List<AdminAlcoholExcelRowResult>
 )
 
 @Schema(name = "AdminAlcoholExcelRowResult", description = "알코올 엑셀 단일 행 검증 결과")
@@ -44,7 +44,7 @@ data class AdminAlcoholExcelRowResult(
 	val candidateAlcoholIds: List<Long>? = null,
 	val valid: Boolean,
 	val errors: List<AdminAlcoholExcelIssue>,
-	val warnings: List<AdminAlcoholExcelIssue>,
+	val warnings: List<AdminAlcoholExcelIssue>
 )
 
 @Schema(name = "AdminAlcoholExcelIssue", description = "행 단위 오류 또는 경고")
@@ -54,5 +54,5 @@ data class AdminAlcoholExcelIssue(
 	@Schema(description = "한글 필드명")
 	val field: String?,
 	@Schema(description = "사용자용 메시지")
-	val message: String,
+	val message: String
 )

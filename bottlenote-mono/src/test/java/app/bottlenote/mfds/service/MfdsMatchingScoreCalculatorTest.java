@@ -77,6 +77,7 @@ class MfdsMatchingScoreCalculatorTest {
             null,
             null,
             null,
+            null,
             null);
     AlcoholMatchTargetItem abvMismatched =
         new AlcoholMatchTargetItem(
@@ -84,6 +85,7 @@ class MfdsMatchingScoreCalculatorTest {
             "글렌피딕 12",
             "Glenfiddich 12",
             "55.0",
+            null,
             null,
             null,
             null,
@@ -164,6 +166,7 @@ class MfdsMatchingScoreCalculatorTest {
             null,
             "싱글 몰트",
             "Single Malt",
+            null,
             null,
             null,
             null,
@@ -300,7 +303,8 @@ class MfdsMatchingScoreCalculatorTest {
 
   private AlcoholMatchTargetItem alcohol(Long id, String korName, String engName) {
     return new AlcoholMatchTargetItem(
-        id, korName, engName, null, null, null, null, null, null, null, null, null, null, null);
+        id, korName, engName, null, null, null, null, null, null, null, null, null, null, null,
+        null);
   }
 
   private AlcoholMatchTargetItem alcoholWithAbv(Long id, String abv) {
@@ -318,11 +322,26 @@ class MfdsMatchingScoreCalculatorTest {
         null,
         null,
         null,
+        null,
         null);
   }
 
   private AlcoholMatchTargetItem alcoholWithAge(Long id, String age) {
     return new AlcoholMatchTargetItem(
-        id, "글렌피딕", "Glenfiddich", null, age, null, null, null, null, null, null, null, null, null);
+        id,
+        "글렌피딕",
+        "Glenfiddich",
+        null,
+        age,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 }

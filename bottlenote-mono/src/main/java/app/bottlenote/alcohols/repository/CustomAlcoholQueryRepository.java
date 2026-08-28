@@ -22,6 +22,8 @@ public interface CustomAlcoholQueryRepository {
 
   List<AlcoholMatchTargetItem> findAllMatchTargets();
 
+  List<AlcoholMatchTargetItem> findMatchTargetsByDistilleryIdIn(List<Long> distilleryIds);
+
   List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds);
 
   AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);

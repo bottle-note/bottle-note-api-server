@@ -26,7 +26,6 @@ import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationHelper
 import org.apache.poi.ss.usermodel.FillPatternType
-import org.apache.poi.ss.usermodel.Font
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.Name
@@ -45,14 +44,26 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.Normalizer
 import java.util.Locale
+import java.util.zip.ZipInputStream
 
 @Service
 class AdminAlcoholExcelServiceImpl(
 	private val regionRepository: RegionRepository,
 	private val distilleryRepository: DistilleryRepository,
 	private val tastingTagRepository: TastingTagRepository,
-	private val alcoholQueryRepository: AlcoholQueryRepository,
+	private val alcoholQueryRepository: AlcoholQueryRepository
 ) : AdminAlcoholExcelService {
+	companion object {
+		private const val REFERENCE_PAGE_SIZE = 1_000
+		private const val MAX_ZIP_ENTRIES = 200
+		private const val MAX_TOTAL_UNCOMPRESSED_BYTES = 50L * 1024 * 1024
+
+		init {
+			ZipSecureFile.setMinInflateRatio(0.01)
+			ZipSecureFile.setMaxEntrySize(AlcoholExcelSchema.MAX_FILE_BYTES)
+		}
+	}
+
 	override fun createTemplateWorkbook(): ByteArray {
 		XSSFWorkbook().use { workbook ->
 			val styles = TemplateStyles(workbook)
@@ -74,19 +85,19 @@ class AdminAlcoholExcelServiceImpl(
 				regionSheet,
 				listOf("ID", "한글 이름", "영문 이름"),
 				regions.map { listOf(it.id.toString(), it.korName.orEmpty(), it.engName.orEmpty()) },
-				styles,
+				styles
 			)
 			writeReferenceSheet(
 				distillerySheet,
 				listOf("ID", "한글 이름", "영문 이름"),
 				distilleries.map { listOf(it.id.toString(), it.korName.orEmpty(), it.engName.orEmpty()) },
-				styles,
+				styles
 			)
 			writeReferenceSheet(
 				tagSheet,
 				listOf("ID", "한글 이름", "영문 이름"),
 				tags.map { listOf(it.id.toString(), it.korName.orEmpty(), it.engName.orEmpty()) },
-				styles,
+				styles
 			)
 			// 카테고리는 안정 키(그룹|한글|영문)를 ID 칸에 노출한다.
 			writeReferenceSheet(
@@ -97,10 +108,10 @@ class AdminAlcoholExcelServiceImpl(
 						categoryStableId(item),
 						item.categoryGroup()?.description.orEmpty(),
 						item.korCategory().orEmpty(),
-						item.engCategory().orEmpty(),
+						item.engCategory().orEmpty()
 					)
 				},
-				styles,
+				styles
 			)
 			writeHeaderAndDescription(dataSheet, styles)
 			addDropdownValidations(
@@ -109,7 +120,7 @@ class AdminAlcoholExcelServiceImpl(
 				regionCount = regions.size,
 				distilleryCount = distilleries.size,
 				tagCount = tags.size,
-				categoryCount = categories.size,
+				categoryCount = categories.size
 			)
 
 			AlcoholExcelSchema.HEADERS.indices.forEach { dataSheet.autoSizeColumn(it) }
@@ -132,15 +143,13 @@ class AdminAlcoholExcelServiceImpl(
 				workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
 					?: throw AlcoholException(AlcoholExceptionCode.EXCEL_SHEET_NOT_FOUND)
 
-			rejectFormulas(dataSheet)
+			rejectUnsafeWorkbook(workbook)
 
 			val regionsById = loadRegions().associateBy { it.id }
 			val distilleriesById = loadDistilleries().associateBy { it.id }
 			val tagsById = loadTastingTags().associateBy { it.id }
 			val categories = alcoholQueryRepository.findAllCategoryItems()
 			val categoriesById = categories.associateBy { categoryStableId(it) }
-			// 전체 Alcohol 엔티티 대신 매칭용 요약 projection만 적재한다.
-			val existingTargets = alcoholQueryRepository.findAllMatchTargets()
 
 			val parsedRows = mutableListOf<ParsedRow>()
 			val lastRow = dataSheet.lastRowNum
@@ -153,6 +162,13 @@ class AdminAlcoholExcelServiceImpl(
 			if (parsedRows.size > AlcoholExcelSchema.MAX_DATA_ROWS) {
 				throw AlcoholException(AlcoholExceptionCode.EXCEL_ROW_LIMIT_EXCEEDED)
 			}
+
+			val distilleryIds = parsedRows.mapNotNull { it.distilleryId.toLongOrNull() }.distinct()
+			val existingTargetsByIdentity =
+				alcoholQueryRepository
+					.findMatchTargetsByDistilleryIdIn(distilleryIds)
+					.groupBy(::normalizedIdentityKey)
+					.mapValues { (_, targets) -> targets.mapNotNull { it.alcoholId() } }
 
 			// 파일 내부 중복은 정규화된 숫자 기준으로 판정한다.
 			val identityCounts =
@@ -168,8 +184,8 @@ class AdminAlcoholExcelServiceImpl(
 						distilleriesById = distilleriesById,
 						tagsById = tagsById,
 						categoriesById = categoriesById,
-						existingTargets = existingTargets,
-						identityCounts = identityCounts,
+						existingTargetsByIdentity = existingTargetsByIdentity,
+						identityCounts = identityCounts
 					)
 				}
 
@@ -178,7 +194,7 @@ class AdminAlcoholExcelServiceImpl(
 				validRows = results.count { it.valid },
 				invalidRows = results.count { !it.valid },
 				warningRows = results.count { it.warnings.isNotEmpty() },
-				rows = results,
+				rows = results
 			)
 		}
 	}
@@ -198,23 +214,48 @@ class AdminAlcoholExcelServiceImpl(
 	}
 
 	private fun openSecureWorkbook(bytes: ByteArray): Workbook {
-		val previousMinInflateRatio = ZipSecureFile.getMinInflateRatio()
-		val previousMaxEntrySize = ZipSecureFile.getMaxEntrySize()
+		preflightZip(bytes)
+		var pkg: OPCPackage? = null
 		return try {
-			// zip-bomb 방어: 과도 압축 OOXML 거부
-			ZipSecureFile.setMinInflateRatio(0.01)
-			ZipSecureFile.setMaxEntrySize(AlcoholExcelSchema.MAX_FILE_BYTES)
-			val pkg = OPCPackage.open(ByteArrayInputStream(bytes))
+			pkg = OPCPackage.open(ByteArrayInputStream(bytes))
 			XSSFWorkbook(pkg)
 		} catch (_: Exception) {
+			pkg?.close()
 			throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
-		} finally {
-			ZipSecureFile.setMinInflateRatio(previousMinInflateRatio)
-			ZipSecureFile.setMaxEntrySize(previousMaxEntrySize)
+		}
+	}
+
+	private fun preflightZip(bytes: ByteArray) {
+		ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+			val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+			var entryCount = 0
+			var totalUncompressedBytes = 0L
+			while (zip.nextEntry != null) {
+				entryCount++
+				if (entryCount > MAX_ZIP_ENTRIES) {
+					throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+				}
+				while (true) {
+					val read = zip.read(buffer)
+					if (read < 0) break
+					totalUncompressedBytes += read
+					if (totalUncompressedBytes > MAX_TOTAL_UNCOMPRESSED_BYTES) {
+						throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+					}
+				}
+				zip.closeEntry()
+			}
+			if (entryCount == 0) {
+				throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+			}
 		}
 	}
 
 	private fun validateWorkbookStructure(workbook: Workbook) {
+		val sheetNames = (0 until workbook.numberOfSheets).map(workbook::getSheetName)
+		if (sheetNames != AlcoholExcelSchema.SHEET_ORDER) {
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_SHEET_NOT_FOUND)
+		}
 		AlcoholExcelSchema.SHEET_ORDER.forEach { name ->
 			if (workbook.getSheet(name) == null) throw AlcoholException(AlcoholExceptionCode.EXCEL_SHEET_NOT_FOUND)
 		}
@@ -237,13 +278,23 @@ class AdminAlcoholExcelServiceImpl(
 		}
 	}
 
-	private fun rejectFormulas(sheet: Sheet) {
-		for (rowIndex in 0..sheet.lastRowNum) {
-			val row = sheet.getRow(rowIndex) ?: continue
-			for (cellIndex in 0 until row.lastCellNum.coerceAtLeast(0)) {
-				val cell = row.getCell(cellIndex) ?: continue
-				if (cell.cellType == CellType.FORMULA || cell.cellType == CellType.ERROR) {
-					throw AlcoholException(AlcoholExceptionCode.EXCEL_FORMULA_NOT_ALLOWED)
+	private fun rejectUnsafeWorkbook(workbook: Workbook) {
+		if (workbook is XSSFWorkbook && workbook.externalLinksTable.isNotEmpty()) {
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_EXTERNAL_LINK_NOT_ALLOWED)
+		}
+		for (sheetIndex in 0 until workbook.numberOfSheets) {
+			val sheet = workbook.getSheetAt(sheetIndex)
+			for (rowIndex in 0..sheet.lastRowNum) {
+				val row = sheet.getRow(rowIndex) ?: continue
+				for (cellIndex in 0 until row.lastCellNum.coerceAtLeast(0)) {
+					val cell = row.getCell(cellIndex) ?: continue
+					if (cell.cellType == CellType.FORMULA || cell.cellType == CellType.ERROR) {
+						throw AlcoholException(AlcoholExceptionCode.EXCEL_FORMULA_NOT_ALLOWED)
+					}
+					val hyperlinkAddress = cell.hyperlink?.address
+					if (!hyperlinkAddress.isNullOrBlank() && !hyperlinkAddress.startsWith("#")) {
+						throw AlcoholException(AlcoholExceptionCode.EXCEL_EXTERNAL_LINK_NOT_ALLOWED)
+					}
 				}
 			}
 		}
@@ -251,7 +302,7 @@ class AdminAlcoholExcelServiceImpl(
 
 	private fun parseRow(
 		rowIndex: Int,
-		row: Row,
+		row: Row
 	): ParsedRow {
 		fun cell(column: Column): String = readRawCell(row.getCell(column.index))
 		return ParsedRow(
@@ -268,7 +319,7 @@ class AdminAlcoholExcelServiceImpl(
 			cask = cell(Column.CASK),
 			description = cell(Column.DESCRIPTION),
 			volume = cell(Column.VOLUME),
-			tastingTagIds = cell(Column.TASTING_TAG_IDS),
+			tastingTagIds = cell(Column.TASTING_TAG_IDS)
 		)
 	}
 
@@ -278,15 +329,15 @@ class AdminAlcoholExcelServiceImpl(
 		distilleriesById: Map<Long, AdminDistilleryItem>,
 		tagsById: Map<Long, TastingTagNodeItem>,
 		categoriesById: Map<String, CategoryItem>,
-		existingTargets: List<AlcoholMatchTargetItem>,
-		identityCounts: Map<IdentityKey, Int>,
+		existingTargetsByIdentity: Map<IdentityKey, List<Long>>,
+		identityCounts: Map<IdentityKey, Int>
 	): AdminAlcoholExcelRowResult {
 		val errors = mutableListOf<AdminAlcoholExcelIssue>()
 		val warnings = mutableListOf<AdminAlcoholExcelIssue>()
 
 		fun requireValue(
 			value: String,
-			column: Column,
+			column: Column
 		): String? {
 			if (value.isBlank()) {
 				errors += issue("REQUIRED_FIELD", column.header, "${column.header} 필드가 누락되었거나 비어 있습니다.")
@@ -338,7 +389,7 @@ class AdminAlcoholExcelServiceImpl(
 					issue(
 						"INVALID_ENUM_VALUE",
 						Column.CATEGORY_GROUP.header,
-						"${Column.CATEGORY_GROUP.header} 필드가 잘못 입력되었습니다. 허용된 한글 값을 입력하세요.",
+						"${Column.CATEGORY_GROUP.header} 필드가 잘못 입력되었습니다. 허용된 한글 값을 입력하세요."
 					)
 			} else {
 				categoryGroupName = matchedCategoryGroup.name
@@ -363,7 +414,7 @@ class AdminAlcoholExcelServiceImpl(
 							issue(
 								"CATEGORY_GROUP_MISMATCH",
 								Column.CATEGORY_GROUP.header,
-								"카테고리 ID와 카테고리 그룹이 일치하지 않습니다: ID=$stableId, 그룹=${matchedCategoryGroup.description}",
+								"카테고리 ID와 카테고리 그룹이 일치하지 않습니다: ID=$stableId, 그룹=${matchedCategoryGroup.description}"
 							)
 					} else if (matchedCategoryGroup == null && category.categoryGroup() != null) {
 						matchedCategoryGroup = category.categoryGroup()
@@ -431,18 +482,20 @@ class AdminAlcoholExcelServiceImpl(
 				issue(
 					"DUPLICATE_IN_FILE",
 					null,
-					"파일 내부에 동일한 식별 조합(이름·증류소·도수·용량)이 중복됩니다: ${parsed.korName}/${parsed.distilleryId}/${parsed.abv}/${parsed.volume}",
+					"파일 내부에 동일한 식별 조합(이름·증류소·도수·용량)이 중복됩니다: ${parsed.korName}/${parsed.distilleryId}/${parsed.abv}/${parsed.volume}"
 				)
 		}
 
 		val candidateIds =
-			if (korName != null && distilleryId != null && abvNormalized != null) {
-				existingTargets
-					.filter { target ->
-						normalizeIdentity(target.korName()) == normalizeIdentity(korName) &&
-							target.distilleryId() == distilleryId &&
-							normalizeNumericIdentity(target.abv()) == normalizeNumericIdentity(abvNormalized)
-					}.mapNotNull { it.alcoholId() }
+			if (korName != null && distilleryId != null && abvNormalized != null && volumeNormalized != null) {
+				existingTargetsByIdentity[
+					IdentityKey(
+						normalizeIdentity(korName),
+						distilleryId.toString(),
+						normalizeNumericIdentity(abvNormalized),
+						normalizeNumericIdentity(volumeNormalized)
+					)
+				].orEmpty()
 			} else {
 				emptyList()
 			}
@@ -451,7 +504,7 @@ class AdminAlcoholExcelServiceImpl(
 				issue(
 					"DUPLICATE_CANDIDATE",
 					null,
-					"이미 등록된 위스키입니다 이름=$korName, 증류소ID=$distilleryId, 도수=$abvDisplay, 용량=$volumeDisplay, 후보ID=${candidateIds.joinToString(",")}",
+					"이미 등록된 위스키입니다 이름=$korName, 증류소ID=$distilleryId, 도수=$abvDisplay, 용량=$volumeDisplay, 후보ID=${candidateIds.joinToString(",")}"
 				)
 		}
 
@@ -477,14 +530,14 @@ class AdminAlcoholExcelServiceImpl(
 			candidateAlcoholIds = candidateIds.takeIf { it.isNotEmpty() },
 			valid = errors.isEmpty(),
 			errors = errors,
-			warnings = warnings,
+			warnings = warnings
 		)
 	}
 
 	private fun parseDecimal(
 		raw: String,
 		column: Column,
-		errors: MutableList<AdminAlcoholExcelIssue>,
+		errors: MutableList<AdminAlcoholExcelIssue>
 	): BigDecimal? {
 		val cleaned = raw.trim().replace(",", "")
 		if (!cleaned.matches(Regex("""^\d+(\.\d{1,2})?$"""))) {
@@ -492,7 +545,7 @@ class AdminAlcoholExcelServiceImpl(
 				issue(
 					"INVALID_NUMBER",
 					column.header,
-					"${column.header} 필드가 잘못 입력되었습니다. 숫자만 입력하고 소수 2자리까지 허용됩니다.",
+					"${column.header} 필드가 잘못 입력되었습니다. 숫자만 입력하고 소수 2자리까지 허용됩니다."
 				)
 			return null
 		}
@@ -502,7 +555,7 @@ class AdminAlcoholExcelServiceImpl(
 	private fun parseLongId(
 		raw: String,
 		column: Column,
-		errors: MutableList<AdminAlcoholExcelIssue>,
+		errors: MutableList<AdminAlcoholExcelIssue>
 	): Long? {
 		val cleaned = raw.trim()
 		if (!cleaned.matches(Regex("""^\d+$"""))) {
@@ -510,25 +563,33 @@ class AdminAlcoholExcelServiceImpl(
 				issue(
 					"INVALID_ID",
 					column.header,
-					"${column.header} 필드가 잘못 입력되었습니다. 참조 시트의 ID 숫자를 입력하세요.",
+					"${column.header} 필드가 잘못 입력되었습니다. 참조 시트의 ID 숫자를 입력하세요."
 				)
 			return null
 		}
-		return cleaned.toLong()
+		return cleaned.toLongOrNull()
+			?: run {
+				errors +=
+					issue(
+						"INVALID_ID",
+						column.header,
+						"${column.header} 필드가 잘못 입력되었습니다. Long 범위의 참조 ID를 입력하세요."
+					)
+				null
+			}
 	}
 
 	private fun formatWithSuffix(
 		value: BigDecimal,
-		suffix: String,
+		suffix: String
 	): String = value.stripTrailingZeros().toPlainString() + suffix
 
-	private fun stripUnit(value: String?): String =
-		value
-			.orEmpty()
-			.trim()
-			.replace("%", "", ignoreCase = true)
-			.replace("ml", "", ignoreCase = true)
-			.trim()
+	private fun stripUnit(value: String?): String = value
+		.orEmpty()
+		.trim()
+		.replace("%", "", ignoreCase = true)
+		.replace("ml", "", ignoreCase = true)
+		.trim()
 
 	private fun normalizeNumericIdentity(value: String?): String {
 		val cleaned = stripUnit(value)
@@ -545,7 +606,7 @@ class AdminAlcoholExcelServiceImpl(
 
 	private fun writeHeaderAndDescription(
 		sheet: Sheet,
-		styles: TemplateStyles,
+		styles: TemplateStyles
 	) {
 		val headerRow = sheet.createRow(AlcoholExcelSchema.HEADER_ROW_INDEX)
 		val descriptionRow = sheet.createRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX)
@@ -568,7 +629,7 @@ class AdminAlcoholExcelServiceImpl(
 		sheet: Sheet,
 		headers: List<String>,
 		rows: List<List<String>>,
-		styles: TemplateStyles,
+		styles: TemplateStyles
 	) {
 		val headerRow = sheet.createRow(0)
 		headers.forEachIndexed { index, header ->
@@ -592,7 +653,7 @@ class AdminAlcoholExcelServiceImpl(
 
 	private fun writeGuideSheet(
 		sheet: Sheet,
-		styles: TemplateStyles,
+		styles: TemplateStyles
 	) {
 		val lines =
 			listOf(
@@ -616,7 +677,7 @@ class AdminAlcoholExcelServiceImpl(
 				"- 이미지는 이 템플릿에 포함되지 않습니다.",
 				"- 수식 셀과 외부 링크는 허용되지 않습니다.",
 				"",
-				"[예제 1행]",
+				"[예제 1행]"
 			)
 
 		lines.forEachIndexed { index, line ->
@@ -677,7 +738,7 @@ class AdminAlcoholExcelServiceImpl(
 		regionCount: Int,
 		distilleryCount: Int,
 		tagCount: Int,
-		categoryCount: Int,
+		categoryCount: Int
 	) {
 		val helper: DataValidationHelper = dataSheet.dataValidationHelper
 
@@ -685,7 +746,7 @@ class AdminAlcoholExcelServiceImpl(
 			name: String,
 			sheetName: String,
 			columnLetter: String,
-			rowCount: Int,
+			rowCount: Int
 		) {
 			if (rowCount <= 0) return
 			val named: Name = workbook.createName()
@@ -702,7 +763,7 @@ class AdminAlcoholExcelServiceImpl(
 		fun listValidation(
 			columnIndex: Int,
 			formula: String?,
-			explicitList: Array<String>?,
+			explicitList: Array<String>?
 		) {
 			val constraint =
 				when {
@@ -715,7 +776,7 @@ class AdminAlcoholExcelServiceImpl(
 					AlcoholExcelSchema.DATA_START_ROW_INDEX,
 					AlcoholExcelSchema.DATA_START_ROW_INDEX + 999,
 					columnIndex,
-					columnIndex,
+					columnIndex
 				)
 			val validation: DataValidation = helper.createValidation(constraint, address)
 			validation.showErrorBox = true
@@ -734,8 +795,7 @@ class AdminAlcoholExcelServiceImpl(
 		if (distilleryCount > 0) listValidation(Column.DISTILLERY_ID.index, "DistilleryIds", null)
 	}
 
-	private fun isCompletelyBlank(row: Row): Boolean =
-		AlcoholExcelSchema.HEADERS.indices.all { index -> readRawCell(row.getCell(index)).isBlank() }
+	private fun isCompletelyBlank(row: Row): Boolean = AlcoholExcelSchema.HEADERS.indices.all { index -> readRawCell(row.getCell(index)).isBlank() }
 
 	private fun readRawCell(cell: Cell?): String {
 		if (cell == null) return ""
@@ -755,7 +815,7 @@ class AdminAlcoholExcelServiceImpl(
 	private fun issue(
 		code: String,
 		field: String?,
-		message: String,
+		message: String
 	) = AdminAlcoholExcelIssue(code = code, field = field, message = message)
 
 	private fun categoryStableId(item: CategoryItem): String {
@@ -765,14 +825,38 @@ class AdminAlcoholExcelServiceImpl(
 		return listOf(group, kor, eng).joinToString("|")
 	}
 
-	private fun loadRegions(): List<AdminRegionItem> =
-		regionRepository.findAllRegions(null, PageRequest.of(0, 10_000)).content
+	private fun loadRegions(): List<AdminRegionItem> {
+		val items = mutableListOf<AdminRegionItem>()
+		var pageNumber = 0
+		do {
+			val page = regionRepository.findAllRegions(null, PageRequest.of(pageNumber, REFERENCE_PAGE_SIZE))
+			items += page.content
+			pageNumber++
+		} while (page.hasNext())
+		return items
+	}
 
-	private fun loadDistilleries(): List<AdminDistilleryItem> =
-		distilleryRepository.findAllDistilleries(null, PageRequest.of(0, 10_000)).content
+	private fun loadDistilleries(): List<AdminDistilleryItem> {
+		val items = mutableListOf<AdminDistilleryItem>()
+		var pageNumber = 0
+		do {
+			val page = distilleryRepository.findAllDistilleries(null, PageRequest.of(pageNumber, REFERENCE_PAGE_SIZE))
+			items += page.content
+			pageNumber++
+		} while (page.hasNext())
+		return items
+	}
 
-	private fun loadTastingTags(): List<TastingTagNodeItem> =
-		tastingTagRepository.findAllTastingTags(null, PageRequest.of(0, 10_000)).content
+	private fun loadTastingTags(): List<TastingTagNodeItem> {
+		val items = mutableListOf<TastingTagNodeItem>()
+		var pageNumber = 0
+		do {
+			val page = tastingTagRepository.findAllTastingTags(null, PageRequest.of(pageNumber, REFERENCE_PAGE_SIZE))
+			items += page.content
+			pageNumber++
+		} while (page.hasNext())
+		return items
+	}
 
 	private fun normalizeIdentity(value: String?): String {
 		if (value.isNullOrBlank()) return ""
@@ -780,13 +864,21 @@ class AdminAlcoholExcelServiceImpl(
 		return nfkc.lowercase(Locale.ROOT).replace(Regex("\\s+"), " ")
 	}
 
-	private fun normalizedIdentityKey(parsed: ParsedRow): IdentityKey =
-		IdentityKey(
-			normalizeIdentity(parsed.korName),
-			normalizeIdentity(parsed.distilleryId),
-			normalizeNumericIdentity(parsed.abv),
-			normalizeNumericIdentity(parsed.volume),
-		)
+	private fun normalizedIdentityKey(parsed: ParsedRow): IdentityKey = IdentityKey(
+		normalizeIdentity(parsed.korName),
+		normalizeIdIdentity(parsed.distilleryId),
+		normalizeNumericIdentity(parsed.abv),
+		normalizeNumericIdentity(parsed.volume)
+	)
+
+	private fun normalizeIdIdentity(value: String): String = value.trim().toLongOrNull()?.toString() ?: normalizeIdentity(value)
+
+	private fun normalizedIdentityKey(target: AlcoholMatchTargetItem): IdentityKey = IdentityKey(
+		normalizeIdentity(target.korName()),
+		target.distilleryId()?.toString().orEmpty(),
+		normalizeNumericIdentity(target.abv()),
+		normalizeNumericIdentity(target.volume())
+	)
 
 	private data class ParsedRow(
 		val rowNumber: Int,
@@ -802,18 +894,18 @@ class AdminAlcoholExcelServiceImpl(
 		val cask: String,
 		val description: String,
 		val volume: String,
-		val tastingTagIds: String,
+		val tastingTagIds: String
 	)
 
 	private data class IdentityKey(
 		val name: String,
 		val distilleryId: String,
 		val abv: String,
-		val volume: String,
+		val volume: String
 	)
 
 	private class TemplateStyles(
-		workbook: Workbook,
+		workbook: Workbook
 	) {
 		val title: CellStyle =
 			workbook.createCellStyle().apply {
@@ -822,7 +914,7 @@ class AdminAlcoholExcelServiceImpl(
 						bold = true
 						fontHeightInPoints = 14
 						color = IndexedColors.DARK_BLUE.index
-					},
+					}
 				)
 				verticalAlignment = VerticalAlignment.CENTER
 			}
@@ -841,7 +933,7 @@ class AdminAlcoholExcelServiceImpl(
 						bold = true
 						color = IndexedColors.WHITE.index
 						fontHeightInPoints = 11
-					},
+					}
 				)
 			}
 		val description: CellStyle =
@@ -859,7 +951,7 @@ class AdminAlcoholExcelServiceImpl(
 						italic = true
 						fontHeightInPoints = 10
 						color = IndexedColors.DARK_BLUE.index
-					},
+					}
 				)
 			}
 		val body: CellStyle =
@@ -885,9 +977,5 @@ class AdminAlcoholExcelServiceImpl(
 				wrapText = true
 				verticalAlignment = VerticalAlignment.CENTER
 			}
-
-		private fun CellStyle.setFont(font: Font) {
-			this.setFont(font)
-		}
 	}
 }

@@ -4,12 +4,14 @@ import app.IntegrationTestSupport
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.constant.AlcoholType
+import app.bottlenote.alcohols.excel.AlcoholExcelSchema
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import app.bottlenote.alcohols.fixture.TastingTagTestFactory
 import app.bottlenote.global.service.cursor.SortOrder
 import app.bottlenote.rating.fixture.RatingTestFactory
 import app.bottlenote.review.fixture.ReviewTestFactory
 import app.bottlenote.user.fixture.UserTestFactory
+import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -23,6 +25,9 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
+import java.io.ByteArrayInputStream
 import java.util.stream.Stream
 
 @Tag("admin_integration")
@@ -377,6 +382,50 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("imageUrl 없이 위스키를 생성하면 null 이미지로 저장한다")
+		fun createAlcoholWithoutImageUrl() {
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val request =
+				mapOf(
+					"korName" to "이미지 없는 위스키",
+					"engName" to "Whisky Without Image",
+					"abv" to "40%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "12",
+					"cask" to "American Oak",
+					"description" to "테스트 설명",
+					"volume" to "700ml"
+				)
+
+			val createResult =
+				mockMvcTester
+					.post()
+					.uri("/v1/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+					.exchange()
+			assertThat(createResult).hasStatusOk()
+
+			val alcoholId = extractData(createResult, Map::class.java)["targetId"]
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/alcohols/$alcoholId")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.imageUrl")
+				.isNull()
+		}
+
+		@Test
 		@DisplayName("테이스팅 태그와 함께 위스키를 생성할 수 있다")
 		fun createAlcoholWithTastingTags() {
 			// given
@@ -626,6 +675,49 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("imageUrl을 생략하고 수정하면 기존 이미지를 유지한다")
+		fun updateAlcoholWithoutImageUrlKeepsExistingImage() {
+			val alcohol = alcoholTestFactory.persistAlcohol()
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val request =
+				mapOf(
+					"korName" to "이미지 유지 위스키",
+					"engName" to "Keep Existing Image",
+					"abv" to "43%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "18",
+					"cask" to "Sherry Oak",
+					"description" to "수정된 설명",
+					"volume" to "750ml"
+				)
+
+			assertThat(
+				mockMvcTester
+					.put()
+					.uri("/v1/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.imageUrl")
+				.isEqualTo(alcohol.imageUrl)
+		}
+
+		@Test
 		@DisplayName("수정 시 태그를 교체할 수 있다")
 		fun updateAlcoholReplaceTastingTags() {
 			// given
@@ -816,6 +908,60 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatus4xxClientError()
+		}
+	}
+
+	@Nested
+	@DisplayName("술 엑셀 API")
+	inner class AlcoholExcel {
+		@Test
+		@DisplayName("인증된 관리자는 고정 스키마 XLSX 템플릿을 다운로드할 수 있다")
+		fun downloadTemplate() {
+			val result =
+				mockMvcTester
+					.get()
+					.uri("/v1/alcohols/excel/template")
+					.header("Authorization", "Bearer $accessToken")
+					.exchange()
+
+			assertThat(result).hasStatusOk()
+			assertThat(result.response.contentType).isEqualTo(AlcoholExcelSchema.XLSX_CONTENT_TYPE)
+			assertThat(result.response.getHeader("Content-Disposition")).contains(AlcoholExcelSchema.TEMPLATE_FILENAME)
+			WorkbookFactory.create(ByteArrayInputStream(result.response.contentAsByteArray)).use { workbook ->
+				assertThat(workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)).isNotNull()
+			}
+		}
+
+		@Test
+		@DisplayName("다운로드한 빈 템플릿을 검증하면 0건 성공 응답을 반환한다")
+		fun validateDownloadedEmptyTemplate() {
+			val template =
+				mockMvcTester
+					.get()
+					.uri("/v1/alcohols/excel/template")
+					.header("Authorization", "Bearer $accessToken")
+					.exchange()
+					.response.contentAsByteArray
+			val file =
+				MockMultipartFile(
+					"file",
+					"bottlenote-alcohol-import.xlsx",
+					AlcoholExcelSchema.XLSX_CONTENT_TYPE,
+					template
+				)
+
+			val result =
+				mockMvcTester.perform(
+					multipart("/v1/alcohols/excel/validate")
+						.file(file)
+						.header("Authorization", "Bearer $accessToken")
+				)
+
+			assertThat(result)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.totalRows")
+				.isEqualTo(0)
 		}
 	}
 

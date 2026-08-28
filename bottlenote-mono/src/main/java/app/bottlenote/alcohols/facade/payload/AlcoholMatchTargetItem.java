@@ -15,4 +15,5 @@ public record AlcoholMatchTargetItem(
     Long distilleryId,
     String korDistillery,
     String engDistillery,
-    String imageUrl) {}
+    String imageUrl,
+    String volume) {}

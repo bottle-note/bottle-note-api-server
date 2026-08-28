@@ -94,79 +94,79 @@ class AdminAlcoholCommandServiceImageUrlTest {
   }
 
   @Test
-  	@DisplayName("수정 시 imageUrl 누락이면 기존 이미지를 유지한다")
-  	void update_whenImageUrlMissing_keepsExistingImage() {
-  		RecordingEventPublisher events = new RecordingEventPublisher();
-  		service =
-  			new AdminAlcoholCommandService(
-  				alcoholQueryRepository,
-  				regionRepository,
-  				distilleryRepository,
-  				new InMemoryReviewRepository(),
-  				new EmptyRatingRepository(),
-  				new InMemoryAlcoholsTastingTagsRepository(),
-  				new InMemoryTastingTagRepository(),
-  				events);
+  @DisplayName("수정 시 imageUrl 누락이면 기존 이미지를 유지한다")
+  void update_whenImageUrlMissing_keepsExistingImage() {
+    RecordingEventPublisher events = new RecordingEventPublisher();
+    service =
+        new AdminAlcoholCommandService(
+            alcoholQueryRepository,
+            regionRepository,
+            distilleryRepository,
+            new InMemoryReviewRepository(),
+            new EmptyRatingRepository(),
+            new InMemoryAlcoholsTastingTagsRepository(),
+            new InMemoryTastingTagRepository(),
+            events);
 
-  		Alcohol existing =
-  			alcoholQueryRepository.save(
-  				Alcohol.builder()
-  					.korName("기존")
-  					.engName("Existing")
-  					.abv("40%")
-  					.type(AlcoholType.WHISKY)
-  					.korCategory("싱글 몰트")
-  					.engCategory("Single Malt")
-  					.categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
-  					.region(region)
-  					.distillery(distillery)
-  					.age("12")
-  					.cask("Oak")
-  					.imageUrl("https://cdn.example.com/keep.jpg")
-  					.description("desc")
-  					.volume("700ml")
-  					.build());
+    Alcohol existing =
+        alcoholQueryRepository.save(
+            Alcohol.builder()
+                .korName("기존")
+                .engName("Existing")
+                .abv("40%")
+                .type(AlcoholType.WHISKY)
+                .korCategory("싱글 몰트")
+                .engCategory("Single Malt")
+                .categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
+                .region(region)
+                .distillery(distillery)
+                .age("12")
+                .cask("Oak")
+                .imageUrl("https://cdn.example.com/keep.jpg")
+                .description("desc")
+                .volume("700ml")
+                .build());
 
-  		AdminAlcoholUpsertRequest request =
-  			new AdminAlcoholUpsertRequest(
-  				"수정됨",
-  				"Updated",
-  				"43%",
-  				AlcoholType.WHISKY,
-  				"싱글 몰트",
-  				"Single Malt",
-  				AlcoholCategoryGroup.SINGLE_MALT,
-  				region.getId(),
-  				distillery.getId(),
-  				"18",
-  				"Sherry",
-  				null,
-  				"수정 설명",
-  				"750ml",
-  				null);
+    AdminAlcoholUpsertRequest request =
+        new AdminAlcoholUpsertRequest(
+            "수정됨",
+            "Updated",
+            "43%",
+            AlcoholType.WHISKY,
+            "싱글 몰트",
+            "Single Malt",
+            AlcoholCategoryGroup.SINGLE_MALT,
+            region.getId(),
+            distillery.getId(),
+            "18",
+            "Sherry",
+            null,
+            "수정 설명",
+            "750ml",
+            null);
 
-  		service.updateAlcohol(existing.getId(), request);
+    service.updateAlcohol(existing.getId(), request);
 
-  		Alcohol updated = alcoholQueryRepository.findById(existing.getId()).orElseThrow();
-  		assertThat(updated.getImageUrl()).isEqualTo("https://cdn.example.com/keep.jpg");
-  		assertThat(updated.getKorName()).isEqualTo("수정됨");
-  		assertThat(events.events()).isEmpty();
-  	}
+    Alcohol updated = alcoholQueryRepository.findById(existing.getId()).orElseThrow();
+    assertThat(updated.getImageUrl()).isEqualTo("https://cdn.example.com/keep.jpg");
+    assertThat(updated.getKorName()).isEqualTo("수정됨");
+    assertThat(events.events()).isEmpty();
+  }
 
-  	private static final class RecordingEventPublisher implements ApplicationEventPublisher {
-  		private final java.util.List<Object> events = new java.util.ArrayList<>();
+  private static final class RecordingEventPublisher implements ApplicationEventPublisher {
+    private final java.util.List<Object> events = new java.util.ArrayList<>();
 
-  		@Override
-  		public void publishEvent(Object event) {
-  			events.add(event);
-  		}
+    @Override
+    public void publishEvent(Object event) {
+      events.add(event);
+    }
 
-  		java.util.List<Object> events() {
-  			return events;
-  		}
-  	}
+    java.util.List<Object> events() {
+      return events;
+    }
+  }
 
-  	private static final class EmptyRatingRepository implements RatingRepository {
+  private static final class EmptyRatingRepository implements RatingRepository {
     @Override
     public Rating save(Rating rating) {
       return rating;

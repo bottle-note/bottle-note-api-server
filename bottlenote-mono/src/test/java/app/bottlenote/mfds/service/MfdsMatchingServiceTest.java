@@ -517,7 +517,8 @@ class MfdsMatchingServiceTest {
         null,
         null,
         null,
-        "https://bottlenote.app/alcohol/" + id);
+        "https://bottlenote.app/alcohol/" + id,
+        null);
   }
 
   /** 잠금 조회 경로가 실제로 쓰이는지 확인하기 위한 호출 기록용 더블. */

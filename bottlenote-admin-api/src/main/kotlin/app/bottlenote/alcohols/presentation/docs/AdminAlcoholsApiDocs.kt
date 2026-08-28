@@ -7,14 +7,10 @@ import app.bottlenote.alcohols.dto.response.AlcoholLookupItem
 import app.bottlenote.alcohols.dto.response.CategoryPairItem
 import app.bottlenote.global.dto.response.AdminResultResponse
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 
 object AdminAlcoholsApiDocs {
 	@Target(AnnotationTarget.CLASS)
@@ -28,7 +24,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "lookup 목록",
-		content = [Content(schema = Schema(implementation = AlcoholLookupListEnvelope::class))],
+		content = [Content(schema = Schema(implementation = AlcoholLookupListEnvelope::class))]
 	)
 	annotation class GetAlcoholLookups
 
@@ -38,7 +34,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "검색 결과",
-		content = [Content(schema = Schema(implementation = AlcoholSearchEnvelope::class))],
+		content = [Content(schema = Schema(implementation = AlcoholSearchEnvelope::class))]
 	)
 	annotation class SearchAlcohols
 
@@ -48,7 +44,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "상세 결과",
-		content = [Content(schema = Schema(implementation = AlcoholDetailEnvelope::class))],
+		content = [Content(schema = Schema(implementation = AlcoholDetailEnvelope::class))]
 	)
 	annotation class GetAlcoholDetail
 
@@ -58,7 +54,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "카테고리 참조",
-		content = [Content(schema = Schema(implementation = CategoryReferenceEnvelope::class))],
+		content = [Content(schema = Schema(implementation = CategoryReferenceEnvelope::class))]
 	)
 	annotation class GetCategoryReference
 
@@ -68,7 +64,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "생성 결과",
-		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))],
+		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))]
 	)
 	annotation class CreateAlcohol
 
@@ -78,7 +74,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "수정 결과",
-		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))],
+		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))]
 	)
 	annotation class UpdateAlcohol
 
@@ -88,7 +84,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "삭제 결과",
-		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))],
+		content = [Content(schema = Schema(implementation = AdminResultEnvelope::class))]
 	)
 	annotation class DeleteAlcohol
 
@@ -96,7 +92,7 @@ object AdminAlcoholsApiDocs {
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "알코올 엑셀 템플릿을 다운로드한다",
-		description = "1행 한글 필드명, 2행 한글 설명, 참조 시트와 입력 안내를 포함한 XLSX 템플릿을 반환한다.",
+		description = "1행 한글 필드명, 2행 한글 설명, 참조 시트와 입력 안내를 포함한 XLSX 템플릿을 반환한다."
 	)
 	@ApiResponse(
 		responseCode = "200",
@@ -104,9 +100,9 @@ object AdminAlcoholsApiDocs {
 		content = [
 			Content(
 				mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-				schema = Schema(type = "string", format = "binary"),
-			),
-		],
+				schema = Schema(type = "string", format = "binary")
+			)
+		]
 	)
 	annotation class DownloadAlcoholExcelTemplate
 
@@ -114,12 +110,12 @@ object AdminAlcoholsApiDocs {
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "알코올 엑셀을 업로드해 검증한다",
-		description = "DB에 저장하지 않고 파싱·검증 결과만 반환한다. 이미지 업로드는 포함하지 않는다.",
+		description = "DB에 저장하지 않고 파싱·검증 결과만 반환한다. 이미지 업로드는 포함하지 않는다."
 	)
 	@ApiResponse(
 		responseCode = "200",
 		description = "검증 결과",
-		content = [Content(schema = Schema(implementation = AlcoholExcelValidateEnvelope::class))],
+		content = [Content(schema = Schema(implementation = AlcoholExcelValidateEnvelope::class))]
 	)
 	annotation class ValidateAlcoholExcel
 
@@ -129,7 +125,7 @@ object AdminAlcoholsApiDocs {
 		val code: Int,
 		val data: List<AlcoholLookupItem>,
 		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap(),
+		val meta: Map<String, Any?> = emptyMap()
 	)
 
 	@Schema(name = "AlcoholSearchEnvelope")
@@ -138,7 +134,7 @@ object AdminAlcoholsApiDocs {
 		val code: Int,
 		val data: List<AdminAlcoholItem>,
 		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap(),
+		val meta: Map<String, Any?> = emptyMap()
 	)
 
 	@Schema(name = "AlcoholDetailEnvelope")
@@ -147,7 +143,7 @@ object AdminAlcoholsApiDocs {
 		val code: Int,
 		val data: AdminAlcoholDetailResponse,
 		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap(),
+		val meta: Map<String, Any?> = emptyMap()
 	)
 
 	@Schema(name = "CategoryReferenceEnvelope")
@@ -156,7 +152,7 @@ object AdminAlcoholsApiDocs {
 		val code: Int,
 		val data: CategoryReferenceMap,
 		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap(),
+		val meta: Map<String, Any?> = emptyMap()
 	)
 
 	@Schema(name = "AdminResultEnvelope")
@@ -165,7 +161,7 @@ object AdminAlcoholsApiDocs {
 		val code: Int,
 		val data: AdminResultResponse,
 		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap(),
+		val meta: Map<String, Any?> = emptyMap()
 	)
 
 	@Schema(name = "AlcoholExcelValidateEnvelope")
@@ -174,7 +170,7 @@ object AdminAlcoholsApiDocs {
 		val code: Int,
 		val data: AdminAlcoholExcelValidateResponse,
 		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap(),
+		val meta: Map<String, Any?> = emptyMap()
 	)
 
 	@Schema(name = "CategoryReferenceMap")
@@ -184,6 +180,6 @@ object AdminAlcoholsApiDocs {
 		val BLENDED_MALT: List<CategoryPairItem>,
 		val BOURBON: List<CategoryPairItem>,
 		val RYE: List<CategoryPairItem>,
-		val OTHER: List<CategoryPairItem>,
+		val OTHER: List<CategoryPairItem>
 	)
 }
