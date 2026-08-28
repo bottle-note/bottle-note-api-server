@@ -11,10 +11,10 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	private val envelopeFields = listOf("success", "code", "data", "errors", "meta")
 
-	// Admin의 94 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
+	// Admin의 84 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
 	// 템플릿 다운로드(GET /v1/alcohols/excel/template)는 XLSX binary 응답이라 예외다.
-	// 기존 92 + excel template/validate 2 = 94
-	private val expectedOperationCount = 94
+	// 기존 82 + excel template/validate 2 = 84
+	private val expectedOperationCount = 84
 	private val binaryDownloadOperations = setOf("GET /v1/alcohols/excel/template")
 
 	@Test
@@ -47,8 +47,8 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 94개 operation이 누락 없이 포함된다")
-	fun openApiSpecContains94Operations() {
+	@DisplayName("문서에는 84개 operation이 누락 없이 포함된다")
+	fun openApiSpecContains84Operations() {
 		val operations = operationsOf(fetchSpec())
 
 		assertThat(operations)
@@ -73,6 +73,18 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 					.withFailMessage("%s 의 성공 응답이 공통 형식이 아닙니다", operation)
 					.containsExactlyInAnyOrderElementsOf(envelopeFields)
 			}
+	}
+
+	@Test
+	@DisplayName("주류 등록 요청에서 imageUrl은 선택 필드로 문서화된다")
+	fun alcoholCreateDocumentsImageUrlAsOptional() {
+		val spec = fetchSpec()
+		val operation = operationsOf(spec).first { it.endpoint() == "POST /v1/alcohols" }
+		val schemaRef = operation.definition.at("/requestBody/content/application~1json/schema/\$ref").asText()
+		val requestSchema = spec.at(schemaRef.removePrefix("#"))
+
+		assertThat(propertyNamesOf(requestSchema)).contains("imageUrl")
+		assertThat(requestSchema.path("required").map { it.asText() }).doesNotContain("imageUrl")
 	}
 
 	@Test

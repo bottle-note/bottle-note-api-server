@@ -116,6 +116,23 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   }
 
   @Override
+  public List<AlcoholMatchTargetItem> findMatchTargetsByDistilleryIdIn(List<Long> distilleryIds) {
+    if (distilleryIds == null || distilleryIds.isEmpty()) {
+      return List.of();
+    }
+    return queryFactory
+        .select(matchTargetProjection())
+        .from(alcohol)
+        .leftJoin(region)
+        .on(alcohol.region.id.eq(region.id))
+        .leftJoin(distillery)
+        .on(alcohol.distillery.id.eq(distillery.id))
+        .where(alcohol.distillery.id.in(distilleryIds), alcohol.deletedAt.isNull())
+        .orderBy(alcohol.id.asc())
+        .fetch();
+  }
+
+  @Override
   public List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds) {
     return queryFactory
         .select(matchTargetProjection())
@@ -145,7 +162,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         distillery.id,
         distillery.korName,
         distillery.engName,
-        alcohol.imageUrl);
+        alcohol.imageUrl,
+        alcohol.volume);
   }
 
   /** queryDSL 알코올 상세 조회 */

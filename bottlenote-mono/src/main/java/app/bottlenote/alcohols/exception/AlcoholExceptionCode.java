@@ -42,6 +42,7 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   EXCEL_DESCRIPTION_MISMATCH(HttpStatus.BAD_REQUEST, "엑셀 설명(2행)이 고정 템플릿과 일치하지 않습니다."),
   EXCEL_DUPLICATE_HEADER(HttpStatus.BAD_REQUEST, "엑셀 헤더에 중복된 필드명이 있습니다."),
   EXCEL_FORMULA_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "수식 셀은 허용되지 않습니다."),
+  EXCEL_EXTERNAL_LINK_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "외부 링크는 허용되지 않습니다."),
   EXCEL_ROW_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "데이터 행은 최대 1,000행까지 검증할 수 있습니다.");
 
   private final HttpStatus httpStatus;

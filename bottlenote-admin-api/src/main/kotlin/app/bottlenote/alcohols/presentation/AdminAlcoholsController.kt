@@ -34,7 +34,7 @@ class AdminAlcoholsController(
 	private val adminAlcoholQueryService: AdminAlcoholQueryService,
 	private val adminAlcoholCommandService: AdminAlcoholCommandService,
 	private val adminAlcoholLookupService: AdminAlcoholLookupService,
-	private val adminAlcoholExcelService: AdminAlcoholExcelService,
+	private val adminAlcoholExcelService: AdminAlcoholExcelService
 ) {
 	@AdminAlcoholsApiDocs.GetAlcoholLookups
 	@GetMapping("/lookup")

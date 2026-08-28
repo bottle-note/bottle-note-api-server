@@ -138,6 +138,19 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
+  public List<AlcoholMatchTargetItem> findMatchTargetsByDistilleryIdIn(List<Long> distilleryIds) {
+    if (distilleryIds == null || distilleryIds.isEmpty()) {
+      return List.of();
+    }
+    return alcohols.values().stream()
+        .filter(alcohol -> alcohol.getDeletedAt() == null)
+        .filter(alcohol -> alcohol.getDistillery() != null)
+        .filter(alcohol -> distilleryIds.contains(alcohol.getDistillery().getId()))
+        .map(this::toMatchTargetItem)
+        .toList();
+  }
+
+  @Override
   public List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds) {
     return alcohols.values().stream()
         .filter(alcohol -> alcoholIds.contains(alcohol.getId()))
@@ -161,7 +174,8 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
         alcohol.getDistillery() != null ? alcohol.getDistillery().getId() : null,
         alcohol.getDistillery() != null ? alcohol.getDistillery().getKorName() : null,
         alcohol.getDistillery() != null ? alcohol.getDistillery().getEngName() : null,
-        alcohol.getImageUrl());
+        alcohol.getImageUrl(),
+        alcohol.getVolume());
   }
 
   @Override

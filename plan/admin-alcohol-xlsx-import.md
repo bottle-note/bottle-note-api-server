@@ -15,9 +15,9 @@ Admin 사용자가 내부 엔티티 필드명을 알지 않아도 고정된 한�
 ## Execution Mode
 
 - mode: delegated
-- implementer: Grok via Hermes xAI provider
-- scope: plan, implement, test, verify, commit
-- excluded: push, PR, merge, deploy, release, workspace issue mutation
+- implementer: Grok initial implementation, Glen review/fix
+- scope: plan, implement, test, verify, commit, push, PR CI
+- excluded: merge, deploy, release, workspace issue mutation
 - stop-conditions: 가정 붕괴, 3회 내 verify 실패, scope 밖 행동, Grok provider 미인증
 
 ## Public Contract
@@ -29,7 +29,7 @@ Admin 사용자가 내부 엔티티 필드명을 알지 않아도 고정된 한�
 - 응답 content type은 OOXML XLSX이며 attachment filename을 제공한다.
 - 주 입력 시트명은 `알코올 데이터`로 고정한다.
 - 1행은 아래 고정 한글 필드명, 2행은 각 필드의 고정 한글 설명, 3행부터 데이터다.
-- 보조 시트는 `지역`, `증류소`, `테이스팅 태그`, `입력 안내`이며 현재 참조 데이터를 표시하고 가능한 값에 데이터 유효성 드롭다운을 제공한다.
+- 보조 시트는 `입력 안내`, `지역`, `증류소`, `테이스팅 태그`, `카테고리`이며 현재 참조 데이터와 ID를 표시하고 가능한 값에 데이터 유효성 드롭다운을 제공한다.
 - 내부 Java/Kotlin 필드명이나 엔티티 필드명은 워크북에 노출하지 않는다.
 
 고정 입력 열 순서:
@@ -38,22 +38,22 @@ Admin 사용자가 내부 엔티티 필드명을 알지 않아도 고정된 한�
 2. 영문 이름
 3. 도수
 4. 주류 종류
-5. 한글 카테고리
-6. 영문 카테고리
-7. 카테고리 그룹
-8. 지역
-9. 증류소
-10. 숙성 연도
-11. 캐스크
-12. 설명
-13. 용량
-14. 테이스팅 태그
+5. 카테고리 ID
+6. 카테고리 그룹
+7. 지역 ID
+8. 증류소 ID
+9. 숙성 연도
+10. 캐스크
+11. 설명
+12. 용량
+13. 테이스팅 태그 ID 목록
 
 설명 규칙:
 
 - `주류 종류`와 `카테고리 그룹`은 한글 표시값을 입력하고 서버의 명시적 vocabulary로 enum에 매핑한다.
-- `지역`, `증류소`는 현재 참조 데이터의 한글 이름을 사용한다.
-- `테이스팅 태그`는 현재 참조 데이터의 한글 이름을 `|`로 구분한다.
+- `카테고리 ID`는 `그룹 enum|한글명|영문명`의 안정 키를 사용한다.
+- `지역 ID`, `증류소 ID`는 참조 시트의 숫자 ID를 사용한다.
+- `테이스팅 태그 ID 목록`은 참조 시트의 숫자 ID를 `|`로 구분한다.
 - 이미지 관련 열은 템플릿에서 제외한다.
 - 다운로드 템플릿은 입력 행이 비어 있어야 한다. 예시는 `입력 안내` 시트에 둔다.
 
@@ -65,7 +65,7 @@ Admin 사용자가 내부 엔티티 필드명을 알지 않아도 고정된 한�
 - 검증은 DB write 없이 수행한다.
 - 기본 방어 한도는 파일 5 MiB, 데이터 1,000행이다. 수식 셀, 외부 링크, 잘못된 시트명, 헤더/설명 행 변경, 중복 헤더, 지원하지 않는 값은 오류 처리한다.
 - 완전히 빈 데이터 행은 무시한다.
-- 필수 필드, 문자열 공백, enum vocabulary, 지역·증류소·태그 exact 참조, 중복 태그를 검증한다.
+- 필수 필드, 문자열 공백, enum vocabulary, 카테고리·지역·증류소·태그 ID 참조, 중복 태그를 검증한다.
 - 정규화는 trim, Unicode NFKC, 영문 소문자화, 연속 공백 축약까지만 사용한다. 숫자와 에디션 표기는 제거하지 않는다.
 - 파일 내부의 canonical identity `(정규화 이름, 증류소, 도수, 용량)` 중복은 오류다.
 - 기존 DB 알코올과 강하게 일치하는 행은 등록 차단 오류가 아니라 `DUPLICATE_CANDIDATE` warning과 후보 ID를 반환한다. 이름 유사도만으로 자동 연결하지 않는다.
@@ -75,7 +75,7 @@ Admin 사용자가 내부 엔티티 필드명을 알지 않아도 고정된 한�
 - `totalRows`, `validRows`, `invalidRows`, `warningRows`
 - `rows[]`: `rowNumber`, 파싱된 표시값, `valid`, `errors[]`, `warnings[]`
 - 각 error/warning: 안정적인 `code`, 한글 `field`, 사용자용 `message`
-- 참조 매칭 성공 시 내부 처리/후속 등록용 ID를 행 결과에 포함할 수 있으나, 워크북에는 ID를 요구하지 않는다.
+- 참조 매칭에 사용한 ID와 중복 후보 alcohol ID를 행 결과에 포함한다.
 
 ## Image Contract
 
@@ -117,7 +117,7 @@ Mockito interaction 검증은 사용하지 않고, 필요한 참조 의존성은
 - fuzzy 자동 연결
 - import batch persistence 또는 migration
 - Product API 변경
-- push, PR, merge, deploy
+- merge, deploy, release
 
 ## Delivery Artifact
 
