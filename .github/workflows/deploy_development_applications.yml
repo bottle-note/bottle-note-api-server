@@ -13,6 +13,9 @@ concurrency:
   group: "deploy-development"
   cancel-in-progress: true
 
+env:
+  DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
 jobs:
   prepare-build:
     if: |
@@ -20,6 +23,7 @@ jobs:
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-24.04-arm
     outputs:
+      source-sha: ${{ steps.versions.outputs.source-sha }}
       short-sha: ${{ steps.versions.outputs.short-sha }}
       product-image-tag: ${{ steps.versions.outputs.product-image-tag }}
       admin-image-tag: ${{ steps.versions.outputs.admin-image-tag }}
@@ -27,6 +31,7 @@ jobs:
       - name: checkout code with submodules
         uses: actions/checkout@v7
         with:
+          ref: ${{ env.DEPLOY_SHA }}
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
@@ -49,10 +54,13 @@ jobs:
       - name: generate image tags
         id: versions
         run: |
-          SHORT_SHA="${GITHUB_SHA::7}"
-          echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT
-          echo "product-image-tag=product_${SHORT_SHA}" >> $GITHUB_OUTPUT
-          echo "admin-image-tag=admin_${SHORT_SHA}" >> $GITHUB_OUTPUT
+          SHORT_SHA="${DEPLOY_SHA::7}"
+          {
+            echo "source-sha=$DEPLOY_SHA"
+            echo "short-sha=$SHORT_SHA"
+            echo "product-image-tag=product_${SHORT_SHA}"
+            echo "admin-image-tag=admin_${SHORT_SHA}"
+          } >> "$GITHUB_OUTPUT"
           echo "Commit SHA: $SHORT_SHA"
 
       - name: build both modules
@@ -83,6 +91,7 @@ jobs:
       - name: checkout code with submodules
         uses: actions/checkout@v7
         with:
+          ref: ${{ env.DEPLOY_SHA }}
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
@@ -123,6 +132,7 @@ jobs:
       - name: checkout code with submodules
         uses: actions/checkout@v7
         with:
+          ref: ${{ env.DEPLOY_SHA }}
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
@@ -154,68 +164,18 @@ jobs:
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
-  update-development:
+  image-updater-handoff:
     needs: [prepare-build, build-product-image, build-admin-image]
     runs-on: ubuntu-latest
     steps:
-      - name: checkout code with submodules
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
-      - name: setup kustomize
-        uses: imranismail/setup-kustomize@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: update development image tags
+      - name: summarize image updater handoff
         run: |
-          PRODUCT_TAG="${{ needs.prepare-build.outputs.product-image-tag }}"
-          ADMIN_TAG="${{ needs.prepare-build.outputs.admin-image-tag }}"
-          REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
-
-          echo "Updating development image tags:"
-          echo "  Product: $PRODUCT_TAG"
-          echo "  Admin: $ADMIN_TAG"
-
-          cd git.environment-variables
-          git checkout main
-
-          cd deploy/overlays/development
-          kustomize edit set image \
-            bottlenote-product-api=${REGISTRY}/bottlenote-product-api:${PRODUCT_TAG} \
-            bottlenote-admin-api=${REGISTRY}/bottlenote-admin-api:${ADMIN_TAG}
-
-          echo "development kustomization.yaml updated"
-
-      - name: commit and push with retry
-        run: |
-          cd git.environment-variables
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add deploy/overlays/development/kustomization.yaml
-
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "chore(dev): update development image tags (${{ needs.prepare-build.outputs.short-sha }})
-
-          Product: ${{ needs.prepare-build.outputs.product-image-tag }}
-          Admin: ${{ needs.prepare-build.outputs.admin-image-tag }}
-
-          Updated by GitHub Actions
-          Commit: ${{ github.sha }}
-          Workflow: ${{ github.workflow }}"
-
-          for i in {1..5}; do
-            git pull --rebase origin main && git push origin main && break
-            echo "Push failed, retry $i/5..."
-            sleep $((i * 2))
-          done
-
-          echo "Development deployment triggered"
+          {
+            echo "## Development image updater handoff"
+            echo "- Source SHA: ${{ needs.prepare-build.outputs.source-sha }}"
+            echo "- Product image: ${{ needs.prepare-build.outputs.product-image-tag }}"
+            echo "- Product digest: ${{ needs.build-product-image.outputs.image-digest }}"
+            echo "- Admin image: ${{ needs.prepare-build.outputs.admin-image-tag }}"
+            echo "- Admin digest: ${{ needs.build-admin-image.outputs.image-digest }}"
+            echo "- GitOps update: Argo CD Image Updater (5 minute interval)"
+          } >> "$GITHUB_STEP_SUMMARY"
