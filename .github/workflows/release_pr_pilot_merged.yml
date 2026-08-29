@@ -9,12 +9,17 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  actions: read
 
 jobs:
   verify-approved-empty-release-pr:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      release-key: ${{ steps.release.outputs.release-key }}
+      source-sha: ${{ steps.release.outputs.source-sha }}
+      deployment-mode: ${{ steps.release.outputs.deployment-mode }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       REPOSITORY: ${{ github.repository }}
@@ -32,6 +37,7 @@ jobs:
           fetch-depth: 0
 
       - name: verify pilot release PR
+        id: release
         shell: bash
         run: |
           set -euo pipefail
@@ -127,7 +133,7 @@ jobs:
           print(json.loads(os.environ['PR_JSON']).get('body') or '')
           PY
           )"
-          source_sha="$(PR_BODY="$pr_body" EXPECTED_KEY="$release_key" python3 - <<'PY'
+          release_values_text="$(PR_BODY="$pr_body" EXPECTED_KEY="$release_key" python3 - <<'PY'
           import os
           import re
           import sys
@@ -136,15 +142,28 @@ jobs:
           expected_key = os.environ['EXPECTED_KEY']
           source_markers = re.findall(r'<!--\s*release-pilot-source-sha:([0-9a-f]{40})\s*-->', body)
           key_markers = re.findall(r'<!--\s*release-pilot-key:([0-9]{4}-[0-9]{2}-[0-9]{2}/[1-9][0-9]*)\s*-->', body)
-          if len(source_markers) != 1 or len(key_markers) != 1:
-              print('::error::PR body must contain exactly one source SHA marker and one key marker', file=sys.stderr)
+          mode_markers = re.findall(r'<!--\s*release-pilot-deployment-mode:(both|product|admin)\s*-->', body)
+          if len(source_markers) != 1 or len(key_markers) != 1 or len(mode_markers) != 1:
+              print('::error::PR body must contain exactly one source SHA, key, and deployment mode marker', file=sys.stderr)
               sys.exit(1)
           if key_markers[0] != expected_key:
               print('::error::PR body release key marker does not match refs', file=sys.stderr)
               sys.exit(1)
           print(source_markers[0])
+          print(mode_markers[0])
           PY
           )"
+          readarray -t release_values <<< "$release_values_text"
+          source_sha="${release_values[0]:-}"
+          deployment_mode="${release_values[1]:-}"
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::invalid source SHA marker"
+            exit 1
+          }
+          [[ "$deployment_mode" =~ ^(both|product|admin)$ ]] || {
+            echo "::error::invalid deployment mode marker"
+            exit 1
+          }
 
           reviews_json="$(gh api --paginate --slurp "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews?per_page=100")" || {
             echo "::error::unable to retrieve PR reviews"
@@ -198,11 +217,16 @@ jobs:
           }
 
           candidate_parent="$(git rev-parse "${PR_HEAD_SHA}^")"
+          candidate_subject="$(git show -s --format=%s "$PR_HEAD_SHA")"
           source_tree="$(git show -s --format=%T "$source_sha")"
           candidate_tree="$(git show -s --format=%T "$PR_HEAD_SHA")"
           merge_tree="$(git show -s --format=%T "$PR_MERGE_SHA")"
           [[ "$candidate_parent" == "$source_sha" ]] || {
             echo "::error::candidate commit parent does not equal source SHA"
+            exit 1
+          }
+          [[ "$candidate_subject" == "release(${deployment_mode}): ${release_key}" ]] || {
+            echo "::error::candidate commit message does not match release key and deployment mode"
             exit 1
           }
           [[ "$candidate_tree" == "$source_tree" ]] || {
@@ -214,17 +238,33 @@ jobs:
             exit 1
           }
 
-          result="[release-pr-pilot] approved-and-merged release_key=${release_key} source_sha=${source_sha} pr=${PR_NUMBER} approver=${approver} merged_by=${PR_MERGED_BY} merge_sha=${PR_MERGE_SHA} changed_files=0 deployment=not-triggered-pilot"
+          {
+            echo "release-key=${release_key}"
+            echo "source-sha=${source_sha}"
+            echo "deployment-mode=${deployment_mode}"
+          } >> "$GITHUB_OUTPUT"
+
+          result="[release-pr-pilot] approved-and-merged release_key=${release_key} source_sha=${source_sha} deployment_mode=${deployment_mode} pr=${PR_NUMBER} approver=${approver} merged_by=${PR_MERGED_BY} merge_sha=${PR_MERGE_SHA} changed_files=0 deployment=triggered"
           echo "$result"
           {
             echo "## Release PR pilot verification"
             echo "- Status: \`approved-and-merged\`"
             echo "- Release key: \`${release_key}\`"
             echo "- Source SHA: \`${source_sha}\`"
+            echo "- Deployment mode: \`${deployment_mode}\`"
             echo "- PR: #${PR_NUMBER}"
             echo "- Approver: \`${approver}\`"
             echo "- Merged by: \`${PR_MERGED_BY}\`"
             echo "- Merge SHA: \`${PR_MERGE_SHA}\`"
             echo "- Changed files: \`0\`"
-            echo "- Deployment: \`not-triggered-pilot\`"
+            echo "- Deployment: \`triggered\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-release-applications:
+    needs: verify-approved-empty-release-pr
+    uses: ./.github/workflows/deploy_release_applications.yml
+    with:
+      source_sha: ${{ needs.verify-approved-empty-release-pr.outputs.source-sha }}
+      release_key: ${{ needs.verify-approved-empty-release-pr.outputs.release-key }}
+      deployment_mode: ${{ needs.verify-approved-empty-release-pr.outputs.deployment-mode }}
+    secrets: inherit

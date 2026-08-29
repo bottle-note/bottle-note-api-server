@@ -11,6 +11,15 @@ on:
         description: Positive release sequence number
         required: true
         type: string
+      deployment_mode:
+        description: Applications to deploy
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - product
+          - admin
 
 permissions:
   contents: write
@@ -28,6 +37,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_DATE: ${{ inputs.release_date }}
       SEQUENCE: ${{ inputs.sequence }}
+      DEPLOYMENT_MODE: ${{ inputs.deployment_mode }}
       REPOSITORY: ${{ github.repository }}
       REPOSITORY_OWNER: ${{ github.repository_owner }}
       GITHUB_REF: ${{ github.ref }}
@@ -62,6 +72,10 @@ jobs:
           }
           [[ "$SEQUENCE" =~ ^[1-9][0-9]*$ ]] || {
             echo "::error::sequence must be a positive integer"
+            exit 1
+          }
+          [[ "$DEPLOYMENT_MODE" =~ ^(both|product|admin)$ ]] || {
+            echo "::error::deployment_mode must be one of both, product, admin"
             exit 1
           }
 
@@ -148,7 +162,7 @@ jobs:
           git checkout --detach "$source_sha"
           git branch -f "$candidate" "$source_sha"
           git checkout "$candidate"
-          git commit --allow-empty -m "release: ${release_key}"
+          git commit --allow-empty -m "release(${DEPLOYMENT_MODE}): ${release_key}"
           candidate_sha="$(git rev-parse HEAD)"
 
           git push origin "${source_sha}:refs/heads/${base}"
@@ -176,15 +190,17 @@ jobs:
           Release PR pilot for ${release_key}.
 
           Source SHA: ${source_sha}
+          Deployment mode: ${DEPLOYMENT_MODE}
 
           <!-- release-pilot-source-sha:${source_sha} -->
           <!-- release-pilot-key:${release_key} -->
+          <!-- release-pilot-deployment-mode:${DEPLOYMENT_MODE} -->
           EOF
 
           created_pr_url="$(gh pr create \
             --base "$base" \
             --head "$candidate" \
-            --title "release: ${release_key}" \
+            --title "release(${DEPLOYMENT_MODE}): ${release_key}" \
             --body-file "$body_file")"
 
           created_pr_metadata="$(gh pr view "$created_pr_url" --json number,url)" || \
@@ -208,7 +224,7 @@ jobs:
             created_resources_failure "unable to re-fetch created PR metadata"
           PR_JSON="$pr_json" EXPECTED_NUMBER="$pr_number" EXPECTED_URL="$pr_url" \
             EXPECTED_BASE="$base" EXPECTED_HEAD="$candidate" EXPECTED_SOURCE_SHA="$source_sha" \
-            EXPECTED_RELEASE_KEY="$release_key" python3 - <<'PY' || \
+            EXPECTED_RELEASE_KEY="$release_key" EXPECTED_DEPLOYMENT_MODE="$DEPLOYMENT_MODE" python3 - <<'PY' || \
             created_resources_failure "created PR metadata or body marker validation failed"
           import json
           import os
@@ -222,6 +238,7 @@ jobs:
           expected_head = os.environ['EXPECTED_HEAD']
           expected_source_sha = os.environ['EXPECTED_SOURCE_SHA']
           expected_release_key = os.environ['EXPECTED_RELEASE_KEY']
+          expected_deployment_mode = os.environ['EXPECTED_DEPLOYMENT_MODE']
 
           errors = []
           if pr.get('number') != expected_number:
@@ -236,6 +253,7 @@ jobs:
           body = pr.get('body') or ''
           source_markers = re.findall(r'<!--\s*release-pilot-source-sha:\s*(.*?)\s*-->', body)
           key_markers = re.findall(r'<!--\s*release-pilot-key:\s*(.*?)\s*-->', body)
+          mode_markers = re.findall(r'<!--\s*release-pilot-deployment-mode:\s*(.*?)\s*-->', body)
           if len(source_markers) != 1:
               errors.append('PR body must contain exactly one source SHA marker')
           elif source_markers[0] != expected_source_sha:
@@ -244,6 +262,10 @@ jobs:
               errors.append('PR body must contain exactly one release key marker')
           elif key_markers[0] != expected_release_key:
               errors.append('PR body release key marker does not match the expected release key')
+          if len(mode_markers) != 1:
+              errors.append('PR body must contain exactly one deployment mode marker')
+          elif mode_markers[0] != expected_deployment_mode:
+              errors.append('PR body deployment mode marker does not match the selected mode')
 
           if errors:
               for error in errors:
@@ -255,9 +277,10 @@ jobs:
             echo "## Release PR pilot created"
             echo "- PR: ${pr_url}"
             echo "- Source SHA: \`${source_sha}\`"
+            echo "- Deployment mode: \`${DEPLOYMENT_MODE}\`"
             echo "- Base ref: \`${base}\`"
             echo "- Candidate ref: \`${candidate}\`"
             echo "- Candidate SHA: \`${remote_candidate_sha}\`"
             echo "- Post-create validation: \`passed\`"
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "[release-pr-pilot] created pr=${pr_url} source_sha=${source_sha} base=${base} candidate=${candidate} candidate_sha=${remote_candidate_sha}"
+          echo "[release-pr-pilot] created pr=${pr_url} source_sha=${source_sha} deployment_mode=${DEPLOYMENT_MODE} base=${base} candidate=${candidate} candidate_sha=${remote_candidate_sha}"
