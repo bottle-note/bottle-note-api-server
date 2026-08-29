@@ -1,4 +1,4 @@
-name: release PR pilot create
+name: release PR create
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: release-pr-pilot-${{ inputs.release_date }}-${{ inputs.sequence }}
+  group: release-pr-${{ inputs.release_date }}-${{ inputs.sequence }}
   cancel-in-progress: false
 
 jobs:
@@ -80,8 +80,8 @@ jobs:
           }
 
           release_key="${RELEASE_DATE}/${SEQUENCE}"
-          base="temp/releases/${release_key}"
-          candidate="temp/release-candidates/${release_key}"
+          base="releases/${release_key}"
+          candidate="release-candidates/${release_key}"
           base_pushed=false
           candidate_pushed=false
           created_pr_url=""
@@ -95,7 +95,7 @@ jobs:
             local message="$1"
             echo "::error::${message}. Remote resources may already exist; automatic cleanup is disabled and manual cleanup is required."
             {
-              echo "## Release PR pilot validation failed"
+              echo "## Release PR validation failed"
               echo "- Reason: ${message}"
               echo "- Base push: \`${base_pushed}\`"
               echo "- Candidate push: \`${candidate_pushed}\`"
@@ -187,14 +187,14 @@ jobs:
 
           body_file="$(mktemp)"
           cat > "$body_file" <<EOF
-          Release PR pilot for ${release_key}.
+          Release PR for ${release_key}.
 
           Source SHA: ${source_sha}
           Deployment mode: ${DEPLOYMENT_MODE}
 
-          <!-- release-pilot-source-sha:${source_sha} -->
-          <!-- release-pilot-key:${release_key} -->
-          <!-- release-pilot-deployment-mode:${DEPLOYMENT_MODE} -->
+          <!-- release-source-sha:${source_sha} -->
+          <!-- release-key:${release_key} -->
+          <!-- release-deployment-mode:${DEPLOYMENT_MODE} -->
           EOF
 
           created_pr_url="$(gh pr create \
@@ -251,9 +251,9 @@ jobs:
               errors.append('PR head ref does not match the expected candidate ref')
 
           body = pr.get('body') or ''
-          source_markers = re.findall(r'<!--\s*release-pilot-source-sha:\s*(.*?)\s*-->', body)
-          key_markers = re.findall(r'<!--\s*release-pilot-key:\s*(.*?)\s*-->', body)
-          mode_markers = re.findall(r'<!--\s*release-pilot-deployment-mode:\s*(.*?)\s*-->', body)
+          source_markers = re.findall(r'<!--\s*release-source-sha:\s*(.*?)\s*-->', body)
+          key_markers = re.findall(r'<!--\s*release-key:\s*(.*?)\s*-->', body)
+          mode_markers = re.findall(r'<!--\s*release-deployment-mode:\s*(.*?)\s*-->', body)
           if len(source_markers) != 1:
               errors.append('PR body must contain exactly one source SHA marker')
           elif source_markers[0] != expected_source_sha:
@@ -274,7 +274,7 @@ jobs:
           PY
 
           {
-            echo "## Release PR pilot created"
+            echo "## Release PR created"
             echo "- PR: ${pr_url}"
             echo "- Source SHA: \`${source_sha}\`"
             echo "- Deployment mode: \`${DEPLOYMENT_MODE}\`"
@@ -283,4 +283,4 @@ jobs:
             echo "- Candidate SHA: \`${remote_candidate_sha}\`"
             echo "- Post-create validation: \`passed\`"
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "[release-pr-pilot] created pr=${pr_url} source_sha=${source_sha} deployment_mode=${DEPLOYMENT_MODE} base=${base} candidate=${candidate} candidate_sha=${remote_candidate_sha}"
+          echo "[release-pr] created pr=${pr_url} source_sha=${source_sha} deployment_mode=${DEPLOYMENT_MODE} base=${base} candidate=${candidate} candidate_sha=${remote_candidate_sha}"
