@@ -7,7 +7,7 @@ on:
       - 'releases/**'
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
   actions: read
 
@@ -20,12 +20,14 @@ jobs:
       release-key: ${{ steps.release.outputs.release-key }}
       source-sha: ${{ steps.release.outputs.source-sha }}
       deployment-mode: ${{ steps.release.outputs.deployment-mode }}
+      release-branch: ${{ steps.release.outputs.release-branch }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       REPOSITORY: ${{ github.repository }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
       PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
       PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       PR_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
@@ -54,7 +56,7 @@ jobs:
           sequence="${BASH_REMATCH[2]}"
           release_key="${release_date}/${sequence}"
           expected_base="releases/${release_key}"
-          expected_head="release-candidates/${release_key}"
+          expected_head="main"
           [[ "$PR_BASE_REF" == "$expected_base" ]] || {
             echo "::error::base ref does not match derived release key"
             exit 1
@@ -64,7 +66,11 @@ jobs:
             exit 1
           }
           [[ "$PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "::error::invalid candidate head SHA"
+            echo "::error::invalid main head SHA"
+            exit 1
+          }
+          [[ "$PR_BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::invalid release base SHA"
             exit 1
           }
           [[ "$PR_MERGE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
@@ -82,7 +88,7 @@ jobs:
           }
           pr_values_text="$(PR_JSON="$pr_json" REPOSITORY="$REPOSITORY" \
             PR_NUMBER="$PR_NUMBER" PR_BASE_REF="$PR_BASE_REF" PR_HEAD_REF="$PR_HEAD_REF" \
-            PR_HEAD_SHA="$PR_HEAD_SHA" PR_MERGE_SHA="$PR_MERGE_SHA" \
+            PR_BASE_SHA="$PR_BASE_SHA" PR_HEAD_SHA="$PR_HEAD_SHA" PR_MERGE_SHA="$PR_MERGE_SHA" \
             EXPECTED_BASE="$expected_base" EXPECTED_HEAD="$expected_head" python3 - <<'PY'
           import json
           import os
@@ -105,6 +111,8 @@ jobs:
               errors.append('API head SHA does not match event head SHA')
           if ((pr.get('base') or {}).get('ref')) != os.environ['PR_BASE_REF'] or os.environ['PR_BASE_REF'] != expected_base:
               errors.append('API/event/expected base ref mismatch')
+          if ((pr.get('base') or {}).get('sha')) != os.environ['PR_BASE_SHA']:
+              errors.append('API base SHA does not match event base SHA')
           if pr.get('merge_commit_sha') != os.environ['PR_MERGE_SHA']:
               errors.append('API merge SHA does not match event merge SHA')
           if errors:
@@ -164,6 +172,10 @@ jobs:
             echo "::error::invalid deployment mode marker"
             exit 1
           }
+          [[ "$source_sha" == "$PR_HEAD_SHA" ]] || {
+            echo "::error::source SHA marker must equal the approved main head SHA"
+            exit 1
+          }
 
           reviews_json="$(gh api --paginate --slurp "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews?per_page=100")" || {
             echo "::error::unable to retrieve PR reviews"
@@ -202,13 +214,13 @@ jobs:
           PY
           )"
 
-          git fetch --no-tags origin "$source_sha" "$PR_HEAD_SHA" "$PR_MERGE_SHA"
+          git fetch --no-tags origin "$PR_BASE_SHA" "$source_sha" "$PR_MERGE_SHA"
           git cat-file -e "${source_sha}^{commit}" || {
             echo "::error::source SHA is not a commit"
             exit 1
           }
           git cat-file -e "${PR_HEAD_SHA}^{commit}" || {
-            echo "::error::candidate SHA is not a commit"
+            echo "::error::main release SHA is not a commit"
             exit 1
           }
           git cat-file -e "${PR_MERGE_SHA}^{commit}" || {
@@ -216,25 +228,25 @@ jobs:
             exit 1
           }
 
-          candidate_parent="$(git rev-parse "${PR_HEAD_SHA}^")"
-          candidate_subject="$(git show -s --format=%s "$PR_HEAD_SHA")"
+          release_parent="$(git rev-parse "${PR_HEAD_SHA}^")"
+          release_subject="$(git show -s --format=%s "$PR_HEAD_SHA")"
+          base_tree="$(git show -s --format=%T "$PR_BASE_SHA")"
           source_tree="$(git show -s --format=%T "$source_sha")"
-          candidate_tree="$(git show -s --format=%T "$PR_HEAD_SHA")"
           merge_tree="$(git show -s --format=%T "$PR_MERGE_SHA")"
-          [[ "$candidate_parent" == "$source_sha" ]] || {
-            echo "::error::candidate commit parent does not equal source SHA"
+          [[ "$release_parent" == "$PR_BASE_SHA" ]] || {
+            echo "::error::main release commit parent does not equal release base SHA"
             exit 1
           }
-          [[ "$candidate_subject" == "release(${deployment_mode}): ${release_key}" ]] || {
-            echo "::error::candidate commit message does not match release key and deployment mode"
+          [[ "$release_subject" == "release(${deployment_mode}): ${release_key}" ]] || {
+            echo "::error::main release commit message does not match release key and deployment mode"
             exit 1
           }
-          [[ "$candidate_tree" == "$source_tree" ]] || {
-            echo "::error::candidate commit tree differs from source tree"
+          [[ "$source_tree" == "$base_tree" ]] || {
+            echo "::error::main release commit tree differs from release base tree"
             exit 1
           }
-          [[ "$merge_tree" == "$candidate_tree" ]] || {
-            echo "::error::merge commit tree differs from candidate tree"
+          [[ "$merge_tree" == "$source_tree" ]] || {
+            echo "::error::merge commit tree differs from main release tree"
             exit 1
           }
 
@@ -242,6 +254,7 @@ jobs:
             echo "release-key=${release_key}"
             echo "source-sha=${source_sha}"
             echo "deployment-mode=${deployment_mode}"
+            echo "release-branch=${expected_base}"
           } >> "$GITHUB_OUTPUT"
 
           result="[release-pr] approved-and-merged release_key=${release_key} source_sha=${source_sha} deployment_mode=${deployment_mode} pr=${PR_NUMBER} approver=${approver} merged_by=${PR_MERGED_BY} merge_sha=${PR_MERGE_SHA} changed_files=0 deployment=triggered"
@@ -268,3 +281,20 @@ jobs:
       release_key: ${{ needs.verify-approved-empty-release-pr.outputs.release-key }}
       deployment_mode: ${{ needs.verify-approved-empty-release-pr.outputs.deployment-mode }}
     secrets: inherit
+
+  delete-release-branch:
+    needs:
+      - verify-approved-empty-release-pr
+      - deploy-release-applications
+    runs-on: ubuntu-latest
+    steps:
+      - name: delete one-time release branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_BRANCH: ${{ needs.verify-approved-empty-release-pr.outputs.release-branch }}
+        run: |
+          set -euo pipefail
+          encoded_branch="$(RELEASE_BRANCH="$RELEASE_BRANCH" python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["RELEASE_BRANCH"], safe=""))')"
+          gh api -X DELETE "repos/${REPOSITORY}/git/refs/heads/${encoded_branch}"
+          echo "[release-pr] deleted release_branch=${RELEASE_BRANCH}"

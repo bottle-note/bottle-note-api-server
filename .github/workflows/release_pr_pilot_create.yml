@@ -47,6 +47,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
           persist-credentials: true
 
       - name: validate inputs and create release PR
@@ -80,10 +81,9 @@ jobs:
           }
 
           release_key="${RELEASE_DATE}/${SEQUENCE}"
-          base="releases/${release_key}"
-          candidate="release-candidates/${release_key}"
-          base_pushed=false
-          candidate_pushed=false
+          release_branch="releases/${release_key}"
+          release_branch_pushed=false
+          main_pushed=false
           created_pr_url=""
           body_file=""
 
@@ -97,11 +97,11 @@ jobs:
             {
               echo "## Release PR validation failed"
               echo "- Reason: ${message}"
-              echo "- Base push: \`${base_pushed}\`"
-              echo "- Candidate push: \`${candidate_pushed}\`"
+              echo "- Release branch push: \`${release_branch_pushed}\`"
+              echo "- Main empty commit push: \`${main_pushed}\`"
               echo "- Created PR: ${created_pr_url:-unknown}"
-              echo "- Base ref: \`${base}\`"
-              echo "- Candidate ref: \`${candidate}\`"
+              echo "- Base ref: \`${release_branch}\`"
+              echo "- Head ref: \`main\`"
               echo "- Manual cleanup required: \`yes\`"
               echo "- Automatic cleanup: \`disabled\`"
             } >> "$GITHUB_STEP_SUMMARY"
@@ -110,7 +110,7 @@ jobs:
 
           handle_partial_failure() {
             local status="$1"
-            if [[ "$base_pushed" == true || "$candidate_pushed" == true || -n "$created_pr_url" ]]; then
+            if [[ "$release_branch_pushed" == true || "$main_pushed" == true || -n "$created_pr_url" ]]; then
               created_resources_failure "workflow failed after creating remote resources (exit ${status})"
             fi
             exit "$status"
@@ -120,8 +120,8 @@ jobs:
           trap cleanup_body_file EXIT
 
           git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
-          source_sha="$(git rev-parse origin/main)"
-          source_tree="$(git show -s --format=%T "$source_sha")"
+          pre_release_sha="$(git rev-parse origin/main)"
+          pre_release_tree="$(git show -s --format=%T "$pre_release_sha")"
 
           url_encode() {
             python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["VALUE"], safe=""))'
@@ -141,49 +141,48 @@ jobs:
             fi
           }
 
-          require_missing_remote_ref "$base"
-          require_missing_remote_ref "$candidate"
+          require_missing_remote_ref "$release_branch"
 
           open_pr_count="$(gh api -X GET "repos/${REPOSITORY}/pulls" \
             -f state=open \
-            -f base="$base" \
-            -f head="${REPOSITORY_OWNER}:${candidate}" \
+            -f base="$release_branch" \
+            -f head="${REPOSITORY_OWNER}:main" \
             --jq 'length')" || {
               echo "::error::unable to check for an existing open PR"
               exit 1
             }
           [[ "$open_pr_count" == "0" ]] || {
-            echo "::error::an open PR already exists for base=${base} head=${candidate}"
+            echo "::error::an open PR already exists for base=${release_branch} head=main"
             exit 1
           }
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout --detach "$source_sha"
-          git branch -f "$candidate" "$source_sha"
-          git checkout "$candidate"
+          git checkout -B main "$pre_release_sha"
           git commit --allow-empty -m "release(${DEPLOYMENT_MODE}): ${release_key}"
-          candidate_sha="$(git rev-parse HEAD)"
+          source_sha="$(git rev-parse HEAD)"
 
-          git push origin "${source_sha}:refs/heads/${base}"
-          base_pushed=true
-          git push origin "${candidate_sha}:refs/heads/${candidate}"
-          candidate_pushed=true
+          git push origin "${pre_release_sha}:refs/heads/${release_branch}"
+          release_branch_pushed=true
+          git push origin "${source_sha}:refs/heads/main"
+          main_pushed=true
 
           git fetch --no-tags origin \
-            "+refs/heads/${base}:refs/remotes/origin/${base}" \
-            "+refs/heads/${candidate}:refs/remotes/origin/${candidate}"
-          remote_base_sha="$(git rev-parse "origin/${base}")"
-          remote_candidate_sha="$(git rev-parse "origin/${candidate}")"
-          remote_candidate_parent="$(git rev-parse "${remote_candidate_sha}^")"
-          remote_candidate_tree="$(git show -s --format=%T "$remote_candidate_sha")"
+            "+refs/heads/${release_branch}:refs/remotes/origin/${release_branch}" \
+            '+refs/heads/main:refs/remotes/origin/main'
+          remote_release_sha="$(git rev-parse "origin/${release_branch}")"
+          remote_main_sha="$(git rev-parse origin/main)"
+          remote_main_parent="$(git rev-parse "${remote_main_sha}^")"
+          remote_main_tree="$(git show -s --format=%T "$remote_main_sha")"
 
-          [[ "$remote_base_sha" == "$source_sha" ]] || \
-            created_resources_failure "base branch does not point to the fixed main source SHA"
-          [[ "$remote_candidate_parent" == "$source_sha" ]] || \
-            created_resources_failure "candidate commit parent does not match source SHA"
-          [[ "$remote_candidate_tree" == "$source_tree" ]] || \
-            created_resources_failure "candidate commit tree differs from source tree"
+          [[ "$remote_release_sha" == "$pre_release_sha" ]] || \
+            created_resources_failure "release branch does not point to the pre-release main SHA"
+          [[ "$remote_main_sha" == "$source_sha" ]] || \
+            created_resources_failure "main does not point to the release empty commit"
+          [[ "$remote_main_parent" == "$pre_release_sha" ]] || \
+            created_resources_failure "release empty commit parent does not match the pre-release main SHA"
+          [[ "$remote_main_tree" == "$pre_release_tree" ]] || \
+            created_resources_failure "release empty commit tree differs from the pre-release main tree"
 
           body_file="$(mktemp)"
           cat > "$body_file" <<EOF
@@ -198,8 +197,8 @@ jobs:
           EOF
 
           created_pr_url="$(gh pr create \
-            --base "$base" \
-            --head "$candidate" \
+            --base "$release_branch" \
+            --head main \
             --title "release(${DEPLOYMENT_MODE}): ${release_key}" \
             --body-file "$body_file")"
 
@@ -223,7 +222,7 @@ jobs:
           pr_json="$(gh api "repos/${REPOSITORY}/pulls/${pr_number}")" || \
             created_resources_failure "unable to re-fetch created PR metadata"
           PR_JSON="$pr_json" EXPECTED_NUMBER="$pr_number" EXPECTED_URL="$pr_url" \
-            EXPECTED_BASE="$base" EXPECTED_HEAD="$candidate" EXPECTED_SOURCE_SHA="$source_sha" \
+            EXPECTED_BASE="$release_branch" EXPECTED_HEAD="main" EXPECTED_SOURCE_SHA="$source_sha" \
             EXPECTED_RELEASE_KEY="$release_key" EXPECTED_DEPLOYMENT_MODE="$DEPLOYMENT_MODE" python3 - <<'PY' || \
             created_resources_failure "created PR metadata or body marker validation failed"
           import json
@@ -248,7 +247,7 @@ jobs:
           if ((pr.get('base') or {}).get('ref')) != expected_base:
               errors.append('PR base ref does not match the expected release ref')
           if ((pr.get('head') or {}).get('ref')) != expected_head:
-              errors.append('PR head ref does not match the expected candidate ref')
+              errors.append('PR head ref does not match main')
 
           body = pr.get('body') or ''
           source_markers = re.findall(r'<!--\s*release-source-sha:\s*(.*?)\s*-->', body)
@@ -257,7 +256,7 @@ jobs:
           if len(source_markers) != 1:
               errors.append('PR body must contain exactly one source SHA marker')
           elif source_markers[0] != expected_source_sha:
-              errors.append('PR body source SHA marker does not match the fixed main source SHA')
+              errors.append('PR body source SHA marker does not match the main release commit')
           if len(key_markers) != 1:
               errors.append('PR body must contain exactly one release key marker')
           elif key_markers[0] != expected_release_key:
@@ -278,9 +277,9 @@ jobs:
             echo "- PR: ${pr_url}"
             echo "- Source SHA: \`${source_sha}\`"
             echo "- Deployment mode: \`${DEPLOYMENT_MODE}\`"
-            echo "- Base ref: \`${base}\`"
-            echo "- Candidate ref: \`${candidate}\`"
-            echo "- Candidate SHA: \`${remote_candidate_sha}\`"
+            echo "- Base ref: \`${release_branch}\`"
+            echo "- Head ref: \`main\`"
+            echo "- Main release SHA: \`${remote_main_sha}\`"
             echo "- Post-create validation: \`passed\`"
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "[release-pr] created pr=${pr_url} source_sha=${source_sha} deployment_mode=${DEPLOYMENT_MODE} base=${base} candidate=${candidate} candidate_sha=${remote_candidate_sha}"
+          echo "[release-pr] created pr=${pr_url} source_sha=${source_sha} deployment_mode=${DEPLOYMENT_MODE} base=${release_branch} head=main"
