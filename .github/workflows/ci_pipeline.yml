@@ -3,8 +3,8 @@ name: ci pipeline
 on:
   workflow_dispatch:
   pull_request:
-    branches-ignore:
-      - 'release/**'
+    branches:
+      - main
   push:
     branches:
       - main
