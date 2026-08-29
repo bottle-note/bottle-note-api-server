@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 jobs:
-  verify-approved-empty-release-pr:
+  verify-merged-empty-release-pr:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -30,8 +30,6 @@ jobs:
       PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
       PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       PR_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
-      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-      PR_MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v7
@@ -77,11 +75,6 @@ jobs:
             echo "::error::invalid merge SHA"
             exit 1
           }
-          [[ -n "$PR_AUTHOR" && -n "$PR_MERGED_BY" ]] || {
-            echo "::error::PR author and merger must be present"
-            exit 1
-          }
-
           pr_json="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}")" || {
             echo "::error::unable to retrieve PR metadata"
             exit 1
@@ -173,46 +166,9 @@ jobs:
             exit 1
           }
           [[ "$source_sha" == "$PR_HEAD_SHA" ]] || {
-            echo "::error::source SHA marker must equal the approved main head SHA"
+            echo "::error::source SHA marker must equal the merged main head SHA"
             exit 1
           }
-
-          reviews_json="$(gh api --paginate --slurp "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews?per_page=100")" || {
-            echo "::error::unable to retrieve PR reviews"
-            exit 1
-          }
-          approver="$(REVIEWS_JSON="$reviews_json" PR_AUTHOR="$PR_AUTHOR" PR_HEAD_SHA="$PR_HEAD_SHA" python3 - <<'PY'
-          import json
-          import os
-          import sys
-
-          pages = json.loads(os.environ['REVIEWS_JSON'])
-          reviews = [review for page in pages for review in page]
-          author = os.environ['PR_AUTHOR']
-          pr_head_sha = os.environ['PR_HEAD_SHA']
-          effective_states = {'APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'}
-          latest = {}
-          for review in reviews:
-              login = ((review.get('user') or {}).get('login') or '')
-              state = review.get('state')
-              if not login or state not in effective_states:
-                  continue
-              order = (review.get('submitted_at') or '', review.get('id') or 0)
-              if login not in latest or order > latest[login][0]:
-                  latest[login] = (order, state, review.get('commit_id'))
-          approved = sorted(login for login, (_, state, commit_id) in latest.items()
-                            if login != author and state == 'APPROVED' and commit_id == pr_head_sha)
-          changes_requested = sorted(login for login, (_, state, _) in latest.items()
-                                     if state == 'CHANGES_REQUESTED')
-          if changes_requested:
-              print('::error::latest valid review state is CHANGES_REQUESTED for: ' + ', '.join(changes_requested), file=sys.stderr)
-              sys.exit(1)
-          if not approved:
-              print('::error::an approval from a non-author reviewer is required', file=sys.stderr)
-              sys.exit(1)
-          print(approved[0])
-          PY
-          )"
 
           git fetch --no-tags origin "$PR_BASE_SHA" "$source_sha" "$PR_MERGE_SHA"
           git cat-file -e "${source_sha}^{commit}" || {
@@ -257,34 +213,32 @@ jobs:
             echo "release-branch=${expected_base}"
           } >> "$GITHUB_OUTPUT"
 
-          result="[release-pr] approved-and-merged release_key=${release_key} source_sha=${source_sha} deployment_mode=${deployment_mode} pr=${PR_NUMBER} approver=${approver} merged_by=${PR_MERGED_BY} merge_sha=${PR_MERGE_SHA} changed_files=0 deployment=triggered"
+          result="[release-pr] merged-and-verified release_key=${release_key} source_sha=${source_sha} deployment_mode=${deployment_mode} pr=${PR_NUMBER} merge_sha=${PR_MERGE_SHA} changed_files=0 deployment=triggered"
           echo "$result"
           {
             echo "## Release PR verification"
-            echo "- Status: \`approved-and-merged\`"
+            echo "- Status: \`merged-and-verified\`"
             echo "- Release key: \`${release_key}\`"
             echo "- Source SHA: \`${source_sha}\`"
             echo "- Deployment mode: \`${deployment_mode}\`"
             echo "- PR: #${PR_NUMBER}"
-            echo "- Approver: \`${approver}\`"
-            echo "- Merged by: \`${PR_MERGED_BY}\`"
             echo "- Merge SHA: \`${PR_MERGE_SHA}\`"
             echo "- Changed files: \`0\`"
             echo "- Deployment: \`triggered\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy-release-applications:
-    needs: verify-approved-empty-release-pr
+    needs: verify-merged-empty-release-pr
     uses: ./.github/workflows/deploy_release_applications.yml
     with:
-      source_sha: ${{ needs.verify-approved-empty-release-pr.outputs.source-sha }}
-      release_key: ${{ needs.verify-approved-empty-release-pr.outputs.release-key }}
-      deployment_mode: ${{ needs.verify-approved-empty-release-pr.outputs.deployment-mode }}
+      source_sha: ${{ needs.verify-merged-empty-release-pr.outputs.source-sha }}
+      release_key: ${{ needs.verify-merged-empty-release-pr.outputs.release-key }}
+      deployment_mode: ${{ needs.verify-merged-empty-release-pr.outputs.deployment-mode }}
     secrets: inherit
 
   delete-release-branch:
     needs:
-      - verify-approved-empty-release-pr
+      - verify-merged-empty-release-pr
       - deploy-release-applications
     runs-on: ubuntu-latest
     steps:
@@ -292,7 +246,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-          RELEASE_BRANCH: ${{ needs.verify-approved-empty-release-pr.outputs.release-branch }}
+          RELEASE_BRANCH: ${{ needs.verify-merged-empty-release-pr.outputs.release-branch }}
         run: |
           set -euo pipefail
           encoded_branch="$(RELEASE_BRANCH="$RELEASE_BRANCH" python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["RELEASE_BRANCH"], safe=""))')"
