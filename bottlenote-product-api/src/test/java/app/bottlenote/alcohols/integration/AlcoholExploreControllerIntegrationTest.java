@@ -90,7 +90,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
     void explore_empty_result() {
       alcoholTestFactory.persistAlcohols(3);
 
-      MvcTestResult result = exchangeGet(b -> b.param("keywords", "존재하지_않는_키워드_9999"));
+      MvcTestResult result = exchangeGet(b -> b.param("keyword", "존재하지_않는_키워드_9999"));
 
       result
           .assertThat()
@@ -110,7 +110,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
       deleted.delete();
       alcoholQueryRepository.save(deleted);
 
-      MvcTestResult result = exchangeGet(b -> b.param("keywords", "둘러보기").param("size", "10"));
+      MvcTestResult result = exchangeGet(b -> b.param("keyword", "둘러보기").param("size", "10"));
 
       result
           .assertThat()
@@ -239,15 +239,14 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("keywords 다중 입력 시 AND로 결합된다")
-    void filter_keywords_AND() {
+    @DisplayName("단일 keyword를 토큰으로 분리해 AND로 결합한다")
+    void filter_keyword_tokens_AND() {
       Alcohol both =
           alcoholTestFactory.persistAlcoholWithName("글렌피딕 시그니처", "Glenfiddich Signature");
       Alcohol onlyA = alcoholTestFactory.persistAlcoholWithName("글렌피딕 12", "Glenfiddich 12");
       Alcohol onlyB = alcoholTestFactory.persistAlcoholWithName("맥캘란 시그니처", "Macallan Signature");
 
-      MvcTestResult result =
-          exchangeGet(b -> b.param("keywords", "글렌피딕").param("keywords", "시그니처"));
+      MvcTestResult result = exchangeGet(b -> b.param("keyword", "  글렌피딕   시그니처  "));
 
       result
           .assertThat()
@@ -257,6 +256,11 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .asArray()
           .contains(both.getId().intValue())
           .doesNotContain(onlyA.getId().intValue(), onlyB.getId().intValue());
+      result
+          .assertThat()
+          .bodyJson()
+          .extractingPath("$.meta.searchParameters.keyword")
+          .isEqualTo("글렌피딕   시그니처");
     }
   }
 

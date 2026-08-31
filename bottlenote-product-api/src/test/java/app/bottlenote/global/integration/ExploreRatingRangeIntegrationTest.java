@@ -47,7 +47,7 @@ class ExploreRatingRangeIntegrationTest extends IntegrationTestSupport {
     persistRating(user, above, 4.5);
 
     MvcTestResult result =
-        get(ALCOHOL_ENDPOINT, "keywords", "범위위스키", "ratingFrom", "3.0", "ratingTo", "4.0");
+        get(ALCOHOL_ENDPOINT, "keyword", "범위위스키", "ratingFrom", "3.0", "ratingTo", "4.0");
 
     result
         .assertThat()

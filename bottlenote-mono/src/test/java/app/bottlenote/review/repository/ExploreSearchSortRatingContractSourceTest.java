@@ -31,17 +31,18 @@ class ExploreSearchSortRatingContractSourceTest {
     assertThat(request)
         .contains(
             "String keyword",
-            "List<String> keywords",
             "ReviewSortType sortType",
             "SortOrder sortOrder",
             "BigDecimal ratingFrom",
             "BigDecimal ratingTo")
-        .contains("ReviewSortType.LATEST", "EXPLORE_KEYWORD_CONFLICT", "EXPLORE_RATING_INVALID");
+        .contains("ReviewSortType.LATEST", "EXPLORE_RATING_INVALID")
+        .doesNotContain("List<String> keywords", "EXPLORE_KEYWORD_CONFLICT");
     assertThat(criteria)
-        .contains("effectiveKeywords", "sortType", "sortOrder", "ratingFrom", "ratingTo");
+        .contains("searchTokens", "sortType", "sortOrder", "ratingFrom", "ratingTo")
+        .doesNotContain("effectiveKeywords", "List<String> keywords");
     assertThat(repository)
         .contains(
-            "criteria.effectiveKeywords()",
+            "criteria.searchTokens()",
             "criteria.ratingFrom()",
             "criteria.ratingTo()",
             "criteria.sortType()",
@@ -64,9 +65,15 @@ class ExploreSearchSortRatingContractSourceTest {
             "bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/CustomAlcoholQueryRepositoryImpl.java");
 
     assertThat(request)
-        .contains("BigDecimal ratingFrom", "BigDecimal ratingTo", "EXPLORE_RATING_INVALID");
+        .contains(
+            "String keyword",
+            "BigDecimal ratingFrom",
+            "BigDecimal ratingTo",
+            "EXPLORE_RATING_INVALID")
+        .doesNotContain("List<String> keywords");
     assertThat(criteria)
         .contains(
+            "List<String> searchTokens",
             "BigDecimal ratingFrom",
             "BigDecimal ratingTo",
             "request.ratingFrom()",
