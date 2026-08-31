@@ -33,7 +33,7 @@ class ReviewExploreServiceTest {
                 item(3L, "2026-08-16T09:00:00")));
     ReviewExploreService service = new ReviewExploreService(repository);
     ReviewExploreRequest request =
-        new ReviewExploreRequest(null, null, null, null, null, null, null, null);
+        new ReviewExploreRequest(null, null, null, null, null, null, null);
 
     // when
     KeysetPageResponse<ReviewExploreListResponse> result = service.getStandardExplore(request, 1L);

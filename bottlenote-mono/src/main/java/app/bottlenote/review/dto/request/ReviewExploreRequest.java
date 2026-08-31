@@ -6,12 +6,10 @@ import app.bottlenote.global.validation.RatingRangeValidator;
 import app.bottlenote.review.constant.ReviewSortType;
 import jakarta.validation.constraints.AssertTrue;
 import java.math.BigDecimal;
-import java.util.List;
 import lombok.Builder;
 
 public record ReviewExploreRequest(
     String keyword,
-    List<String> keywords,
     ReviewSortType sortType,
     SortOrder sortOrder,
     BigDecimal ratingFrom,
@@ -25,17 +23,11 @@ public record ReviewExploreRequest(
   @Builder
   public ReviewExploreRequest {
     keyword = keyword != null && !keyword.isBlank() ? keyword.trim() : null;
-    keywords = keywords != null ? List.copyOf(keywords) : List.of();
     sortType = sortType != null ? sortType : ReviewSortType.LATEST;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
     KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
-  }
-
-  @AssertTrue(message = "EXPLORE_KEYWORD_CONFLICT")
-  public boolean hasNoKeywordConflict() {
-    return keyword == null || keywords.isEmpty();
   }
 
   @AssertTrue(message = "EXPLORE_RATING_INVALID")

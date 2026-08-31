@@ -10,7 +10,7 @@ import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewFilters;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewSortBy;
-import static app.bottlenote.review.repository.ReviewQuerySupporter.containsKeywordInAll;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.containsAllSearchTokens;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.cursorKeys;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.distinctLikesCount;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getTastingTag;
@@ -355,7 +355,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .where(
                 review.activeStatus.eq(ACTIVE),
                 review.status.eq(PUBLIC),
-                containsKeywordInAll(criteria.effectiveKeywords()),
+                containsAllSearchTokens(criteria.searchTokens()),
                 criteria.ratingFrom() == null
                     ? null
                     : review.reviewRating.goe(criteria.ratingFrom().doubleValue()),

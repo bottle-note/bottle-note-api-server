@@ -391,7 +391,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 .leftJoin(rating)
                 .on(rating.id.alcoholId.eq(alcohol.id))
                 .where(
-                    supporter.keywordsMatch(criteria.keywords()),
+                    supporter.searchTokensMatch(criteria.searchTokens()),
                     supporter.eqCategory(criteria.category()),
                     supporter.inRegionIds(criteria.regionIds()),
                     supporter.inDistilleryIds(criteria.distilleryIds()),
@@ -414,7 +414,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
               .join(distillery)
               .on(alcohol.distillery.id.eq(distillery.id))
               .where(
-                  supporter.keywordsMatch(criteria.keywords()),
+                  supporter.searchTokensMatch(criteria.searchTokens()),
                   supporter.eqCategory(criteria.category()),
                   supporter.inRegionIds(criteria.regionIds()),
                   supporter.inDistilleryIds(criteria.distilleryIds()),
@@ -448,7 +448,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     List<Tuple> rows =
         query
             .where(
-                supporter.keywordsMatch(criteria.keywords()),
+                supporter.searchTokensMatch(criteria.searchTokens()),
                 supporter.eqCategory(criteria.category()),
                 supporter.inRegionIds(criteria.regionIds()),
                 supporter.inDistilleryIds(criteria.distilleryIds()),
@@ -497,7 +497,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     List<Tuple> rows =
         query
             .where(
-                supporter.keywordsMatch(criteria.keywords()),
+                supporter.searchTokensMatch(criteria.searchTokens()),
                 supporter.eqCategory(criteria.category()),
                 supporter.inRegionIds(criteria.regionIds()),
                 supporter.inDistilleryIds(criteria.distilleryIds()),

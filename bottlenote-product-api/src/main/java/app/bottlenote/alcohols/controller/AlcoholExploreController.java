@@ -38,6 +38,10 @@ public class AlcoholExploreController {
   @GetMapping("/standard")
   @Parameters({
     @Parameter(
+        name = "keyword",
+        description = "공백으로 분리한 토큰 간 AND, 검색 필드 간 OR로 조회하는 검색어입니다.",
+        schema = @Schema(type = "string")),
+    @Parameter(
         name = "ratingFrom",
         description = "표시 집계 평점 포함 하한. 0.5부터 5.0까지 0.5 단위입니다.",
         schema = @Schema(type = "number", minimum = "0.5", maximum = "5.0", multipleOf = 0.5)),

@@ -16,7 +16,7 @@ import lombok.Builder;
  * <p>필터 결합 규칙:
  *
  * <ul>
- *   <li>{@code keywords}: 다중 키워드 간 <b>AND</b> (각 키워드는 여러 필드와 OR 매칭)
+ *   <li>{@code keyword}: 공백 분리 토큰 간 <b>AND</b> (각 토큰은 여러 필드와 OR 매칭)
  *   <li>{@code regionIds}, {@code distilleryIds}: 컬렉션 내 값 간 <b>OR</b> (IN 절)
  *   <li>서로 다른 필터 간: <b>AND</b>
  * </ul>
@@ -24,7 +24,7 @@ import lombok.Builder;
  * <p>RANDOM 시드는 요청이 아니라 HMAC 커서 extra에 실어 다음 페이지로만 이어진다.
  */
 public record ExploreStandardRequest(
-    List<String> keywords,
+    String keyword,
     AlcoholCategoryGroup category,
     List<Long> regionIds,
     List<Long> distilleryIds,
@@ -41,7 +41,7 @@ public record ExploreStandardRequest(
 
   @Builder
   public ExploreStandardRequest {
-    keywords = keywords != null ? List.copyOf(keywords) : List.of();
+    keyword = keyword != null && !keyword.isBlank() ? keyword.trim() : null;
     regionIds = regionIds != null ? List.copyOf(regionIds) : List.of();
     distilleryIds = distilleryIds != null ? List.copyOf(distilleryIds) : List.of();
     sortType = sortType != null ? sortType : SearchSortType.RANDOM;
