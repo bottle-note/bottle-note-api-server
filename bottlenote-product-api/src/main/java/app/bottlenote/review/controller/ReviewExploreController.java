@@ -13,7 +13,6 @@ import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import app.bottlenote.review.service.ReviewExploreService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +38,8 @@ public class ReviewExploreController {
   @Parameters({
     @Parameter(
         name = "keyword",
-        description = "단일 검색어. keywords와 함께 보낼 수 없습니다.",
+        description = "공백으로 분리한 토큰 간 AND, 검색 필드 간 OR로 조회하는 검색어입니다.",
         schema = @Schema(type = "string")),
-    @Parameter(
-        name = "keywords",
-        description = "제거 예정인 legacy 다중 검색어. keyword가 없을 때만 적용됩니다.",
-        deprecated = true,
-        array = @ArraySchema(schema = @Schema(type = "string"))),
     @Parameter(
         name = "sortType",
         description = "LATEST, POPULAR, LIKES, RATING, BOTTLE_PRICE, GLASS_PRICE. 기본값은 LATEST입니다.",

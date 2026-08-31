@@ -1,5 +1,6 @@
 package app.bottlenote.review.dto.dsl;
 
+import app.bottlenote.global.search.SearchKeywordTokenizer;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.ReviewExploreRequest;
@@ -9,8 +10,7 @@ import java.util.List;
 /** 리뷰 둘러보기의 request-to-repository 전달 계약. */
 public record ReviewExploreCriteria(
     Long userId,
-    String keyword,
-    List<String> keywords,
+    List<String> searchTokens,
     ReviewSortType sortType,
     SortOrder sortOrder,
     BigDecimal ratingFrom,
@@ -21,8 +21,7 @@ public record ReviewExploreCriteria(
   public static ReviewExploreCriteria of(ReviewExploreRequest request, Long userId) {
     return new ReviewExploreCriteria(
         userId,
-        request.keyword(),
-        request.keywords(),
+        SearchKeywordTokenizer.tokenize(request.keyword()),
         request.sortType(),
         request.sortOrder(),
         request.ratingFrom(),
@@ -31,15 +30,11 @@ public record ReviewExploreCriteria(
         request.size());
   }
 
-  public List<String> effectiveKeywords() {
-    return keyword == null ? keywords : List.of(keyword);
-  }
-
   public String context() {
     return "review.explore:"
         + userId
         + ":"
-        + effectiveKeywords()
+        + searchTokens
         + ":"
         + sortType
         + ":"

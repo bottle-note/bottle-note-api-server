@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
@@ -261,6 +262,29 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .bodyJson()
           .extractingPath("$.meta.searchParameters.keyword")
           .isEqualTo("글렌피딕   시그니처");
+      exchangeGet(b -> b.param("keyword", "시그니처 글렌피딕"))
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .contains(both.getId().intValue())
+          .doesNotContain(onlyA.getId().intValue(), onlyB.getId().intValue());
+    }
+
+    @ParameterizedTest(name = "keyword={0}")
+    @ValueSource(strings = {"%", "_"})
+    @DisplayName("LIKE wildcard 문자는 검색 패턴이 아니라 일반 문자로 처리한다")
+    void keyword_like_wildcard_is_literal(String wildcard) {
+      alcoholTestFactory.persistAlcoholWithName("와일드카드 위스키", "Wildcard Whisky");
+
+      exchangeGet(b -> b.param("keyword", wildcard))
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items")
+          .asArray()
+          .isEmpty();
     }
   }
 
@@ -333,6 +357,49 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .extractingPath("$.data.items[*].alcoholId")
           .asArray()
           .doesNotContainAnyElementsOf(firstIds);
+    }
+
+    @Test
+    @DisplayName("동일 keyword와 cursor로 다음 페이지를 중복 없이 조회한다")
+    void keyword_cursor_continues_without_duplicates() throws Exception {
+      alcoholTestFactory.persistAlcoholWithName("커서검색 위스키 A", "Cursor Whisky A");
+      alcoholTestFactory.persistAlcoholWithName("커서검색 위스키 B", "Cursor Whisky B");
+      Alcohol excluded = alcoholTestFactory.persistAlcoholWithName("다른 위스키", "Other Whisky");
+
+      MvcTestResult first =
+          exchangeGet(
+              b ->
+                  b.param("keyword", "커서검색")
+                      .param("size", "1")
+                      .param("sortType", "RATING")
+                      .param("sortOrder", "DESC"));
+      String nextCursor =
+          com.jayway.jsonpath.JsonPath.read(
+              first.getMvcResult().getResponse().getContentAsString(),
+              "$.meta.pagination.nextCursor");
+
+      MvcTestResult second =
+          exchangeGet(
+              b ->
+                  b.param("keyword", "커서검색")
+                      .param("cursor", nextCursor)
+                      .param("size", "1")
+                      .param("sortType", "RATING")
+                      .param("sortOrder", "DESC"));
+
+      List<Integer> firstIds =
+          com.jayway.jsonpath.JsonPath.read(
+              first.getMvcResult().getResponse().getContentAsString(),
+              "$.data.items[*].alcoholId");
+      second
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .isNotEmpty()
+          .doesNotContainAnyElementsOf(firstIds)
+          .doesNotContain(excluded.getId().intValue());
     }
   }
 

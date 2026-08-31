@@ -1,6 +1,8 @@
 package app.bottlenote.review.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.global.search.SearchKeywordLikePattern.ESCAPE;
+import static app.bottlenote.global.search.SearchKeywordLikePattern.contains;
 import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.constant.LikeStatus.LIKE;
 import static app.bottlenote.like.domain.QLikes.likes;
@@ -417,42 +419,34 @@ public class ReviewQuerySupporter {
     return createdTo != null ? review.createAt.loe(createdTo) : null;
   }
 
-  /** 키워드를 이용해 작성자, 주류 정보, 리뷰 콘텐츠, 테이스팅 태그를 모두 검색하는 조건 생성 */
-  public static BooleanExpression containsKeywordInAll(List<String> keywords) {
-    if (keywords == null || keywords.isEmpty()) {
+  /** 검색 토큰을 이용해 작성자, 주류 정보, 리뷰 콘텐츠, 테이스팅 태그를 모두 검색하는 조건 생성 */
+  public static BooleanExpression containsAllSearchTokens(List<String> searchTokens) {
+    if (searchTokens == null || searchTokens.isEmpty()) {
       return null;
     }
     BooleanExpression finalCondition = null;
 
-    // 각 키워드에 대해 개별 조건을 생성하고 AND 연산으로 결합
-    for (String keyword : keywords) {
-      if (StringUtils.isNullOrEmpty(keyword)) {
-        continue; // 빈 키워드는 건너뛰기
+    // 각 토큰에 대해 개별 조건을 생성하고 AND 연산으로 결합
+    for (String searchToken : searchTokens) {
+      if (StringUtils.isNullOrEmpty(searchToken)) {
+        continue;
       }
-      // 현재 키워드에 대한 조건들
       BooleanExpression keywordCondition =
-          // 작성자 이름 검색
           user.nickName
-              .likeIgnoreCase("%" + keyword + "%")
-              // 술 정보 검색
-              .or(alcohol.korName.likeIgnoreCase("%" + keyword + "%"))
-              .or(alcohol.engName.likeIgnoreCase("%" + keyword + "%"))
-              // 리뷰 콘텐츠 검색
-              .or(review.content.likeIgnoreCase("%" + keyword + "%"));
+              .likeIgnoreCase(contains(searchToken), ESCAPE)
+              .or(alcohol.korName.likeIgnoreCase(contains(searchToken), ESCAPE))
+              .or(alcohol.engName.likeIgnoreCase(contains(searchToken), ESCAPE))
+              .or(review.content.likeIgnoreCase(contains(searchToken), ESCAPE));
 
-      // 리뷰 테이스팅 태그 검색 조건
       BooleanExpression reviewTastingTagCondition =
           JPAExpressions.selectOne()
               .from(reviewTastingTag)
               .where(
                   reviewTastingTag.review.id.eq(review.id),
-                  reviewTastingTag.tastingTag.likeIgnoreCase("%" + keyword + "%"))
+                  reviewTastingTag.tastingTag.likeIgnoreCase(contains(searchToken), ESCAPE))
               .exists();
 
-      // 키워드 조건에 리뷰 테이스팅 태그 조건 추가
       keywordCondition = keywordCondition.or(reviewTastingTagCondition);
-
-      // 결과 조건에 AND로 결합
       if (finalCondition == null) {
         finalCondition = keywordCondition;
       } else {

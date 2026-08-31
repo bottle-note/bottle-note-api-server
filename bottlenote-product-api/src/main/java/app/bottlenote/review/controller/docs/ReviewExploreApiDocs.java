@@ -29,8 +29,8 @@ public final class ReviewExploreApiDocs {
       summary = "키워드로 리뷰를 탐색한다",
       description =
           """
-          입력한 키워드가 담긴 리뷰를 커서 방식으로 찾아옵니다. 신규 단일 검색어는 keyword이며,
-          legacy keywords는 keyword가 없을 때만 기존 AND 의미로 한시 지원됩니다. 둘을 함께 보내면 400입니다.
+          입력한 검색어가 담긴 리뷰를 커서 방식으로 찾아옵니다. keyword를 공백 기준으로 분리하며,
+          토큰 간에는 AND, 작성자·주류명·리뷰 내용·테이스팅 태그 검색 필드 간에는 OR를 적용합니다.
 
           sortType/sortOrder로 정렬하고 ratingFrom/ratingTo는 각 리뷰 작성 평점의 포함 하한/상한입니다.
           한쪽 경계만 보내면 이상/이하로 조회하며, 둘 다 생략하면 별점 조건을 적용하지 않습니다.
