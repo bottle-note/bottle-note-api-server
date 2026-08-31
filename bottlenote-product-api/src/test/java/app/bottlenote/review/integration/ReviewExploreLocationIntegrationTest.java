@@ -145,7 +145,7 @@ class ReviewExploreLocationIntegrationTest extends IntegrationTestSupport {
     return mockMvcTester
         .get()
         .uri(ENDPOINT)
-        .param("keywords", keyword)
+        .param("keyword", keyword)
         .contentType(APPLICATION_JSON)
         .with(csrf())
         .exchange();
