@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** #414/#415/#417의 request-to-query 계약이 수직 경로에 남아 있는지 검증한다. */
+/** #414/#415/#417/#430의 request-to-query 계약이 수직 경로에 남아 있는지 검증한다. */
 @Tag("unit")
 @SuppressWarnings("NonAsciiCharacters")
 class ExploreSearchSortRatingContractSourceTest {
@@ -90,7 +91,7 @@ class ExploreSearchSortRatingContractSourceTest {
   }
 
   @Test
-  @DisplayName("알코올 별점은 0.1 단위로 노출하고 사용자 리뷰 별점은 단건 조회한다")
+  @DisplayName("알코올 별점은 0.1 단위로 노출하고 사용자 리뷰 별점은 최신 활성 단건을 조회한다")
   void alcohol_rating_display_uses_tenth_and_single_user_review() throws IOException {
     String repository =
         read(
@@ -98,24 +99,56 @@ class ExploreSearchSortRatingContractSourceTest {
     String supporter =
         read(
             "bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/AlcoholQuerySupporter.java");
+    String popularRepository =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/CustomPopularQueryRepositoryImpl.java");
+    String historyRepository =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/history/repository/JpaAlcoholsViewHistoryRepository.java");
 
     String displayedRating = extractMethodBody(repository, "displayedRating");
     String filterRating = extractMethodBody(repository, "filterRating");
-    String userReviewRating = extractMethodBody(supporter, "userReviewRating");
+    String longUserReviewRating =
+        extractMethodBodyBySignature(supporter, "userReviewRating(Long alcoholId, Long userId)");
+    String pathUserReviewRating =
+        extractMethodBodyBySignature(
+            supporter, "userReviewRating(NumberPath<Long> alcoholId, Long userId)");
+    String rawRatingSort = extractMethodBody(supporter, "sortBy");
+    String rawRatingCursor = extractMethodBody(supporter, "sortScore");
+    String popularDisplayedRating = extractMethodBody(popularRepository, "displayedRating");
 
     assertThat(displayedRating)
         .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)")
         .doesNotContain(".multiply(2)", ".divide(2)");
     assertThat(filterRating)
         .contains(".avg()", ".multiply(2)", ".round()", ".divide(2)", ".coalesce(0.0)");
-    assertThat(userReviewRating)
+    for (String userReviewRating : List.of(longUserReviewRating, pathUserReviewRating)) {
+      assertThat(userReviewRating)
+          .contains(
+              "if (userId == null || userId == -1L)",
+              "review.reviewRating",
+              "review.alcoholId.eq(alcoholId)",
+              "review.userId.eq(userId)",
+              "review.activeStatus.eq(ACTIVE)",
+              ".orderBy(review.id.desc())",
+              ".limit(1)",
+              ".coalesce(0.0)")
+          .doesNotContain(".avg()");
+    }
+    assertThat(popularDisplayedRating)
+        .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)");
+    for (String rawRatingExpression : List.of(rawRatingSort, rawRatingCursor)) {
+      assertThat(rawRatingExpression)
+          .contains("rating.ratingPoint.rating.avg().coalesce(0.0)")
+          .doesNotContain("displayedRating()", ".multiply(10)", ".round()", ".divide(10)");
+    }
+    assertThat(popularRepository)
+        .contains("displayedRating(),", ".orderBy(snapshotScore.desc(), alcohol.id.asc())")
+        .doesNotContain(".orderBy(displayedRating()");
+    assertThat(historyRepository)
         .contains(
-            "review.reviewRating",
-            "review.alcoholId.eq(alcoholId)",
-            "review.userId.eq(userId)",
-            ".limit(1)",
-            ".coalesce(0.0)")
-        .doesNotContain(".avg()");
+            "CAST(ROUND((SELECT COALESCE(AVG(r.ratingPoint.rating), 0.0)",
+            "a.id.alcoholId), 1) AS double)");
   }
 
   private static String extractRandomBranch(String source) {
@@ -127,8 +160,12 @@ class ExploreSearchSortRatingContractSourceTest {
   }
 
   private static String extractMethodBody(String source, String methodName) {
-    int nameIndex = source.indexOf(" " + methodName + "(");
-    assertThat(nameIndex).as("method not found: " + methodName).isGreaterThanOrEqualTo(0);
+    return extractMethodBodyBySignature(source, " " + methodName + "(");
+  }
+
+  private static String extractMethodBodyBySignature(String source, String signature) {
+    int nameIndex = source.indexOf(signature);
+    assertThat(nameIndex).as("method not found: " + signature).isGreaterThanOrEqualTo(0);
     int braceStart = source.indexOf('{', nameIndex);
     int depth = 0;
     for (int index = braceStart; index < source.length(); index++) {
@@ -139,7 +176,7 @@ class ExploreSearchSortRatingContractSourceTest {
         return source.substring(braceStart, index + 1);
       }
     }
-    throw new IllegalStateException("method body end not found: " + methodName);
+    throw new IllegalStateException("method body end not found: " + signature);
   }
 
   private static String read(String relativePath) throws IOException {

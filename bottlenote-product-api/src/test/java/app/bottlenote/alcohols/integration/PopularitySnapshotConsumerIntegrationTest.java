@@ -87,6 +87,26 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("인기 주류는 평균 별점을 소수점 첫째 자리로 노출한다")
+  void popularAlcohol_displaysRatingToOneDecimalPlace() {
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    for (double point : List.of(4.0, 4.5, 5.0, 5.0)) {
+      ratingTestFactory.persistRating(userTestFactory.persistUser(), alcohol, point);
+    }
+    alcoholTestFactory.persistPopularitySnapshot(
+        alcohol.getId(),
+        BucketGranularity.WEEK,
+        BucketGranularity.WEEK.startAt(LocalDateTime.now()),
+        BigDecimal.ZERO,
+        new BigDecimal("0.4"));
+
+    List<PopularItem> result =
+        popularQueryRepository.getPopularOfWeeks(-1L, Pageable.ofSize(1));
+
+    assertThat(result).singleElement().extracting(PopularItem::rating).isEqualTo(4.6);
+  }
+
+  @Test
   @DisplayName("마이보틀 isHot5는 최신 WEEK Snapshot 상위 5개만 true로 반환한다")
   void myBottle_marksOnlyTopFiveWeeklySnapshotsAsHot() throws Exception {
     User target = userTestFactory.persistUser();

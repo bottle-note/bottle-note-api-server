@@ -98,6 +98,9 @@ public class AlcoholQuerySupporter {
 
   /** 사용자가 주류에 작성한 활성 리뷰 1건의 별점 조회 */
   public NumberExpression<Double> userReviewRating(Long alcoholId, Long userId) {
+    if (userId == null || userId == -1L) {
+      return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
+    }
     return Expressions.asNumber(
             JPAExpressions.select(review.reviewRating)
                 .from(review)
@@ -105,6 +108,7 @@ public class AlcoholQuerySupporter {
                     review.alcoholId.eq(alcoholId),
                     review.userId.eq(userId),
                     review.activeStatus.eq(ACTIVE))
+                .orderBy(review.id.desc())
                 .limit(1))
         .coalesce(0.0)
         .castToNum(Double.class)
@@ -253,6 +257,7 @@ public class AlcoholQuerySupporter {
                     review.alcoholId.eq(alcoholId),
                     review.userId.eq(userId),
                     review.activeStatus.eq(ACTIVE))
+                .orderBy(review.id.desc())
                 .limit(1))
         .coalesce(0.0)
         .castToNum(Double.class)

@@ -61,6 +61,58 @@ class ExploreRatingRangeIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("위스키와 리뷰 둘러보기는 0.5 최소 경계를 포함해 조회한다")
+  void 둘러보기는_0_5_최소_경계를_포함해_조회한다() {
+    User user = userTestFactory.persistUser();
+    Alcohol alcoholAtBoundary =
+        alcoholTestFactory.persistAlcoholWithName("최소경계위스키", "Minimum Boundary");
+    Alcohol alcoholAboveBoundary =
+        alcoholTestFactory.persistAlcoholWithName("최소경계위스키초과", "Above Minimum Boundary");
+    Alcohol unrated =
+        alcoholTestFactory.persistAlcoholWithName("최소경계위스키무평점", "Unrated Minimum Boundary");
+    persistRating(user, alcoholAtBoundary, 0.5);
+    persistRating(user, alcoholAboveBoundary, 1.0);
+    Review reviewAtBoundary = persistReview(user, alcoholAtBoundary, "최소경계리뷰", 0.5);
+    Review reviewAboveBoundary = persistReview(user, alcoholAtBoundary, "최소경계리뷰 초과", 1.0);
+
+    MvcTestResult alcoholResult =
+        get(
+            ALCOHOL_ENDPOINT,
+            "keyword",
+            "최소경계위스키",
+            "ratingFrom",
+            "0.5",
+            "ratingTo",
+            "0.5");
+    MvcTestResult reviewResult =
+        get(
+            REVIEW_ENDPOINT,
+            "keyword",
+            "최소경계리뷰",
+            "ratingFrom",
+            "0.5",
+            "ratingTo",
+            "0.5");
+
+    alcoholResult
+        .assertThat()
+        .hasStatusOk()
+        .bodyJson()
+        .extractingPath("$.data.items[*].alcoholId")
+        .asArray()
+        .containsExactly(alcoholAtBoundary.getId().intValue())
+        .doesNotContain(alcoholAboveBoundary.getId().intValue(), unrated.getId().intValue());
+    reviewResult
+        .assertThat()
+        .hasStatusOk()
+        .bodyJson()
+        .extractingPath("$.data.items[*].reviewId")
+        .asArray()
+        .containsExactly(reviewAtBoundary.getId().intValue())
+        .doesNotContain(reviewAboveBoundary.getId().intValue());
+  }
+
+  @Test
   @DisplayName("리뷰 둘러보기는 작성 별점이 ratingFrom과 ratingTo 사이인 리뷰를 경계 포함 조회한다")
   void 리뷰_둘러보기는_작성_별점의_포함_범위를_조회한다() {
     User user = userTestFactory.persistUser();

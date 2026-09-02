@@ -23,7 +23,7 @@ public interface JpaAlcoholsViewHistoryRepository
           a.id.alcoholId,
           al.korName,
           al.engName,
-          CAST(ROUND((SELECT COALESCE(AVG(r.ratingPoint.rating), 0.0) FROM rating r WHERE r.id.alcoholId = a.id.alcoholId), 2) AS double),
+          CAST(ROUND((SELECT COALESCE(AVG(r.ratingPoint.rating), 0.0) FROM rating r WHERE r.id.alcoholId = a.id.alcoholId), 1) AS double),
           (SELECT COUNT(r) FROM rating r WHERE r.id.alcoholId = a.id.alcoholId),
           al.korCategory,
           al.engCategory,

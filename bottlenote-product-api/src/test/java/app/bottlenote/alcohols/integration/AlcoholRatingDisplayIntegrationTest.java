@@ -10,6 +10,7 @@ import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.fixture.RatingTestFactory;
+import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.user.domain.User;
@@ -53,8 +54,8 @@ class AlcoholRatingDisplayIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("상세는 같은 평균과 인증 사용자의 리뷰 1건 별점을 기존 JSON 필드에 노출한다")
-  void 상세는_같은_평균과_사용자_리뷰_별점을_노출한다() {
+  @DisplayName("목록과 상세는 인증 사용자의 최신 활성 리뷰 별점을 노출하고 비활성 리뷰는 제외한다")
+  void 목록과_상세는_최신_활성_사용자_리뷰_별점을_노출한다() throws Exception {
     User currentUser = userTestFactory.persistUser();
     Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("상세별점노출", "Detail Rating");
     persistRatings(alcohol, 4.0, 4.5, 5.0, 5.0);
@@ -62,10 +63,24 @@ class AlcoholRatingDisplayIntegrationTest extends IntegrationTestSupport {
         Review.builder()
             .userId(currentUser.getId())
             .alcoholId(alcohol.getId())
-            .content("사용자 리뷰 별점")
+            .content("과거 활성 리뷰")
+            .reviewRating(2.5));
+    reviewTestFactory.persistReview(
+        Review.builder()
+            .userId(currentUser.getId())
+            .alcoholId(alcohol.getId())
+            .content("최신 활성 리뷰")
             .reviewRating(3.5));
+    reviewTestFactory.persistReview(
+        Review.builder()
+            .userId(currentUser.getId())
+            .alcoholId(alcohol.getId())
+            .content("더 최신 비활성 리뷰")
+            .reviewRating(5.0)
+            .activeStatus(ReviewActiveStatus.DISABLED));
 
-    MvcTestResult result =
+    MvcTestResult listResult = getExplore(currentUser);
+    MvcTestResult detailResult =
         mockMvcTester
             .get()
             .uri("/api/v1/alcohols/{alcoholId}", alcohol.getId())
@@ -74,10 +89,56 @@ class AlcoholRatingDisplayIntegrationTest extends IntegrationTestSupport {
             .with(csrf())
             .exchange();
 
-    result.assertThat().hasStatusOk();
-    result.assertThat().bodyJson().extractingPath("$.data.alcohols.rating").isEqualTo(4.6);
-    result.assertThat().bodyJson().extractingPath("$.data.alcohols.myRating").isEqualTo(0.0);
-    result.assertThat().bodyJson().extractingPath("$.data.alcohols.myAvgRating").isEqualTo(3.5);
+    assertThat(itemFieldOf(listResult, alcohol, "myAvgRating")).isEqualTo(3.5);
+    detailResult.assertThat().hasStatusOk();
+    detailResult.assertThat().bodyJson().extractingPath("$.data.alcohols.rating").isEqualTo(4.6);
+    detailResult.assertThat().bodyJson().extractingPath("$.data.alcohols.myRating").isEqualTo(0.0);
+    detailResult.assertThat().bodyJson().extractingPath("$.data.alcohols.myAvgRating").isEqualTo(3.5);
+  }
+
+  @Test
+  @DisplayName("인증 사용자에게 리뷰가 없거나 비인증이면 사용자 별점을 0.0으로 노출한다")
+  void 무리뷰와_비인증은_사용자_별점을_0으로_노출한다() {
+    User currentUser = userTestFactory.persistUser();
+    Alcohol alcoholWithoutReview =
+        alcoholTestFactory.persistAlcoholWithName("인증무리뷰", "Authenticated No Review");
+    Alcohol alcoholWithReview =
+        alcoholTestFactory.persistAlcoholWithName("비인증리뷰", "Guest With Review");
+    reviewTestFactory.persistReview(
+        Review.builder()
+            .userId(currentUser.getId())
+            .alcoholId(alcoholWithReview.getId())
+            .content("인증 사용자 리뷰")
+            .reviewRating(4.5));
+
+    MvcTestResult noReviewResult =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/{alcoholId}", alcoholWithoutReview.getId())
+            .header("Authorization", "Bearer " + getToken(currentUser).accessToken())
+            .contentType(APPLICATION_JSON)
+            .with(csrf())
+            .exchange();
+    MvcTestResult guestResult =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/{alcoholId}", alcoholWithReview.getId())
+            .contentType(APPLICATION_JSON)
+            .with(csrf())
+            .exchange();
+
+    noReviewResult.assertThat().hasStatusOk();
+    noReviewResult
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.alcohols.myAvgRating")
+        .isEqualTo(0.0);
+    guestResult.assertThat().hasStatusOk();
+    guestResult
+        .assertThat()
+        .bodyJson()
+        .extractingPath("$.data.alcohols.myAvgRating")
+        .isEqualTo(0.0);
   }
 
   private void persistRatings(Alcohol alcohol, double... points) {
@@ -105,12 +166,16 @@ class AlcoholRatingDisplayIntegrationTest extends IntegrationTestSupport {
   }
 
   private double ratingOf(MvcTestResult result, Alcohol alcohol) throws Exception {
+    return itemFieldOf(result, alcohol, "rating");
+  }
+
+  private double itemFieldOf(MvcTestResult result, Alcohol alcohol, String field) throws Exception {
     result.assertThat().hasStatusOk();
-    List<Number> ratings =
+    List<Number> values =
         JsonPath.read(
             result.getMvcResult().getResponse().getContentAsString(),
-            "$.data.items[?(@.alcoholId == " + alcohol.getId() + ")].rating");
-    assertThat(ratings).hasSize(1);
-    return ratings.getFirst().doubleValue();
+            "$.data.items[?(@.alcoholId == " + alcohol.getId() + ")]." + field);
+    assertThat(values).hasSize(1);
+    return values.getFirst().doubleValue();
   }
 }

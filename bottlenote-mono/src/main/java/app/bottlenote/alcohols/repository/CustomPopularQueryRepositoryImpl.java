@@ -125,7 +125,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         alcohol.id,
         alcohol.korName,
         alcohol.engName,
-        rating.ratingPoint.rating.avg().coalesce(0.0),
+        displayedRating(),
         rating.id.userId.countDistinct(),
         alcohol.korCategory,
         alcohol.engCategory,
@@ -140,5 +140,17 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
                 .exists(),
             "isPicked"),
         snapshotScore.doubleValue());
+  }
+
+  private NumberExpression<Double> displayedRating() {
+    return rating
+        .ratingPoint
+        .rating
+        .avg()
+        .multiply(10)
+        .castToNum(Double.class)
+        .round()
+        .divide(10)
+        .coalesce(0.0);
   }
 }
