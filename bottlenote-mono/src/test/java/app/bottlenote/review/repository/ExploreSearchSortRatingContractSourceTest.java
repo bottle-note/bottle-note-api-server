@@ -119,7 +119,7 @@ class ExploreSearchSortRatingContractSourceTest {
     String rawRatingCursor = extractMethodBody(supporter, "sortScore");
     String popularDisplayedRating =
         extractMethodBodyBySignature(
-            popularRepository, "private static NumberExpression<Double> displayedRating()");
+            popularRepository, "private NumberExpression<Double> displayedRating()");
 
     assertThat(displayedRating)
         .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)")
