@@ -2,6 +2,7 @@ package app.bottlenote.mfds.facade.payload;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.springframework.lang.Nullable;
 
 /**
  * Product 공개용 수입 신고 정보.
@@ -35,4 +36,4 @@ public record MfdsPublicDeclarationItem(
     String alcoholCategoryEn,
     String manufactureCountryNameKo,
     String exportCountryNameKo,
-    MfdsPublicImporterItem importer) {}
+    @Nullable MfdsPublicImporterItem importer) {}
