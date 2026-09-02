@@ -11,6 +11,8 @@ import app.bottlenote.alcohols.domain.PopularQueryRepository;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.user.domain.User;
@@ -91,7 +93,11 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
   void popularAlcohol_displaysRatingToOneDecimalPlace() {
     Alcohol alcohol = alcoholTestFactory.persistAlcohol();
     for (double point : List.of(4.0, 4.5, 5.0, 5.0)) {
-      ratingTestFactory.persistRating(userTestFactory.persistUser(), alcohol, point);
+      User user = userTestFactory.persistUser();
+      ratingTestFactory.persistRating(
+          Rating.builder()
+              .id(Rating.RatingId.is(user.getId(), alcohol.getId()))
+              .ratingPoint(RatingPoint.of(point)));
     }
     alcoholTestFactory.persistPopularitySnapshot(
         alcohol.getId(),

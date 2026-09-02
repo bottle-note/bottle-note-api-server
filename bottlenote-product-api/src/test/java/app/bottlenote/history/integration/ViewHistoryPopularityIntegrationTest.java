@@ -8,6 +8,8 @@ import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.history.fixture.AlcoholsViewHistoryTestFactory;
+import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
@@ -77,7 +79,11 @@ class ViewHistoryPopularityIntegrationTest extends IntegrationTestSupport {
     viewHistoryTestFactory.persistAlcoholsViewHistory(
         user.getId(), alcohol.getId(), LocalDateTime.now());
     for (double point : List.of(4.0, 4.5, 5.0, 5.0)) {
-      ratingTestFactory.persistRating(userTestFactory.persistUser(), alcohol, point);
+      User ratingUser = userTestFactory.persistUser();
+      ratingTestFactory.persistRating(
+          Rating.builder()
+              .id(Rating.RatingId.is(ratingUser.getId(), alcohol.getId()))
+              .ratingPoint(RatingPoint.of(point)));
     }
 
     MvcTestResult result =
