@@ -14,6 +14,7 @@ import app.bottlenote.mfds.dto.request.MfdsDeclarationImporterLinkRequest;
 import app.bottlenote.mfds.dto.request.MfdsDeclarationSearchRequest;
 import app.bottlenote.mfds.dto.request.MfdsDeclarationStatusRequest;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
+import app.bottlenote.mfds.dto.response.MfdsDeclarationListItem;
 import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
@@ -57,6 +58,24 @@ class MfdsDeclarationServiceTest {
         .containsEntry("totalElements", 3L)
         .containsEntry("hasNext", true)
         .containsEntry("nextCursor", 2L);
+  }
+
+  @Test
+  @DisplayName("수입 신고 목록에 SKU 한글·영문 표시명을 그대로 전달한다")
+  void 수입_신고_목록에_SKU_표시명을_전달할_수_있다() {
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, null, null);
+    MfdsTestData.set(declaration, "skuDisplayNameKo", "글렌피딕 12년 700ml");
+    MfdsTestData.set(declaration, "skuDisplayNameEn", "Glenfiddich 12 Years 700ml");
+    declarationRepository.save(declaration);
+
+    GlobalResponse response =
+        service.search(new MfdsDeclarationSearchRequest(null, null, null, null, null, null, 20L));
+
+    MfdsDeclarationListItem item = (MfdsDeclarationListItem) ((List<?>) response.getData()).get(0);
+    assertThat(item.skuDisplayNameKo()).isEqualTo("글렌피딕 12년 700ml");
+    assertThat(item.skuDisplayNameEn()).isEqualTo("Glenfiddich 12 Years 700ml");
   }
 
   @Test
