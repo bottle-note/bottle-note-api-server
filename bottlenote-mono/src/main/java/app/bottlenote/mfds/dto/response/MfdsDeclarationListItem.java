@@ -11,6 +11,8 @@ public record MfdsDeclarationListItem(
     String rcno,
     String baseProductNameKo,
     String baseProductNameEn,
+    String skuDisplayNameKo,
+    String skuDisplayNameEn,
     Integer volumeMl,
     BigDecimal abvPercent,
     MfdsNormalizationStatus normalizationStatus,

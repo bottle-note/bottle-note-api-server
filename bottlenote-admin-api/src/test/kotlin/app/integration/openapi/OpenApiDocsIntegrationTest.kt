@@ -88,6 +88,22 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
+	@DisplayName("수입 신고 목록은 상세와 동일한 nullable SKU 표시명 필드를 문서화한다")
+	fun mfdsDeclarationListDocumentsSkuDisplayNames() {
+		val spec = fetchSpec()
+		val listSchema = spec.at("/components/schemas/MfdsDeclarationListItem")
+		val detailSchema = spec.at("/components/schemas/MfdsDeclarationDetailResponse")
+
+		assertThat(propertyNamesOf(listSchema)).contains("skuDisplayNameKo", "skuDisplayNameEn")
+		assertThat(listSchema.at("/properties/skuDisplayNameKo"))
+			.isEqualTo(detailSchema.at("/properties/skuDisplayNameKo"))
+		assertThat(listSchema.at("/properties/skuDisplayNameEn"))
+			.isEqualTo(detailSchema.at("/properties/skuDisplayNameEn"))
+		assertThat(listSchema.path("required").map { it.asText() })
+			.doesNotContain("skuDisplayNameKo", "skuDisplayNameEn")
+	}
+
+	@Test
 	@DisplayName("공통 형식의 data는 이중으로 감싸지지 않는다")
 	fun globalEnvelopeIsNotNestedInData() {
 		val operations = operationsOf(fetchSpec()).filterNot { it.endpoint() in binaryDownloadOperations }
