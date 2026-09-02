@@ -17,6 +17,7 @@ import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.QReview;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
@@ -101,15 +102,18 @@ public class AlcoholQuerySupporter {
     if (userId == null || userId == -1L) {
       return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
     }
+    QReview latestReview = new QReview("latestReviewForUserRating");
     return Expressions.asNumber(
             JPAExpressions.select(review.reviewRating)
                 .from(review)
                 .where(
-                    review.alcoholId.eq(alcoholId),
-                    review.userId.eq(userId),
-                    review.activeStatus.eq(ACTIVE))
-                .orderBy(review.id.desc())
-                .limit(1))
+                    review.id.eq(
+                        JPAExpressions.select(latestReview.id.max())
+                            .from(latestReview)
+                            .where(
+                                latestReview.alcoholId.eq(alcoholId),
+                                latestReview.userId.eq(userId),
+                                latestReview.activeStatus.eq(ACTIVE)))))
         .coalesce(0.0)
         .castToNum(Double.class)
         .as("myAvgRating");
@@ -250,15 +254,18 @@ public class AlcoholQuerySupporter {
     if (userId == null || userId == -1L) {
       return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
     }
+    QReview latestReview = new QReview("latestReviewForUserRating");
     return Expressions.asNumber(
             JPAExpressions.select(review.reviewRating)
                 .from(review)
                 .where(
-                    review.alcoholId.eq(alcoholId),
-                    review.userId.eq(userId),
-                    review.activeStatus.eq(ACTIVE))
-                .orderBy(review.id.desc())
-                .limit(1))
+                    review.id.eq(
+                        JPAExpressions.select(latestReview.id.max())
+                            .from(latestReview)
+                            .where(
+                                latestReview.alcoholId.eq(alcoholId),
+                                latestReview.userId.eq(userId),
+                                latestReview.activeStatus.eq(ACTIVE)))))
         .coalesce(0.0)
         .castToNum(Double.class)
         .as("myAvgRating");

@@ -106,7 +106,9 @@ class ExploreSearchSortRatingContractSourceTest {
         read(
             "bottlenote-mono/src/main/java/app/bottlenote/history/repository/JpaAlcoholsViewHistoryRepository.java");
 
-    String displayedRating = extractMethodBody(repository, "displayedRating");
+    String displayedRating =
+        extractMethodBodyBySignature(
+            repository, "private static NumberExpression<Double> displayedRating()");
     String filterRating = extractMethodBody(repository, "filterRating");
     String longUserReviewRating =
         extractMethodBodyBySignature(supporter, "userReviewRating(Long alcoholId, Long userId)");
@@ -115,7 +117,9 @@ class ExploreSearchSortRatingContractSourceTest {
             supporter, "userReviewRating(NumberPath<Long> alcoholId, Long userId)");
     String rawRatingSort = extractMethodBody(supporter, "sortBy");
     String rawRatingCursor = extractMethodBody(supporter, "sortScore");
-    String popularDisplayedRating = extractMethodBody(popularRepository, "displayedRating");
+    String popularDisplayedRating =
+        extractMethodBodyBySignature(
+            popularRepository, "private static NumberExpression<Double> displayedRating()");
 
     assertThat(displayedRating)
         .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)")
@@ -127,13 +131,13 @@ class ExploreSearchSortRatingContractSourceTest {
           .contains(
               "if (userId == null || userId == -1L)",
               "review.reviewRating",
-              "review.alcoholId.eq(alcoholId)",
-              "review.userId.eq(userId)",
-              "review.activeStatus.eq(ACTIVE)",
-              ".orderBy(review.id.desc())",
-              ".limit(1)",
+              "review.id.eq(",
+              "JPAExpressions.select(latestReview.id.max())",
+              "latestReview.alcoholId.eq(alcoholId)",
+              "latestReview.userId.eq(userId)",
+              "latestReview.activeStatus.eq(ACTIVE)",
               ".coalesce(0.0)")
-          .doesNotContain(".avg()");
+          .doesNotContain(".avg()", ".orderBy(review.id.desc())", ".limit(1)");
     }
     assertThat(popularDisplayedRating)
         .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)");
