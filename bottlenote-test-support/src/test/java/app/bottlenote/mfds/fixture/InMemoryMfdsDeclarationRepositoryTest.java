@@ -54,8 +54,8 @@ class InMemoryMfdsDeclarationRepositoryTest {
   }
 
   @Test
-  @DisplayName("selectedAlcoholId로 조회할 때 해당 주류 확정 신고만 id 내림차순으로 반환한다")
-  void selectedAlcoholId로_조회할_수_있다() {
+  @DisplayName("selectedAlcoholId와 NORMALIZED 조건을 모두 만족하는 신고만 id 내림차순으로 반환한다")
+  void selectedAlcoholId와_NORMALIZED로_조회할_수_있다() {
     MfdsDeclaration first =
         MfdsTestData.declaration(
             "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 77L, "CANDIDATE", null, null);
@@ -68,10 +68,41 @@ class InMemoryMfdsDeclarationRepositoryTest {
         MfdsTestData.declaration(
             "RCNO-003", MfdsNormalizationStatus.NORMALIZED, null, 88L, "MANUAL", null, null));
     repository.save(declaration("RCNO-004", MfdsNormalizationStatus.REVIEW_REQUIRED));
+    repository.save(
+        MfdsTestData.declaration(
+            "RCNO-005",
+            MfdsNormalizationStatus.REVIEW_REQUIRED,
+            null,
+            77L,
+            "REVIEW",
+            null,
+            null));
+    repository.save(
+        MfdsTestData.declaration(
+            "RCNO-006", MfdsNormalizationStatus.PARTIAL, null, 77L, "CANDIDATE", null, null));
 
     List<MfdsDeclaration> result = repository.findAllBySelectedAlcoholId(77L);
 
     assertThat(result).extracting(MfdsDeclaration::getRcno).containsExactly("RCNO-002", "RCNO-001");
+  }
+
+  @Test
+  @DisplayName("selectedAlcoholId가 있어도 REVIEW_REQUIRED 상태면 공개 조회에서 제외한다")
+  void selectedAlcoholId가_있어도_REVIEW_REQUIRED면_제외한다() {
+    repository.save(
+        MfdsTestData.declaration(
+            "RCNO-REVIEW",
+            MfdsNormalizationStatus.REVIEW_REQUIRED,
+            null,
+            77L,
+            "REVIEW",
+            null,
+            null));
+    repository.save(
+        MfdsTestData.declaration(
+            "RCNO-STALE", MfdsNormalizationStatus.STALE, null, 77L, "MANUAL", null, null));
+
+    assertThat(repository.findAllBySelectedAlcoholId(77L)).isEmpty();
   }
 
   @Test

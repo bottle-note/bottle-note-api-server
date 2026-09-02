@@ -2,6 +2,7 @@ package app.bottlenote.mfds.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsImporterSearchCriteria;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +19,9 @@ public interface MfdsImporterRepository {
   void delete(MfdsImporter importer);
 
   Optional<MfdsImporter> findById(Long id);
+
+  /** 식별자 목록으로 수입사를 일괄 조회한다. 빈 목록이면 빈 결과를 반환한다. */
+  List<MfdsImporter> findAllByIdIn(Collection<Long> ids);
 
   Optional<MfdsImporter> findByOfficialBusinessCode(String officialBusinessCode);
 

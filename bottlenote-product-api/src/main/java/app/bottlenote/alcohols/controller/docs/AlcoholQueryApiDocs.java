@@ -55,7 +55,7 @@ public final class AlcoholQueryApiDocs {
 
           로그인한 경우 본인이 남긴 별점과 찜 여부가 함께 담깁니다. 조회 이력은 별도로 집계됩니다.
 
-          검증이 끝난 MFDS 수입 신고 연계가 있으면 mfdsDeclarations에 공개 필드만 담습니다. 필드명과 importer 중첩은 Admin MFDS 상세의 공개 가능 부분과 같습니다. 연결이 없거나 검토중이면 빈 배열이며, 매칭 점수·사유·검토 메모·원문·내부 상태는 포함하지 않습니다.
+          검증이 끝난 MFDS 수입 신고 연계가 있으면 mfdsDeclarations에 공개 필드만 담습니다. 공개 조건은 selectedAlcoholId 일치와 normalizationStatus=NORMALIZED입니다. 필드명과 importer 중첩은 Admin MFDS 상세의 공개 가능 부분과 같습니다. 연결이 없거나 검토중·상태 강등이면 빈 배열이며, 매칭 점수·사유·검토 메모·원문·내부 상태는 포함하지 않습니다.
           """,
       responses =
           @ApiResponse(

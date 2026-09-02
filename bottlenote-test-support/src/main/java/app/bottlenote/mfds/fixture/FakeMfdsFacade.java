@@ -1,6 +1,6 @@
 package app.bottlenote.mfds.fixture;
 
-import app.bottlenote.mfds.dto.response.MfdsPublicDeclarationItem;
+import app.bottlenote.mfds.facade.payload.MfdsPublicDeclarationItem;
 import app.bottlenote.mfds.facade.MfdsFacade;
 import java.util.ArrayList;
 import java.util.List;

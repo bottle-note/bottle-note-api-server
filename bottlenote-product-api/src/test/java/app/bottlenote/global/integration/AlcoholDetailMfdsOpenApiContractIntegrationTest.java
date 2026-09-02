@@ -12,8 +12,73 @@ import org.junit.jupiter.api.Test;
 @DisplayName("[integration] Product 알코올 상세 MFDS OpenAPI 계약")
 class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSupport {
 
+  private static final List<String> DECLARATION_FIELDS =
+      List.of(
+          "id",
+          "rcno",
+          "baseProductNameKo",
+          "baseProductNameEn",
+          "skuDisplayNameKo",
+          "skuDisplayNameEn",
+          "volumeMl",
+          "unitVolumeMl",
+          "packageCount",
+          "abvPercent",
+          "ageYears",
+          "vintageYear",
+          "editionName",
+          "caskNumber",
+          "batchNumber",
+          "expiryStart",
+          "expiryEnd",
+          "importerBaseName",
+          "manufacturerName",
+          "alcoholNameKo",
+          "alcoholNameEn",
+          "alcoholCategoryKo",
+          "alcoholCategoryEn",
+          "manufactureCountryNameKo",
+          "exportCountryNameKo",
+          "importer");
+
+  private static final List<String> IMPORTER_FIELDS =
+      List.of(
+          "id",
+          "officialBusinessCode",
+          "licenseNo",
+          "businessName",
+          "representativeName",
+          "permitDate",
+          "institutionName",
+          "primaryAddress",
+          "telephoneNo",
+          "industryName",
+          "operatingStatus",
+          "description");
+
+  private static final List<String> FORBIDDEN_FIELDS =
+      List.of(
+          "volumeRaw",
+          "abvRaw",
+          "normalizationStatus",
+          "normalizationReasons",
+          "unparsedFragments",
+          "reviewStatus",
+          "reviewedBy",
+          "reviewedAt",
+          "reviewNote",
+          "importerLinkSource",
+          "selectedAlcoholId",
+          "alcoholMatchDecision",
+          "alcoholCandidates",
+          "distilleryCandidates",
+          "regionCandidates",
+          "matchedAt",
+          "adminNote",
+          "adminStatus");
+
   @Test
-  @DisplayName("알코올 상세는 공개 MFDS 신고 목록과 Admin 공개 필드 중첩을 문서화하고 내부 필드는 제외한다")
+  @DisplayName("알코올 상세는 공개 MFDS 신고 목록 exact allowlist와 빈 배열·nullable importer 계약을 문서화한다")
   void 알코올_상세_MFDS_공개_계약을_문서화한다() {
     JsonNode spec = fetchSpec();
     SpecOperation operation =
@@ -33,6 +98,9 @@ class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSup
         .contains("alcohols", "friendsInfo", "reviewInfo", "mfdsDeclarations");
 
     JsonNode declarationsSchema = detail.path("properties").path("mfdsDeclarations");
+    assertThat(declarationsSchema.path("type").asText()).isEqualTo("array");
+    assertThat(declarationsSchema.path("nullable").asBoolean(false)).isFalse();
+
     JsonNode declarations =
         resolve(
             spec,
@@ -40,68 +108,17 @@ class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSup
                 ? declarationsSchema.path("items")
                 : declarationsSchema);
     List<String> declarationFields = propertyNamesOf(declarations);
-    assertThat(declarationFields)
-        .contains(
-            "id",
-            "rcno",
-            "baseProductNameKo",
-            "baseProductNameEn",
-            "skuDisplayNameKo",
-            "skuDisplayNameEn",
-            "volumeMl",
-            "unitVolumeMl",
-            "packageCount",
-            "abvPercent",
-            "ageYears",
-            "vintageYear",
-            "editionName",
-            "caskNumber",
-            "batchNumber",
-            "expiryStart",
-            "expiryEnd",
-            "importerBaseName",
-            "manufacturerName",
-            "alcoholNameKo",
-            "alcoholNameEn",
-            "alcoholCategoryKo",
-            "alcoholCategoryEn",
-            "manufactureCountryNameKo",
-            "exportCountryNameKo",
-            "importer")
-        .doesNotContain(
-            "volumeRaw",
-            "abvRaw",
-            "normalizationStatus",
-            "normalizationReasons",
-            "unparsedFragments",
-            "reviewStatus",
-            "reviewedBy",
-            "reviewedAt",
-            "reviewNote",
-            "importerLinkSource",
-            "selectedAlcoholId",
-            "alcoholMatchDecision",
-            "alcoholCandidates",
-            "distilleryCandidates",
-            "regionCandidates",
-            "matchedAt");
+    assertThat(declarationFields).containsExactlyInAnyOrderElementsOf(DECLARATION_FIELDS);
+    assertThat(declarationFields).doesNotContainAnyElementsOf(FORBIDDEN_FIELDS);
 
-    JsonNode importer = resolve(spec, declarations.path("properties").path("importer"));
-    assertThat(propertyNamesOf(importer))
-        .contains(
-            "id",
-            "officialBusinessCode",
-            "licenseNo",
-            "businessName",
-            "representativeName",
-            "permitDate",
-            "institutionName",
-            "primaryAddress",
-            "telephoneNo",
-            "industryName",
-            "operatingStatus",
-            "description")
-        .doesNotContain("adminNote", "adminStatus", "reviewedBy", "reviewedAt");
+    JsonNode importerSchema = declarations.path("properties").path("importer");
+    JsonNode importer = resolve(spec, importerSchema);
+    // importer는 연결 없으면 null. springdoc이 nullable 플래그를 안 달아도 anyOf/null 또는 객체 스키마로 허용한다.
+    assertThat(importerSchema.path("nullable").asBoolean(false) || importer.has("properties"))
+        .isTrue();
+    List<String> importerFields = propertyNamesOf(importer);
+    assertThat(importerFields).containsExactlyInAnyOrderElementsOf(IMPORTER_FIELDS);
+    assertThat(importerFields).doesNotContainAnyElementsOf(FORBIDDEN_FIELDS);
   }
 
   private JsonNode resolve(JsonNode spec, JsonNode schema) {

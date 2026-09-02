@@ -22,7 +22,12 @@ public interface JpaMfdsDeclarationRepository
 
   @Override
   @Query(
-      "select d from mfds_declaration d where d.selectedAlcoholId = :alcoholId order by d.id desc")
+      """
+      select d from mfds_declaration d
+      where d.selectedAlcoholId = :alcoholId
+        and d.normalizationStatus = app.bottlenote.mfds.constant.MfdsNormalizationStatus.NORMALIZED
+      order by d.id desc
+      """)
   List<MfdsDeclaration> findAllBySelectedAlcoholId(@Param("alcoholId") Long alcoholId);
 
   /** SELECT ... FOR UPDATE로 행을 배타 잠금한 뒤 조회한다. 트랜잭션 경계 안에서만 유효하다. */
