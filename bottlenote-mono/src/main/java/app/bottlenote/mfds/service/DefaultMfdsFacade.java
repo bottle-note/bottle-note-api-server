@@ -8,7 +8,6 @@ import app.bottlenote.mfds.domain.MfdsImporterRepository;
 import app.bottlenote.mfds.facade.MfdsFacade;
 import app.bottlenote.mfds.facade.payload.MfdsPublicDeclarationItem;
 import app.bottlenote.mfds.facade.payload.MfdsPublicImporterItem;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,24 +35,20 @@ public class DefaultMfdsFacade implements MfdsFacade {
     if (declarations.isEmpty()) {
       return List.of();
     }
-    Map<Long, MfdsImporter> importersById = loadImporters(declarations);
-    return declarations.stream()
-        .map(declaration -> toPublicItem(declaration, importersById))
-        .toList();
-  }
-
-  private Map<Long, MfdsImporter> loadImporters(Collection<MfdsDeclaration> declarations) {
     List<Long> importerIds =
         declarations.stream()
             .map(MfdsDeclaration::getImporterId)
             .filter(Objects::nonNull)
             .distinct()
             .toList();
-    if (importerIds.isEmpty()) {
-      return Map.of();
-    }
-    return importerRepository.findAllByIdIn(importerIds).stream()
-        .collect(Collectors.toMap(MfdsImporter::getId, Function.identity()));
+    Map<Long, MfdsImporter> importersById =
+        importerIds.isEmpty()
+            ? Map.of()
+            : importerRepository.findAllByIdIn(importerIds).stream()
+                .collect(Collectors.toMap(MfdsImporter::getId, Function.identity()));
+    return declarations.stream()
+        .map(declaration -> toPublicItem(declaration, importersById))
+        .toList();
   }
 
   private MfdsPublicDeclarationItem toPublicItem(
