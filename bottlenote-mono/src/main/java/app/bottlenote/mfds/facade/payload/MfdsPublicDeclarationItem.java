@@ -9,7 +9,7 @@ import org.springframework.lang.Nullable;
  * Product 공개용 수입 신고 정보.
  *
  * <p>필드명과 importer 중첩은 Admin 상세의 공개 가능 부분집합과 일치한다. 매칭 점수·사유·검토 메모·원문·내부 운영
- * 상태는 포함하지 않는다. {@code importer}는 연결이 없으면 null이다.
+ * 상태는 포함하지 않는다. {@code importer}는 연결이 없으면 응답에서 생략한다.
  */
 public record MfdsPublicDeclarationItem(
     Long id,

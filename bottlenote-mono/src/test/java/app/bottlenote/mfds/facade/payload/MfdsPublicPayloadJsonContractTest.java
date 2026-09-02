@@ -163,8 +163,8 @@ class MfdsPublicPayloadJsonContractTest {
   }
 
   @Test
-  @DisplayName("mfdsDeclarations는 null 입력이어도 빈 배열이고 importer는 null 가능하다")
-  void 빈_배열과_nullable_importer를_직렬화한다() throws Exception {
+  @DisplayName("mfdsDeclarations는 null 입력이어도 빈 배열이고 미연결 importer는 생략한다")
+  void 빈_배열과_optional_importer를_직렬화한다() throws Exception {
     MfdsPublicDeclarationItem withoutImporter =
         new MfdsPublicDeclarationItem(
             2L,
@@ -215,8 +215,10 @@ class MfdsPublicPayloadJsonContractTest {
 
     JsonNode item =
         MAPPER.readTree(MAPPER.writeValueAsString(withNullImporter)).path("mfdsDeclarations").get(0);
-    assertThat(item.path("importer").isNull()).isTrue();
-    assertThat(fieldNames(item)).containsExactlyInAnyOrderElementsOf(DECLARATION_FIELDS);
+    assertThat(item.has("importer")).isFalse();
+    assertThat(fieldNames(item))
+        .containsExactlyInAnyOrderElementsOf(
+            DECLARATION_FIELDS.stream().filter(field -> !field.equals("importer")).toList());
   }
 
   private static List<String> fieldNames(JsonNode node) {
