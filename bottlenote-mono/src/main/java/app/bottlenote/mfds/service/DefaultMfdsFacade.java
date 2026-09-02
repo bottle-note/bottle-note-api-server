@@ -3,11 +3,17 @@ package app.bottlenote.mfds.service;
 import app.bottlenote.common.annotation.FacadeService;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
+import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRepository;
-import app.bottlenote.mfds.dto.response.MfdsPublicDeclarationItem;
-import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
 import app.bottlenote.mfds.facade.MfdsFacade;
+import app.bottlenote.mfds.facade.payload.MfdsPublicDeclarationItem;
+import app.bottlenote.mfds.facade.payload.MfdsPublicImporterItem;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,19 +31,40 @@ public class DefaultMfdsFacade implements MfdsFacade {
     if (alcoholId == null) {
       return List.of();
     }
-    return declarationRepository.findAllBySelectedAlcoholId(alcoholId).stream()
-        .map(this::toPublicItem)
+    List<MfdsDeclaration> declarations =
+        declarationRepository.findAllBySelectedAlcoholId(alcoholId);
+    if (declarations.isEmpty()) {
+      return List.of();
+    }
+    Map<Long, MfdsImporter> importersById = loadImporters(declarations);
+    return declarations.stream()
+        .map(declaration -> toPublicItem(declaration, importersById))
         .toList();
   }
 
-  private MfdsPublicDeclarationItem toPublicItem(MfdsDeclaration declaration) {
-    MfdsPublicImporterItem importer =
-        declaration.isImporterLinked()
-            ? importerRepository
-                .findById(declaration.getImporterId())
-                .map(MfdsResponseMapper::toPublicImporterItem)
-                .orElse(null)
-            : null;
+  private Map<Long, MfdsImporter> loadImporters(Collection<MfdsDeclaration> declarations) {
+    List<Long> importerIds =
+        declarations.stream()
+            .map(MfdsDeclaration::getImporterId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    if (importerIds.isEmpty()) {
+      return Map.of();
+    }
+    return importerRepository.findAllByIdIn(importerIds).stream()
+        .collect(Collectors.toMap(MfdsImporter::getId, Function.identity()));
+  }
+
+  private MfdsPublicDeclarationItem toPublicItem(
+      MfdsDeclaration declaration, Map<Long, MfdsImporter> importersById) {
+    MfdsPublicImporterItem importer = null;
+    if (declaration.isImporterLinked()) {
+      MfdsImporter linked = importersById.get(declaration.getImporterId());
+      if (linked != null) {
+        importer = MfdsResponseMapper.toPublicImporterItem(linked);
+      }
+    }
     return MfdsResponseMapper.toPublicDeclarationItem(declaration, importer);
   }
 }

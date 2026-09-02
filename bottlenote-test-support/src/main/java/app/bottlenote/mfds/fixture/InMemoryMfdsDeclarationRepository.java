@@ -1,5 +1,6 @@
 package app.bottlenote.mfds.fixture;
 
+import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
@@ -51,6 +52,9 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
   public List<MfdsDeclaration> findAllBySelectedAlcoholId(Long alcoholId) {
     return database.values().stream()
         .filter(declaration -> Objects.equals(declaration.getSelectedAlcoholId(), alcoholId))
+        .filter(
+            declaration ->
+                declaration.getNormalizationStatus() == MfdsNormalizationStatus.NORMALIZED)
         .sorted(Comparator.comparing(MfdsDeclaration::getId).reversed())
         .toList();
   }

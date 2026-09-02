@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
-import app.bottlenote.mfds.dto.response.MfdsPublicDeclarationItem;
+import app.bottlenote.mfds.facade.payload.MfdsPublicDeclarationItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import java.util.List;
 import lombok.Builder;

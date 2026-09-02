@@ -6,7 +6,7 @@ import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
-import app.bottlenote.mfds.dto.response.MfdsPublicDeclarationItem;
+import app.bottlenote.mfds.facade.payload.MfdsPublicDeclarationItem;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsImporterRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
@@ -33,7 +33,7 @@ class DefaultMfdsFacadeTest {
   }
 
   @Test
-  @DisplayName("주류 매칭이 확정된 신고만 공개 필드와 수입사 중첩으로 반환한다")
+  @DisplayName("주류 매칭이 확정되고 정규화가 완료된 신고만 공개 필드와 수입사 중첩으로 반환한다")
   void 검증_완료된_신고만_공개한다() {
     MfdsImporter importer =
         importerRepository.save(
@@ -105,6 +105,34 @@ class DefaultMfdsFacadeTest {
   }
 
   @Test
+  @DisplayName("selectedAlcoholId가 있어도 REVIEW_REQUIRED 등 상태 강등이면 공개하지 않는다")
+  void selectedAlcoholId만_있고_상태_강등이면_공개하지_않는다() {
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-REVIEW",
+            MfdsNormalizationStatus.REVIEW_REQUIRED,
+            null,
+            42L,
+            "REVIEW",
+            null,
+            null));
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-PARTIAL",
+            MfdsNormalizationStatus.PARTIAL,
+            null,
+            42L,
+            "CANDIDATE",
+            null,
+            null));
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-STALE", MfdsNormalizationStatus.STALE, null, 42L, "MANUAL", null, null));
+
+    assertThat(facade.findVerifiedDeclarationsByAlcoholId(42L)).isEmpty();
+  }
+
+  @Test
   @DisplayName("연결이 없거나 검토중이면 빈 목록을 반환한다")
   void 연결_없음과_검토중은_공개하지_않는다() {
     declarationRepository.save(
@@ -124,17 +152,44 @@ class DefaultMfdsFacadeTest {
   }
 
   @Test
-  @DisplayName("동일 주류에 확정된 신고가 여러 개면 id 내림차순으로 반환한다")
-  void 복수_확정_신고는_id_내림차순이다() {
+  @DisplayName("동일 주류에 확정된 신고가 여러 개면 id 내림차순으로 반환하고 수입사는 일괄 조회한다")
+  void 복수_확정_신고는_id_내림차순이고_수입사는_일괄_조회한다() {
+    MfdsImporter importerA =
+        importerRepository.save(
+            MfdsTestData.importer("BIZ-A", "수입사A", MfdsImporterAdminStatus.ACTIVE));
+    MfdsImporter importerB =
+        importerRepository.save(
+            MfdsTestData.importer("BIZ-B", "수입사B", MfdsImporterAdminStatus.ACTIVE));
+
     declarationRepository.save(
         MfdsTestData.declaration(
-            "RCNO-A", MfdsNormalizationStatus.NORMALIZED, null, 7L, "MANUAL", null, null));
+            "RCNO-A",
+            MfdsNormalizationStatus.NORMALIZED,
+            importerA.getId(),
+            7L,
+            "MANUAL",
+            null,
+            null));
     declarationRepository.save(
         MfdsTestData.declaration(
-            "RCNO-B", MfdsNormalizationStatus.NORMALIZED, null, 7L, "CANDIDATE", null, null));
+            "RCNO-B",
+            MfdsNormalizationStatus.NORMALIZED,
+            importerB.getId(),
+            7L,
+            "CANDIDATE",
+            null,
+            null));
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-C", MfdsNormalizationStatus.NORMALIZED, null, 7L, "MANUAL", null, null));
 
     List<MfdsPublicDeclarationItem> result = facade.findVerifiedDeclarationsByAlcoholId(7L);
 
-    assertThat(result).extracting(MfdsPublicDeclarationItem::rcno).containsExactly("RCNO-B", "RCNO-A");
+    assertThat(result)
+        .extracting(MfdsPublicDeclarationItem::rcno)
+        .containsExactly("RCNO-C", "RCNO-B", "RCNO-A");
+    assertThat(result.get(0).importer()).isNull();
+    assertThat(result.get(1).importer().businessName()).isEqualTo("수입사B");
+    assertThat(result.get(2).importer().businessName()).isEqualTo("수입사A");
   }
 }

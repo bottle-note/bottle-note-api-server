@@ -16,7 +16,7 @@ import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholPopularitySnapshotRepository;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
-import app.bottlenote.mfds.dto.response.MfdsPublicDeclarationItem;
+import app.bottlenote.mfds.facade.payload.MfdsPublicDeclarationItem;
 import app.bottlenote.mfds.fixture.FakeMfdsFacade;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.ReviewFacade;

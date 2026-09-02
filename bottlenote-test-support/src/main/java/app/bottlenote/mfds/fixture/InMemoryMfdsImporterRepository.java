@@ -3,6 +3,7 @@ package app.bottlenote.mfds.fixture;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsImporterSearchCriteria;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,19 @@ public class InMemoryMfdsImporterRepository implements MfdsImporterRepository {
   @Override
   public Optional<MfdsImporter> findById(Long id) {
     return Optional.ofNullable(database.get(id));
+  }
+
+  @Override
+  public List<MfdsImporter> findAllByIdIn(Collection<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return List.of();
+    }
+    return ids.stream()
+        .filter(Objects::nonNull)
+        .distinct()
+        .map(database::get)
+        .filter(Objects::nonNull)
+        .toList();
   }
 
   @Override
