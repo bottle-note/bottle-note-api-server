@@ -1,8 +1,8 @@
 package app.bottlenote.mfds.facade.payload;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
 /**
