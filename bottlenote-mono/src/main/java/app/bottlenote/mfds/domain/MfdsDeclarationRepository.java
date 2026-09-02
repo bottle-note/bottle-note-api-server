@@ -26,6 +26,13 @@ public interface MfdsDeclarationRepository {
 
   Optional<MfdsDeclaration> findByRcno(String rcno);
 
+  /**
+   * 주류 매칭이 확정된 신고를 id 내림차순으로 조회한다.
+   *
+   * <p>Product 공개 조회는 selectedAlcoholId가 채워진 행만 검증 완료로 본다.
+   */
+  List<MfdsDeclaration> findAllBySelectedAlcoholId(Long alcoholId);
+
   /** 검색 조건에 맞는 신고 데이터를 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */
   List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria);
 

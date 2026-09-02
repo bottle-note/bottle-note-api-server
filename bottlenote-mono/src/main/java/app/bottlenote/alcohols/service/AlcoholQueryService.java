@@ -20,6 +20,7 @@ import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.PaginationException;
 import app.bottlenote.global.pagination.PaginationExceptionCode;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
+import app.bottlenote.mfds.facade.MfdsFacade;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
@@ -44,6 +45,7 @@ public class AlcoholQueryService {
   private final AlcoholViewHistoryService viewHistoryService;
   private final ReviewFacade reviewFacade;
   private final FollowFacade followFacade;
+  private final MfdsFacade mfdsFacade;
   private final AlcoholReferenceService alcoholReferenceService;
   private final HmacCursorCodec cursorCodec;
 
@@ -60,6 +62,7 @@ public class AlcoholQueryService {
             .alcohols(alcoholDetailItem)
             .friendsInfo(friendInfos)
             .reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
+            .mfdsDeclarations(mfdsFacade.findVerifiedDeclarationsByAlcoholId(alcoholId))
             .build();
 
     if (userId > 0) {

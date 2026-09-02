@@ -54,6 +54,27 @@ class InMemoryMfdsDeclarationRepositoryTest {
   }
 
   @Test
+  @DisplayName("selectedAlcoholId로 조회할 때 해당 주류 확정 신고만 id 내림차순으로 반환한다")
+  void selectedAlcoholId로_조회할_수_있다() {
+    MfdsDeclaration first =
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 77L, "CANDIDATE", null, null);
+    MfdsDeclaration second =
+        MfdsTestData.declaration(
+            "RCNO-002", MfdsNormalizationStatus.NORMALIZED, null, 77L, "MANUAL", null, null);
+    repository.save(first);
+    repository.save(second);
+    repository.save(
+        MfdsTestData.declaration(
+            "RCNO-003", MfdsNormalizationStatus.NORMALIZED, null, 88L, "MANUAL", null, null));
+    repository.save(declaration("RCNO-004", MfdsNormalizationStatus.REVIEW_REQUIRED));
+
+    List<MfdsDeclaration> result = repository.findAllBySelectedAlcoholId(77L);
+
+    assertThat(result).extracting(MfdsDeclaration::getRcno).containsExactly("RCNO-002", "RCNO-001");
+  }
+
+  @Test
   @DisplayName("매칭 여부로 필터링할 때 selectedAlcoholId 존재 기준으로 구분한다")
   void 매칭_여부로_필터링할_수_있다() {
     MfdsDeclaration matched =
