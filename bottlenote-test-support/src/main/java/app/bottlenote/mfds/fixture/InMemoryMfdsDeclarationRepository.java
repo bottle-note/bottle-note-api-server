@@ -48,6 +48,14 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
   }
 
   @Override
+  public List<MfdsDeclaration> findAllBySelectedAlcoholId(Long alcoholId) {
+    return database.values().stream()
+        .filter(declaration -> Objects.equals(declaration.getSelectedAlcoholId(), alcoholId))
+        .sorted(Comparator.comparing(MfdsDeclaration::getId).reversed())
+        .toList();
+  }
+
+  @Override
   public List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria) {
     return database.values().stream()
         .filter(declaration -> matches(declaration, criteria))

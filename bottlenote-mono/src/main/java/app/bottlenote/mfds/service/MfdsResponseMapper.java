@@ -7,6 +7,8 @@ import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse.MatchCandidate;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationListItem;
 import app.bottlenote.mfds.dto.response.MfdsImporterItem;
+import app.bottlenote.mfds.dto.response.MfdsPublicDeclarationItem;
+import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
 import app.bottlenote.mfds.dto.response.MfdsRcnoLinkItem;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -130,6 +132,55 @@ final class MfdsResponseMapper {
         link.getSourceGalleryUrl(),
         link.getSourceObservedAt(),
         link.getCreatedAt());
+  }
+
+  /** Product 공개용 수입사. Admin 항목과 필드명을 맞추고 내부 운영 필드는 제외한다. */
+  static MfdsPublicImporterItem toPublicImporterItem(MfdsImporter importer) {
+    return new MfdsPublicImporterItem(
+        importer.getId(),
+        importer.getOfficialBusinessCode(),
+        importer.getLicenseNo(),
+        importer.getBusinessName(),
+        importer.getRepresentativeName(),
+        importer.getPermitDate(),
+        importer.getInstitutionName(),
+        importer.getPrimaryAddress(),
+        importer.getTelephoneNo(),
+        importer.getIndustryName(),
+        importer.getOperatingStatus(),
+        importer.getDescription());
+  }
+
+  /** Product 공개용 신고. Admin 상세와 공개 필드명·importer 중첩을 맞춘다. */
+  static MfdsPublicDeclarationItem toPublicDeclarationItem(
+      MfdsDeclaration declaration, MfdsPublicImporterItem importer) {
+    return new MfdsPublicDeclarationItem(
+        declaration.getId(),
+        declaration.getRcno(),
+        declaration.getBaseProductNameKo(),
+        declaration.getBaseProductNameEn(),
+        declaration.getSkuDisplayNameKo(),
+        declaration.getSkuDisplayNameEn(),
+        declaration.getVolumeMl(),
+        declaration.getUnitVolumeMl(),
+        declaration.getPackageCount(),
+        declaration.getAbvPercent(),
+        declaration.getAgeYears(),
+        declaration.getVintageYear(),
+        declaration.getEditionName(),
+        declaration.getCaskNumber(),
+        declaration.getBatchNumber(),
+        declaration.getExpiryStart(),
+        declaration.getExpiryEnd(),
+        declaration.getImporterBaseName(),
+        declaration.getManufacturerName(),
+        declaration.getAlcoholNameKo(),
+        declaration.getAlcoholNameEn(),
+        declaration.getAlcoholCategoryKo(),
+        declaration.getAlcoholCategoryEn(),
+        declaration.getManufactureCountryNameKo(),
+        declaration.getExportCountryNameKo(),
+        importer);
   }
 
   private static List<MatchCandidate> candidates(
