@@ -79,6 +79,19 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
+  @DisplayName("수입 신고 목록 매핑에서 SKU 표시명이 없으면 null을 유지한다")
+  void 수입_신고_목록에서_빈_SKU_표시명을_null로_유지한다() {
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, null, null);
+
+    MfdsDeclarationListItem item = MfdsResponseMapper.toDeclarationListItem(declaration);
+
+    assertThat(item.skuDisplayNameKo()).isNull();
+    assertThat(item.skuDisplayNameEn()).isNull();
+  }
+
+  @Test
   @DisplayName("상세 조회할 때 연결된 수입사 정보와 매칭 후보를 포함한다")
   void 상세를_조회할_수_있다() {
     MfdsImporter importer =

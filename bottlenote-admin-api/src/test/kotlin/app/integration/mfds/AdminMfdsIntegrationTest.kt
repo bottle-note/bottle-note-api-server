@@ -237,6 +237,25 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("SKU 표시명이 없으면 신고 목록 JSON에 두 키를 null로 포함한다")
+		fun searchIncludesNullSkuDisplayNames() {
+			mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v1/mfds/declarations")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			val item = mapper.readTree(result.response.contentAsString).path("data").path(0)
+			assertThat(item.has("skuDisplayNameKo")).isTrue()
+			assertThat(item.path("skuDisplayNameKo").isNull).isTrue()
+			assertThat(item.has("skuDisplayNameEn")).isTrue()
+			assertThat(item.path("skuDisplayNameEn").isNull).isTrue()
+		}
+
+		@Test
 		@DisplayName("신고 상세에 연결 수입사 정보를 포함한다")
 		fun detailWithImporter() {
 			val importer = mfdsTestFactory.persistImporter("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE)
