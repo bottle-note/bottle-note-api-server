@@ -113,8 +113,8 @@ class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSup
 
     JsonNode importerSchema = declarations.path("properties").path("importer");
     JsonNode importer = resolve(spec, importerSchema);
-    // importer는 연결 없으면 null. springdoc이 nullable 플래그를 안 달아도 anyOf/null 또는 객체 스키마로 허용한다.
-    assertThat(importerSchema.path("nullable").asBoolean(false) || importer.has("properties"))
+    assertThat(allowsNull(importerSchema))
+        .as("연결 없는 신고의 importer는 OpenAPI에서도 null을 허용해야 한다")
         .isTrue();
     List<String> importerFields = propertyNamesOf(importer);
     assertThat(importerFields).containsExactlyInAnyOrderElementsOf(IMPORTER_FIELDS);
@@ -124,5 +124,26 @@ class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSup
   private JsonNode resolve(JsonNode spec, JsonNode schema) {
     String ref = schema.path("$ref").asText();
     return ref.startsWith("#/") ? spec.at(ref.substring(1)) : schema;
+  }
+
+  private boolean allowsNull(JsonNode schema) {
+    if (schema.path("nullable").asBoolean(false)) {
+      return true;
+    }
+    if (schema.path("type").isArray()) {
+      for (JsonNode type : schema.path("type")) {
+        if ("null".equals(type.asText())) {
+          return true;
+        }
+      }
+    }
+    for (String composition : List.of("anyOf", "oneOf")) {
+      for (JsonNode candidate : schema.path(composition)) {
+        if ("null".equals(candidate.path("type").asText())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
