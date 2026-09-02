@@ -10,6 +10,7 @@ import static app.bottlenote.global.search.SearchKeywordLikePattern.contains;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.constant.ReviewActiveStatus.ACTIVE;
 import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
@@ -95,20 +96,17 @@ public class AlcoholQuerySupporter {
         .as("myRating");
   }
 
-  /** 사용자가 주류에 작성한 리뷰들의 평균 평점 계산 */
-  public NumberExpression<Double> averageReviewRating(Long alcoholId, Long userId) {
+  /** 사용자가 주류에 작성한 활성 리뷰 1건의 별점 조회 */
+  public NumberExpression<Double> userReviewRating(Long alcoholId, Long userId) {
     return Expressions.asNumber(
-            JPAExpressions.select(
-                    review
-                        .reviewRating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0))
+            JPAExpressions.select(review.reviewRating)
                 .from(review)
-                .where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId))))
+                .where(
+                    review.alcoholId.eq(alcoholId),
+                    review.userId.eq(userId),
+                    review.activeStatus.eq(ACTIVE))
+                .limit(1))
+        .coalesce(0.0)
         .castToNum(Double.class)
         .as("myAvgRating");
   }
@@ -243,23 +241,20 @@ public class AlcoholQuerySupporter {
         .as("myRating");
   }
 
-  /** 사용자가 주류에 작성한 리뷰들의 평균 평점 계산 (QueryDSL 경로 버전) */
-  public NumberExpression<Double> averageReviewRating(NumberPath<Long> alcoholId, Long userId) {
+  /** 사용자가 주류에 작성한 활성 리뷰 1건의 별점 조회 (QueryDSL 경로 버전) */
+  public NumberExpression<Double> userReviewRating(NumberPath<Long> alcoholId, Long userId) {
     if (userId == null || userId == -1L) {
       return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
     }
     return Expressions.asNumber(
-            JPAExpressions.select(
-                    review
-                        .reviewRating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0))
+            JPAExpressions.select(review.reviewRating)
                 .from(review)
-                .where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId))))
+                .where(
+                    review.alcoholId.eq(alcoholId),
+                    review.userId.eq(userId),
+                    review.activeStatus.eq(ACTIVE))
+                .limit(1))
+        .coalesce(0.0)
         .castToNum(Double.class)
         .as("myAvgRating");
   }

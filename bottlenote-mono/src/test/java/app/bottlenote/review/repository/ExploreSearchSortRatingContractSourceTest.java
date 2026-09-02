@@ -52,8 +52,8 @@ class ExploreSearchSortRatingContractSourceTest {
   }
 
   @Test
-  @DisplayName("위스키 둘러보기 rating은 목록 표시와 같은 반올림 집계값으로 후보 단계에서 필터링한다")
-  void alcohol_explore_rating_uses_displayed_aggregate() throws IOException {
+  @DisplayName("위스키 둘러보기 rating 필터는 기존 0.5 단위 집계값을 유지한다")
+  void alcohol_explore_rating_filter_keeps_half_step_aggregate() throws IOException {
     String request =
         read(
             "bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/request/ExploreStandardRequest.java");
@@ -79,7 +79,7 @@ class ExploreSearchSortRatingContractSourceTest {
             "request.ratingFrom()",
             "request.ratingTo()");
     assertThat(repository)
-        .contains("displayedRating()", "ratingInRange(BigDecimal from, BigDecimal to)")
+        .contains("filterRating()", "ratingInRange(BigDecimal from, BigDecimal to)")
         .contains(".having(", "ratingInRange(criteria.ratingFrom(), criteria.ratingTo())");
 
     String randomBranch = extractRandomBranch(repository);
@@ -89,12 +89,57 @@ class ExploreSearchSortRatingContractSourceTest {
         .contains("groupBy(alcohol.id)", "randomSeek(claims, crc)");
   }
 
+  @Test
+  @DisplayName("알코올 별점은 0.1 단위로 노출하고 사용자 리뷰 별점은 단건 조회한다")
+  void alcohol_rating_display_uses_tenth_and_single_user_review() throws IOException {
+    String repository =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/CustomAlcoholQueryRepositoryImpl.java");
+    String supporter =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/AlcoholQuerySupporter.java");
+
+    String displayedRating = extractMethodBody(repository, "displayedRating");
+    String filterRating = extractMethodBody(repository, "filterRating");
+    String userReviewRating = extractMethodBody(supporter, "userReviewRating");
+
+    assertThat(displayedRating)
+        .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)")
+        .doesNotContain(".multiply(2)", ".divide(2)");
+    assertThat(filterRating)
+        .contains(".avg()", ".multiply(2)", ".round()", ".divide(2)", ".coalesce(0.0)");
+    assertThat(userReviewRating)
+        .contains(
+            "review.reviewRating",
+            "review.alcoholId.eq(alcoholId)",
+            "review.userId.eq(userId)",
+            ".limit(1)",
+            ".coalesce(0.0)")
+        .doesNotContain(".avg()");
+  }
+
   private static String extractRandomBranch(String source) {
     int start = source.indexOf("if (sortType == SearchSortType.RANDOM)");
     int end = source.indexOf("NumberExpression<? extends Number> sortScore", start);
     assertThat(start).isGreaterThanOrEqualTo(0);
     assertThat(end).isGreaterThan(start);
     return source.substring(start, end);
+  }
+
+  private static String extractMethodBody(String source, String methodName) {
+    int nameIndex = source.indexOf(" " + methodName + "(");
+    assertThat(nameIndex).as("method not found: " + methodName).isGreaterThanOrEqualTo(0);
+    int braceStart = source.indexOf('{', nameIndex);
+    int depth = 0;
+    for (int index = braceStart; index < source.length(); index++) {
+      char character = source.charAt(index);
+      if (character == '{') {
+        depth++;
+      } else if (character == '}' && --depth == 0) {
+        return source.substring(braceStart, index + 1);
+      }
+    }
+    throw new IllegalStateException("method body end not found: " + methodName);
   }
 
   private static String read(String relativePath) throws IOException {
