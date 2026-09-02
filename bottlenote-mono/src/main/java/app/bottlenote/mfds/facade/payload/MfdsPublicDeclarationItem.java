@@ -1,6 +1,6 @@
 package app.bottlenote.mfds.facade.payload;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.springframework.lang.Nullable;
@@ -37,4 +37,4 @@ public record MfdsPublicDeclarationItem(
     String alcoholCategoryEn,
     String manufactureCountryNameKo,
     String exportCountryNameKo,
-    @Schema(nullable = true) @Nullable MfdsPublicImporterItem importer) {}
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Nullable MfdsPublicImporterItem importer) {}
