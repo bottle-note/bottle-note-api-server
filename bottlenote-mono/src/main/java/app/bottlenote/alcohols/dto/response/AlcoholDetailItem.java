@@ -30,6 +30,7 @@ public class AlcoholDetailItem {
   private Long totalRatingsCount;
   private Double myRating;
   private Double myAvgRating;
+
   private Boolean isPicked;
   private Long reviewCount;
   private Long pickCount;

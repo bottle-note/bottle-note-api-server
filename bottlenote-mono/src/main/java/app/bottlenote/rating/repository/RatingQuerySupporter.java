@@ -52,7 +52,16 @@ public class RatingQuerySupporter {
 
   public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
     return ExpressionUtils.as(
-        select(rating.ratingPoint.rating.avg().round())
+        select(
+                rating
+                    .ratingPoint
+                    .rating
+                    .avg()
+                    .multiply(10)
+                    .castToNum(Double.class)
+                    .round()
+                    .divide(10)
+                    .coalesce(0.0))
             .from(rating)
             .where(rating.id.alcoholId.eq(alocholId).and(rating.ratingPoint.rating.gt(0.0))),
         "averageRatingPoint");

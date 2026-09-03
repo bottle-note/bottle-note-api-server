@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.repository;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholPopularitySnapshot.alcoholPopularitySnapshot;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.displayedRating;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 
@@ -125,7 +126,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         alcohol.id,
         alcohol.korName,
         alcohol.engName,
-        rating.ratingPoint.rating.avg().coalesce(0.0),
+        displayedRating(),
         rating.id.userId.countDistinct(),
         alcohol.korCategory,
         alcohol.engCategory,

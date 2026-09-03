@@ -54,6 +54,7 @@ public final class AlcoholQueryApiDocs {
           위스키의 기본 정보와 함께 평균 별점, 리뷰 수, 대표 테이스팅 태그를 반환합니다.
 
           로그인한 경우 본인이 남긴 별점과 찜 여부가 함께 담깁니다. 조회 이력은 별도로 집계됩니다.
+          myAvgRating은 인증 사용자가 해당 알코올에 남긴 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점이며, 없으면 0.0입니다.
           """,
       responses =
           @ApiResponse(

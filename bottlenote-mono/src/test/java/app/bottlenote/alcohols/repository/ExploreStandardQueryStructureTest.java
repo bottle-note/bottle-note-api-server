@@ -36,7 +36,7 @@ class ExploreStandardQueryStructureTest {
     assertThat(body)
         .as("1단계 후보 ID 쿼리에는 사용자별 heavy 상관 서브쿼리가 포함되지 않아야 한다")
         .doesNotContain("myRating(")
-        .doesNotContain("averageReviewRating(")
+        .doesNotContain("latestActiveUserReviewRating(")
         .doesNotContain("isPickedSubquery(")
         .doesNotContain("getTastingTags(");
   }

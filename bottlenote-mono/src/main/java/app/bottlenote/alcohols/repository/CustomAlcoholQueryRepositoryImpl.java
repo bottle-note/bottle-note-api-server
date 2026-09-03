@@ -5,6 +5,7 @@ import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholPopularitySnapshot.alcoholPopularitySnapshot;
 import static app.bottlenote.alcohols.domain.QDistillery.distillery;
 import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.displayedRating;
 import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
@@ -190,7 +191,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 displayedRating().as("rating"),
                 rating.id.countDistinct(),
                 supporter.myRating(alcoholId, userId),
-                supporter.averageReviewRating(alcoholId, userId),
+                supporter.latestActiveUserReviewRating(alcoholId, userId),
                 supporter.isPickedSubquery(alcoholId, userId),
                 review.id.countDistinct(),
                 picks.id.countDistinct(),
@@ -302,7 +303,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     displayedRating().as("rating"),
                     rating.id.countDistinct(),
                     supporter.myRating(alcohol.id, userId),
-                    supporter.averageReviewRating(alcohol.id, userId),
+                    supporter.latestActiveUserReviewRating(alcohol.id, userId),
                     supporter.isPickedSubquery(alcohol.id, userId),
                     review.id.countDistinct(),
                     picks.id.countDistinct(),
@@ -571,8 +572,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   private record ExploreSeekKey(Long id, String sortValue) {}
 
-  /** 목록 응답에 노출하는 집계 평점과 같은 반올림 값을 HAVING과 projection에서 공통 사용한다. */
-  private static NumberExpression<Double> displayedRating() {
+  /** 기존 별점 범위 필터의 0.5 단위 반올림 계약을 유지한다. */
+  private static NumberExpression<Double> filterRating() {
     return rating
         .ratingPoint
         .rating
@@ -585,8 +586,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   }
 
   private static BooleanExpression ratingInRange(BigDecimal from, BigDecimal to) {
-    BooleanExpression lower = from == null ? null : displayedRating().goe(from.doubleValue());
-    BooleanExpression upper = to == null ? null : displayedRating().loe(to.doubleValue());
+    BooleanExpression lower = from == null ? null : filterRating().goe(from.doubleValue());
+    BooleanExpression upper = to == null ? null : filterRating().loe(to.doubleValue());
     BooleanExpression hasRating = rating.id.count().gt(0L);
     if (lower == null) {
       return upper == null ? null : hasRating.and(upper);

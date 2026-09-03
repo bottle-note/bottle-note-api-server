@@ -8,10 +8,14 @@ import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.history.fixture.AlcoholsViewHistoryTestFactory;
+import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.rating.domain.RatingPoint;
+import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -24,6 +28,7 @@ class ViewHistoryPopularityIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private AlcoholsViewHistoryTestFactory viewHistoryTestFactory;
+  @Autowired private RatingTestFactory ratingTestFactory;
   @Autowired private UserTestFactory userTestFactory;
 
   @Test
@@ -64,5 +69,38 @@ class ViewHistoryPopularityIntegrationTest extends IntegrationTestSupport {
         .bodyJson()
         .extractingPath("$.data.items[0].popularScore")
         .isEqualTo(0.4);
+  }
+
+  @Test
+  @DisplayName("조회 이력은 평균 별점을 소수점 첫째 자리로 노출한다")
+  void viewHistory_displaysRatingToOneDecimalPlace() {
+    User user = userTestFactory.persistUser();
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    viewHistoryTestFactory.persistAlcoholsViewHistory(
+        user.getId(), alcohol.getId(), LocalDateTime.now());
+    for (double point : List.of(4.0, 4.5, 5.0, 5.0)) {
+      User ratingUser = userTestFactory.persistUser();
+      ratingTestFactory.persistRating(
+          Rating.builder()
+              .id(Rating.RatingId.is(ratingUser.getId(), alcohol.getId()))
+              .ratingPoint(RatingPoint.of(point)));
+    }
+
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/history/view/alcohols")
+            .param("size", "10")
+            .header("Authorization", "Bearer " + getToken(user).accessToken())
+            .contentType(APPLICATION_JSON)
+            .with(csrf())
+            .exchange();
+
+    result
+        .assertThat()
+        .hasStatusOk()
+        .bodyJson()
+        .extractingPath("$.data.items[0].rating")
+        .isEqualTo(4.6);
   }
 }

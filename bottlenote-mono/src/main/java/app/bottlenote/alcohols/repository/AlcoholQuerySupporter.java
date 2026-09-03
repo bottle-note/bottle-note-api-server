@@ -10,12 +10,14 @@ import static app.bottlenote.global.search.SearchKeywordLikePattern.contains;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.constant.ReviewActiveStatus.ACTIVE;
 import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.QReview;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
@@ -38,6 +40,19 @@ import org.springframework.stereotype.Component;
 public class AlcoholQuerySupporter {
 
   private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
+
+  /** 목록과 상세 응답에 노출하는 집계 평점을 소수점 첫째 자리로 반올림한다. */
+  public static NumberExpression<Double> displayedRating() {
+    return rating
+        .ratingPoint
+        .rating
+        .avg()
+        .multiply(10)
+        .castToNum(Double.class)
+        .round()
+        .divide(10)
+        .coalesce(0.0);
+  }
 
   /** 주류에 연결된 테이스팅 태그 목록을 문자열로 조회 */
   public static Expression<String> getTastingTags() {
@@ -95,20 +110,24 @@ public class AlcoholQuerySupporter {
         .as("myRating");
   }
 
-  /** 사용자가 주류에 작성한 리뷰들의 평균 평점 계산 */
-  public NumberExpression<Double> averageReviewRating(Long alcoholId, Long userId) {
+  /** 인증 사용자의 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점. JSON 키는 myAvgRating이다. */
+  public NumberExpression<Double> latestActiveUserReviewRating(Long alcoholId, Long userId) {
+    if (userId == null || userId == -1L) {
+      return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
+    }
+    QReview latestReview = new QReview("latestReviewForUserRating");
     return Expressions.asNumber(
-            JPAExpressions.select(
-                    review
-                        .reviewRating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0))
+            JPAExpressions.select(review.reviewRating)
                 .from(review)
-                .where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId))))
+                .where(
+                    review.id.eq(
+                        JPAExpressions.select(latestReview.id.max())
+                            .from(latestReview)
+                            .where(
+                                latestReview.alcoholId.eq(alcoholId),
+                                latestReview.userId.eq(userId),
+                                latestReview.activeStatus.eq(ACTIVE)))))
+        .coalesce(0.0)
         .castToNum(Double.class)
         .as("myAvgRating");
   }
@@ -243,23 +262,25 @@ public class AlcoholQuerySupporter {
         .as("myRating");
   }
 
-  /** 사용자가 주류에 작성한 리뷰들의 평균 평점 계산 (QueryDSL 경로 버전) */
-  public NumberExpression<Double> averageReviewRating(NumberPath<Long> alcoholId, Long userId) {
+  /** 인증 사용자의 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점. JSON 키는 myAvgRating이다. */
+  public NumberExpression<Double> latestActiveUserReviewRating(
+      NumberPath<Long> alcoholId, Long userId) {
     if (userId == null || userId == -1L) {
       return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
     }
+    QReview latestReview = new QReview("latestReviewForUserRating");
     return Expressions.asNumber(
-            JPAExpressions.select(
-                    review
-                        .reviewRating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0))
+            JPAExpressions.select(review.reviewRating)
                 .from(review)
-                .where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId))))
+                .where(
+                    review.id.eq(
+                        JPAExpressions.select(latestReview.id.max())
+                            .from(latestReview)
+                            .where(
+                                latestReview.alcoholId.eq(alcoholId),
+                                latestReview.userId.eq(userId),
+                                latestReview.activeStatus.eq(ACTIVE)))))
+        .coalesce(0.0)
         .castToNum(Double.class)
         .as("myAvgRating");
   }

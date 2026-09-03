@@ -11,6 +11,8 @@ import app.bottlenote.alcohols.domain.PopularQueryRepository;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.user.domain.User;
@@ -84,6 +86,30 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
             Pageable.ofSize(6));
 
     assertThat(result).singleElement().extracting(PopularItem::ratingCount).isEqualTo(3L);
+  }
+
+  @Test
+  @DisplayName("인기 주류는 평균 별점을 소수점 첫째 자리로 노출한다")
+  void popularAlcohol_displaysRatingToOneDecimalPlace() {
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    for (double point : List.of(4.0, 4.5, 5.0, 5.0)) {
+      User user = userTestFactory.persistUser();
+      ratingTestFactory.persistRating(
+          Rating.builder()
+              .id(Rating.RatingId.is(user.getId(), alcohol.getId()))
+              .ratingPoint(RatingPoint.of(point)));
+    }
+    alcoholTestFactory.persistPopularitySnapshot(
+        alcohol.getId(),
+        BucketGranularity.WEEK,
+        BucketGranularity.WEEK.startAt(LocalDateTime.now()),
+        BigDecimal.ZERO,
+        new BigDecimal("0.4"));
+
+    List<PopularItem> result =
+        popularQueryRepository.getPopularOfWeeks(-1L, Pageable.ofSize(1));
+
+    assertThat(result).singleElement().extracting(PopularItem::rating).isEqualTo(4.6);
   }
 
   @Test
