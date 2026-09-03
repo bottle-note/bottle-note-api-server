@@ -121,6 +121,12 @@ class ExploreSearchSortRatingContractSourceTest {
     String detailItem =
         read(
             "bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/response/AlcoholDetailItem.java");
+    String queryApiDocs =
+        read(
+            "bottlenote-product-api/src/main/java/app/bottlenote/alcohols/controller/docs/AlcoholQueryApiDocs.java");
+    String exploreApiDocs =
+        read(
+            "bottlenote-product-api/src/main/java/app/bottlenote/alcohols/controller/docs/AlcoholExploreApiDocs.java");
     String rawRatingSort = extractMethodBody(supporter, "sortBy");
     String rawRatingCursor = extractMethodBody(supporter, "sortScore");
     assertThat(displayedRating)
@@ -142,10 +148,9 @@ class ExploreSearchSortRatingContractSourceTest {
               ".as(\"myAvgRating\")")
           .doesNotContain(".avg()", ".orderBy(review.id.desc())", ".limit(1)");
     }
-    assertThat(detailItem)
-        .contains(
-            "@JsonPropertyDescription(\"인증 사용자가 해당 알코올에 남긴 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점, 없으면 0.0\")",
-            "private Double myAvgRating");
+    assertThat(detailItem).contains("private Double myAvgRating");
+    assertThat(queryApiDocs).contains("ACTIVE 리뷰 중 최신(id 최대) 1건의 별점").contains("없으면 0.0");
+    assertThat(exploreApiDocs).contains("ACTIVE 리뷰 중 최신(id 최대) 1건의 별점").contains("없으면 0.0");
     assertThat(supporter).doesNotContain("userReviewRating(");
     for (String rawRatingExpression : List.of(rawRatingSort, rawRatingCursor)) {
       assertThat(rawRatingExpression)
@@ -215,6 +220,9 @@ class ExploreSearchSortRatingContractSourceTest {
     Path path = Paths.get(relativePath);
     if (!Files.exists(path)) {
       path = Paths.get(relativePath.replaceFirst("^bottlenote-mono/", ""));
+    }
+    if (!Files.exists(path)) {
+      path = Paths.get("..").resolve(relativePath);
     }
     return Files.readString(path);
   }

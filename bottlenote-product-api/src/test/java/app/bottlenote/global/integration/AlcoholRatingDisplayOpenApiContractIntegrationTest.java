@@ -15,9 +15,19 @@ class AlcoholRatingDisplayOpenApiContractIntegrationTest extends OpenApiSpecTest
   @DisplayName("myAvgRating은 최신 활성 리뷰 1건의 선택 규칙을 문서화한다")
   void myAvgRating은_최신_활성_리뷰_단건_규칙을_문서화한다() {
     JsonNode spec = fetchSpec();
-    JsonNode myAvgRating = spec.at("/components/schemas/AlcoholDetailItem/properties/myAvgRating");
 
-    assertThat(myAvgRating.path("description").asText())
+    assertLatestActiveReviewRatingRule(spec, "GET /api/v1/alcohols/{alcoholId}");
+    assertLatestActiveReviewRatingRule(spec, "GET /api/v1/alcohols/explore/standard");
+  }
+
+  private void assertLatestActiveReviewRatingRule(JsonNode spec, String endpoint) {
+    SpecOperation operation =
+        operationsOf(spec).stream()
+            .filter(candidate -> candidate.endpoint().equals(endpoint))
+            .findFirst()
+            .orElseThrow();
+
+    assertThat(operation.definition().path("description").asText())
         .contains("ACTIVE 리뷰 중 최신(id 최대) 1건의 별점")
         .contains("없으면 0.0");
   }

@@ -2,7 +2,6 @@ package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
@@ -30,8 +29,6 @@ public class AlcoholDetailItem {
   private Double rating;
   private Long totalRatingsCount;
   private Double myRating;
-
-  @JsonPropertyDescription("인증 사용자가 해당 알코올에 남긴 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점, 없으면 0.0")
   private Double myAvgRating;
 
   private Boolean isPicked;
