@@ -105,6 +105,9 @@ class ExploreSearchSortRatingContractSourceTest {
     String historyRepository =
         read(
             "bottlenote-mono/src/main/java/app/bottlenote/history/repository/JpaAlcoholsViewHistoryRepository.java");
+    String ratingSupporter =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/rating/repository/RatingQuerySupporter.java");
 
     String displayedRating =
         extractMethodBodyBySignature(
@@ -160,6 +163,12 @@ class ExploreSearchSortRatingContractSourceTest {
         .contains(
             "CAST(ROUND((SELECT COALESCE(AVG(r.ratingPoint.rating), 0.0)",
             "a.id.alcoholId), 1) AS double)");
+    String averageRatingSubQuery =
+        extractMethodBodyBySignature(
+            ratingSupporter, "averageRatingSubQuery(NumberPath<Long> alocholId)");
+    assertThat(averageRatingSubQuery)
+        .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)")
+        .doesNotContain("avg().round()");
   }
 
   private static String extractRandomBranch(String source) {
