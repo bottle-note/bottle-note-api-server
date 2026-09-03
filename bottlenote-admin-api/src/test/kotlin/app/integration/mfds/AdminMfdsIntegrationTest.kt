@@ -209,6 +209,53 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("신고 목록에 기본 제품명과 SKU 한글·영문 표시명을 포함한다")
+		fun searchIncludesSkuDisplayNames() {
+			val declaration =
+				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+			MfdsTestData.set(declaration, "baseProductNameKo", "글렌피딕")
+			MfdsTestData.set(declaration, "baseProductNameEn", "Glenfiddich")
+			MfdsTestData.set(declaration, "skuDisplayNameKo", "글렌피딕 12년 700ml")
+			MfdsTestData.set(declaration, "skuDisplayNameEn", "Glenfiddich 12 Years 700ml")
+			declarationRepository.save(declaration)
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v1/mfds/declarations")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data[0].baseProductNameKo").isEqualTo("글렌피딕")
+			assertThat(result).bodyJson()
+				.extractingPath("$.data[0].baseProductNameEn").isEqualTo("Glenfiddich")
+			assertThat(result).bodyJson()
+				.extractingPath("$.data[0].skuDisplayNameKo").isEqualTo("글렌피딕 12년 700ml")
+			assertThat(result).bodyJson()
+				.extractingPath("$.data[0].skuDisplayNameEn").isEqualTo("Glenfiddich 12 Years 700ml")
+		}
+
+		@Test
+		@DisplayName("SKU 표시명이 없으면 신고 목록 JSON에 두 키를 null로 포함한다")
+		fun searchIncludesNullSkuDisplayNames() {
+			mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v1/mfds/declarations")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			val item = mapper.readTree(result.response.contentAsString).path("data").path(0)
+			assertThat(item.has("skuDisplayNameKo")).isTrue()
+			assertThat(item.path("skuDisplayNameKo").isNull).isTrue()
+			assertThat(item.has("skuDisplayNameEn")).isTrue()
+			assertThat(item.path("skuDisplayNameEn").isNull).isTrue()
+		}
+
+		@Test
 		@DisplayName("신고 상세에 연결 수입사 정보를 포함한다")
 		fun detailWithImporter() {
 			val importer = mfdsTestFactory.persistImporter("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE)

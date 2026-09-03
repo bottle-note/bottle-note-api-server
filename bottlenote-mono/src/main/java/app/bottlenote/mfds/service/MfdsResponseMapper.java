@@ -47,6 +47,8 @@ final class MfdsResponseMapper {
         declaration.getRcno(),
         declaration.getBaseProductNameKo(),
         declaration.getBaseProductNameEn(),
+        declaration.getSkuDisplayNameKo(),
+        declaration.getSkuDisplayNameEn(),
         declaration.getVolumeMl(),
         declaration.getAbvPercent(),
         declaration.getNormalizationStatus(),
