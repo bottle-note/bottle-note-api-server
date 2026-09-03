@@ -41,6 +41,19 @@ public class AlcoholQuerySupporter {
 
   private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
 
+  /** 목록과 상세 응답에 노출하는 집계 평점을 소수점 첫째 자리로 반올림한다. */
+  public static NumberExpression<Double> displayedRating() {
+    return rating
+        .ratingPoint
+        .rating
+        .avg()
+        .multiply(10)
+        .castToNum(Double.class)
+        .round()
+        .divide(10)
+        .coalesce(0.0);
+  }
+
   /** 주류에 연결된 테이스팅 태그 목록을 문자열로 조회 */
   public static Expression<String> getTastingTags() {
     return ExpressionUtils.as(
@@ -97,8 +110,8 @@ public class AlcoholQuerySupporter {
         .as("myRating");
   }
 
-  /** 사용자가 주류에 작성한 활성 리뷰 1건의 별점 조회 */
-  public NumberExpression<Double> userReviewRating(Long alcoholId, Long userId) {
+  /** 인증 사용자의 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점. JSON 키는 myAvgRating이다. */
+  public NumberExpression<Double> latestActiveUserReviewRating(Long alcoholId, Long userId) {
     if (userId == null || userId == -1L) {
       return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
     }
@@ -249,8 +262,9 @@ public class AlcoholQuerySupporter {
         .as("myRating");
   }
 
-  /** 사용자가 주류에 작성한 활성 리뷰 1건의 별점 조회 (QueryDSL 경로 버전) */
-  public NumberExpression<Double> userReviewRating(NumberPath<Long> alcoholId, Long userId) {
+  /** 인증 사용자의 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점. JSON 키는 myAvgRating이다. */
+  public NumberExpression<Double> latestActiveUserReviewRating(
+      NumberPath<Long> alcoholId, Long userId) {
     if (userId == null || userId == -1L) {
       return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
     }

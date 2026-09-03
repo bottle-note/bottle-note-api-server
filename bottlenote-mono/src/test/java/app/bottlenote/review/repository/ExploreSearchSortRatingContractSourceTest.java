@@ -108,19 +108,18 @@ class ExploreSearchSortRatingContractSourceTest {
 
     String displayedRating =
         extractMethodBodyBySignature(
-            repository, "private static NumberExpression<Double> displayedRating()");
+            supporter, "public static NumberExpression<Double> displayedRating()");
     String filterRating = extractMethodBody(repository, "filterRating");
     String longUserReviewRating =
-        extractMethodBodyBySignature(supporter, "userReviewRating(Long alcoholId, Long userId)");
-    String pathUserReviewRating =
         extractMethodBodyBySignature(
-            supporter, "userReviewRating(NumberPath<Long> alcoholId, Long userId)");
+            supporter, "latestActiveUserReviewRating(Long alcoholId, Long userId)");
+    String pathUserReviewRating =
+        extractMethodBodyByNthSignature(supporter, "latestActiveUserReviewRating(", 2);
+    String detailItem =
+        read(
+            "bottlenote-mono/src/main/java/app/bottlenote/alcohols/dto/response/AlcoholDetailItem.java");
     String rawRatingSort = extractMethodBody(supporter, "sortBy");
     String rawRatingCursor = extractMethodBody(supporter, "sortScore");
-    String popularDisplayedRating =
-        extractMethodBodyBySignature(
-            popularRepository, "private NumberExpression<Double> displayedRating()");
-
     assertThat(displayedRating)
         .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)")
         .doesNotContain(".multiply(2)", ".divide(2)");
@@ -136,18 +135,26 @@ class ExploreSearchSortRatingContractSourceTest {
               "latestReview.alcoholId.eq(alcoholId)",
               "latestReview.userId.eq(userId)",
               "latestReview.activeStatus.eq(ACTIVE)",
-              ".coalesce(0.0)")
+              ".coalesce(0.0)",
+              ".as(\"myAvgRating\")")
           .doesNotContain(".avg()", ".orderBy(review.id.desc())", ".limit(1)");
     }
-    assertThat(popularDisplayedRating)
-        .contains(".avg()", ".multiply(10)", ".round()", ".divide(10)", ".coalesce(0.0)");
+    assertThat(detailItem)
+        .contains(
+            "@JsonPropertyDescription(\"인증 사용자가 해당 알코올에 남긴 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점, 없으면 0.0\")",
+            "private Double myAvgRating");
+    assertThat(supporter).doesNotContain("userReviewRating(");
     for (String rawRatingExpression : List.of(rawRatingSort, rawRatingCursor)) {
       assertThat(rawRatingExpression)
           .contains("rating.ratingPoint.rating.avg().coalesce(0.0)")
           .doesNotContain("displayedRating()", ".multiply(10)", ".round()", ".divide(10)");
     }
+    assertThat(repository)
+        .contains("displayedRating().as(\"rating\")")
+        .doesNotContain("private static NumberExpression<Double> displayedRating()");
     assertThat(popularRepository)
         .contains("displayedRating(),", ".orderBy(snapshotScore.desc(), alcohol.id.asc())")
+        .doesNotContain("private NumberExpression<Double> displayedRating()")
         .doesNotContain(".orderBy(displayedRating()");
     assertThat(historyRepository)
         .contains(
@@ -167,8 +174,20 @@ class ExploreSearchSortRatingContractSourceTest {
     return extractMethodBodyBySignature(source, " " + methodName + "(");
   }
 
+  private static String extractMethodBodyByNthSignature(
+      String source, String signature, int occurrence) {
+    int nameIndex = -1;
+    for (int count = 0; count < occurrence; count++) {
+      nameIndex = source.indexOf(signature, nameIndex + 1);
+    }
+    return extractMethodBodyFromIndex(source, signature, nameIndex);
+  }
+
   private static String extractMethodBodyBySignature(String source, String signature) {
-    int nameIndex = source.indexOf(signature);
+    return extractMethodBodyFromIndex(source, signature, source.indexOf(signature));
+  }
+
+  private static String extractMethodBodyFromIndex(String source, String signature, int nameIndex) {
     assertThat(nameIndex).as("method not found: " + signature).isGreaterThanOrEqualTo(0);
     int braceStart = source.indexOf('{', nameIndex);
     int depth = 0;

@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.repository;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholPopularitySnapshot.alcoholPopularitySnapshot;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.displayedRating;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 
@@ -140,17 +141,5 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
                 .exists(),
             "isPicked"),
         snapshotScore.doubleValue());
-  }
-
-  private NumberExpression<Double> displayedRating() {
-    return rating
-        .ratingPoint
-        .rating
-        .avg()
-        .multiply(10)
-        .castToNum(Double.class)
-        .round()
-        .divide(10)
-        .coalesce(0.0);
   }
 }

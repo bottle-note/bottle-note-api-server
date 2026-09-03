@@ -33,6 +33,7 @@ public final class AlcoholExploreApiDocs {
 
           ratingFrom/ratingTo는 목록에 표시되는 0.5 단위 반올림 집계 평점의 포함 하한/상한입니다.
           한쪽 경계만 보내면 이상/이하로 조회하며, 둘 다 생략하면 별점 조건을 적용하지 않습니다.
+          myAvgRating은 인증 사용자가 해당 알코올에 남긴 ACTIVE 리뷰 중 최신(id 최대) 1건의 별점이며, 없으면 0.0입니다.
           무작위 정렬의 시드는 HMAC 커서 extra에 담기며, 다음 페이지는 meta.pagination.nextCursor를 그대로 보내면 됩니다.
           탐색 조건은 meta.searchParameters에 담깁니다.
           """,

@@ -5,6 +5,7 @@ import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholPopularitySnapshot.alcoholPopularitySnapshot;
 import static app.bottlenote.alcohols.domain.QDistillery.distillery;
 import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.displayedRating;
 import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
@@ -190,7 +191,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 displayedRating().as("rating"),
                 rating.id.countDistinct(),
                 supporter.myRating(alcoholId, userId),
-                supporter.userReviewRating(alcoholId, userId),
+                supporter.latestActiveUserReviewRating(alcoholId, userId),
                 supporter.isPickedSubquery(alcoholId, userId),
                 review.id.countDistinct(),
                 picks.id.countDistinct(),
@@ -302,7 +303,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     displayedRating().as("rating"),
                     rating.id.countDistinct(),
                     supporter.myRating(alcohol.id, userId),
-                    supporter.userReviewRating(alcohol.id, userId),
+                    supporter.latestActiveUserReviewRating(alcohol.id, userId),
                     supporter.isPickedSubquery(alcohol.id, userId),
                     review.id.countDistinct(),
                     picks.id.countDistinct(),
@@ -570,19 +571,6 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   }
 
   private record ExploreSeekKey(Long id, String sortValue) {}
-
-  /** 목록과 상세 응답에 노출하는 집계 평점을 소수점 첫째 자리로 반올림한다. */
-  private static NumberExpression<Double> displayedRating() {
-    return rating
-        .ratingPoint
-        .rating
-        .avg()
-        .multiply(10)
-        .castToNum(Double.class)
-        .round()
-        .divide(10)
-        .coalesce(0.0);
-  }
 
   /** 기존 별점 범위 필터의 0.5 단위 반올림 계약을 유지한다. */
   private static NumberExpression<Double> filterRating() {
