@@ -1,6 +1,7 @@
 package app.bottlenote.mfds.service;
 
 import app.bottlenote.common.annotation.FacadeService;
+import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.domain.MfdsImporter;
@@ -44,13 +45,16 @@ public class DefaultMfdsFacade implements MfdsFacade {
     Map<Long, MfdsImporter> importersById =
         importerIds.isEmpty()
             ? Map.of()
-            : importerRepository.findAllByIdIn(importerIds).stream()
+            : importerRepository
+                .findAllByIdInAndAdminStatus(importerIds, MfdsImporterAdminStatus.ACTIVE)
+                .stream()
                 .collect(Collectors.toMap(MfdsImporter::getId, Function.identity()));
     return declarations.stream()
         .map(declaration -> toPublicItem(declaration, importersById))
         .toList();
   }
 
+  /** 조회 결과에 없는 수입사(미연결·INACTIVE)는 importer를 비운 채 신고만 노출한다. */
   private MfdsPublicDeclarationItem toPublicItem(
       MfdsDeclaration declaration, Map<Long, MfdsImporter> importersById) {
     MfdsPublicImporterItem importer = null;

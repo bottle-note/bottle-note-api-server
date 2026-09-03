@@ -1,5 +1,6 @@
 package app.bottlenote.mfds.fixture;
 
+import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsImporterSearchCriteria;
@@ -42,7 +43,8 @@ public class InMemoryMfdsImporterRepository implements MfdsImporterRepository {
   }
 
   @Override
-  public List<MfdsImporter> findAllByIdIn(Collection<Long> ids) {
+  public List<MfdsImporter> findAllByIdInAndAdminStatus(
+      Collection<Long> ids, MfdsImporterAdminStatus adminStatus) {
     if (ids == null || ids.isEmpty()) {
       return List.of();
     }
@@ -51,6 +53,7 @@ public class InMemoryMfdsImporterRepository implements MfdsImporterRepository {
         .distinct()
         .map(database::get)
         .filter(Objects::nonNull)
+        .filter(importer -> importer.getAdminStatus() == adminStatus)
         .toList();
   }
 
