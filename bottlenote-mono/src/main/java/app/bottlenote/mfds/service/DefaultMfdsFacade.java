@@ -32,7 +32,7 @@ public class DefaultMfdsFacade implements MfdsFacade {
       return List.of();
     }
     List<MfdsDeclaration> declarations =
-        declarationRepository.findAllBySelectedAlcoholId(alcoholId);
+        declarationRepository.findNormalizedBySelectedAlcoholId(alcoholId, MAX_PUBLIC_DECLARATIONS);
     if (declarations.isEmpty()) {
       return List.of();
     }

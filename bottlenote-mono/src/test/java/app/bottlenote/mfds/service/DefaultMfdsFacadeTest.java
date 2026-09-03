@@ -6,11 +6,13 @@ import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
+import app.bottlenote.mfds.facade.MfdsFacade;
 import app.bottlenote.mfds.facade.payload.MfdsPublicDeclarationItem;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsImporterRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -118,13 +120,7 @@ class DefaultMfdsFacadeTest {
             null));
     declarationRepository.save(
         MfdsTestData.declaration(
-            "RCNO-PARTIAL",
-            MfdsNormalizationStatus.PARTIAL,
-            null,
-            42L,
-            "CANDIDATE",
-            null,
-            null));
+            "RCNO-PARTIAL", MfdsNormalizationStatus.PARTIAL, null, 42L, "CANDIDATE", null, null));
     declarationRepository.save(
         MfdsTestData.declaration(
             "RCNO-STALE", MfdsNormalizationStatus.STALE, null, 42L, "MANUAL", null, null));
@@ -239,5 +235,32 @@ class DefaultMfdsFacadeTest {
         .doesNotContain("홍길동")
         .doesNotContain("서울시 어딘가 1-1")
         .doesNotContain("02-000-0000");
+  }
+
+  @Test
+  @DisplayName("검증 완료 신고가 상한을 넘으면 id 내림차순 최신 20건만 반환한다")
+  void 상한을_넘으면_최신_20건만_반환한다() {
+    for (int index = 1; index <= 25; index++) {
+      declarationRepository.save(
+          MfdsTestData.declaration(
+              String.format("RCNO-%03d", index),
+              MfdsNormalizationStatus.NORMALIZED,
+              null,
+              42L,
+              "MANUAL",
+              null,
+              null));
+    }
+
+    List<MfdsPublicDeclarationItem> result = facade.findVerifiedDeclarationsByAlcoholId(42L);
+
+    assertThat(result).hasSize(MfdsFacade.MAX_PUBLIC_DECLARATIONS);
+    assertThat(result)
+        .extracting(MfdsPublicDeclarationItem::rcno)
+        .startsWith("RCNO-025", "RCNO-024")
+        .endsWith("RCNO-006");
+    assertThat(result)
+        .extracting(MfdsPublicDeclarationItem::id)
+        .isSortedAccordingTo(Comparator.reverseOrder());
   }
 }

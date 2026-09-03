@@ -27,12 +27,14 @@ public interface MfdsDeclarationRepository {
   Optional<MfdsDeclaration> findByRcno(String rcno);
 
   /**
-   * Product 공개용 검증 완료 신고를 id 내림차순으로 조회한다.
+   * Product 공개용 검증 완료 신고를 id 내림차순으로 최대 {@code limit}건 조회한다.
    *
    * <p>조건: selectedAlcoholId 일치 AND normalizationStatus=NORMALIZED. selectedAlcoholId만 있고
    * REVIEW_REQUIRED 등으로 강등된 행은 제외한다.
+   *
+   * <p>한 주류에 신고가 누적되어도 응답 크기와 엔티티 hydration 비용이 늘지 않도록 조회 단계에서 상한을 적용한다. limit은 1 이상이어야 한다.
    */
-  List<MfdsDeclaration> findAllBySelectedAlcoholId(Long alcoholId);
+  List<MfdsDeclaration> findNormalizedBySelectedAlcoholId(Long alcoholId, int limit);
 
   /** 검색 조건에 맞는 신고 데이터를 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */
   List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria);
