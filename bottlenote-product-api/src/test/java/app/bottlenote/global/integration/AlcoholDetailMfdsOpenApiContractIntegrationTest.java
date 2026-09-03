@@ -91,7 +91,8 @@ class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSup
     String description = operation.definition().path("description").asText();
     assertThat(description).contains("MFDS");
     assertThat(description)
-        .as("수입사 노출 정책을 문서에서 읽을 수 있어야 한다")
+        .as("공개 상한과 수입사 노출 정책을 문서에서 읽을 수 있어야 한다")
+        .contains("최신 순 최대 20건")
         .contains("노출에서 제외된 수입사");
 
     JsonNode successSchema = resolve(spec, operation.successSchema());

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,9 +82,34 @@ class InMemoryMfdsDeclarationRepositoryTest {
         MfdsTestData.declaration(
             "RCNO-006", MfdsNormalizationStatus.PARTIAL, null, 77L, "CANDIDATE", null, null));
 
-    List<MfdsDeclaration> result = repository.findAllBySelectedAlcoholId(77L);
+    List<MfdsDeclaration> result = repository.findNormalizedBySelectedAlcoholId(77L, 20);
 
     assertThat(result).extracting(MfdsDeclaration::getRcno).containsExactly("RCNO-002", "RCNO-001");
+  }
+
+  @Test
+  @DisplayName("공개 조회 상한을 넘는 신고가 쌓여 있어도 id 내림차순 상위 limit건만 반환한다")
+  void 공개_조회는_상한까지만_반환한다() {
+    for (int index = 1; index <= 25; index++) {
+      repository.save(
+          MfdsTestData.declaration(
+              String.format("RCNO-%03d", index),
+              MfdsNormalizationStatus.NORMALIZED,
+              null,
+              77L,
+              "MANUAL",
+              null,
+              null));
+    }
+
+    List<MfdsDeclaration> result = repository.findNormalizedBySelectedAlcoholId(77L, 20);
+
+    assertThat(result).hasSize(20);
+    assertThat(result).extracting(MfdsDeclaration::getRcno).startsWith("RCNO-025", "RCNO-024");
+    assertThat(result).extracting(MfdsDeclaration::getRcno).endsWith("RCNO-006");
+    assertThat(result)
+        .extracting(MfdsDeclaration::getId)
+        .isSortedAccordingTo(Comparator.reverseOrder());
   }
 
   @Test
@@ -102,7 +128,7 @@ class InMemoryMfdsDeclarationRepositoryTest {
         MfdsTestData.declaration(
             "RCNO-STALE", MfdsNormalizationStatus.STALE, null, 77L, "MANUAL", null, null));
 
-    assertThat(repository.findAllBySelectedAlcoholId(77L)).isEmpty();
+    assertThat(repository.findNormalizedBySelectedAlcoholId(77L, 20)).isEmpty();
   }
 
   @Test
