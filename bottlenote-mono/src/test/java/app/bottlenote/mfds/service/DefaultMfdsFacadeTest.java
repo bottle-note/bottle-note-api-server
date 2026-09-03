@@ -192,4 +192,52 @@ class DefaultMfdsFacadeTest {
     assertThat(result.get(1).importer().businessName()).isEqualTo("수입사B");
     assertThat(result.get(2).importer().businessName()).isEqualTo("수입사A");
   }
+
+  @Test
+  @DisplayName("노출에서 제외된 INACTIVE 수입사에 연결된 신고는 목록에 남기고 importer만 비운다")
+  void INACTIVE_수입사는_importer를_비운다() {
+    MfdsImporter inactive =
+        importerRepository.save(
+            MfdsTestData.importer("BIZ-OFF", "폐업상사", MfdsImporterAdminStatus.INACTIVE));
+    MfdsTestData.set(inactive, "representativeName", "홍길동");
+    MfdsTestData.set(inactive, "primaryAddress", "서울시 어딘가 1-1");
+    MfdsTestData.set(inactive, "telephoneNo", "02-000-0000");
+    MfdsImporter active =
+        importerRepository.save(
+            MfdsTestData.importer("BIZ-ON", "정상상사", MfdsImporterAdminStatus.ACTIVE));
+
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-INACTIVE",
+            MfdsNormalizationStatus.NORMALIZED,
+            inactive.getId(),
+            42L,
+            "MANUAL",
+            null,
+            null));
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-ACTIVE",
+            MfdsNormalizationStatus.NORMALIZED,
+            active.getId(),
+            42L,
+            "MANUAL",
+            null,
+            null));
+
+    List<MfdsPublicDeclarationItem> result = facade.findVerifiedDeclarationsByAlcoholId(42L);
+
+    assertThat(result)
+        .extracting(MfdsPublicDeclarationItem::rcno)
+        .containsExactly("RCNO-ACTIVE", "RCNO-INACTIVE");
+    assertThat(result.get(0).importer().businessName()).isEqualTo("정상상사");
+
+    MfdsPublicDeclarationItem hiddenImporterItem = result.get(1);
+    assertThat(hiddenImporterItem.importer()).isNull();
+    assertThat(hiddenImporterItem.toString())
+        .doesNotContain("폐업상사")
+        .doesNotContain("홍길동")
+        .doesNotContain("서울시 어딘가 1-1")
+        .doesNotContain("02-000-0000");
+  }
 }

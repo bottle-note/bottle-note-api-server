@@ -51,6 +51,30 @@ class InMemoryMfdsImporterRepositoryTest {
   }
 
   @Test
+  @DisplayName("식별자와 관리 상태로 일괄 조회할 때 해당 상태의 수입사만 반환한다")
+  void 식별자와_관리_상태로_일괄_조회할_수_있다() {
+    MfdsImporter active =
+        repository.save(MfdsTestData.importer("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE));
+    MfdsImporter inactive =
+        repository.save(MfdsTestData.importer("BIZ-002", "노트무역", MfdsImporterAdminStatus.INACTIVE));
+
+    List<MfdsImporter> result =
+        repository.findAllByIdInAndAdminStatus(
+            List.of(active.getId(), inactive.getId()), MfdsImporterAdminStatus.ACTIVE);
+
+    assertThat(result).containsExactly(active);
+  }
+
+  @Test
+  @DisplayName("식별자 목록이 비어 있으면 일괄 조회는 빈 결과를 반환한다")
+  void 빈_식별자_목록은_빈_결과를_반환한다() {
+    repository.save(MfdsTestData.importer("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE));
+
+    assertThat(repository.findAllByIdInAndAdminStatus(List.of(), MfdsImporterAdminStatus.ACTIVE))
+        .isEmpty();
+  }
+
+  @Test
   @DisplayName("키워드로 검색할 때 수입사명·인허가 번호·업소 코드를 부분 일치로 조회한다")
   void 키워드로_검색할_수_있다() {
     MfdsImporter nameMatch =
