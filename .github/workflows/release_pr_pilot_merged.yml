@@ -1,7 +1,9 @@
 name: release PR deployment
 
+# 표준 릴리즈 전용 게이트. pull_request_target 은 항상 default 브랜치의 워크플로 파일로 실행되므로,
+# 릴리즈 브랜치가 들고 온 구 스냅샷이 나란히 실행되는 경로가 생기지 않는다.
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
     branches:
       - 'releases/**'
@@ -12,7 +14,7 @@ permissions:
   actions: read
 
 jobs:
-  verify-merged-empty-release-pr:
+  verify-merged-release-pr:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -228,17 +230,17 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy-release-applications:
-    needs: verify-merged-empty-release-pr
+    needs: verify-merged-release-pr
     uses: ./.github/workflows/deploy_release_applications.yml
     with:
-      source_sha: ${{ needs.verify-merged-empty-release-pr.outputs.source-sha }}
-      release_key: ${{ needs.verify-merged-empty-release-pr.outputs.release-key }}
-      deployment_mode: ${{ needs.verify-merged-empty-release-pr.outputs.deployment-mode }}
+      source_sha: ${{ needs.verify-merged-release-pr.outputs.source-sha }}
+      release_key: ${{ needs.verify-merged-release-pr.outputs.release-key }}
+      deployment_mode: ${{ needs.verify-merged-release-pr.outputs.deployment-mode }}
     secrets: inherit
 
   delete-release-branch:
     needs:
-      - verify-merged-empty-release-pr
+      - verify-merged-release-pr
       - deploy-release-applications
     runs-on: ubuntu-latest
     steps:
@@ -246,7 +248,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-          RELEASE_BRANCH: ${{ needs.verify-merged-empty-release-pr.outputs.release-branch }}
+          RELEASE_BRANCH: ${{ needs.verify-merged-release-pr.outputs.release-branch }}
         run: |
           set -euo pipefail
           encoded_branch="$(RELEASE_BRANCH="$RELEASE_BRANCH" python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["RELEASE_BRANCH"], safe=""))')"
