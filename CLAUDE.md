@@ -81,9 +81,14 @@ git submodule update --init --recursive
 
 | 대상 | 워크플로 | 트리거 |
 |------|---------|--------|
-| product-api / admin-api (운영) | `deploy_release_applications.yml` | `backend/vX.Y.Z` 릴리스 published |
+| product-api / admin-api (운영) | `release_pr_pilot_create.yml` → `release_pr_pilot_merged.yml` → `deploy_release_applications.yml` | Release PR 생성 후 병합 (표준 경로) |
+| product-api / admin-api (운영, 레거시) | `deploy_release_applications.yml` | `backend/vX.Y.Z` 릴리스 published (호환 경로, 표준 아님) |
 | product-api / admin-api (개발) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
 | batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
+
+**`releases/**` 브랜치를 수동으로 만들지 않는다.** `release_pr_pilot_create.yml`만 만든다. 릴리즈 브랜치는 그 시점 소스의 `.github/workflows` 사본을 그대로 들고 오므로, 손으로 만들면 낡은 워크플로 스냅샷이 운영 경로에 다시 들어온다 (2026-08-31 admin-dashboard 사고 원인).
+
+이미지 공개는 `immutable 태그 push → cosign 서명 → 검증 → 채널 태그 승격 → 재검증` 순서를 강제하며, 승격 이전 어느 단계가 실패해도 `*_latest_production`은 이전 digest를 유지한다. 상세 계약은 `k8s-platform`의 `docs/BottleNote 배포 운영 가이드.md` 5.3절이다.
 
 ```bash
 # batch 배포 — version은 정확한 X.Y.Z, production은 main에서만 허용
