@@ -110,7 +110,7 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: bottlenote-product-api
           image-tag: ${{ needs.prepare-build.outputs.product-image-tag }}
-          additional-tags: product_latest_development
+          promote-tags: product_latest_development
           dockerfile: Dockerfile
           context: .
           platforms: linux/arm64
@@ -151,7 +151,7 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: bottlenote-admin-api
           image-tag: ${{ needs.prepare-build.outputs.admin-image-tag }}
-          additional-tags: admin_latest_development
+          promote-tags: admin_latest_development
           dockerfile: Dockerfile-admin
           context: .
           platforms: linux/arm64

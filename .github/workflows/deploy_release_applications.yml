@@ -256,7 +256,7 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: ${{ env.PRODUCT_IMAGE_NAME }}
           image-tag: ${{ needs.release-gate.outputs.product-image-tag }}
-          additional-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'product_latest_production' || '' }}
+          promote-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'product_latest_production' || '' }}
           dockerfile: Dockerfile
           context: .
           platforms: linux/arm64
@@ -306,7 +306,7 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: ${{ env.ADMIN_IMAGE_NAME }}
           image-tag: ${{ needs.release-gate.outputs.admin-image-tag }}
-          additional-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'admin_latest_production' || '' }}
+          promote-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'admin_latest_production' || '' }}
           dockerfile: Dockerfile-admin
           context: .
           platforms: linux/arm64
