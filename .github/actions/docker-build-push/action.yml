@@ -1,5 +1,5 @@
 name: 'Docker Build and Push'
-description: 'Docker 이미지를 빌드하고 Private Registry에 푸시하는 Composite Action'
+description: 'Docker 이미지를 immutable 태그로 빌드·푸시하고, 서명·검증을 통과한 digest 만 채널 태그로 승격하는 Composite Action'
 
 inputs:
   registry-url:
@@ -27,15 +27,28 @@ inputs:
     required: false
     default: 'linux/arm64'
   image-tag:
-    description: '메인 이미지 태그'
+    description: '빌드 시 push 하는 immutable 이미지 태그 (정확히 1개)'
     required: true
-  additional-tags:
-    description: '추가 태그들 (쉼표로 구분)'
+  promote-tags:
+    description: '서명·검증을 통과한 digest 에 부착할 채널 태그들 (쉼표로 구분). 빌드 시 push 하지 않고 검증 후 승격한다'
     required: false
     default: ''
+  source-sha:
+    description: '이미지에 기록할 소스 커밋 SHA (GIT_COMMIT build-arg)'
+    required: false
+    default: ${{ github.sha }}
+  source-ref:
+    description: '이미지에 기록할 소스 ref (GIT_BRANCH build-arg)'
+    required: false
+    default: ${{ github.ref_name }}
   cache-scope:
-    description: 'GHA 캐시 scope'
-    required: true
+    description: 'GHA 캐시 scope (이 레포는 registry 캐시를 쓰므로 사용하지 않는다)'
+    required: false
+    default: ''
+  cache-export:
+    description: '빌드 캐시 export 여부. 승격 이후에만 실행되고 실패해도 action 을 실패시키지 않는다'
+    required: false
+    default: 'true'
   build-args:
     description: '추가 Docker build arguments'
     required: false
@@ -72,6 +85,10 @@ inputs:
     description: 'cosign 비밀키 파일 경로'
     required: false
     default: ''
+  cosign-public-key-path:
+    description: 'cosign 공개키 파일 경로. 비어 있으면 비밀키에서 파생한다'
+    required: false
+    default: ''
   cosign-password:
     description: 'cosign 키 패스워드'
     required: false
@@ -82,11 +99,20 @@ outputs:
     description: '푸시된 이미지의 digest'
     value: ${{ steps.build-push.outputs.digest }}
   image-uri:
-    description: '푸시된 이미지의 전체 URI'
+    description: '푸시된 immutable 이미지의 전체 URI'
     value: ${{ steps.tags.outputs.primary }}
   image-tags:
-    description: '생성된 전체 이미지 태그 목록'
+    description: 'immutable 태그와 승격된 채널 태그의 전체 URI 목록'
     value: ${{ steps.tags.outputs.tags }}
+  promoted-tags:
+    description: '승격이 완료된 채널 태그들 (쉼표로 구분)'
+    value: ${{ steps.promote.outputs.promoted-tags }}
+  previous-digest:
+    description: '승격 직전 첫 채널 태그가 가리키던 digest (없으면 none). 롤백 기준값'
+    value: ${{ steps.previous.outputs.previous-digest }}
+  promotion-verified:
+    description: '승격된 채널 태그의 digest 동등성과 서명 검증 결과'
+    value: ${{ steps.verify-promoted.outputs.promotion-verified }}
 
 runs:
   using: 'composite'
@@ -104,29 +130,65 @@ runs:
     - name: Generate build timestamp
       id: build-time
       shell: bash
-      run: echo "time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+      run: echo "time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
 
     - name: Prepare image tags
       id: tags
       shell: bash
+      env:
+        REGISTRY: ${{ inputs.registry-url }}
+        IMAGE: ${{ inputs.image-name }}
+        MAIN_TAG: ${{ inputs.image-tag }}
+        PROMOTE_TAGS: ${{ inputs.promote-tags }}
       run: |
-        REGISTRY="${{ inputs.registry-url }}"
-        IMAGE="${{ inputs.image-name }}"
-        MAIN_TAG="${{ inputs.image-tag }}"
-        PRIMARY="${REGISTRY}/${IMAGE}:${MAIN_TAG}"
-        echo "primary=${PRIMARY}" >> $GITHUB_OUTPUT
-        TAGS="${PRIMARY}"
-        if [ -n "${{ inputs.additional-tags }}" ]; then
-          IFS=',' read -ra EXTRA_TAGS <<< "${{ inputs.additional-tags }}"
-          for tag in "${EXTRA_TAGS[@]}"; do
-            tag=$(echo "$tag" | xargs)
-            TAGS="${TAGS}
-        ${REGISTRY}/${IMAGE}:${tag}"
-          done
-        fi
-        echo "tags<<EOF" >> $GITHUB_OUTPUT
-        echo "$TAGS" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        set -euo pipefail
+        tag_pattern='^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$'
+        [[ "$MAIN_TAG" =~ $tag_pattern ]] || {
+          echo "::error::image-tag is not a valid image tag: ${MAIN_TAG}"
+          exit 1
+        }
+        primary="${REGISTRY}/${IMAGE}:${MAIN_TAG}"
+        tags="$primary"
+        promote_list=""
+        promote_count=0
+        IFS=',' read -ra raw_tags <<< "$PROMOTE_TAGS"
+        for tag in "${raw_tags[@]}"; do
+          tag="$(echo "$tag" | xargs)"
+          [[ -n "$tag" ]] || continue
+          [[ "$tag" =~ $tag_pattern ]] || {
+            echo "::error::promote-tags contains an invalid image tag: ${tag}"
+            exit 1
+          }
+          [[ "$tag" != "$MAIN_TAG" ]] || {
+            echo "::error::promote-tags must not repeat the immutable image-tag: ${tag}"
+            exit 1
+          }
+          promote_list+="${tag}"$'\n'
+          tags+=$'\n'"${REGISTRY}/${IMAGE}:${tag}"
+          promote_count=$((promote_count + 1))
+        done
+        {
+          echo "primary=${primary}"
+          echo "promote-count=${promote_count}"
+          echo "promote-list<<EOF"
+          printf '%s' "$promote_list"
+          echo "EOF"
+          echo "tags<<EOF"
+          echo "$tags"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Prepare build cache references
+      id: cache
+      shell: bash
+      env:
+        CACHE_REF: ${{ inputs.registry-url }}/${{ inputs.image-name }}:cache
+      run: |
+        set -euo pipefail
+        {
+          echo "from=type=registry,ref=${CACHE_REF}"
+          echo "to=type=registry,ref=${CACHE_REF},mode=max"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Docker metadata
       id: meta
@@ -142,6 +204,7 @@ runs:
           org.opencontainers.image.authors=${{ inputs.image-authors }}
           org.opencontainers.image.licenses=${{ inputs.image-licenses }}
           org.opencontainers.image.documentation=${{ inputs.image-documentation }}
+          org.opencontainers.image.revision=${{ inputs.source-sha }}
         annotations: |
           org.opencontainers.image.title=${{ inputs.image-title || inputs.image-name }}
           org.opencontainers.image.description=${{ inputs.image-description }}
@@ -149,10 +212,13 @@ runs:
           org.opencontainers.image.authors=${{ inputs.image-authors }}
           org.opencontainers.image.licenses=${{ inputs.image-licenses }}
           org.opencontainers.image.documentation=${{ inputs.image-documentation }}
+          org.opencontainers.image.revision=${{ inputs.source-sha }}
       env:
         DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
-    - name: Build and push Docker image
+    # immutable 태그 1개만 push 한다. 채널 태그는 서명·검증 이후 승격 단계에서만 부착되고,
+    # 캐시 export 는 별도 단계로 분리해 export 실패가 push 결과에 섞이지 않게 한다.
+    - name: build and push immutable image
       id: build-push
       uses: docker/build-push-action@v7
       with:
@@ -160,16 +226,35 @@ runs:
         file: ${{ inputs.dockerfile }}
         platforms: ${{ inputs.platforms }}
         push: true
-        tags: ${{ steps.tags.outputs.tags }}
+        tags: ${{ steps.tags.outputs.primary }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}
         build-args: |
-          GIT_COMMIT=${{ github.sha }}
-          GIT_BRANCH=${{ github.ref_name }}
+          GIT_COMMIT=${{ inputs.source-sha }}
+          GIT_BRANCH=${{ inputs.source-ref }}
           BUILD_TIME=${{ steps.build-time.outputs.time }}
           ${{ inputs.build-args }}
-        cache-from: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name }}:cache
-        cache-to: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name }}:cache,mode=max
+        cache-from: ${{ steps.cache.outputs.from }}
+
+    - name: inspect pushed digest
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.registry-url }}/${{ inputs.image-name }}
+        DIGEST: ${{ steps.build-push.outputs.digest }}
+        PRIMARY_REF: ${{ steps.tags.outputs.primary }}
+      run: |
+        set -euo pipefail
+        [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || {
+          echo "::error::build did not report a valid image digest: ${DIGEST}"
+          exit 1
+        }
+        docker buildx imagetools inspect "${IMAGE}@${DIGEST}" >/dev/null
+        pushed_digest="$(docker buildx imagetools inspect "$PRIMARY_REF" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+        [[ "$pushed_digest" == "$DIGEST" ]] || {
+          echo "::error::immutable tag ${PRIMARY_REF} points to ${pushed_digest}, expected ${DIGEST}"
+          exit 1
+        }
+        echo "pushed ${PRIMARY_REF} -> ${DIGEST}"
 
     - name: Install Cosign
       if: inputs.sign-image == 'true'
@@ -177,12 +262,145 @@ runs:
       with:
         cosign-release: 'v2.2.4'
 
-    - name: Sign Image with Cosign
+    - name: sign image with cosign
       if: inputs.sign-image == 'true'
       shell: bash
       env:
         COSIGN_PASSWORD: ${{ inputs.cosign-password }}
+        COSIGN_KEY: ${{ github.workspace }}/${{ inputs.cosign-key-path }}
+        IMAGE: ${{ inputs.registry-url }}/${{ inputs.image-name }}
+        DIGEST: ${{ steps.build-push.outputs.digest }}
       run: |
-        cosign sign --key "${{ github.workspace }}/${{ inputs.cosign-key-path }}" \
+        set -euo pipefail
+        cosign sign --key "$COSIGN_KEY" \
           --tlog-upload=false \
-          "${{ inputs.registry-url }}/${{ inputs.image-name }}@${{ steps.build-push.outputs.digest }}"
+          "${IMAGE}@${DIGEST}"
+
+    - name: verify image signature
+      if: inputs.sign-image == 'true'
+      shell: bash
+      env:
+        COSIGN_PASSWORD: ${{ inputs.cosign-password }}
+        COSIGN_KEY: ${{ github.workspace }}/${{ inputs.cosign-key-path }}
+        COSIGN_PUBLIC_KEY_PATH: ${{ inputs.cosign-public-key-path }}
+        IMAGE: ${{ inputs.registry-url }}/${{ inputs.image-name }}
+        DIGEST: ${{ steps.build-push.outputs.digest }}
+      run: |
+        set -euo pipefail
+        # 서명은 tlog 없이 했으므로 검증도 tlog 를 무시해야 한다 (cosign 2.x)
+        if [[ -n "$COSIGN_PUBLIC_KEY_PATH" ]]; then
+          pub="${GITHUB_WORKSPACE}/${COSIGN_PUBLIC_KEY_PATH}"
+          [[ -f "$pub" ]] || {
+            echo "::error::cosign public key not found: ${pub}"
+            exit 1
+          }
+        else
+          pub="${RUNNER_TEMP}/cosign.pub"
+          cosign public-key --key "$COSIGN_KEY" > "$pub"
+        fi
+        cosign verify --key "$pub" --insecure-ignore-tlog=true \
+          --output text \
+          "${IMAGE}@${DIGEST}"
+
+    - name: record previous channel digests
+      id: previous
+      if: steps.tags.outputs.promote-count != '0'
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.registry-url }}/${{ inputs.image-name }}
+        PROMOTE_TAG_LIST: ${{ steps.tags.outputs.promote-list }}
+      run: |
+        set -euo pipefail
+        first_previous=""
+        while IFS= read -r tag; do
+          [[ -n "$tag" ]] || continue
+          previous="$(docker buildx imagetools inspect "${IMAGE}:${tag}" --format '{{json .Manifest.Digest}}' 2>/dev/null | tr -d '"' || true)"
+          [[ -n "$previous" ]] || previous="none"
+          [[ -n "$first_previous" ]] || first_previous="$previous"
+          echo "previous ${IMAGE}:${tag} -> ${previous}"
+        done <<< "$PROMOTE_TAG_LIST"
+        echo "previous-digest=${first_previous}" >> "$GITHUB_OUTPUT"
+
+    # 재빌드 없이 검증된 digest 에 채널 태그만 부착한다. digest 가 달라지면 즉시 실패한다 (불변조건 I3).
+    - name: promote verified digest to channel tags
+      id: promote
+      if: steps.tags.outputs.promote-count != '0'
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.registry-url }}/${{ inputs.image-name }}
+        DIGEST: ${{ steps.build-push.outputs.digest }}
+        PROMOTE_TAG_LIST: ${{ steps.tags.outputs.promote-list }}
+      run: |
+        set -euo pipefail
+        promoted=""
+        while IFS= read -r tag; do
+          [[ -n "$tag" ]] || continue
+          docker buildx imagetools create --tag "${IMAGE}:${tag}" "${IMAGE}@${DIGEST}"
+          promoted_digest="$(docker buildx imagetools inspect "${IMAGE}:${tag}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          [[ "$promoted_digest" == "$DIGEST" ]] || {
+            echo "::error::promoted tag ${tag} points to ${promoted_digest}, expected ${DIGEST}"
+            exit 1
+          }
+          promoted+="${promoted:+,}${tag}"
+          echo "promoted ${IMAGE}:${tag} -> ${DIGEST}"
+        done <<< "$PROMOTE_TAG_LIST"
+        echo "promoted-tags=${promoted}" >> "$GITHUB_OUTPUT"
+
+    - name: verify promoted tags
+      id: verify-promoted
+      if: steps.tags.outputs.promote-count != '0'
+      shell: bash
+      env:
+        SIGN_IMAGE: ${{ inputs.sign-image }}
+        COSIGN_PASSWORD: ${{ inputs.cosign-password }}
+        COSIGN_KEY: ${{ github.workspace }}/${{ inputs.cosign-key-path }}
+        COSIGN_PUBLIC_KEY_PATH: ${{ inputs.cosign-public-key-path }}
+        IMAGE: ${{ inputs.registry-url }}/${{ inputs.image-name }}
+        DIGEST: ${{ steps.build-push.outputs.digest }}
+        PROMOTE_TAG_LIST: ${{ steps.tags.outputs.promote-list }}
+      run: |
+        set -euo pipefail
+        pub=""
+        if [[ "$SIGN_IMAGE" == "true" ]]; then
+          if [[ -n "$COSIGN_PUBLIC_KEY_PATH" ]]; then
+            pub="${GITHUB_WORKSPACE}/${COSIGN_PUBLIC_KEY_PATH}"
+          else
+            pub="${RUNNER_TEMP}/cosign.pub"
+            cosign public-key --key "$COSIGN_KEY" > "$pub"
+          fi
+        fi
+        while IFS= read -r tag; do
+          [[ -n "$tag" ]] || continue
+          promoted_digest="$(docker buildx imagetools inspect "${IMAGE}:${tag}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          [[ "$promoted_digest" == "$DIGEST" ]] || {
+            echo "::error::promoted tag ${tag} points to ${promoted_digest}, expected ${DIGEST}"
+            exit 1
+          }
+          if [[ -n "$pub" ]]; then
+            cosign verify --key "$pub" --insecure-ignore-tlog=true \
+              --output text \
+              "${IMAGE}:${tag}"
+          fi
+          echo "verified ${IMAGE}:${tag} -> ${DIGEST}"
+        done <<< "$PROMOTE_TAG_LIST"
+        echo "promotion-verified=true" >> "$GITHUB_OUTPUT"
+
+    # 승격 이후에만 실행한다. 같은 builder 의 로컬 캐시를 재사용하므로 재빌드 없이 export 만 수행하며,
+    # 실패해도 이미 승격된 결과에는 영향을 주지 않는다 (불변조건 I4).
+    - name: export build cache
+      if: inputs.cache-export == 'true'
+      continue-on-error: true
+      uses: docker/build-push-action@v7
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        platforms: ${{ inputs.platforms }}
+        push: false
+        outputs: type=cacheonly
+        build-args: |
+          GIT_COMMIT=${{ inputs.source-sha }}
+          GIT_BRANCH=${{ inputs.source-ref }}
+          BUILD_TIME=${{ steps.build-time.outputs.time }}
+          ${{ inputs.build-args }}
+        cache-from: ${{ steps.cache.outputs.from }}
+        cache-to: ${{ steps.cache.outputs.to }}

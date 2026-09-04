@@ -110,17 +110,21 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: bottlenote-product-api
           image-tag: ${{ needs.prepare-build.outputs.product-image-tag }}
-          additional-tags: product_latest_development
+          promote-tags: product_latest_development
+          source-sha: ${{ needs.prepare-build.outputs.source-sha }}
+          source-ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}
           dockerfile: Dockerfile
           context: .
           platforms: linux/arm64
           cache-scope: product-development
+          cache-export: 'true'
           image-title: "BottleNote Product API"
           image-description: "BottleNote Product API Server (Development)"
           image-vendor: "BottleNote"
           image-authors: "BottleNote Team"
           sign-image: 'true'
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-public-key-path: 'git.environment-variables/storage/docker-registry/cosign.pub'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
   build-admin-image:
@@ -151,17 +155,21 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: bottlenote-admin-api
           image-tag: ${{ needs.prepare-build.outputs.admin-image-tag }}
-          additional-tags: admin_latest_development
+          promote-tags: admin_latest_development
+          source-sha: ${{ needs.prepare-build.outputs.source-sha }}
+          source-ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}
           dockerfile: Dockerfile-admin
           context: .
           platforms: linux/arm64
           cache-scope: admin-development
+          cache-export: 'true'
           image-title: "BottleNote Admin API"
           image-description: "BottleNote Admin API Server (Development)"
           image-vendor: "BottleNote"
           image-authors: "BottleNote Team"
           sign-image: 'true'
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-public-key-path: 'git.environment-variables/storage/docker-registry/cosign.pub'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
   image-updater-handoff:

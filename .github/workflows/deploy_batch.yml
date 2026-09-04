@@ -195,12 +195,14 @@ jobs:
           context: .
           platforms: linux/arm64
           cache-scope: batch-${{ inputs.environment }}
+          cache-export: ${{ inputs.environment == 'production' && 'false' || 'true' }}
           image-title: BottleNote Batch
           image-description: BottleNote Batch Server
           image-vendor: BottleNote
           image-authors: BottleNote Team
           sign-image: 'true'
           cosign-key-path: git.environment-variables/storage/docker-registry/cosign.key
+          cosign-public-key-path: git.environment-variables/storage/docker-registry/cosign.pub
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
   update-gitops:

@@ -42,6 +42,7 @@ jobs:
       image-tag: ${{ steps.release.outputs.image-tag }}
       tag-sha: ${{ steps.release.outputs.tag-sha }}
       source-sha: ${{ steps.release.outputs.source-sha }}
+      source-ref: ${{ steps.release.outputs.source-ref }}
       deployment-mode: ${{ steps.release.outputs.deployment-mode }}
       product-image-tag: ${{ steps.release.outputs.product-image-tag }}
       admin-image-tag: ${{ steps.release.outputs.admin-image-tag }}
@@ -73,6 +74,7 @@ jobs:
             admin_image_tag="backend_${version}"
             deployment_mode="both"
             deployment_source="github-release"
+            source_ref="$RELEASE_TAG"
 
             git fetch --tags origin
             git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null || { echo "::error::release tag not found: $RELEASE_TAG"; exit 1; }
@@ -120,6 +122,7 @@ jobs:
             release_key="$RELEASE_KEY_INPUT"
             deployment_mode="$DEPLOYMENT_MODE_INPUT"
             deployment_source="release-pr"
+            source_ref="main"
             git cat-file -e "${source_sha}^{commit}" || { echo "::error::source_sha is not available as a commit"; exit 1; }
             git merge-base --is-ancestor "$source_sha" origin/main || { echo "::error::source_sha is not contained in origin/main: $source_sha"; exit 1; }
 
@@ -137,6 +140,7 @@ jobs:
             echo "image-tag=$product_image_tag"
             echo "tag-sha=$source_sha"
             echo "source-sha=$source_sha"
+            echo "source-ref=$source_ref"
             echo "deployment-mode=$deployment_mode"
             echo "product-image-tag=$product_image_tag"
             echo "admin-image-tag=$admin_image_tag"
@@ -152,6 +156,7 @@ jobs:
             echo "- Product image tag: \`${product_image_tag}\`"
             echo "- Admin image tag: \`${admin_image_tag}\`"
             echo "- Source commit: \`${source_sha}\`"
+            echo "- Source ref: \`${source_ref}\`"
             echo "- Main ancestry: \`passed\`"
             echo "- Release metadata/changelog: \`${release_metadata}\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -228,6 +233,8 @@ jobs:
     runs-on: ubuntu-24.04-arm
     outputs:
       image-digest: ${{ steps.build.outputs.image-digest }}
+      promoted-tags: ${{ steps.build.outputs.promoted-tags }}
+      previous-digest: ${{ steps.build.outputs.previous-digest }}
     steps:
       - name: checkout release source with submodules
         uses: actions/checkout@v7
@@ -256,17 +263,21 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: ${{ env.PRODUCT_IMAGE_NAME }}
           image-tag: ${{ needs.release-gate.outputs.product-image-tag }}
-          additional-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'product_latest_production' || '' }}
+          promote-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'product_latest_production' || '' }}
+          source-sha: ${{ needs.release-gate.outputs.source-sha }}
+          source-ref: ${{ needs.release-gate.outputs.source-ref }}
           dockerfile: Dockerfile
           context: .
           platforms: linux/arm64
           cache-scope: product-production
+          cache-export: 'false'
           image-title: "BottleNote Product API"
           image-description: "BottleNote Product API Server"
           image-vendor: "BottleNote"
           image-authors: "BottleNote Team"
           sign-image: 'true'
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-public-key-path: 'git.environment-variables/storage/docker-registry/cosign.pub'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
   build-admin-image:
@@ -278,6 +289,8 @@ jobs:
     runs-on: ubuntu-24.04-arm
     outputs:
       image-digest: ${{ steps.build.outputs.image-digest }}
+      promoted-tags: ${{ steps.build.outputs.promoted-tags }}
+      previous-digest: ${{ steps.build.outputs.previous-digest }}
     steps:
       - name: checkout release source with submodules
         uses: actions/checkout@v7
@@ -306,17 +319,21 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: ${{ env.ADMIN_IMAGE_NAME }}
           image-tag: ${{ needs.release-gate.outputs.admin-image-tag }}
-          additional-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'admin_latest_production' || '' }}
+          promote-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'admin_latest_production' || '' }}
+          source-sha: ${{ needs.release-gate.outputs.source-sha }}
+          source-ref: ${{ needs.release-gate.outputs.source-ref }}
           dockerfile: Dockerfile-admin
           context: .
           platforms: linux/arm64
           cache-scope: admin-production
+          cache-export: 'false'
           image-title: "BottleNote Admin API"
           image-description: "BottleNote Admin API Server"
           image-vendor: "BottleNote"
           image-authors: "BottleNote Team"
           sign-image: 'true'
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-public-key-path: 'git.environment-variables/storage/docker-registry/cosign.pub'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
   update-production:
@@ -391,26 +408,88 @@ jobs:
       - build-product-image
       - build-admin-image
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PRODUCT_CHANNEL_TAG: product_latest_production
+      ADMIN_CHANNEL_TAG: admin_latest_production
     steps:
-      - name: summarize image updater handoff
+      - name: login to private registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ secrets.REGISTRY_ADDRESS }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # 승격된 채널 태그가 build job 이 서명·검증한 digest 를 가리키는지 두 이미지 모두 독립적으로 재확인한다.
+      - name: verify promoted channel digests
         env:
+          REGISTRY: ${{ secrets.REGISTRY_ADDRESS }}
+          PRODUCT_IMAGE_NAME: ${{ env.PRODUCT_IMAGE_NAME }}
+          ADMIN_IMAGE_NAME: ${{ env.ADMIN_IMAGE_NAME }}
           DEPLOYMENT_MODE: ${{ needs.release-gate.outputs.deployment-mode }}
+          VERSION: ${{ needs.release-gate.outputs.version }}
+          SOURCE_SHA: ${{ needs.release-gate.outputs.source-sha }}
           PRODUCT_IMAGE_TAG: ${{ needs.release-gate.outputs.product-image-tag }}
           PRODUCT_IMAGE_DIGEST: ${{ needs.build-product-image.outputs.image-digest }}
+          PRODUCT_PROMOTED_TAGS: ${{ needs.build-product-image.outputs.promoted-tags }}
+          PRODUCT_PREVIOUS_DIGEST: ${{ needs.build-product-image.outputs.previous-digest }}
           ADMIN_IMAGE_TAG: ${{ needs.release-gate.outputs.admin-image-tag }}
           ADMIN_IMAGE_DIGEST: ${{ needs.build-admin-image.outputs.image-digest }}
+          ADMIN_PROMOTED_TAGS: ${{ needs.build-admin-image.outputs.promoted-tags }}
+          ADMIN_PREVIOUS_DIGEST: ${{ needs.build-admin-image.outputs.previous-digest }}
         run: |
+          set -euo pipefail
+
+          verify_channel() {
+            local label="$1" image_name="$2" channel_tag="$3" expected_digest="$4" promoted_tags="$5"
+            local image="${REGISTRY}/${image_name}"
+
+            [[ "$expected_digest" =~ ^sha256:[0-9a-f]{64}$ ]] || {
+              echo "::error::${label} build job did not report a valid image digest: ${expected_digest}"
+              exit 1
+            }
+            [[ "$promoted_tags" == "$channel_tag" ]] || {
+              echo "::error::${label} build job promoted '${promoted_tags}', expected '${channel_tag}'"
+              exit 1
+            }
+            local channel_digest
+            channel_digest="$(docker buildx imagetools inspect "${image}:${channel_tag}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+            [[ "$channel_digest" == "$expected_digest" ]] || {
+              echo "::error::${channel_tag} points to ${channel_digest}, expected ${expected_digest}"
+              exit 1
+            }
+            echo "verified ${image}:${channel_tag} -> ${expected_digest}"
+          }
+
           {
             echo "## Production image updater handoff"
-            echo "- Source SHA: \`${{ needs.release-gate.outputs.source-sha }}\`"
+            echo "- Version: \`${VERSION}\`"
+            echo "- Source SHA: \`${SOURCE_SHA}\`"
             echo "- Deployment mode: \`${DEPLOYMENT_MODE}\`"
-            if [[ "$DEPLOYMENT_MODE" == "both" || "$DEPLOYMENT_MODE" == "product" ]]; then
-              echo "- Product image: \`${PRODUCT_IMAGE_TAG}\`"
-              echo "- Product digest: \`${PRODUCT_IMAGE_DIGEST}\`"
-            fi
-            if [[ "$DEPLOYMENT_MODE" == "both" || "$DEPLOYMENT_MODE" == "admin" ]]; then
-              echo "- Admin image: \`${ADMIN_IMAGE_TAG}\`"
-              echo "- Admin digest: \`${ADMIN_IMAGE_DIGEST}\`"
-            fi
-            echo "- GitOps update: \`Argo CD Image Updater\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$DEPLOYMENT_MODE" == "both" || "$DEPLOYMENT_MODE" == "product" ]]; then
+            verify_channel product "$PRODUCT_IMAGE_NAME" "$PRODUCT_CHANNEL_TAG" \
+              "$PRODUCT_IMAGE_DIGEST" "$PRODUCT_PROMOTED_TAGS"
+            {
+              echo "- Product image: \`${PRODUCT_IMAGE_TAG}\`"
+              echo "- Product channel: \`${PRODUCT_CHANNEL_TAG}\`"
+              echo "- Product digest: \`${PRODUCT_IMAGE_DIGEST}\`"
+              echo "- Product previous digest: \`${PRODUCT_PREVIOUS_DIGEST:-none}\`"
+              echo "- Product channel digest re-check: \`passed\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$DEPLOYMENT_MODE" == "both" || "$DEPLOYMENT_MODE" == "admin" ]]; then
+            verify_channel admin "$ADMIN_IMAGE_NAME" "$ADMIN_CHANNEL_TAG" \
+              "$ADMIN_IMAGE_DIGEST" "$ADMIN_PROMOTED_TAGS"
+            {
+              echo "- Admin image: \`${ADMIN_IMAGE_TAG}\`"
+              echo "- Admin channel: \`${ADMIN_CHANNEL_TAG}\`"
+              echo "- Admin digest: \`${ADMIN_IMAGE_DIGEST}\`"
+              echo "- Admin previous digest: \`${ADMIN_PREVIOUS_DIGEST:-none}\`"
+              echo "- Admin channel digest re-check: \`passed\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "- GitOps update: \`Argo CD Image Updater\`" >> "$GITHUB_STEP_SUMMARY"
