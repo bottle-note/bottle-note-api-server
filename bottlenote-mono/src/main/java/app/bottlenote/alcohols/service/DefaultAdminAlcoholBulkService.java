@@ -19,8 +19,8 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRowRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkCreateResponse.CreatedRow;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssue;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowResult;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkValidateResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -49,7 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
   private static final int MAX_TAGS = 1000;
   private final AlcoholQueryRepository alcoholRepository;
@@ -60,6 +59,7 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
+  @Transactional(readOnly = true)
   public AdminAlcoholBulkValidateResponse validate(AdminAlcoholBulkRequest request) {
     checkRequest(request);
     return validateRows(request.rows(), loadReferences(request.rows()));
@@ -75,7 +75,7 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
       return new AdminAlcoholBulkCreateResponse(0, List.of(), validation);
     }
     List<CreatedRow> created = new ArrayList<>();
-    for (AdminAlcoholBulkRowResult result : validation.rows()) {
+    for (AdminAlcoholBulkRowItem result : validation.rows()) {
       AdminAlcoholBulkRowRequest row = result.normalized();
       Alcohol saved =
           alcoholRepository.save(
@@ -182,25 +182,25 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
       identities.merge(
           identity(row.korName(), row.distilleryId(), row.abv(), row.volume()), 1, Integer::sum);
     }
-    List<AdminAlcoholBulkRowResult> results = new ArrayList<>();
+    List<AdminAlcoholBulkRowItem> results = new ArrayList<>();
     for (AdminAlcoholBulkRowRequest row : rows) {
       results.add(validateRow(row, refs, clientIds, identities));
     }
-    int valid = (int) results.stream().filter(AdminAlcoholBulkRowResult::valid).count();
+    int valid = (int) results.stream().filter(AdminAlcoholBulkRowItem::valid).count();
     int warning = (int) results.stream().filter(row -> !row.warnings().isEmpty()).count();
     return new AdminAlcoholBulkValidateResponse(
         rows.size(), valid, rows.size() - valid, warning, List.copyOf(results));
   }
 
-  private AdminAlcoholBulkRowResult validateRow(
+  private AdminAlcoholBulkRowItem validateRow(
       AdminAlcoholBulkRowRequest row,
       References refs,
       Map<String, Integer> clientIds,
       Map<IdentityKey, Integer> identities) {
-    List<AdminAlcoholBulkIssue> errors = new ArrayList<>();
-    List<AdminAlcoholBulkIssue> warnings = new ArrayList<>();
+    List<AdminAlcoholBulkIssueItem> errors = new ArrayList<>();
+    List<AdminAlcoholBulkIssueItem> warnings = new ArrayList<>();
     if (row == null) {
-      return new AdminAlcoholBulkRowResult(
+      return new AdminAlcoholBulkRowItem(
           null,
           false,
           null,
@@ -270,7 +270,7 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
                 tags,
                 image)
             : null;
-    return new AdminAlcoholBulkRowResult(
+    return new AdminAlcoholBulkRowItem(
         clientId,
         errors.isEmpty(),
         normalized,
@@ -283,8 +283,8 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
       AdminAlcoholBulkRowRequest row,
       AlcoholType type,
       Map<CategoryKey, Set<AlcoholCategoryGroup>> categories,
-      List<AdminAlcoholBulkIssue> errors,
-      List<AdminAlcoholBulkIssue> warnings) {
+      List<AdminAlcoholBulkIssueItem> errors,
+      List<AdminAlcoholBulkIssueItem> warnings) {
     Set<AlcoholCategoryGroup> known =
         categories.getOrDefault(categoryKey(row.korCategory(), row.engCategory()), Set.of());
     String raw = clean(row.categoryGroup());
@@ -324,8 +324,8 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
   private List<Long> tags(
       List<Long> input,
       Map<Long, TastingTag> known,
-      List<AdminAlcoholBulkIssue> errors,
-      List<AdminAlcoholBulkIssue> warnings) {
+      List<AdminAlcoholBulkIssueItem> errors,
+      List<AdminAlcoholBulkIssueItem> warnings) {
     if (input == null) return List.of();
     if (input.size() > MAX_TAGS) {
       errors.add(issue("TOO_MANY_TAGS", "tastingTagIds", "태그는 행마다 최대 1,000개까지 입력할 수 있습니다."));
@@ -358,7 +358,7 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
   }
 
   private static String text(
-      String raw, String field, boolean required, List<AdminAlcoholBulkIssue> errors) {
+      String raw, String field, boolean required, List<AdminAlcoholBulkIssueItem> errors) {
     String value = clean(raw);
     if (required && value == null) errors.add(issue("REQUIRED", field, "필수 입력값입니다."));
     if (value != null && value.length() > 255)
@@ -393,7 +393,7 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
   }
 
   private static void checkReference(
-      Long id, String field, Map<Long, ?> known, List<AdminAlcoholBulkIssue> errors) {
+      Long id, String field, Map<Long, ?> known, List<AdminAlcoholBulkIssueItem> errors) {
     if (id == null || id <= 0 || !known.containsKey(id)) {
       errors.add(issue("INVALID_REFERENCE", field, "존재하는 참조 ID를 입력해 주세요."));
     }
@@ -425,8 +425,8 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
     return new CategoryKey(key(korCategory), key(engCategory));
   }
 
-  private static AdminAlcoholBulkIssue issue(String code, String field, String message) {
-    return new AdminAlcoholBulkIssue(code, field, message);
+  private static AdminAlcoholBulkIssueItem issue(String code, String field, String message) {
+    return new AdminAlcoholBulkIssueItem(code, field, message);
   }
 
   private record IdentityKey(String name, Long distilleryId, String abv, String volume) {}

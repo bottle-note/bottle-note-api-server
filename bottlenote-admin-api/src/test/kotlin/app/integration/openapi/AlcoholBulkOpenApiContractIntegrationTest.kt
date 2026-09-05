@@ -5,21 +5,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Value
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Alcohol Bulk OpenAPI 계약")
 class AlcoholBulkOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
-	@Value("\${server.servlet.context-path}")
-	private lateinit var contextPath: String
-
 	@Test
-	@DisplayName("벌크 검증과 등록 엔드포인트가 Admin API prefix와 JSON 요청 본문으로 문서화된다")
-	fun bulkEndpointsDocumentAdminPrefixAndJsonBody() {
+	@DisplayName("벌크 검증과 등록 엔드포인트가 v1 경로와 JSON 요청 본문으로 문서화된다")
+	fun bulkEndpointsDocumentVersionedPathsAndJsonBody() {
 		val spec = fetchSpec()
 		val operations = bulkOperations(spec)
 
-		assertThat(contextPath).isEqualTo("/admin/api")
 		assertThat(operations.map { it.endpoint() })
 			.containsExactlyInAnyOrder("POST /v1/alcohols/bulk/validate", "POST /v1/alcohols/bulk")
 		operations.forEach { operation ->
@@ -34,13 +29,13 @@ class AlcoholBulkOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("벌크 검증과 등록은 200·400·401 응답과 bearerAuth 요구를 문서화한다")
+	@DisplayName("벌크 검증과 등록은 200·400·401·403 응답과 bearerAuth 요구를 문서화한다")
 	fun bulkEndpointsDocumentResponsesAndAuthentication() {
 		val operations = bulkOperations(fetchSpec())
 
 		operations.forEach { operation ->
 			assertThat(childNamesOf(operation.definition.path("responses")))
-				.contains("200", "400", "401")
+				.contains("200", "400", "401", "403")
 			assertThat(operation.security().any { item -> item.has("bearerAuth") }).isTrue()
 		}
 	}

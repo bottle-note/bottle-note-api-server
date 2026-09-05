@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssue;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -26,8 +26,8 @@ class AlcoholBulkInputNormalizerTest {
   })
   @DisplayName("숫자와 단위가 유효할 때 표준 단위로 정규화한다")
   void 수치를_정규화한다(String field, String input, String expected) {
-    var errors = new ArrayList<AdminAlcoholBulkIssue>();
-    var warnings = new ArrayList<AdminAlcoholBulkIssue>();
+    var errors = new ArrayList<AdminAlcoholBulkIssueItem>();
+    var warnings = new ArrayList<AdminAlcoholBulkIssueItem>();
     assertThat(AlcoholBulkInputNormalizer.quantity(input, field, errors, warnings))
         .isEqualTo(expected);
     assertThat(errors).isEmpty();
@@ -68,10 +68,12 @@ class AlcoholBulkInputNormalizerTest {
   })
   @DisplayName("값이나 단위가 잘못됐을 때 오류를 반환한다")
   void 잘못된_수치를_거절한다(String field, String input) {
-    var errors = new ArrayList<AdminAlcoholBulkIssue>();
-    var warnings = new ArrayList<AdminAlcoholBulkIssue>();
+    var errors = new ArrayList<AdminAlcoholBulkIssueItem>();
+    var warnings = new ArrayList<AdminAlcoholBulkIssueItem>();
     assertThat(AlcoholBulkInputNormalizer.quantity(input, field, errors, warnings)).isNull();
-    assertThat(errors).extracting(AdminAlcoholBulkIssue::code).containsExactly("INVALID_QUANTITY");
+    assertThat(errors)
+        .extracting(AdminAlcoholBulkIssueItem::code)
+        .containsExactly("INVALID_QUANTITY");
     assertThat(warnings).isEmpty();
   }
 
@@ -83,13 +85,13 @@ class AlcoholBulkInputNormalizerTest {
   })
   @DisplayName("범위와 배치 및 세트 표현이 유효할 때 원문과 경고를 반환한다")
   void 복합_표현을_보존한다(String field, String input) {
-    var errors = new ArrayList<AdminAlcoholBulkIssue>();
-    var warnings = new ArrayList<AdminAlcoholBulkIssue>();
+    var errors = new ArrayList<AdminAlcoholBulkIssueItem>();
+    var warnings = new ArrayList<AdminAlcoholBulkIssueItem>();
     assertThat(AlcoholBulkInputNormalizer.quantity(input, field, errors, warnings))
         .isEqualTo(input);
     assertThat(errors).isEmpty();
     assertThat(warnings)
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .containsExactly("NON_SCALAR_VALUE");
   }
 }

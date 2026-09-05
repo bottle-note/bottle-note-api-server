@@ -3,10 +3,10 @@ package app.bottlenote.alcohols.dto.response;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRowRequest;
 import java.util.List;
 
-public record AdminAlcoholBulkRowResult(
+public record AdminAlcoholBulkRowItem(
     String clientRowId,
     boolean valid,
     AdminAlcoholBulkRowRequest normalized,
-    List<AdminAlcoholBulkIssue> errors,
-    List<AdminAlcoholBulkIssue> warnings,
+    List<AdminAlcoholBulkIssueItem> errors,
+    List<AdminAlcoholBulkIssueItem> warnings,
     List<Long> candidateAlcoholIds) {}

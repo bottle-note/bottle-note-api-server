@@ -7,4 +7,4 @@ public record AdminAlcoholBulkValidateResponse(
     int validRows,
     int invalidRows,
     int warningRows,
-    List<AdminAlcoholBulkRowResult> rows) {}
+    List<AdminAlcoholBulkRowItem> rows) {}

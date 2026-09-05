@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.service;
 
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssue;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem;
 import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.List;
@@ -44,15 +44,15 @@ final class AlcoholBulkInputNormalizer {
   static String quantity(
       String raw,
       String field,
-      List<AdminAlcoholBulkIssue> errors,
-      List<AdminAlcoholBulkIssue> warnings) {
+      List<AdminAlcoholBulkIssueItem> errors,
+      List<AdminAlcoholBulkIssueItem> warnings) {
     String value = clean(raw);
     if (value == null) {
-      errors.add(new AdminAlcoholBulkIssue("REQUIRED", field, "필수 입력값입니다."));
+      errors.add(new AdminAlcoholBulkIssueItem("REQUIRED", field, "필수 입력값입니다."));
       return null;
     }
     if (value.length() > 255) {
-      errors.add(new AdminAlcoholBulkIssue("TOO_LONG", field, "255자를 초과할 수 없습니다."));
+      errors.add(new AdminAlcoholBulkIssueItem("TOO_LONG", field, "255자를 초과할 수 없습니다."));
       return null;
     }
     Matcher scalar = SCALAR.matcher(value);
@@ -62,16 +62,16 @@ final class AlcoholBulkInputNormalizer {
         String normalized =
             number.stripTrailingZeros().toPlainString() + (field.equals("abv") ? "%" : "ml");
         if (normalized.length() <= 255) return normalized;
-        errors.add(new AdminAlcoholBulkIssue("TOO_LONG", field, "정규화한 값이 255자를 초과합니다."));
+        errors.add(new AdminAlcoholBulkIssueItem("TOO_LONG", field, "정규화한 값이 255자를 초과합니다."));
         return null;
       }
     } else if (isAnnotated(value, field) || isComposite(value, field)) {
       warnings.add(
-          new AdminAlcoholBulkIssue("NON_SCALAR_VALUE", field, "범위·배치·세트·주석 표현을 원문으로 보존합니다."));
+          new AdminAlcoholBulkIssueItem("NON_SCALAR_VALUE", field, "범위·배치·세트·주석 표현을 원문으로 보존합니다."));
       return value;
     }
     errors.add(
-        new AdminAlcoholBulkIssue(
+        new AdminAlcoholBulkIssueItem(
             "INVALID_QUANTITY",
             field,
             field.equals("abv")

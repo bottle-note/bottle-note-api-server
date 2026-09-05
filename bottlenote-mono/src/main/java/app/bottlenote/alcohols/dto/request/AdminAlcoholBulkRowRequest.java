@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.dto.request;
 
+import app.bottlenote.alcohols.serializer.AlcoholBulkIdDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
 

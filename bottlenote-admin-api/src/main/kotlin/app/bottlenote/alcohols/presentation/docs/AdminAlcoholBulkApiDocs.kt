@@ -23,7 +23,8 @@ object AdminAlcoholBulkApiDocs {
 	)
 	@ApiResponse(responseCode = "200", description = "행별 오류·경고·정규화 결과", content = [Content(schema = Schema(implementation = ValidateEnvelope::class))])
 	@ApiResponse(responseCode = "400", description = "잘못된 JSON, 빈 목록 또는 최대 행 수 초과", content = [Content(schema = Schema(implementation = RequestFailureEnvelope::class))])
-	@ApiResponse(responseCode = "401", description = "관리자 인증이 없는 경우")
+	@ApiResponse(responseCode = "401", description = "관리자 인증 토큰이 유효하지 않은 경우")
+	@ApiResponse(responseCode = "403", description = "관리자 인증 없이 보호된 API에 접근한 경우")
 	annotation class ValidateBulk
 
 	@Target(AnnotationTarget.FUNCTION)
@@ -34,7 +35,8 @@ object AdminAlcoholBulkApiDocs {
 	)
 	@ApiResponse(responseCode = "200", description = "등록 건수와 clientRowId별 생성 ID", content = [Content(schema = Schema(implementation = CreateEnvelope::class))])
 	@ApiResponse(responseCode = "400", description = "행 검증 실패 또는 잘못된 요청 목록", content = [Content(schema = Schema(oneOf = [ValidationFailureEnvelope::class, RequestFailureEnvelope::class]))])
-	@ApiResponse(responseCode = "401", description = "관리자 인증이 없는 경우")
+	@ApiResponse(responseCode = "401", description = "관리자 인증 토큰이 유효하지 않은 경우")
+	@ApiResponse(responseCode = "403", description = "관리자 인증 없이 보호된 API에 접근한 경우")
 	annotation class CreateBulk
 
 	@Schema(name = "AlcoholBulkValidateEnvelope")

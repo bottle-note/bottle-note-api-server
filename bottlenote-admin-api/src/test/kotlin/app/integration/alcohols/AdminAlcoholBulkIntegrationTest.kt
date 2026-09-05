@@ -387,10 +387,10 @@ class AdminAlcoholBulkIntegrationTest : IntegrationTestSupport() {
 			assertThat(responseJson(result).path("success").asBoolean()).isFalse()
 		}
 
-		@ParameterizedTest(name = "인증 없이 {0}을 호출하면 401을 반환한다")
+		@ParameterizedTest(name = "인증 없이 {0}을 호출하면 403을 반환한다")
 		@ValueSource(strings = ["/v1/alcohols/bulk/validate", "/v1/alcohols/bulk"])
-		@DisplayName("인증이 없으면 벌크 엔드포인트는 401을 반환한다")
-		fun unauthenticatedRequestsReturnUnauthorized(path: String) {
+		@DisplayName("인증이 없으면 벌크 엔드포인트는 403을 반환한다")
+		fun unauthenticatedRequestsReturnForbidden(path: String) {
 			val result =
 				mockMvcTester
 					.post()
@@ -399,7 +399,7 @@ class AdminAlcoholBulkIntegrationTest : IntegrationTestSupport() {
 					.content("{\"rows\":[]}")
 					.exchange()
 
-			assertThat(result).hasStatus(401)
+			assertThat(result).hasStatus(403)
 		}
 	}
 
