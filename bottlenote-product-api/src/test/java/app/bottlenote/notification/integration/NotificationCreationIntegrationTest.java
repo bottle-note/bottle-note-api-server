@@ -3,12 +3,7 @@ package app.bottlenote.notification.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.notification.action.NotificationAction;
-import app.bottlenote.notification.constant.NotificationCategory;
-import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationStatus;
-import app.bottlenote.notification.constant.NotificationType;
-import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationService;
@@ -51,11 +46,16 @@ class NotificationCreationIntegrationTest extends IntegrationTestSupport {
     notificationService.sendNotification(
         NotificationMessage.follow(user.getId(), 20L, 300L, "팔로워", "내용"));
 
-    var result = mockMvcTester.get().uri("/api/v1/notifications")
-        .header("Authorization", "Bearer " + token.accessToken()).exchange();
+    var result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/notifications")
+            .header("Authorization", "Bearer " + token.accessToken())
+            .exchange();
 
     result.assertThat().hasStatusOk();
-    var items = mapper.readTree(result.getResponse().getContentAsByteArray()).path("data").path("items");
+    var items =
+        mapper.readTree(result.getResponse().getContentAsByteArray()).path("data").path("items");
     assertThat(items.size()).isEqualTo(2);
     var follow = items.get(0);
     assertThat(follow.path("category").asText()).isEqualTo("FOLLOW");
@@ -82,15 +82,18 @@ class NotificationCreationIntegrationTest extends IntegrationTestSupport {
       User user = userTestFactory.persistUser();
       LocalDateTime originalReadAt = LocalDateTime.of(2026, 9, 5, 12, 34, 56);
       NotificationMessage first =
-          NotificationMessage.reviewLike(
-              user.getId(), 30L, 400L, "최초 제목", "최초 본문");
+          NotificationMessage.reviewLike(user.getId(), 30L, 400L, "최초 제목", "최초 본문");
 
+      LocalDateTime before = LocalDateTime.now().minusSeconds(1);
       sendConcurrently(first, 8);
 
       assertThat(notificationRepository.countByUserId(user.getId())).isEqualTo(1L);
       Long notificationId =
           jdbcTemplate.queryForObject(
               "SELECT id FROM notifications WHERE user_id = ?", Long.class, user.getId());
+      StoredNotification original = storedNotification(notificationId);
+      assertThat(original.createdAt()).isBetween(before, LocalDateTime.now().plusSeconds(1));
+      assertThat(original.modifiedAt()).isEqualTo(original.createdAt());
       jdbcTemplate.update(
           "UPDATE notifications SET status = ?, is_read = ?, read_at = ? WHERE id = ?",
           NotificationStatus.SENT.name(),
@@ -99,13 +102,15 @@ class NotificationCreationIntegrationTest extends IntegrationTestSupport {
           notificationId);
 
       NotificationMessage duplicate =
-          NotificationMessage.reviewLike(
-              user.getId(), 30L, 400L, "중복 제목", "중복 전송 본문");
+          NotificationMessage.reviewLike(user.getId(), 30L, 400L, "중복 제목", "중복 전송 본문");
       sendConcurrently(duplicate, 8);
 
       assertThat(notificationRepository.countByUserId(user.getId())).isEqualTo(1L);
       StoredNotification stored = storedNotification(notificationId);
+      assertThat(stored.title()).isEqualTo("최초 제목");
       assertThat(stored.content()).isEqualTo("최초 본문");
+      assertThat(stored.createdAt()).isEqualTo(original.createdAt());
+      assertThat(stored.modifiedAt()).isEqualTo(original.modifiedAt());
       assertThat(stored.status()).isEqualTo(NotificationStatus.SENT.name());
       assertThat(stored.read()).isTrue();
       assertThat(stored.readAt()).isEqualTo(originalReadAt);
@@ -125,12 +130,7 @@ class NotificationCreationIntegrationTest extends IntegrationTestSupport {
       outer.executeWithoutResult(
           status -> {
             notificationService.sendNotification(
-                NotificationMessage.reviewLike(
-                    user.getId(),
-                    50L,
-                    500L,
-                    "새 좋아요",
-                    "좋아요가 등록됐습니다."));
+                NotificationMessage.reviewLike(user.getId(), 50L, 500L, "새 좋아요", "좋아요가 등록됐습니다."));
             status.setRollbackOnly();
           });
 
@@ -175,16 +175,27 @@ class NotificationCreationIntegrationTest extends IntegrationTestSupport {
 
   private StoredNotification storedNotification(Long notificationId) {
     return jdbcTemplate.queryForObject(
-        "SELECT content, status, is_read, read_at FROM notifications WHERE id = ?",
+        "SELECT title, content, status, is_read, read_at, create_at, last_modify_at FROM notifications WHERE id = ?",
         (resultSet, rowNumber) ->
             new StoredNotification(
+                resultSet.getString("title"),
                 resultSet.getString("content"),
                 resultSet.getString("status"),
                 resultSet.getBoolean("is_read"),
-                resultSet.getTimestamp("read_at").toLocalDateTime()),
+                resultSet.getTimestamp("read_at") == null
+                    ? null
+                    : resultSet.getTimestamp("read_at").toLocalDateTime(),
+                resultSet.getTimestamp("create_at").toLocalDateTime(),
+                resultSet.getTimestamp("last_modify_at").toLocalDateTime()),
         notificationId);
   }
 
   private record StoredNotification(
-      String content, String status, boolean read, LocalDateTime readAt) {}
+      String title,
+      String content,
+      String status,
+      boolean read,
+      LocalDateTime readAt,
+      LocalDateTime createdAt,
+      LocalDateTime modifiedAt) {}
 }

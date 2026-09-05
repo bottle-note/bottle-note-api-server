@@ -73,13 +73,13 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
                 .map(JsonNode::asText)
                 .toList())
         .contains("OPEN_REVIEW", "OPEN_HELP", "OPEN_USER");
-    JsonNode payloadSchema = resolve(spec, actionSchema.path("properties").path("payload"));
-    JsonNode payloadVariants =
-        List.of("anyOf", "oneOf").stream()
-            .map(payloadSchema::path)
-            .filter(JsonNode::isArray)
-            .findFirst()
-            .orElseThrow();
+    JsonNode payloadSchema = actionSchema.path("properties").path("payload");
+    if (payloadSchema.has("$ref")) {
+      payloadSchema = spec.at(payloadSchema.path("$ref").asText().substring(1));
+    }
+    JsonNode payloadVariants = payloadSchema.path("anyOf");
+    assertThat(payloadVariants.isArray()).isTrue();
+    assertThat(payloadSchema.has("oneOf")).isFalse();
     assertThat(
             StreamSupport.stream(payloadVariants.spliterator(), false)
                 .map(variant -> variant.path("$ref").asText())
@@ -89,9 +89,9 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
             "#/components/schemas/OpenReviewDetailActionPayload",
             "#/components/schemas/OpenHelpActionPayload",
             "#/components/schemas/OpenUserActionPayload");
+    assertThat(spec.at("/components/schemas/OpenReviewActionPayload").has("allOf")).isFalse();
     assertThat(
-            spec.at("/components/schemas/OpenReviewActionPayload/properties").properties()
-                .stream()
+            spec.at("/components/schemas/OpenReviewActionPayload/properties").properties().stream()
                 .map(java.util.Map.Entry::getKey)
                 .toList())
         .containsExactly("replyId");
