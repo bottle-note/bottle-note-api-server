@@ -81,9 +81,16 @@ git submodule update --init --recursive
 
 | 대상 | 워크플로 | 트리거 |
 |------|---------|--------|
-| product-api / admin-api (운영) | `deploy_release_applications.yml` | `backend/vX.Y.Z` 릴리스 published |
+| product-api / admin-api (운영·Release PR) | `release_pr_pilot_create.yml` → `release_pr_pilot_merged.yml` → `deploy_release_applications.yml` | `releases/**` 대상 Release PR 생성·병합 후 검증 통과 (표준 경로) |
+| product-api / admin-api (운영·기존 릴리스 경로) | `deploy_release_applications.yml` | `backend/vX.Y.Z` 릴리스 published (호환 경로, 표준 운영에서는 사용하지 않음) |
 | product-api / admin-api (개발) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
 | batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
+
+Release PR 경로는 검증된 `source_sha`, `release_key`, `deployment_mode`를 배포 워크플로에 전달한다. 병합 자체와 검증 통과를 구분하고, 배포 대상은 전달된 `source_sha`를 기준으로 확인한다.
+
+`releases/**` 브랜치는 수동으로 만들지 않고 `release_pr_pilot_create.yml`로만 생성한다. 생성된 PR의 실제 source 또는 동일 tree인 부모 SHA의 CI 성공을 병합 전에 확인한다. 일반 Release PR의 workflow 검증이 CI 성공까지 자동 보장하지는 않는다.
+
+이미지는 `immutable 태그 push → Cosign 서명 → 검증 → 채널 태그 승격 → digest·서명 재검증` 순서로 공개한다. 승격 전 실패하면 해당 채널의 기존 digest를 유지하지만, `both`의 Product/Admin은 독립적으로 승격하므로 전체 run 실패 시 부분 반영 여부를 확인한다. 서비스별 핫픽스 지원 범위, source와 action 출처, 실패 대응은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
 
 ```bash
 # batch 배포 — version은 정확한 X.Y.Z, production은 main에서만 허용
@@ -95,7 +102,7 @@ gh workflow run deploy_development_applications.yml
 
 ## 이슈 관리
 
-이슈의 SSOT는 [bottle-note/workspace](https://github.com/bottle-note/workspace) 레포지토리다. 이슈는 이 레포가 아니라 workspace에 등록하고, 작업 시작 전 관련 이슈를 먼저 확인한다. PR 본문에는 `bottle-note/workspace#N` 형식으로 관련 이슈를 링크한다.
+이슈의 SSOT는 [bottle-note/workspace](https://github.com/bottle-note/workspace) 레포지토리다. 이슈를 등록할 때는 이 레포가 아니라 workspace를 사용한다. 연결된 이슈가 있거나 이슈 기반 구현을 수행할 때 해당 이슈를 먼저 확인한다. 이슈와 무관한 국소적인 수정에는 이슈 조회를 선행 절차로 강제하지 않는다. PR 본문에는 관련 이슈가 있을 때 `bottle-note/workspace#N` 형식으로 링크한다.
 
 ## Skills (Development Workflow)
 
@@ -256,7 +263,7 @@ gh workflow run deploy_development_applications.yml
 
 ## 보안 및 인증
 
-- JWT 토큰: 액세스 토큰 24시간, 리프레시 토큰 30일
+- JWT 토큰: 현재 액세스 토큰 48시간, 리프레시 토큰 14일이다. 근거는 [JwtTokenProvider](bottlenote-mono/src/main/java/app/bottlenote/global/security/jwt/JwtTokenProvider.java)의 `ACCESS_TOKEN_EXPIRE_TIME`, `REFRESH_TOKEN_EXPIRE_TIME`과 발급 메서드이며, 변경 시 해당 코드를 기준으로 확인한다.
 - 토큰 검증: `JwtTokenProvider`, 보안 설정: `SecurityConfig`
 - API 보안: `@PreAuthorize` 또는 `@Secured`, CORS: `WebConfig`
 
