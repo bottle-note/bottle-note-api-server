@@ -127,10 +127,13 @@ public class AlcoholQueryService {
       return null;
     }
     if (request.cursor() != null) {
-      return CursorKeys.requireExtraTime(
+      var claims =
           cursorCodec.verify(
-              request.cursor(), ExploreStandardCriteria.of(request, userId, 0L, null).context()),
-          "bucketAt");
+              request.cursor(), ExploreStandardCriteria.of(request, userId, 0L, null).context());
+      if (ExploreStandardCriteria.NO_POPULARITY_BUCKET.equals(claims.extra().get("bucketAt"))) {
+        return null;
+      }
+      return CursorKeys.requireExtraTime(claims, "bucketAt");
     }
     return alcoholPopularitySnapshotRepository
         .findLatestBucketAt(BucketGranularity.HOUR)
