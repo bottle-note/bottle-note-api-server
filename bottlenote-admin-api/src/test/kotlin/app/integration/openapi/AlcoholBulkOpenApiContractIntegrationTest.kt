@@ -79,6 +79,17 @@ class AlcoholBulkOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 		assertThat(validateRequestFailure.path("\$ref").asText()).endsWith("/AlcoholBulkRequestFailureEnvelope")
 	}
 
+	@Test
+	@DisplayName("엑셀 검증 응답은 공통 형식의 data에 normalized 행을 직접 노출한다")
+	fun excelValidationDocumentsNormalizedRowsWithoutDoubleEnvelope() {
+		val spec = fetchSpec()
+		val operation = operationsOf(spec).first { it.endpoint() == "POST /v1/alcohols/excel/validate" }
+		val validation = referencedSchema(spec, operation.successSchema().at("/properties/data"))
+		assertThat(propertyNamesOf(validation)).contains("totalRows", "validRows", "invalidRows", "rows")
+		val row = referencedSchema(spec, validation.at("/properties/rows/items"))
+		assertThat(propertyNamesOf(row)).contains("clientRowId", "normalized", "errors", "warnings")
+	}
+
 	private fun bulkOperations(spec: JsonNode): List<SpecOperation> = operationsOf(spec).filter { it.endpoint() in BULK_ENDPOINTS }
 
 	private fun referencedSchema(

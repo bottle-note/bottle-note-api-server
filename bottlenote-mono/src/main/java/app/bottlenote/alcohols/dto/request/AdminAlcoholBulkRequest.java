@@ -8,7 +8,7 @@ import java.util.List;
 
 public record AdminAlcoholBulkRequest(
     @NotEmpty(message = "ALCOHOL_BULK_ROWS_REQUIRED")
-        @Size(max = MAX_ROWS, message = "ALCOHOL_BULK_ROWS_MAX_SIZE")
+        @Size(min = 1, max = MAX_ROWS, message = "ALCOHOL_BULK_ROWS_MAX_SIZE")
         List<@NotNull(message = "ALCOHOL_BULK_ROW_REQUIRED") @Valid AdminAlcoholBulkRowRequest>
             rows) {
   public static final int MAX_ROWS = 1000;
