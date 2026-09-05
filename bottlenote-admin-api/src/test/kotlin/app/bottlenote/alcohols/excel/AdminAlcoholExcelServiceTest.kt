@@ -9,8 +9,8 @@ import app.bottlenote.alcohols.domain.TastingTag
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRowRequest
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkCreateResponse
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssue
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowResult
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowItem
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkValidateResponse
 import app.bottlenote.alcohols.exception.AlcoholException
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode
@@ -171,7 +171,7 @@ class AdminAlcoholExcelServiceTest {
 						}.joinToString("\n")
 				assertThat(guideText).contains("오류 코드")
 				assertThat(guideText).contains("DUPLICATE_CANDIDATE")
-				assertThat(guideText).contains("이미 등록된 위스키입니다")
+				assertThat(guideText).contains("이미 등록된 알코올 후보입니다")
 			}
 		}
 	}
@@ -282,7 +282,7 @@ class AdminAlcoholExcelServiceTest {
 
 		@Test
 		@DisplayName("파일 내부 중복과 기존 후보는 공통 검증의 warning 을 보존한다")
-		fun validate_duplicateInFileIsError_andDbMatchIsWarning() {
+		fun validate_duplicateInFileAndDbMatchAreWarnings() {
 			alcoholQueryRepository.findAll().toList().forEach { alcohol ->
 				if (alcohol.korName == "__category_seed__") {
 					ReflectionTestUtils.setField(alcohol, "deletedAt", java.time.LocalDateTime.now())
@@ -331,7 +331,9 @@ class AdminAlcoholExcelServiceTest {
 			val result = service.validate(file)
 			assertThat(result.rows).allMatch { row -> row.warnings.any { it.code == "DUPLICATE_IN_FILE" } }
 			assertThat(result.rows).allMatch { row -> row.warnings.any { it.code == "DUPLICATE_CANDIDATE" } }
-			assertThat(result.rows[0].warnings[0].message).contains("이미 등록된 위스키입니다")
+			assertThat(result.rows).allMatch { it.valid && it.errors.isEmpty() }
+			assertThat(result.rows[0].warnings.first { it.code == "DUPLICATE_CANDIDATE" }.message)
+				.isEqualTo("기존 등록 후보입니다.")
 		}
 
 		@Test
@@ -775,24 +777,24 @@ class AdminAlcoholExcelServiceTest {
 			receivedRequests += request
 			val duplicateCounts = request.rows().groupingBy(::identity).eachCount()
 			val rows = request.rows().map { row ->
-				val errors = mutableListOf<AdminAlcoholBulkIssue>()
-				val warnings = mutableListOf<AdminAlcoholBulkIssue>()
+				val errors = mutableListOf<AdminAlcoholBulkIssueItem>()
+				val warnings = mutableListOf<AdminAlcoholBulkIssueItem>()
 				if (row.regionId() == 999999L) {
-					errors += AdminAlcoholBulkIssue("REGION_NOT_FOUND", "regionId", "지역 ID를 찾을 수 없습니다.")
+					errors += AdminAlcoholBulkIssueItem("INVALID_REFERENCE", "regionId", "지역 ID를 찾을 수 없습니다.")
 				}
 				if ((duplicateCounts[identity(row)] ?: 0) > 1) {
-					warnings += AdminAlcoholBulkIssue("DUPLICATE_IN_FILE", null, "파일 내부 중복 후보입니다.")
+					warnings += AdminAlcoholBulkIssueItem("DUPLICATE_REQUEST_ROW", null, "파일 내부 중복 후보입니다.")
 				}
 				if (row.categoryGroup() == "BLEND") {
-					warnings += AdminAlcoholBulkIssue("CATEGORY_GROUP_MISMATCH", "categoryGroup", "기존 카테고리와 그룹이 다릅니다.")
+					warnings += AdminAlcoholBulkIssueItem("CATEGORY_GROUP_MISMATCH", "categoryGroup", "기존 카테고리와 그룹이 다릅니다.")
 				}
 				val candidateIds =
 					if (row.korName() == "글렌피딕 12년" && row.volume().startsWith("700")) listOf(777L) else emptyList()
 				if (candidateIds.isNotEmpty()) {
-					warnings += AdminAlcoholBulkIssue("DUPLICATE_CANDIDATE", null, "기존 등록 후보입니다.")
+					warnings += AdminAlcoholBulkIssueItem("DUPLICATE_DB_CANDIDATE", null, "기존 등록 후보입니다.")
 				}
 				val normalized = if (errors.isEmpty()) normalize(row) else null
-				AdminAlcoholBulkRowResult(row.clientRowId(), errors.isEmpty(), normalized, errors, warnings, candidateIds)
+				AdminAlcoholBulkRowItem(row.clientRowId(), errors.isEmpty(), normalized, errors, warnings, candidateIds)
 			}
 			return AdminAlcoholBulkValidateResponse(
 				rows.size,

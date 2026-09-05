@@ -11,8 +11,8 @@ import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRowRequest;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssue;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowResult;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowItem;
 import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
@@ -96,7 +96,7 @@ class DefaultAdminAlcoholBulkServiceTest {
     assertThat(response.createdRows()).isEqualTo(1);
     assertThat(mappings.count()).isEqualTo(1);
     assertThat(response.validation().rows().getFirst().warnings())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("DUPLICATE_TAG_REMOVED");
     assertThat(events)
         .containsExactly(
@@ -145,7 +145,7 @@ class DefaultAdminAlcoholBulkServiceTest {
             row -> {
               assertThat(row.normalized()).isNull();
               assertThat(row.errors())
-                  .extracting(AdminAlcoholBulkIssue::code)
+                  .extracting(AdminAlcoholBulkIssueItem::code)
                   .contains("DUPLICATE_CLIENT_ROW_ID");
             });
   }
@@ -165,7 +165,7 @@ class DefaultAdminAlcoholBulkServiceTest {
     assertThat(result.validation().rows().getFirst().candidateAlcoholIds())
         .containsExactly(existing.getId());
     assertThat(result.validation().rows().getFirst().warnings())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("DUPLICATE_REQUEST_ROW", "DUPLICATE_DB_CANDIDATE");
   }
 
@@ -184,12 +184,12 @@ class DefaultAdminAlcoholBulkServiceTest {
     Row row = new Row();
     row.group = null;
     assertThat(validate(row).errors())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("CATEGORY_GROUP_REQUIRED");
     existing(AlcoholCategoryGroup.SINGLE_MALT);
     existing(AlcoholCategoryGroup.BLEND);
     assertThat(validate(row).errors())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("CATEGORY_GROUP_REQUIRED");
   }
 
@@ -215,7 +215,7 @@ class DefaultAdminAlcoholBulkServiceTest {
     assertThat(result.valid()).isTrue();
     assertThat(result.normalized().categoryGroup()).isEqualTo("BLEND");
     assertThat(result.warnings())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("CATEGORY_GROUP_MISMATCH", "TYPE_GROUP_MISMATCH", "TYPE_CATEGORY_MISMATCH");
   }
 
@@ -239,7 +239,7 @@ class DefaultAdminAlcoholBulkServiceTest {
     Row row = new Row();
     row.image = image;
     assertThat(validate(row).errors())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("INVALID_URL");
   }
 
@@ -257,7 +257,7 @@ class DefaultAdminAlcoholBulkServiceTest {
     row.regionId = null;
     row.distilleryId = -1L;
     assertThat(validate(row).errors())
-        .extracting(AdminAlcoholBulkIssue::field)
+        .extracting(AdminAlcoholBulkIssueItem::field)
         .contains(
             "korName",
             "engName",
@@ -276,11 +276,11 @@ class DefaultAdminAlcoholBulkServiceTest {
     Row row = new Row();
     row.tagIds = Arrays.asList(1L, null, 999L);
     assertThat(validate(row).errors())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("INVALID_REFERENCE");
     row.tagIds = Collections.nCopies(1001, 1L);
     assertThat(validate(row).errors())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("TOO_MANY_TAGS");
   }
 
@@ -372,7 +372,7 @@ class DefaultAdminAlcoholBulkServiceTest {
     var result = validate(row);
     assertThat(result.candidateAlcoholIds()).hasSize(100);
     assertThat(result.warnings())
-        .extracting(AdminAlcoholBulkIssue::code)
+        .extracting(AdminAlcoholBulkIssueItem::code)
         .contains("CANDIDATES_TRUNCATED");
   }
 
@@ -393,12 +393,12 @@ class DefaultAdminAlcoholBulkServiceTest {
             value -> {
               assertThat(value.candidateAlcoholIds()).isEmpty();
               assertThat(value.warnings())
-                  .extracting(AdminAlcoholBulkIssue::code)
+                  .extracting(AdminAlcoholBulkIssueItem::code)
                   .doesNotContain("DUPLICATE_REQUEST_ROW", "DUPLICATE_DB_CANDIDATE");
             });
   }
 
-  private AdminAlcoholBulkRowResult validate(Row row) {
+  private AdminAlcoholBulkRowItem validate(Row row) {
     return service.validate(request(row)).rows().getFirst();
   }
 

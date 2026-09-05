@@ -8,8 +8,8 @@ import app.bottlenote.alcohols.domain.RegionRepository
 import app.bottlenote.alcohols.domain.TastingTagRepository
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRowRequest
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssue
-import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowResult
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowItem
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelIssue
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelRowResult
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelValidateResponse
@@ -357,7 +357,7 @@ class AdminAlcoholExcelServiceImpl(
 
 	private fun adaptResult(
 		adapter: BulkAdapterRow,
-		common: AdminAlcoholBulkRowResult?,
+		common: AdminAlcoholBulkRowItem?,
 		regionsById: Map<Long, AdminRegionItem>,
 		distilleriesById: Map<Long, AdminDistilleryItem>
 	): AdminAlcoholExcelRowResult {
@@ -419,9 +419,9 @@ class AdminAlcoholExcelServiceImpl(
 		}
 	}
 
-	private fun adaptIssue(issue: AdminAlcoholBulkIssue): AdminAlcoholExcelIssue = AdminAlcoholExcelIssue(excelIssueCode(issue), excelFieldName(issue.field()), issue.message())
+	private fun adaptIssue(issue: AdminAlcoholBulkIssueItem): AdminAlcoholExcelIssue = AdminAlcoholExcelIssue(excelIssueCode(issue), excelFieldName(issue.field()), issue.message())
 
-	private fun excelIssueCode(issue: AdminAlcoholBulkIssue): String = when (issue.code()) {
+	private fun excelIssueCode(issue: AdminAlcoholBulkIssueItem): String = when (issue.code()) {
 		"REQUIRED" -> "REQUIRED_FIELD"
 		"INVALID_QUANTITY" -> "INVALID_NUMBER"
 		"INVALID_ENUM" -> "INVALID_ENUM_VALUE"
