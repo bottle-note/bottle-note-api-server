@@ -2,17 +2,12 @@ package app.bottlenote.notification.service;
 
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
-import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.payload.NotificationMessage;
 
 public interface NotificationService {
 
   void sendNotification(NotificationMessage message);
-
-  default boolean isEnabled(Long userId, NotificationKind kind) {
-    return true;
-  }
 
   KeysetPageResponse<NotificationListResponse> getNotifications(
       Long userId, NotificationPageableRequest request);

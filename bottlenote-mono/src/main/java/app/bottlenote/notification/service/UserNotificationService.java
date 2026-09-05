@@ -8,8 +8,6 @@ import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.domain.NotificationPreferenceRepository;
-import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
@@ -39,7 +37,6 @@ public class UserNotificationService implements NotificationService {
   private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
   private final HmacCursorCodec cursorCodec;
-  private final NotificationPreferenceRepository preferenceRepository;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Override
@@ -56,10 +53,6 @@ public class UserNotificationService implements NotificationService {
       throw new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND);
     }
 
-    if (message.kind() != null && !isEnabled(message.userId(), message.kind())) {
-      return;
-    }
-
     Notification notification =
         Notification.builder()
             .userId(message.userId())
@@ -73,12 +66,6 @@ public class UserNotificationService implements NotificationService {
             .build();
 
     notificationRepository.saveIfAbsent(notification);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isEnabled(Long userId, NotificationKind kind) {
-    return preferenceRepository.findByUserId(userId).getOrDefault(kind, true);
   }
 
   @Transactional(readOnly = true)

@@ -13,12 +13,9 @@ import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.LikesRepository;
 import app.bottlenote.like.service.LikesCommandService;
-import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
-import app.bottlenote.notification.dto.request.NotificationPreferenceRequest;
-import app.bottlenote.notification.service.NotificationPreferenceService;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
@@ -35,7 +32,6 @@ import app.bottlenote.user.service.FollowService;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -68,7 +64,6 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
   @Autowired private FollowRepository follows;
   @Autowired private NotificationRepository notifications;
   @Autowired private UserHistoryRepository histories;
-  @Autowired private NotificationPreferenceService preferences;
   @Autowired private ApplicationEventPublisher events;
   @Autowired private PlatformTransactionManager transactionManager;
 
@@ -142,24 +137,9 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("동일 수신자가 부모 답글을 거부해도 리뷰 댓글 설정으로 한 건을 받는다")
-    void sameRecipient_fallsBackToEnabledComment() {
+    @DisplayName("리뷰와 부모 댓글 작성자가 같으면 답글 알림 한 건을 받는다")
+    void sameRecipient_receivesOneReply() {
       ReviewReply parent = reviews.persistReviewReply(review, reviewAuthor);
-      setPreferences(reviewAuthor, Map.of(NotificationKind.REVIEW_REPLY, false));
-
-      replyService.registerReviewReply(review.getId(), actor.getId(),
-          new ReviewReplyRegisterRequest("설정 대체 경로", parent.getId()));
-
-      awaitCounts(1, 1);
-      assertThat(messages(reviewAuthor)).singleElement()
-          .satisfies(message -> assertThat(message.getTitle()).isEqualTo("새 댓글"));
-    }
-
-    @Test
-    @DisplayName("동일 수신자가 리뷰 댓글을 거부해도 부모 답글 설정으로 한 건을 받는다")
-    void sameRecipient_usesEnabledReply() {
-      ReviewReply parent = reviews.persistReviewReply(review, reviewAuthor);
-      setPreferences(reviewAuthor, Map.of(NotificationKind.REVIEW_COMMENT, false));
 
       replyService.registerReviewReply(review.getId(), actor.getId(),
           new ReviewReplyRegisterRequest("부모 답글 경로", parent.getId()));
@@ -167,20 +147,6 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
       awaitCounts(1, 1);
       assertThat(messages(reviewAuthor)).singleElement()
           .satisfies(message -> assertThat(message.getTitle()).isEqualTo("새 답글"));
-    }
-
-    @Test
-    @DisplayName("댓글 알림을 모두 거부해도 기존 History는 남고 설정 활성화로 소급 생성하지 않는다")
-    void disabledNotification_preservesHistoryWithoutBackfill() {
-      setPreferences(reviewAuthor, Map.of(NotificationKind.REVIEW_COMMENT, false));
-
-      replyService.registerReviewReply(review.getId(), actor.getId(),
-          new ReviewReplyRegisterRequest("수신 거부 중 댓글", null));
-
-      awaitCounts(0, 1);
-      setPreferences(reviewAuthor, Map.of(NotificationKind.REVIEW_COMMENT, true));
-      awaitCounts(0, 1);
-      assertHistory(histories.findAll().getFirst(), actor, EventType.REVIEW_REPLY_CREATE, "수신 거부 중 댓글");
     }
 
     @Test
@@ -226,16 +192,6 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("좋아요 알림을 거부하면 알림 없이 History를 기록한다")
-    void disabledLike_hasOnlyHistory() {
-      setPreferences(reviewAuthor, Map.of(NotificationKind.REVIEW_LIKE, false));
-
-      likesService.updateLikes(actor.getId(), review.getId(), LikeStatus.LIKE);
-
-      awaitCounts(0, 1);
-    }
-
-    @Test
     @DisplayName("팔로우 반복과 취소와 재활성화는 대상 사용자에게 최초 관계 알림만 남긴다")
     void followTransitions_keepFirstNotification() {
       for (FollowStatus status : List.of(FollowStatus.FOLLOWING, FollowStatus.FOLLOWING, FollowStatus.UNFOLLOW, FollowStatus.FOLLOWING)) {
@@ -249,17 +205,6 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
         assertThat(message.getActionTargetId()).isEqualTo(actor.getId());
       });
       assertThat(messages(actor)).isEmpty();
-    }
-
-    @Test
-    @DisplayName("팔로우 알림을 거부해도 관계는 저장하고 알림은 만들지 않는다")
-    void disabledFollow_preservesRelationship() {
-      setPreferences(reviewAuthor, Map.of(NotificationKind.FOLLOW, false));
-
-      followService.updateFollowStatus(new FollowUpdateRequest(reviewAuthor.getId(), FollowStatus.FOLLOWING), actor.getId());
-
-      awaitCounts(0, 0);
-      assertThat(follows.findByUserIdAndFollowUserId(actor.getId(), reviewAuthor.getId())).isPresent();
     }
 
     @Test
@@ -348,10 +293,6 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
           + notifications.countByUserId(actor.getId())).isEqualTo(notificationCount);
       assertThat(histories.findAll()).hasSize(historyCount);
     });
-  }
-
-  private void setPreferences(User user, Map<NotificationKind, Boolean> settings) {
-    preferences.updatePreferences(user.getId(), new NotificationPreferenceRequest(settings));
   }
 
   private void assertHistory(UserHistory history, User user, EventType type, String content) {

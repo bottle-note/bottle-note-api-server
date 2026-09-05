@@ -65,15 +65,42 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
         .containsExactlyInAnyOrder("type", "targetId", "payload", "version", "fallbackType");
     assertThat(actionSchema.path("properties").path("fallbackType").path("description").asText())
         .contains("fallback");
+    assertThat(actionSchema.path("properties").path("version").path("type").asText())
+        .isEqualTo("integer");
     JsonNode actionTypeSchema = resolve(spec, actionSchema.path("properties").path("type"));
     assertThat(
             StreamSupport.stream(actionTypeSchema.path("enum").spliterator(), false)
                 .map(JsonNode::asText)
                 .toList())
-        .contains("OPEN_REVIEW", "OPEN_HELP");
+        .contains("OPEN_REVIEW", "OPEN_HELP", "OPEN_USER");
     JsonNode payloadSchema = resolve(spec, actionSchema.path("properties").path("payload"));
-    assertThat(propertyNamesOf(payloadSchema)).containsExactly("replyId");
+    JsonNode payloadVariants =
+        List.of("anyOf", "oneOf").stream()
+            .map(payloadSchema::path)
+            .filter(JsonNode::isArray)
+            .findFirst()
+            .orElseThrow();
+    assertThat(
+            StreamSupport.stream(payloadVariants.spliterator(), false)
+                .map(variant -> variant.path("$ref").asText())
+                .toList())
+        .contains(
+            "#/components/schemas/OpenReviewActionPayload",
+            "#/components/schemas/OpenReviewDetailActionPayload",
+            "#/components/schemas/OpenHelpActionPayload",
+            "#/components/schemas/OpenUserActionPayload");
+    assertThat(
+            spec.at("/components/schemas/OpenReviewActionPayload/properties").properties()
+                .stream()
+                .map(java.util.Map.Entry::getKey)
+                .toList())
+        .containsExactly("replyId");
+    assertThat(spec.at("/components/schemas/OpenReviewDetailActionPayload/properties").isEmpty())
+        .isTrue();
     assertThat(spec.at("/components/schemas/OpenHelpActionPayload/properties").isEmpty()).isTrue();
+    assertThat(spec.at("/components/schemas/OpenUserActionPayload/properties").isEmpty()).isTrue();
+    assertThat(operation.definition().path("description").asText())
+        .contains("OPEN_REVIEW` v1", "OPEN_REVIEW` v2", "OPEN_USER` v1");
   }
 
   private void assertParameterSchema(

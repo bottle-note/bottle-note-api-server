@@ -9,7 +9,6 @@ import app.bottlenote.like.event.payload.ReviewLikeActivityEvent;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
-import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
@@ -20,9 +19,7 @@ import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyActivityEvent;
 import app.bottlenote.user.event.payload.FollowActivityEvent;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -114,8 +111,8 @@ class ReviewReplyNotificationListenerTest {
       listener.handleReviewReplyNotification(reply(1L, 2L, 3L));
 
       assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(1L, 2L);
-      assertThat(notificationService.messages).extracting(NotificationMessage::kind)
-          .containsExactly(NotificationKind.REVIEW_COMMENT, NotificationKind.REVIEW_REPLY);
+      assertThat(notificationService.messages).extracting(NotificationMessage::title)
+          .containsExactly("새 댓글", "새 답글");
     }
 
     @Test
@@ -140,39 +137,7 @@ class ReviewReplyNotificationListenerTest {
       listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
 
       assertThat(notificationService.messages).hasSize(1);
-      assertThat(notificationService.messages.getFirst().kind()).isEqualTo(NotificationKind.REVIEW_REPLY);
-    }
-
-    @Test
-    @DisplayName("부모 답글 설정이 꺼져 있어도 리뷰 댓글 설정이 켜져 있으면 전달한다")
-    void sameRecipientFallsBackToReviewComment() {
-      notificationService.disabled.add(NotificationKind.REVIEW_REPLY);
-
-      listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
-
-      assertThat(notificationService.messages).hasSize(1);
-      assertThat(notificationService.messages.getFirst().kind()).isEqualTo(NotificationKind.REVIEW_COMMENT);
-    }
-
-    @Test
-    @DisplayName("리뷰 댓글 설정이 꺼져 있어도 부모 답글 설정이 켜져 있으면 전달한다")
-    void sameRecipientUsesEnabledReply() {
-      notificationService.disabled.add(NotificationKind.REVIEW_COMMENT);
-
-      listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
-
-      assertThat(notificationService.messages).hasSize(1);
-      assertThat(notificationService.messages.getFirst().kind()).isEqualTo(NotificationKind.REVIEW_REPLY);
-    }
-
-    @Test
-    @DisplayName("두 설정이 모두 꺼져 있으면 전달하지 않는다")
-    void bothDisabled() {
-      notificationService.disabled.addAll(Set.of(NotificationKind.REVIEW_COMMENT, NotificationKind.REVIEW_REPLY));
-
-      listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
-
-      assertThat(notificationService.messages).isEmpty();
+      assertThat(notificationService.messages.getFirst().title()).isEqualTo("새 답글");
     }
 
     @Test
@@ -221,7 +186,7 @@ class ReviewReplyNotificationListenerTest {
 
       assertThat(notificationService.messages).hasSize(1);
       NotificationMessage message = notificationService.messages.getFirst();
-      assertThat(message.kind()).isEqualTo(NotificationKind.REVIEW_LIKE);
+      assertThat(message.sourceType()).isEqualTo(NotificationSourceType.REVIEW_LIKE);
       assertThat(message.userId()).isEqualTo(1L);
       assertThat(message.sourceId()).isEqualTo(10L);
       assertThat(message.action().targetId()).isEqualTo(20L);
@@ -236,7 +201,7 @@ class ReviewReplyNotificationListenerTest {
 
       assertThat(notificationService.messages).hasSize(1);
       NotificationMessage message = notificationService.messages.getFirst();
-      assertThat(message.kind()).isEqualTo(NotificationKind.FOLLOW);
+      assertThat(message.sourceType()).isEqualTo(NotificationSourceType.FOLLOW);
       assertThat(message.userId()).isEqualTo(2L);
       assertThat(message.sourceId()).isEqualTo(10L);
       assertThat(message.action().targetId()).isEqualTo(1L);
@@ -250,22 +215,14 @@ class ReviewReplyNotificationListenerTest {
   /** NotificationService 호출 기록용 테스트 더블. */
   private static final class RecordingNotificationService implements NotificationService {
     private final List<NotificationMessage> messages = new ArrayList<>();
-    private final Set<NotificationKind> disabled = new HashSet<>();
     private Long failingUserId;
-
-    @Override
-    public boolean isEnabled(Long userId, NotificationKind kind) {
-      return !disabled.contains(kind);
-    }
 
     @Override
     public void sendNotification(NotificationMessage message) {
       if (message.userId().equals(failingUserId)) {
         throw new IllegalStateException("수신자 저장 실패");
       }
-      if (isEnabled(message.userId(), message.kind())) {
-        messages.add(message);
-      }
+      messages.add(message);
     }
 
     @Override

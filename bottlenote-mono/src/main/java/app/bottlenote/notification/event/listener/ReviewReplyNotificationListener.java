@@ -3,7 +3,6 @@ package app.bottlenote.notification.event.listener;
 import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
 import app.bottlenote.common.annotation.DomainEventListener;
-import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyActivityEvent;
@@ -41,20 +40,10 @@ public class ReviewReplyNotificationListener {
     if (event.parentReplyUserId() != null
         && !Objects.equals(event.parentReplyUserId(), event.replyUserId())) {
       try {
-        // 동일 수신자는 부모 답글을 우선하되 거부한 경우 리뷰 댓글 경로를 유지한다.
-        if (!sameRecipient
-            || notificationService.isEnabled(
-                event.parentReplyUserId(), NotificationKind.REVIEW_REPLY)) {
-          notificationService.sendNotification(
-              NotificationMessage.reviewReplyResponse(
-                  event.parentReplyUserId(),
-                  event.reviewId(),
-                  event.replyId(),
-                  REPLY_TITLE,
-                  event.content()));
-        } else {
-          sendReviewComment(event, failures);
-        }
+        notificationService.sendNotification(
+            NotificationMessage.reviewReplyResponse(
+                event.parentReplyUserId(), event.reviewId(), event.replyId(), REPLY_TITLE,
+                event.content()));
       } catch (RuntimeException exception) {
         failures.add(exception);
       }

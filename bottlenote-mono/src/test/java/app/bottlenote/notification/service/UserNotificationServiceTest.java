@@ -22,7 +22,6 @@ import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
-import app.bottlenote.notification.fixture.InMemoryNotificationPreferenceRepository;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -62,7 +61,7 @@ class UserNotificationServiceTest {
     properties.setCurrentSecret("test-pagination-cursor-secret");
     service =
         new UserNotificationService(
-            userFacade, notificationRepository, new HmacCursorCodec(properties, Clock.systemUTC()), new InMemoryNotificationPreferenceRepository());
+            userFacade, notificationRepository, new HmacCursorCodec(properties, Clock.systemUTC()));
   }
 
   @Nested

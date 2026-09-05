@@ -2,7 +2,6 @@ package app.bottlenote.notification.payload;
 
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationCategory;
-import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 
@@ -19,15 +18,14 @@ public record NotificationMessage(
     String content, // 알람 내용 category에 따라 다름 참조값이 들어간다.
     NotificationSourceType sourceType,
     Long sourceId,
-    NotificationAction action,
-    NotificationKind kind) {
+    NotificationAction action) {
   public static NotificationMessage create(
       Long userId,
       NotificationType type,
       NotificationCategory category,
       String title,
       String content) {
-    return new NotificationMessage(userId, type, category, title, content, null, null, null, null);
+    return new NotificationMessage(userId, type, category, title, content, null, null, null);
   }
 
   /**
@@ -46,7 +44,7 @@ public record NotificationMessage(
         content,
         NotificationSourceType.REVIEW_REPLY,
         replyId,
-        action, NotificationKind.REVIEW_COMMENT);
+        action);
   }
 
   /**
@@ -64,27 +62,27 @@ public record NotificationMessage(
         content,
         NotificationSourceType.HELP_ANSWER,
         helpId,
-        NotificationAction.openHelp(helpId), NotificationKind.HELP_ANSWER);
+        NotificationAction.openHelp(helpId));
   }
   public static NotificationMessage reviewReplyResponse(
       Long userId, Long reviewId, Long replyId, String title, String content) {
     return new NotificationMessage(userId, NotificationType.USER, NotificationCategory.REVIEW,
         title, content, NotificationSourceType.REVIEW_REPLY, replyId,
-        NotificationAction.openReview(reviewId, replyId), NotificationKind.REVIEW_REPLY);
+        NotificationAction.openReview(reviewId, replyId));
   }
 
   public static NotificationMessage reviewLike(
       Long userId, Long reviewId, Long likeId, String title, String content) {
     return new NotificationMessage(userId, NotificationType.USER, NotificationCategory.REVIEW,
         title, content, NotificationSourceType.REVIEW_LIKE, likeId,
-        NotificationAction.openReview(reviewId), NotificationKind.REVIEW_LIKE);
+        NotificationAction.openReview(reviewId));
   }
 
   public static NotificationMessage follow(
       Long userId, Long actorId, Long followId, String title, String content) {
     return new NotificationMessage(userId, NotificationType.USER, NotificationCategory.FOLLOW,
         title, content, NotificationSourceType.FOLLOW, followId,
-        NotificationAction.openUser(actorId), NotificationKind.FOLLOW);
+        NotificationAction.openUser(actorId));
   }
 
 }
