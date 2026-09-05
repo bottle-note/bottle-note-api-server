@@ -8,6 +8,8 @@ import app.bottlenote.global.pagination.KeysetPagination;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.domain.NotificationPreferenceRepository;
+import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 @Slf4j
 @Service
@@ -36,8 +39,9 @@ public class UserNotificationService implements NotificationService {
   private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
   private final HmacCursorCodec cursorCodec;
+  private final NotificationPreferenceRepository preferenceRepository;
 
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Override
   public void sendNotification(NotificationMessage message) {
     log.info(
@@ -52,14 +56,7 @@ public class UserNotificationService implements NotificationService {
       throw new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND);
     }
 
-    if (message.sourceType() != null
-        && notificationRepository.existsBySourceTypeAndSourceIdAndUserId(
-            message.sourceType().name(), message.sourceId(), message.userId())) {
-      log.info(
-          "중복 알림 저장 생략 - userId: {}, sourceType: {}, sourceId: {}",
-          message.userId(),
-          message.sourceType(),
-          message.sourceId());
+    if (message.kind() != null && !isEnabled(message.userId(), message.kind())) {
       return;
     }
 
@@ -75,7 +72,13 @@ public class UserNotificationService implements NotificationService {
             .action(message.action())
             .build();
 
-    notificationRepository.save(notification);
+    notificationRepository.saveIfAbsent(notification);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isEnabled(Long userId, NotificationKind kind) {
+    return preferenceRepository.findByUserId(userId).getOrDefault(kind, true);
   }
 
   @Transactional(readOnly = true)
