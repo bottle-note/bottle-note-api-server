@@ -55,7 +55,7 @@ public record NotificationListOpenApiSchema(
       @Schema(description = "Action 타입에 따른 이동 대상 식별자", example = "10") Long targetId,
       @Schema(
               description = "Action 타입별 payload",
-              oneOf = {OpenReviewActionPayload.class, OpenHelpActionPayload.class})
+              anyOf = {OpenReviewActionPayload.class, OpenHelpActionPayload.class, OpenReviewDetailActionPayload.class, OpenUserActionPayload.class})
           ActionPayload payload,
       @Schema(description = "Action payload 스키마 버전", example = "1") Integer version,
       @Schema(
@@ -70,8 +70,8 @@ public record NotificationListOpenApiSchema(
    */
   @Schema(
       name = "NotificationActionPayload",
-      oneOf = {OpenReviewActionPayload.class, OpenHelpActionPayload.class})
-  public sealed interface ActionPayload permits OpenReviewActionPayload, OpenHelpActionPayload {}
+      anyOf = {OpenReviewActionPayload.class, OpenHelpActionPayload.class, OpenReviewDetailActionPayload.class, OpenUserActionPayload.class})
+  public sealed interface ActionPayload permits OpenReviewActionPayload, OpenHelpActionPayload, OpenReviewDetailActionPayload, OpenUserActionPayload {}
 
   /**
    * 리뷰 상세 화면에서 강조할 댓글 정보를 표현한다.
@@ -90,4 +90,9 @@ public record NotificationListOpenApiSchema(
    */
   @Schema(name = "OpenHelpActionPayload", description = "문의 상세 이동용 빈 payload")
   public record OpenHelpActionPayload() implements ActionPayload {}
+  @Schema(name = "OpenReviewDetailActionPayload", description = "OPEN_REVIEW v2의 댓글 없는 리뷰 상세 이동용 빈 payload")
+  public record OpenReviewDetailActionPayload() implements ActionPayload {}
+
+  @Schema(name = "OpenUserActionPayload", description = "OPEN_USER v1의 사용자 프로필 이동용 빈 payload")
+  public record OpenUserActionPayload() implements ActionPayload {}
 }
