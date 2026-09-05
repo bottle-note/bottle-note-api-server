@@ -115,7 +115,7 @@ object AdminAlcoholsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "검증 결과",
-		content = [Content(schema = Schema(implementation = AlcoholExcelValidateEnvelope::class))]
+		content = [Content(schema = Schema(implementation = AdminAlcoholExcelValidateResponse::class))]
 	)
 	annotation class ValidateAlcoholExcel
 
@@ -160,15 +160,6 @@ object AdminAlcoholsApiDocs {
 		val success: Boolean,
 		val code: Int,
 		val data: AdminResultResponse,
-		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap()
-	)
-
-	@Schema(name = "AlcoholExcelValidateEnvelope")
-	data class AlcoholExcelValidateEnvelope(
-		val success: Boolean,
-		val code: Int,
-		val data: AdminAlcoholExcelValidateResponse,
 		val errors: List<Any> = emptyList(),
 		val meta: Map<String, Any?> = emptyMap()
 	)
