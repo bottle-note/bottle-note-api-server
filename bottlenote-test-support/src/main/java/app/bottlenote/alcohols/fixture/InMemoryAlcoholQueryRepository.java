@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
+import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
@@ -15,6 +16,7 @@ import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlco
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +128,27 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
                     alcohol.getDistillery() != null ? alcohol.getDistillery().getKorName() : null,
                     alcohol.getDistillery() != null ? alcohol.getDistillery().getEngName() : null,
                     alcohol.getImageUrl()))
+        .toList();
+  }
+
+  @Override
+  public List<AlcoholBulkReferenceItem> findAllBulkReferenceItems() {
+    return alcohols.values().stream()
+        .filter(a -> !a.isDeleted())
+        .sorted(Comparator.comparing(Alcohol::getId))
+        .map(
+            a ->
+                new AlcoholBulkReferenceItem(
+                    a.getId(),
+                    a.getKorName(),
+                    a.getEngName(),
+                    a.getKorCategory(),
+                    a.getEngCategory(),
+                    a.getCategoryGroup(),
+                    a.getType(),
+                    a.getDistillery() == null ? null : a.getDistillery().getId(),
+                    a.getAbv(),
+                    a.getVolume()))
         .toList();
   }
 

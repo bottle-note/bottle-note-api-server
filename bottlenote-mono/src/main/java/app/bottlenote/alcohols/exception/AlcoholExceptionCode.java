@@ -4,6 +4,8 @@ import app.bottlenote.global.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
 public enum AlcoholExceptionCode implements ExceptionCode {
+  BULK_EMPTY_REQUEST(HttpStatus.BAD_REQUEST, "등록할 알코올 행이 필요합니다."),
+  BULK_ROW_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "알코올은 최대 1,000행까지 등록할 수 있습니다."),
   ALCOHOL_NOT_FOUND(HttpStatus.NOT_FOUND, "위스키를 찾을 수 없습니다."),
   REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "지역을 찾을 수 없습니다."),
   DISTILLERY_NOT_FOUND(HttpStatus.NOT_FOUND, "증류소를 찾을 수 없습니다."),

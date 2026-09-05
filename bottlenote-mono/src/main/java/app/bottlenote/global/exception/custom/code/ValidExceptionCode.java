@@ -29,6 +29,9 @@ public enum ValidExceptionCode implements ExceptionCode {
   PLATFORM_REQUIRED(HttpStatus.BAD_REQUEST, "플랫폼은 필수입니다."),
 
   // ALCOHOL
+  ALCOHOL_BULK_ROWS_REQUIRED(HttpStatus.BAD_REQUEST, "등록할 알코올 목록은 필수입니다."),
+  ALCOHOL_BULK_ROWS_MAX_SIZE(HttpStatus.BAD_REQUEST, "알코올은 한 번에 최대 1,000개까지 등록할 수 있습니다."),
+  ALCOHOL_BULK_ROW_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 행은 null일 수 없습니다."),
   ALCOHOL_ID_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 식별자는 필수입니다."),
   ALCOHOL_ID_MINIMUM(HttpStatus.BAD_REQUEST, "알코올 식별자는 최소 1 이상 이어야 합니다."),
 
