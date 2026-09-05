@@ -48,12 +48,7 @@ public class HistoryEventPublisher {
     eventPublisher.publishEvent(reviewCreateHistoryEvent);
   }
 
-  /**
-   * 리뷰 댓글 활동을 user_histories 경로로 발행한다.
-   *
-   * <p>Notification 생성과는 별개다. 댓글 등록 시 {@code ReviewReplyNotificationEvent}가 따로 발행되며, 이후
-   * bottle-note/workspace#373 에서 History·Notification 파이프라인을 공동화할 예정이다.
-   */
+  /** 기존 ReviewRegistryEvent 입력의 History 발행 호환 경로를 유지한다. */
   public void publishReplyHistoryEvent(ReviewRegistryEvent event) {
 
     final Long reviewId = event.reviewId();

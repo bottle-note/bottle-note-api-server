@@ -3,60 +3,79 @@ package app.bottlenote.notification.event.listener;
 import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
 import app.bottlenote.common.annotation.DomainEventListener;
+import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationService;
-import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
+import app.bottlenote.review.event.payload.ReviewReplyActivityEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/**
- * {@link ReviewReplyNotificationEvent}를 구독해 리뷰 작성자에게 Notification(SSOT)을 생성한다.
- *
- * <p>Delivery(SSE/Push)는 담당하지 않는다. History 발행 경로와 분리되어 있으며, 이후 활동 이벤트 파이프라인
- * 공동화(bottle-note/workspace#373) 때 단일 이벤트 리스너 분기로 합쳐질 수 있다.
- */
 @Slf4j
 @RequiredArgsConstructor
 @DomainEventListener(type = ASYNCHRONOUS)
 public class ReviewReplyNotificationListener {
 
   static final String TITLE = "새 댓글";
+  static final String REPLY_TITLE = "새 답글";
 
   private final NotificationService notificationService;
 
   @Async
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleReviewReplyNotification(ReviewReplyNotificationEvent event) {
+  public void handleReviewReplyNotification(ReviewReplyActivityEvent event) {
     if (event == null) {
       return;
     }
 
-    if (event.isSelfReply()) {
-      log.debug(
-          "본인 리뷰 댓글 알림 생략 - reviewId: {}, userId: {}, replyId: {}",
-          event.reviewId(),
-          event.replyUserId(),
-          event.replyId());
-      return;
+    List<RuntimeException> failures = new ArrayList<>();
+    boolean sameRecipient = Objects.equals(event.reviewAuthorId(), event.parentReplyUserId());
+    if (!Objects.equals(event.reviewAuthorId(), event.replyUserId()) && !sameRecipient) {
+      sendReviewComment(event, failures);
+    }
+    if (event.parentReplyUserId() != null
+        && !Objects.equals(event.parentReplyUserId(), event.replyUserId())) {
+      try {
+        // 동일 수신자는 부모 답글을 우선하되 거부한 경우 리뷰 댓글 경로를 유지한다.
+        if (!sameRecipient
+            || notificationService.isEnabled(
+                event.parentReplyUserId(), NotificationKind.REVIEW_REPLY)) {
+          notificationService.sendNotification(
+              NotificationMessage.reviewReplyResponse(
+                  event.parentReplyUserId(),
+                  event.reviewId(),
+                  event.replyId(),
+                  REPLY_TITLE,
+                  event.content()));
+        } else {
+          sendReviewComment(event, failures);
+        }
+      } catch (RuntimeException exception) {
+        failures.add(exception);
+      }
     }
 
-    NotificationMessage message =
-        NotificationMessage.reviewReply(
-            event.reviewAuthorId(), event.reviewId(), event.replyId(), TITLE, event.content());
+    if (!failures.isEmpty()) {
+      log.error("댓글 알림 일부 처리 실패 - replyId: {}, failureCount: {}", event.replyId(), failures.size());
+      IllegalStateException failure = new IllegalStateException("댓글 알림 수신자 처리 실패");
+      failures.forEach(failure::addSuppressed);
+      throw failure;
+    }
+  }
 
-    notificationService.sendNotification(message);
-
-    log.info(
-        "리뷰 댓글 알림 저장 요청 처리 - reviewId: {}, reviewAuthorId: {}, replyUserId: {}, replyId: {}",
-        event.reviewId(),
-        event.reviewAuthorId(),
-        event.replyUserId(),
-        event.replyId());
+  private void sendReviewComment(ReviewReplyActivityEvent event, List<RuntimeException> failures) {
+    try {
+      notificationService.sendNotification(
+          NotificationMessage.reviewReply(
+              event.reviewAuthorId(), event.reviewId(), event.replyId(), TITLE, event.content()));
+    } catch (RuntimeException exception) {
+      // 수신자별 새 트랜잭션 실패를 모아 나머지 전달을 마친 뒤 보고한다.
+      failures.add(exception);
+    }
   }
 }

@@ -1,12 +1,15 @@
 package app.bottlenote.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
+import app.bottlenote.like.event.payload.ReviewLikeActivityEvent;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationKind;
 import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
@@ -14,9 +17,12 @@ import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationMarkReadResult;
 import app.bottlenote.notification.service.NotificationService;
-import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
+import app.bottlenote.review.event.payload.ReviewReplyActivityEvent;
+import app.bottlenote.user.event.payload.FollowActivityEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -50,9 +56,9 @@ class ReviewReplyNotificationListenerTest {
     void handleReviewReplyNotification_whenOtherUserReplies_sendsNotificationToAuthor() {
       // given
       String content = "좋은 리뷰네요!";
-      ReviewReplyNotificationEvent event =
-          ReviewReplyNotificationEvent.of(
-              REVIEW_ID, REVIEW_AUTHOR_ID, OTHER_USER_ID, REPLY_ID, content);
+      ReviewReplyActivityEvent event =
+          new ReviewReplyActivityEvent(
+              REVIEW_ID, 20L, REVIEW_AUTHOR_ID, OTHER_USER_ID, REPLY_ID, null, content);
 
       // when
       listener.handleReviewReplyNotification(event);
@@ -77,9 +83,9 @@ class ReviewReplyNotificationListenerTest {
     @DisplayName("리뷰 작성자 본인 댓글이면 알림을 보내지 않는다")
     void handleReviewReplyNotification_whenSelfReply_skipsNotification() {
       // given
-      ReviewReplyNotificationEvent event =
-          ReviewReplyNotificationEvent.of(
-              REVIEW_ID, REVIEW_AUTHOR_ID, REVIEW_AUTHOR_ID, REPLY_ID, "내 리뷰에 댓글");
+      ReviewReplyActivityEvent event =
+          new ReviewReplyActivityEvent(
+              REVIEW_ID, 20L, REVIEW_AUTHOR_ID, REVIEW_AUTHOR_ID, REPLY_ID, null, "내 리뷰에 댓글");
 
       // when
       listener.handleReviewReplyNotification(event);
@@ -99,13 +105,167 @@ class ReviewReplyNotificationListenerTest {
     }
   }
 
+  @Nested
+  @DisplayName("대댓글 수신자를 결정할 때")
+  class ReplyRecipients {
+    @Test
+    @DisplayName("리뷰 작성자와 직접 부모 댓글 작성자에게 각각 전달한다")
+    void distinctRecipients() {
+      listener.handleReviewReplyNotification(reply(1L, 2L, 3L));
+
+      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(1L, 2L);
+      assertThat(notificationService.messages).extracting(NotificationMessage::kind)
+          .containsExactly(NotificationKind.REVIEW_COMMENT, NotificationKind.REVIEW_REPLY);
+    }
+
+    @Test
+    @DisplayName("리뷰 작성자가 답글을 달 때 부모 댓글 작성자에게만 전달한다")
+    void reviewAuthorReplies() {
+      listener.handleReviewReplyNotification(reply(1L, 2L, 1L));
+
+      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(2L);
+    }
+
+    @Test
+    @DisplayName("부모 댓글 작성자가 답글을 달 때 리뷰 작성자에게만 전달한다")
+    void parentAuthorReplies() {
+      listener.handleReviewReplyNotification(reply(1L, 2L, 2L));
+
+      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(1L);
+    }
+
+    @Test
+    @DisplayName("리뷰와 부모 댓글 작성자가 같을 때 부모 답글 한 건만 전달한다")
+    void sameRecipient() {
+      listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
+
+      assertThat(notificationService.messages).hasSize(1);
+      assertThat(notificationService.messages.getFirst().kind()).isEqualTo(NotificationKind.REVIEW_REPLY);
+    }
+
+    @Test
+    @DisplayName("부모 답글 설정이 꺼져 있어도 리뷰 댓글 설정이 켜져 있으면 전달한다")
+    void sameRecipientFallsBackToReviewComment() {
+      notificationService.disabled.add(NotificationKind.REVIEW_REPLY);
+
+      listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
+
+      assertThat(notificationService.messages).hasSize(1);
+      assertThat(notificationService.messages.getFirst().kind()).isEqualTo(NotificationKind.REVIEW_COMMENT);
+    }
+
+    @Test
+    @DisplayName("리뷰 댓글 설정이 꺼져 있어도 부모 답글 설정이 켜져 있으면 전달한다")
+    void sameRecipientUsesEnabledReply() {
+      notificationService.disabled.add(NotificationKind.REVIEW_COMMENT);
+
+      listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
+
+      assertThat(notificationService.messages).hasSize(1);
+      assertThat(notificationService.messages.getFirst().kind()).isEqualTo(NotificationKind.REVIEW_REPLY);
+    }
+
+    @Test
+    @DisplayName("두 설정이 모두 꺼져 있으면 전달하지 않는다")
+    void bothDisabled() {
+      notificationService.disabled.addAll(Set.of(NotificationKind.REVIEW_COMMENT, NotificationKind.REVIEW_REPLY));
+
+      listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
+
+      assertThat(notificationService.messages).isEmpty();
+    }
+
+    @Test
+    @DisplayName("모든 작성자가 본인일 때 전달하지 않는다")
+    void allSelf() {
+      listener.handleReviewReplyNotification(reply(1L, 1L, 1L));
+
+      assertThat(notificationService.messages).isEmpty();
+    }
+
+    @Test
+    @DisplayName("리뷰 작성자 저장이 실패해도 부모 댓글 작성자에게 전달한다")
+    void failureDoesNotBlockOtherRecipient() {
+      notificationService.failingUserId = 1L;
+
+      assertThatThrownBy(() -> listener.handleReviewReplyNotification(reply(1L, 2L, 3L)))
+          .isInstanceOf(IllegalStateException.class)
+          .satisfies(failure -> assertThat(failure.getSuppressed()).hasSize(1));
+
+      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(2L);
+    }
+
+    @Test
+    @DisplayName("부모 댓글 작성자 저장이 실패해도 리뷰 작성자에게 전달한다")
+    void parentFailureDoesNotUndoReviewNotification() {
+      notificationService.failingUserId = 2L;
+
+      assertThatThrownBy(() -> listener.handleReviewReplyNotification(reply(1L, 2L, 3L)))
+          .isInstanceOf(IllegalStateException.class)
+          .satisfies(failure -> assertThat(failure.getSuppressed()).hasSize(1));
+
+      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(1L);
+    }
+  }
+
+  @Nested
+  @DisplayName("좋아요와 팔로우를 구독할 때")
+  class OtherActivities {
+    @Test
+    @DisplayName("다른 사용자의 좋아요 활성 전이만 리뷰 작성자에게 전달한다")
+    void likes() {
+      var likes = new ReviewLikeNotificationListener(notificationService);
+      likes.handle(new ReviewLikeActivityEvent(10L, 20L, 30L, 1L, 2L, "리뷰", true));
+      likes.handle(new ReviewLikeActivityEvent(10L, 20L, 30L, 1L, 2L, "리뷰", false));
+      likes.handle(new ReviewLikeActivityEvent(11L, 20L, 30L, 1L, 1L, "리뷰", true));
+
+      assertThat(notificationService.messages).hasSize(1);
+      NotificationMessage message = notificationService.messages.getFirst();
+      assertThat(message.kind()).isEqualTo(NotificationKind.REVIEW_LIKE);
+      assertThat(message.userId()).isEqualTo(1L);
+      assertThat(message.sourceId()).isEqualTo(10L);
+      assertThat(message.action().targetId()).isEqualTo(20L);
+    }
+
+    @Test
+    @DisplayName("자기 자신을 제외한 팔로우 대상에게 행위자 식별자를 전달한다")
+    void follows() {
+      var follows = new FollowNotificationListener(notificationService);
+      follows.handle(new FollowActivityEvent(10L, 1L, 2L));
+      follows.handle(new FollowActivityEvent(11L, 1L, 1L));
+
+      assertThat(notificationService.messages).hasSize(1);
+      NotificationMessage message = notificationService.messages.getFirst();
+      assertThat(message.kind()).isEqualTo(NotificationKind.FOLLOW);
+      assertThat(message.userId()).isEqualTo(2L);
+      assertThat(message.sourceId()).isEqualTo(10L);
+      assertThat(message.action().targetId()).isEqualTo(1L);
+    }
+  }
+
+  private ReviewReplyActivityEvent reply(Long reviewAuthor, Long parentAuthor, Long actor) {
+    return new ReviewReplyActivityEvent(REVIEW_ID, 20L, reviewAuthor, actor, REPLY_ID, parentAuthor, "답글");
+  }
+
   /** NotificationService 호출 기록용 테스트 더블. */
   private static final class RecordingNotificationService implements NotificationService {
     private final List<NotificationMessage> messages = new ArrayList<>();
+    private final Set<NotificationKind> disabled = new HashSet<>();
+    private Long failingUserId;
+
+    @Override
+    public boolean isEnabled(Long userId, NotificationKind kind) {
+      return !disabled.contains(kind);
+    }
 
     @Override
     public void sendNotification(NotificationMessage message) {
-      messages.add(message);
+      if (message.userId().equals(failingUserId)) {
+        throw new IllegalStateException("수신자 저장 실패");
+      }
+      if (isEnabled(message.userId(), message.kind())) {
+        messages.add(message);
+      }
     }
 
     @Override
