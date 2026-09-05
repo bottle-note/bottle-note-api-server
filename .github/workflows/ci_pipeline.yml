@@ -95,17 +95,6 @@ jobs:
             */build/reports/tests/batch_test/
             */build/test-results/batch_test/
 
-      - name: capture formatter changes
-        if: always()
-        run: git diff --binary -- '*.java' '*.kt' > "$RUNNER_TEMP/source-format.patch"
-
-      - name: upload formatter changes
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: source-format-${{ github.run_number }}
-          path: ${{ runner.temp }}/source-format.patch
-
   rule-tests:
     needs: prepare
     timeout-minutes: 10
