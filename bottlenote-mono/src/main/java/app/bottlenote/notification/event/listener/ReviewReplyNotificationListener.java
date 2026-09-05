@@ -42,7 +42,10 @@ public class ReviewReplyNotificationListener {
       try {
         notificationService.sendNotification(
             NotificationMessage.reviewReplyResponse(
-                event.parentReplyUserId(), event.reviewId(), event.replyId(), REPLY_TITLE,
+                event.parentReplyUserId(),
+                event.reviewId(),
+                event.replyId(),
+                REPLY_TITLE,
                 event.content()));
       } catch (RuntimeException exception) {
         failures.add(exception);

@@ -90,19 +90,26 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     void reply_deliversToBothAndPreservesHistory() {
       ReviewReply parent = reviews.persistReviewReply(review, parentAuthor);
 
-      replyService.registerReviewReply(review.getId(), actor.getId(),
-          new ReviewReplyRegisterRequest("대댓글 내용", parent.getId()));
+      replyService.registerReviewReply(
+          review.getId(), actor.getId(), new ReviewReplyRegisterRequest("대댓글 내용", parent.getId()));
 
       awaitCounts(2, 1);
-      assertThat(messages(reviewAuthor)).singleElement().satisfies(message -> {
-        assertThat(message.getTitle()).isEqualTo("새 댓글");
-        assertThat(message.getContent()).isEqualTo("대댓글 내용");
-        assertThat(message.getActionTargetId()).isEqualTo(review.getId());
-      });
-      assertThat(messages(parentAuthor)).singleElement().satisfies(message -> {
-        assertThat(message.getTitle()).isEqualTo("새 답글");
-        assertThat(message.getSourceId()).isEqualTo(messages(reviewAuthor).getFirst().getSourceId());
-      });
+      assertThat(messages(reviewAuthor))
+          .singleElement()
+          .satisfies(
+              message -> {
+                assertThat(message.getTitle()).isEqualTo("새 댓글");
+                assertThat(message.getContent()).isEqualTo("대댓글 내용");
+                assertThat(message.getActionTargetId()).isEqualTo(review.getId());
+              });
+      assertThat(messages(parentAuthor))
+          .singleElement()
+          .satisfies(
+              message -> {
+                assertThat(message.getTitle()).isEqualTo("새 답글");
+                assertThat(message.getSourceId())
+                    .isEqualTo(messages(reviewAuthor).getFirst().getSourceId());
+              });
       assertThat(messages(actor)).isEmpty();
       assertHistory(histories.findAll().getFirst(), actor, EventType.REVIEW_REPLY_CREATE, "대댓글 내용");
     }
@@ -114,8 +121,8 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
       ReviewReply root = reviews.persistReviewReply(review, rootAuthor);
       ReviewReply parent = reviews.persistReviewReply(review, parentAuthor, root, "부모 댓글");
 
-      replyService.registerReviewReply(review.getId(), actor.getId(),
-          new ReviewReplyRegisterRequest("중첩 답글", parent.getId()));
+      replyService.registerReviewReply(
+          review.getId(), actor.getId(), new ReviewReplyRegisterRequest("중첩 답글", parent.getId()));
 
       awaitCounts(2, 1);
       assertThat(messages(parentAuthor)).hasSize(1);
@@ -128,7 +135,9 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     void reviewAuthorReply_excludesSelf() {
       ReviewReply parent = reviews.persistReviewReply(review, parentAuthor);
 
-      replyService.registerReviewReply(review.getId(), reviewAuthor.getId(),
+      replyService.registerReviewReply(
+          review.getId(),
+          reviewAuthor.getId(),
           new ReviewReplyRegisterRequest("작성자 답글", parent.getId()));
 
       awaitCounts(1, 1);
@@ -141,22 +150,26 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     void sameRecipient_receivesOneReply() {
       ReviewReply parent = reviews.persistReviewReply(review, reviewAuthor);
 
-      replyService.registerReviewReply(review.getId(), actor.getId(),
+      replyService.registerReviewReply(
+          review.getId(),
+          actor.getId(),
           new ReviewReplyRegisterRequest("부모 답글 경로", parent.getId()));
 
       awaitCounts(1, 1);
-      assertThat(messages(reviewAuthor)).singleElement()
+      assertThat(messages(reviewAuthor))
+          .singleElement()
           .satisfies(message -> assertThat(message.getTitle()).isEqualTo("새 답글"));
     }
 
     @Test
     @DisplayName("댓글 원본 트랜잭션이 rollback되면 댓글과 알림과 History가 남지 않는다")
     void rollbackReply_hasNoSideEffects() {
-      transaction.executeWithoutResult(status -> {
-        replyService.registerReviewReply(review.getId(), actor.getId(),
-            new ReviewReplyRegisterRequest("취소할 댓글", null));
-        status.setRollbackOnly();
-      });
+      transaction.executeWithoutResult(
+          status -> {
+            replyService.registerReviewReply(
+                review.getId(), actor.getId(), new ReviewReplyRegisterRequest("취소할 댓글", null));
+            status.setRollbackOnly();
+          });
 
       awaitCounts(0, 0);
       assertThat(replies.findAllReply()).isEmpty();
@@ -169,17 +182,23 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("좋아요 반복과 취소와 재활성화는 알림 한 건을 유지하고 History는 요청마다 남긴다")
     void likeTransitions_keepFirstNotificationAndAllHistory() {
-      for (LikeStatus status : List.of(LikeStatus.LIKE, LikeStatus.LIKE, LikeStatus.DISLIKE, LikeStatus.LIKE)) {
+      for (LikeStatus status :
+          List.of(LikeStatus.LIKE, LikeStatus.LIKE, LikeStatus.DISLIKE, LikeStatus.LIKE)) {
         likesService.updateLikes(actor.getId(), review.getId(), status);
       }
 
       awaitCounts(1, 4);
-      assertThat(messages(reviewAuthor)).singleElement().satisfies(message -> {
-        assertThat(message.getSourceType()).isEqualTo("REVIEW_LIKE");
-        assertThat(message.getActionTargetId()).isEqualTo(review.getId());
-      });
-      assertThat(histories.findAll()).allSatisfy(history ->
-          assertHistory(history, actor, EventType.REVIEW_LIKES, review.getContent()));
+      assertThat(messages(reviewAuthor))
+          .singleElement()
+          .satisfies(
+              message -> {
+                assertThat(message.getSourceType()).isEqualTo("REVIEW_LIKE");
+                assertThat(message.getActionTargetId()).isEqualTo(review.getId());
+              });
+      assertThat(histories.findAll())
+          .allSatisfy(
+              history ->
+                  assertHistory(history, actor, EventType.REVIEW_LIKES, review.getContent()));
     }
 
     @Test
@@ -188,37 +207,54 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
       likesService.updateLikes(reviewAuthor.getId(), review.getId(), LikeStatus.LIKE);
 
       awaitCounts(0, 1);
-      assertHistory(histories.findAll().getFirst(), reviewAuthor, EventType.REVIEW_LIKES, review.getContent());
+      assertHistory(
+          histories.findAll().getFirst(),
+          reviewAuthor,
+          EventType.REVIEW_LIKES,
+          review.getContent());
     }
 
     @Test
     @DisplayName("팔로우 반복과 취소와 재활성화는 대상 사용자에게 최초 관계 알림만 남긴다")
     void followTransitions_keepFirstNotification() {
-      for (FollowStatus status : List.of(FollowStatus.FOLLOWING, FollowStatus.FOLLOWING, FollowStatus.UNFOLLOW, FollowStatus.FOLLOWING)) {
-        followService.updateFollowStatus(new FollowUpdateRequest(reviewAuthor.getId(), status), actor.getId());
+      for (FollowStatus status :
+          List.of(
+              FollowStatus.FOLLOWING,
+              FollowStatus.FOLLOWING,
+              FollowStatus.UNFOLLOW,
+              FollowStatus.FOLLOWING)) {
+        followService.updateFollowStatus(
+            new FollowUpdateRequest(reviewAuthor.getId(), status), actor.getId());
       }
 
       awaitCounts(1, 0);
-      assertThat(messages(reviewAuthor)).singleElement().satisfies(message -> {
-        assertThat(message.getSourceType()).isEqualTo("FOLLOW");
-        assertThat(message.getActionType()).isEqualTo("OPEN_USER");
-        assertThat(message.getActionTargetId()).isEqualTo(actor.getId());
-      });
+      assertThat(messages(reviewAuthor))
+          .singleElement()
+          .satisfies(
+              message -> {
+                assertThat(message.getSourceType()).isEqualTo("FOLLOW");
+                assertThat(message.getActionType()).isEqualTo("OPEN_USER");
+                assertThat(message.getActionTargetId()).isEqualTo(actor.getId());
+              });
       assertThat(messages(actor)).isEmpty();
     }
 
     @Test
     @DisplayName("좋아요와 팔로우 원본이 rollback되면 관계와 알림과 History가 남지 않는다")
     void rollbackRelationships_hasNoSideEffects() {
-      transaction.executeWithoutResult(status -> {
-        likesService.updateLikes(actor.getId(), review.getId(), LikeStatus.LIKE);
-        followService.updateFollowStatus(new FollowUpdateRequest(reviewAuthor.getId(), FollowStatus.FOLLOWING), actor.getId());
-        status.setRollbackOnly();
-      });
+      transaction.executeWithoutResult(
+          status -> {
+            likesService.updateLikes(actor.getId(), review.getId(), LikeStatus.LIKE);
+            followService.updateFollowStatus(
+                new FollowUpdateRequest(reviewAuthor.getId(), FollowStatus.FOLLOWING),
+                actor.getId());
+            status.setRollbackOnly();
+          });
 
       awaitCounts(0, 0);
       assertThat(likes.findByReviewIdAndUserId(review.getId(), actor.getId())).isEmpty();
-      assertThat(follows.findByUserIdAndFollowUserId(actor.getId(), reviewAuthor.getId())).isEmpty();
+      assertThat(follows.findByUserIdAndFollowUserId(actor.getId(), reviewAuthor.getId()))
+          .isEmpty();
     }
   }
 
@@ -232,21 +268,24 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
       ReviewReplyActivityEvent initial = activity(source, reviewAuthor.getId(), null);
       transaction.executeWithoutResult(status -> events.publishEvent(initial));
       awaitCounts(1, 1);
-      ReviewReplyActivityEvent replay = activity(source, reviewAuthor.getId(), parentAuthor.getId());
+      ReviewReplyActivityEvent replay =
+          activity(source, reviewAuthor.getId(), parentAuthor.getId());
       int deliveries = 8;
       CountDownLatch ready = new CountDownLatch(deliveries);
       CountDownLatch start = new CountDownLatch(1);
       List<Future<?>> futures = new ArrayList<>();
       try (var executor = Executors.newFixedThreadPool(deliveries)) {
         for (int index = 0; index < deliveries; index++) {
-          futures.add(executor.submit(() -> {
-            ready.countDown();
-            if (!start.await(5, TimeUnit.SECONDS)) {
-              throw new IllegalStateException("재전달 시작 시간 초과");
-            }
-            transaction.executeWithoutResult(status -> events.publishEvent(replay));
-            return null;
-          }));
+          futures.add(
+              executor.submit(
+                  () -> {
+                    ready.countDown();
+                    if (!start.await(5, TimeUnit.SECONDS)) {
+                      throw new IllegalStateException("재전달 시작 시간 초과");
+                    }
+                    transaction.executeWithoutResult(status -> events.publishEvent(replay));
+                    return null;
+                  }));
         }
         assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
         start.countDown();
@@ -265,11 +304,13 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("한 수신자가 사라져 알림 처리가 실패해도 원본과 다른 수신자의 알림은 남는다")
     void failedRecipient_doesNotRollbackSourceOrOtherRecipient() {
-      Long sourceId = transaction.execute(status -> {
-        ReviewReply source = reviews.persistReviewReply(review, actor);
-        events.publishEvent(activity(source, Long.MAX_VALUE, parentAuthor.getId()));
-        return source.getId();
-      });
+      Long sourceId =
+          transaction.execute(
+              status -> {
+                ReviewReply source = reviews.persistReviewReply(review, actor);
+                events.publishEvent(activity(source, Long.MAX_VALUE, parentAuthor.getId()));
+                return source.getId();
+              });
 
       awaitCounts(1, 1);
       assertThat(replies.findReplyById(sourceId)).isPresent();
@@ -278,8 +319,14 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
   }
 
   private ReviewReplyActivityEvent activity(ReviewReply source, Long authorId, Long parentId) {
-    return new ReviewReplyActivityEvent(review.getId(), review.getAlcoholId(), authorId,
-        actor.getId(), source.getId(), parentId, source.getContent());
+    return new ReviewReplyActivityEvent(
+        review.getId(),
+        review.getAlcoholId(),
+        authorId,
+        actor.getId(),
+        source.getId(),
+        parentId,
+        source.getContent());
   }
 
   private List<Notification> messages(User user) {
@@ -287,12 +334,18 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
   }
 
   private void awaitCounts(long notificationCount, int historyCount) {
-    await().atMost(TIMEOUT).during(HOLD).untilAsserted(() -> {
-      assertThat(notifications.countByUserId(reviewAuthor.getId())
-          + notifications.countByUserId(parentAuthor.getId())
-          + notifications.countByUserId(actor.getId())).isEqualTo(notificationCount);
-      assertThat(histories.findAll()).hasSize(historyCount);
-    });
+    await()
+        .atMost(TIMEOUT)
+        .during(HOLD)
+        .untilAsserted(
+            () -> {
+              assertThat(
+                      notifications.countByUserId(reviewAuthor.getId())
+                          + notifications.countByUserId(parentAuthor.getId())
+                          + notifications.countByUserId(actor.getId()))
+                  .isEqualTo(notificationCount);
+              assertThat(histories.findAll()).hasSize(historyCount);
+            });
   }
 
   private void assertHistory(UserHistory history, User user, EventType type, String content) {
@@ -301,6 +354,7 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
     assertThat(history.getEventCategory()).isEqualTo(EventCategory.REVIEW);
     assertThat(history.getEventType()).isEqualTo(type);
     assertThat(history.getContent()).isEqualTo(content);
-    assertThat(history.getRedirectUrl()).isEqualTo(RedirectUrlType.REVIEW.getUrl() + "/" + review.getId());
+    assertThat(history.getRedirectUrl())
+        .isEqualTo(RedirectUrlType.REVIEW.getUrl() + "/" + review.getId());
   }
 }

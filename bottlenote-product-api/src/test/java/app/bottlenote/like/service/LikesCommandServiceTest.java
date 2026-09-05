@@ -111,15 +111,21 @@ class LikesCommandServiceTest {
   @Test
   @DisplayName("좋아요 상태 요청마다 활동 한 건을 발행하고 활성 전이만 구분한다")
   void updateLikes_publishesOneActivityPerRequest() {
-    for (LikeStatus status : List.of(LikeStatus.LIKE, LikeStatus.LIKE, LikeStatus.DISLIKE, LikeStatus.LIKE)) {
+    for (LikeStatus status :
+        List.of(LikeStatus.LIKE, LikeStatus.LIKE, LikeStatus.DISLIKE, LikeStatus.LIKE)) {
       likesCommandService.updateLikes(1L, 1L, status);
     }
 
     assertThat(events).hasSize(4).allMatch(ReviewLikeActivityEvent.class::isInstance);
-    List<ReviewLikeActivityEvent> activities = events.stream().map(ReviewLikeActivityEvent.class::cast).toList();
-    assertThat(activities).extracting(ReviewLikeActivityEvent::activated).containsExactly(true, false, false, true);
+    List<ReviewLikeActivityEvent> activities =
+        events.stream().map(ReviewLikeActivityEvent.class::cast).toList();
+    assertThat(activities)
+        .extracting(ReviewLikeActivityEvent::activated)
+        .containsExactly(true, false, false, true);
     assertThat(activities).extracting(ReviewLikeActivityEvent::likeId).containsOnly(1L);
-    assertThat(activities).extracting(ReviewLikeActivityEvent::content).containsOnly(reviewFacade.getReview(1L).reviewContent());
+    assertThat(activities)
+        .extracting(ReviewLikeActivityEvent::content)
+        .containsOnly(reviewFacade.getReview(1L).reviewContent());
   }
 
   @Test

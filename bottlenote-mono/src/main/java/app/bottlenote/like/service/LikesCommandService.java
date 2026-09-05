@@ -51,7 +51,8 @@ public class LikesCommandService {
                 });
 
     boolean activated =
-        status == LikeStatus.LIKE && (likes.getId() == null || likes.getStatus() != LikeStatus.LIKE);
+        status == LikeStatus.LIKE
+            && (likes.getId() == null || likes.getStatus() != LikeStatus.LIKE);
     likes.updateStatus(status);
     likesRepository.save(likes);
 

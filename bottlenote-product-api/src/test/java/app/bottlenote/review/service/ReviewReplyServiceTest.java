@@ -61,15 +61,16 @@ class ReviewReplyServiceTest {
 
     userFacade = new FakeUserFacade(user1, user2, user3);
     profanityClient = new FakeProfanityClient();
-    reviewReplyRepository = new InMemoryReviewReplyRepository() {
-      @Override
-      public ReviewReply save(ReviewReply reply) {
-        if (reply.getId() == null) {
-          ReflectionTestUtils.setField(reply, "id", findAllReply().size() + 1L);
-        }
-        return super.save(reply);
-      }
-    };
+    reviewReplyRepository =
+        new InMemoryReviewReplyRepository() {
+          @Override
+          public ReviewReply save(ReviewReply reply) {
+            if (reply.getId() == null) {
+              ReflectionTestUtils.setField(reply, "id", findAllReply().size() + 1L);
+            }
+            return super.save(reply);
+          }
+        };
     reviewRepository = new InMemoryReviewRepository();
     events = new ArrayList<>();
 
@@ -201,22 +202,30 @@ class ReviewReplyServiceTest {
   @Test
   @DisplayName("대댓글을 등록할 때 직접 부모 작성자를 담은 활동 이벤트 한 건을 발행한다")
   void registerReply_publishesDirectParent() {
-    ReviewReply root = reviewReplyRepository.save(
-        ReviewReply.builder().reviewId(1L).userId(2L).content("부모").build());
-    ReviewReply parent = reviewReplyRepository.save(
-        ReviewReply.builder().reviewId(1L).userId(3L).content("직접 부모")
-            .parentReviewReply(root).rootReviewReply(root).build());
+    ReviewReply root =
+        reviewReplyRepository.save(
+            ReviewReply.builder().reviewId(1L).userId(2L).content("부모").build());
+    ReviewReply parent =
+        reviewReplyRepository.save(
+            ReviewReply.builder()
+                .reviewId(1L)
+                .userId(3L)
+                .content("직접 부모")
+                .parentReviewReply(root)
+                .rootReviewReply(root)
+                .build());
 
-    reviewReplyService.registerReviewReply(1L, 1L,
-        new ReviewReplyRegisterRequest("답글", parent.getId()));
+    reviewReplyService.registerReviewReply(
+        1L, 1L, new ReviewReplyRegisterRequest("답글", parent.getId()));
 
     assertThat(events).hasSize(1);
     assertThat((ReviewReplyActivityEvent) events.getFirst())
-        .satisfies(event -> {
-          assertThat(event.parentReplyUserId()).isEqualTo(3L);
-          assertThat(event.reviewAuthorId()).isEqualTo(1L);
-          assertThat(event.replyUserId()).isEqualTo(1L);
-        });
+        .satisfies(
+            event -> {
+              assertThat(event.parentReplyUserId()).isEqualTo(3L);
+              assertThat(event.reviewAuthorId()).isEqualTo(1L);
+              assertThat(event.replyUserId()).isEqualTo(1L);
+            });
   }
 
   @Nested

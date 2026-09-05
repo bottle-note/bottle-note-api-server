@@ -36,8 +36,12 @@ class FollowCommandServiceTest {
     var properties = new CursorProperties();
     properties.setCurrentKeyId("v1");
     properties.setCurrentSecret("test-pagination-cursor-secret");
-    followService = new FollowService(followRepository, userRepository,
-        new HmacCursorCodec(properties, Clock.systemUTC()), event -> {});
+    followService =
+        new FollowService(
+            followRepository,
+            userRepository,
+            new HmacCursorCodec(properties, Clock.systemUTC()),
+            event -> {});
   }
 
   @Test

@@ -32,8 +32,11 @@ class NotificationCreationServiceTest {
     CursorProperties properties = new CursorProperties();
     properties.setCurrentKeyId("v1");
     properties.setCurrentSecret("notification-test-cursor-secret");
-    service = new UserNotificationService(new FakeUserFacade(UserProfileItem.create(1L, "사용자", null)),
-        repository, new HmacCursorCodec(properties, Clock.systemUTC()));
+    service =
+        new UserNotificationService(
+            new FakeUserFacade(UserProfileItem.create(1L, "사용자", null)),
+            repository,
+            new HmacCursorCodec(properties, Clock.systemUTC()));
   }
 
   @ParameterizedTest
@@ -63,12 +66,21 @@ class NotificationCreationServiceTest {
     assertThat(NotificationAction.openReview(2L).version()).isEqualTo(2);
     assertThat(NotificationAction.openReview(2L).payload().isEmpty()).isTrue();
     assertThat(NotificationAction.openUser(2L).type()).isEqualTo(NotificationActionType.OPEN_USER);
-    assertThatThrownBy(() -> new NotificationAction(NotificationActionType.OPEN_REVIEW, 2L,
-        JsonNodeFactory.instance.objectNode().put("replyId", 3L), 2))
+    assertThatThrownBy(
+            () ->
+                new NotificationAction(
+                    NotificationActionType.OPEN_REVIEW,
+                    2L,
+                    JsonNodeFactory.instance.objectNode().put("replyId", 3L),
+                    2))
         .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> new NotificationAction(NotificationActionType.OPEN_USER, 2L,
-        JsonNodeFactory.instance.objectNode(), 2)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> NotificationAction.openUser(0L)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(
+            () ->
+                new NotificationAction(
+                    NotificationActionType.OPEN_USER, 2L, JsonNodeFactory.instance.objectNode(), 2))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> NotificationAction.openUser(0L))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   private static java.util.stream.Stream<NotificationMessage> messages() {

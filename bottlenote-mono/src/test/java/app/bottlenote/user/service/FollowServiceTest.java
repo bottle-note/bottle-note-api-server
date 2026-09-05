@@ -45,7 +45,8 @@ class FollowServiceTest {
         new FollowService(
             followRepository,
             userRepository,
-            new HmacCursorCodec(properties, java.time.Clock.systemUTC()), events::add);
+            new HmacCursorCodec(properties, java.time.Clock.systemUTC()),
+            events::add);
   }
 
   // ========== updateFollowStatus ==========
@@ -175,14 +176,22 @@ class FollowServiceTest {
   void updateFollowStatus_activationEventsOnly() {
     User actor = userRepository.save(createUser("actor@example.com", "행위자"));
     User target = userRepository.save(createUser("target@example.com", "대상"));
-    for (FollowStatus status : List.of(FollowStatus.FOLLOWING, FollowStatus.FOLLOWING, FollowStatus.UNFOLLOW, FollowStatus.FOLLOWING)) {
-      followService.updateFollowStatus(new FollowUpdateRequest(target.getId(), status), actor.getId());
+    for (FollowStatus status :
+        List.of(
+            FollowStatus.FOLLOWING,
+            FollowStatus.FOLLOWING,
+            FollowStatus.UNFOLLOW,
+            FollowStatus.FOLLOWING)) {
+      followService.updateFollowStatus(
+          new FollowUpdateRequest(target.getId(), status), actor.getId());
     }
 
-    Follow follow = followRepository.findByUserIdAndFollowUserId(actor.getId(), target.getId()).orElseThrow();
-    assertThat(events).containsExactly(
-        new FollowActivityEvent(follow.getId(), actor.getId(), target.getId()),
-        new FollowActivityEvent(follow.getId(), actor.getId(), target.getId()));
+    Follow follow =
+        followRepository.findByUserIdAndFollowUserId(actor.getId(), target.getId()).orElseThrow();
+    assertThat(events)
+        .containsExactly(
+            new FollowActivityEvent(follow.getId(), actor.getId(), target.getId()),
+            new FollowActivityEvent(follow.getId(), actor.getId(), target.getId()));
   }
 
   @Test
@@ -191,7 +200,8 @@ class FollowServiceTest {
     User actor = userRepository.save(createUser("actor@example.com", "행위자"));
     User target = userRepository.save(createUser("target@example.com", "대상"));
 
-    followService.updateFollowStatus(new FollowUpdateRequest(target.getId(), FollowStatus.UNFOLLOW), actor.getId());
+    followService.updateFollowStatus(
+        new FollowUpdateRequest(target.getId(), FollowStatus.UNFOLLOW), actor.getId());
 
     assertThat(events).isEmpty();
   }

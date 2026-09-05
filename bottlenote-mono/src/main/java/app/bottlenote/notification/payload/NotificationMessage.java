@@ -64,25 +64,43 @@ public record NotificationMessage(
         helpId,
         NotificationAction.openHelp(helpId));
   }
+
   public static NotificationMessage reviewReplyResponse(
       Long userId, Long reviewId, Long replyId, String title, String content) {
-    return new NotificationMessage(userId, NotificationType.USER, NotificationCategory.REVIEW,
-        title, content, NotificationSourceType.REVIEW_REPLY, replyId,
+    return new NotificationMessage(
+        userId,
+        NotificationType.USER,
+        NotificationCategory.REVIEW,
+        title,
+        content,
+        NotificationSourceType.REVIEW_REPLY,
+        replyId,
         NotificationAction.openReview(reviewId, replyId));
   }
 
   public static NotificationMessage reviewLike(
       Long userId, Long reviewId, Long likeId, String title, String content) {
-    return new NotificationMessage(userId, NotificationType.USER, NotificationCategory.REVIEW,
-        title, content, NotificationSourceType.REVIEW_LIKE, likeId,
+    return new NotificationMessage(
+        userId,
+        NotificationType.USER,
+        NotificationCategory.REVIEW,
+        title,
+        content,
+        NotificationSourceType.REVIEW_LIKE,
+        likeId,
         NotificationAction.openReview(reviewId));
   }
 
   public static NotificationMessage follow(
       Long userId, Long actorId, Long followId, String title, String content) {
-    return new NotificationMessage(userId, NotificationType.USER, NotificationCategory.FOLLOW,
-        title, content, NotificationSourceType.FOLLOW, followId,
+    return new NotificationMessage(
+        userId,
+        NotificationType.USER,
+        NotificationCategory.FOLLOW,
+        title,
+        content,
+        NotificationSourceType.FOLLOW,
+        followId,
         NotificationAction.openUser(actorId));
   }
-
 }

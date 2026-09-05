@@ -21,7 +21,9 @@ public class ReviewLikeNotificationListener {
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ReviewLikeActivityEvent event) {
-    if (event == null || !event.activated() || Objects.equals(event.reviewAuthorId(), event.actorId())) {
+    if (event == null
+        || !event.activated()
+        || Objects.equals(event.reviewAuthorId(), event.actorId())) {
       return;
     }
     notificationService.sendNotification(

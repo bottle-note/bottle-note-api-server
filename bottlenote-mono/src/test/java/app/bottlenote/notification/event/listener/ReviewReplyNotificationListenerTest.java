@@ -110,8 +110,11 @@ class ReviewReplyNotificationListenerTest {
     void distinctRecipients() {
       listener.handleReviewReplyNotification(reply(1L, 2L, 3L));
 
-      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(1L, 2L);
-      assertThat(notificationService.messages).extracting(NotificationMessage::title)
+      assertThat(notificationService.messages)
+          .extracting(NotificationMessage::userId)
+          .containsExactly(1L, 2L);
+      assertThat(notificationService.messages)
+          .extracting(NotificationMessage::title)
           .containsExactly("새 댓글", "새 답글");
     }
 
@@ -120,7 +123,9 @@ class ReviewReplyNotificationListenerTest {
     void reviewAuthorReplies() {
       listener.handleReviewReplyNotification(reply(1L, 2L, 1L));
 
-      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(2L);
+      assertThat(notificationService.messages)
+          .extracting(NotificationMessage::userId)
+          .containsExactly(2L);
     }
 
     @Test
@@ -128,7 +133,9 @@ class ReviewReplyNotificationListenerTest {
     void parentAuthorReplies() {
       listener.handleReviewReplyNotification(reply(1L, 2L, 2L));
 
-      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(1L);
+      assertThat(notificationService.messages)
+          .extracting(NotificationMessage::userId)
+          .containsExactly(1L);
     }
 
     @Test
@@ -157,7 +164,9 @@ class ReviewReplyNotificationListenerTest {
           .isInstanceOf(IllegalStateException.class)
           .satisfies(failure -> assertThat(failure.getSuppressed()).hasSize(1));
 
-      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(2L);
+      assertThat(notificationService.messages)
+          .extracting(NotificationMessage::userId)
+          .containsExactly(2L);
     }
 
     @Test
@@ -169,7 +178,9 @@ class ReviewReplyNotificationListenerTest {
           .isInstanceOf(IllegalStateException.class)
           .satisfies(failure -> assertThat(failure.getSuppressed()).hasSize(1));
 
-      assertThat(notificationService.messages).extracting(NotificationMessage::userId).containsExactly(1L);
+      assertThat(notificationService.messages)
+          .extracting(NotificationMessage::userId)
+          .containsExactly(1L);
     }
   }
 
@@ -209,7 +220,8 @@ class ReviewReplyNotificationListenerTest {
   }
 
   private ReviewReplyActivityEvent reply(Long reviewAuthor, Long parentAuthor, Long actor) {
-    return new ReviewReplyActivityEvent(REVIEW_ID, 20L, reviewAuthor, actor, REPLY_ID, parentAuthor, "답글");
+    return new ReviewReplyActivityEvent(
+        REVIEW_ID, 20L, reviewAuthor, actor, REPLY_ID, parentAuthor, "답글");
   }
 
   /** NotificationService 호출 기록용 테스트 더블. */
