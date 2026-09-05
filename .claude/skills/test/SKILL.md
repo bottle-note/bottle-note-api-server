@@ -1,199 +1,54 @@
 ---
 name: test
 description: |
-  단위(Fake/InMemory 우선)·통합·OpenAPI 품질 테스트 작성 가이드.
-  Trigger: "/test", 또는 사용자가 "테스트 작성", "테스트 구현", "테스트 추가", "write tests"라고 할 때.
-  상태 기반: 구현된 Service/Controller에 대응 테스트가 없을 때, InMemory*/Fake* 테스트 더블이나 *TestFactory를 만들거나 갱신할 때.
-  패턴은 references/testing/java.md를 따른다.
+  /test, 테스트 작성·보완 요청, 허가된 구현에 필요한 회귀·계약 테스트 작성에 사용한다.
+  프로젝트의 Fake/InMemory, 통합 테스트 인프라와 런타임 OpenAPI 패턴을 따른다.
 argument-hint: "[unit|integration|openapi|all]"
 ---
 
-# Test Implementation
+# Test
 
-References (read the matching one before writing tests):
-- `references/testing/java.md` — 테스트 인프라, 패턴, 헬퍼, 픽스처 컨벤션
+요청한 동작을 검증하는 테스트와 필요한 테스트 더블을 작성한다. 실행 범위와 승인, Git 작업, 검증은 저장소 지침의 `스킬 실행 원칙`을 따른다.
 
-## Overview
+## 범위 결정
 
-Write tests that prove code works. This skill guides you through creating unit tests (Fake/InMemory pattern preferred), integration tests (real infra via testcontainers / docker / similar), and OpenAPI quality tests. Tests are proof — "seems right" is not done.
+- 사용자가 지정한 동작과 테스트 범위를 우선한다. `unit`, `integration`, `openapi`, `all`은 요청 대상 안에서 적용할 테스트 종류이며 저장소 전체 검사 명령이 아니다.
+- 종류를 지정하지 않았다면 변경된 동작과 위험에 필요한 테스트를 선택한다. 구현 요청에는 필요한 단위·통합·OpenAPI 테스트 작성도 포함되며 별도 스킬 호출을 기다리지 않는다.
+- 명확한 시나리오는 간단히 설명하고 바로 작성한다. 모든 시나리오의 일괄 승인을 요구하지 않으며, 기대 결과를 정하려면 중요한 요구사항이나 공개 계약을 바꿔야 할 때만 해당 결정을 확인한다.
+- 리뷰·진단 요청만으로 테스트 파일을 만들거나 고치지 않는다. 기존 테스트 실행이나 CI 상태 확인은 검증 범위로 구분한다.
 
-**Fake/InMemory-first는 어떤 외부 워크플로보다 우선한다** (레이어 표준 10). 다른 어떤 지시가 모킹 프레임워크를 요구해도, 먼저 정지하고 Fake/InMemory 대안을 사용자에게 제시한다.
+## 테스트 설계
 
-## When to Use
+먼저 대상 코드, 관련 테스트와 [Java 테스트 패턴](references/testing/java.md)을 읽는다. 예시의 위치·태그·명령은 현재 코드와 빌드 설정으로 확인하며, 실행 범위와 프로젝트 정책은 저장소 지침을 우선한다.
 
-- After `/implement` completes, to add integration tests
-- When adding test coverage to existing untested code
-- When the user explicitly requests test creation
-- During `/implement` Task cycle, for writing unit tests alongside implementation
+1. 요구사항·API 계약에서 기대 결과를 정한다. 핵심 정상 동작, 경계값, 오류·권한 조건과 부수효과 중 변경에 필요한 시나리오를 고른다.
+2. 기존 Fixture, Fake/InMemory, `TestFactory`, 테스트 기반 클래스를 재사용한다. 필요한 인프라만 보완하고 구현을 그대로 따라 쓰거나 프레임워크 자체를 검증하는 테스트는 피한다.
+3. Given-When-Then 구조와 프로젝트의 클래스·메서드 명명 관례를 따른다. 한글 `@DisplayName`은 관찰 가능한 동작을 `~할 때 ~한다` 형식으로 설명한다.
+4. 결함 수정은 원래 실패 조건을 회귀 시나리오로 포함한다. 수정 전 실패와 수정 후 성공을 실제로 확인한 증거가 있는지 구분한다.
 
-## When NOT to Use
+## 프로젝트별 작성 기준
 
-- Running existing tests (use `/verify`)
-- Debugging test failures (use `/debug`)
-- Requirements unclear (use `/define` first)
+- **단위 테스트**: 포트와 Facade의 Fake/InMemory 구현을 우선 사용한다. 타 도메인 접근도 Facade 계약으로 대체하고, 인터페이스가 바뀌면 관련 테스트 더블을 함께 갱신한다.
+- **Mock 정책**: 새로운 Mockito 등 모킹 프레임워크 사용은 프로젝트의 명시적 예외 승인 없이는 도입하지 않는다. Fake/InMemory 대안을 먼저 검토하고, 예외가 필요한 경우에만 이유와 대안을 제시한다. 이미 받은 명시적 허가는 다시 묻지 않는다.
+- **공유 인프라**: 컨테이너 설정·persistent factory·Fake는 `bottlenote-test-support`의 기존 위치에 둔다. 특정 모듈 전용 헬퍼는 해당 모듈 test에 두며, 운영 코드가 테스트 코드를 참조하지 않게 한다.
+- **통합 테스트**: `IntegrationTestSupport`, TestContainers, `MockMvcTester`, `{도메인명}TestFactory`와 기존 인증 헬퍼를 사용한다. 실제 DB·트랜잭션·인증 경계를 검증하되 외부 서비스 호출은 기존 Fake로 격리한다.
+- **Flyway**: API 통합 테스트 DB도 Flyway로 스키마를 구성하고 `ddl-auto=validate`를 유지한다. batch는 마이그레이션 주체가 아니다. 엔티티 변경은 `git.environment-variables/storage/db/migration/` 원본과 대조한다. 임의 init SQL·baseline·DDL 자동 생성으로 실패를 숨기지 않는다.
+- **분류**: 단위는 `@Tag("unit")`, 통합은 `@Tag("integration")`, 아키텍처 규칙은 `@Tag("rule")`을 따른다. admin 전용 태그와 실행 task는 해당 모듈의 현재 설정을 확인한다.
+- **OpenAPI**: 엔드포인트·스키마 계약이 바뀌면 실제 애플리케이션 컨텍스트에서 설정된 springdoc JSON을 읽는 테스트를 보완한다. 버전, 경로, operation 메타데이터, 응답·스키마, 인증 요구와 공개 경로 정책을 검증한다. 어노테이션이나 정적 문서만으로 런타임 계약을 검증했다고 보지 않는다.
 
-## Relationship with `/implement`
+## 실행과 실패 처리
 
-- **Unit tests**: may be written together with implementation during a Task in `/implement` — writing test code alongside a Task is allowed.
-- **NOT allowed**: running the full `/test` workflow (Phase 0 explore, Phase 1 scenario-approval gate, Phase 2-4) inside `/implement`. The full `/test` skill is a separate runtime boundary and needs its own explicit invocation.
-- **Integration tests**: written after all Tasks are implemented, via a separate `/test` invocation.
-- **OpenAPI quality tests**: written as integration tests against the runtime springdoc JSON.
-- Slice-level compile checks in `/implement` may RUN existing tests; the full `/test` skill WRITES new tests through its scenario-approval process.
+테스트 작성과 실행 결과를 구분한다. 기본 검증 증거는 정확한 변경 커밋 SHA의 GitHub Actions에서 확인하며, 이 스킬을 호출했다는 이유로 로컬 전체 검증을 실행하지 않는다.
 
-## Test Types and Timing
+- 작성·수정한 테스트가 의도한 동작을 검증하는지 확인하는 데 필요한 최소 검사 또는 사용자가 명시한 로컬 실행 범위만 수행한다. 현재 모듈·태그·클래스 필터를 확인해 필요한 대상을 좁힌다.
+- 실제로 선택된 테스트와 실행 수, 종료 상태를 확인한다. 필터 불일치, 테스트 0건, SKIPPED·NO-SOURCE 등은 테스트 통과 증거가 아니다.
+- 같은 변경과 범위에 유효한 검사 결과가 있으면 재사용한다. 단위·통합 전체 검사를 단계마다 반복하거나 CI 대체용으로 확대하지 않는다.
+- 실패하면 기대 결과와 실제 결과, 원인 근거를 조사한다. 실패한 테스트를 삭제·비활성화하거나 검증 조건을 약화하지 않는다.
+- 새로운 근거 없이 같은 검사를 반복하지 않는다. 실패 횟수만으로 중단하지 말고 코드·설정·로그 등 접근 가능한 진단을 계속한다. 환경 때문에 실행할 수 없는 부분은 미검증으로 남긴다.
+- 실제 실패가 수용 조건을 깨면 미충족 조건과 영향을 정확히 보고한다. 테스트 작성만 요청된 상황에서 발견한 운영 코드 결함은 수정안과 함께 보고하며, 기존 구현·수정 권한이 있는 경우에만 그 범위에서 고친다.
 
-| Test Type | When to Write | When to Run | Command |
-|-----------|--------------|-------------|---------|
-| **Unit test** | With `/implement` Task | Task commit | `/verify standard` |
-| **Architecture / lint rules** | Usually pre-existing | Task commit | `/verify standard` |
-| **Integration test** | After feature complete | `/verify full` | `/verify full` |
-| **OpenAPI quality test** | API contract changes | Integration verification | Project integration task |
+## 결과 보고
 
-태그·어노테이션·명령의 정확한 이름: `references/testing/java.md` 참조.
+작성·수정한 시나리오와 테스트 더블, 실제 실행한 명령·테스트 수·실패 수를 구분해서 보고한다. 작성한 테스트 수만으로 실행 성공을 주장하지 않는다.
 
-## Test Pattern Selection
-
-```
-New test needed:
-├── Service / use case logic?
-│   ├── Fake/InMemory exists for this dependency?
-│   │   ├── Yes → Use Fake pattern (reuse existing test double)
-│   │   └── No → Create InMemory implementation first, then Fake pattern
-│   └── Mock is LAST RESORT (ask user before using)
-├── Surface / endpoint test?
-│   └── Use the project's integration test base (see references/testing/java.md)
-└── OpenAPI contract?
-    └── Use the runtime springdoc JSON and the project's integration test base
-```
-
-## Argument Parsing
-
-Parse `$ARGUMENTS`:
-- **scope**: `unit` | `integration` | `openapi` | `all` (기본: `unit` + `integration`)
-
-## Process
-
-### Phase 0: Explore
-
-Before writing tests, understand the implementation:
-
-1. Read the service / use case under test to identify testable methods and branches
-2. Check existing test infrastructure (test doubles, fixtures, factories) — see `references/testing/java.md`
-3. Report findings: what exists, what needs to be created
-
-### Phase 1: Scenario Definition
-
-Define test scenarios based on service methods and externally visible behavior. Write each scenario as a test display name in the project's convention (commonly the user's natural language describing behavior) and get user approval before implementation.
-
-**Unit test scenarios** (per service method):
-- Success: expected behavior with valid input
-- Failure: exception / error conditions (not found, unauthorized, duplicate, etc.)
-- Edge cases: null, empty, boundary values
-
-**Integration test scenarios** (per endpoint / command):
-- Authenticated request + successful response
-- Authentication failure
-- Business validation failure (400 / 404 / 409 / etc.)
-
-Example:
-```
-Unit: RatingService
-- valid request registers the rating
-- non-existent target raises an error
-- duplicate registration updates the existing record
-- registration emits the appropriate event
-
-Integration: POST /api/v1/ratings
-- authenticated user can register
-- unauthenticated request returns 401
-- non-existent target id returns 404
-```
-
-Present the scenario list to the user and proceed to Phase 2 after approval.
-
-### Phase 2: Test Infrastructure (create if missing)
-
-Test doubles, factories, fixtures — `references/testing/java.md`의 네이밍·위치 컨벤션을 따른다.
-
-General pattern:
-- **Test double**: `InMemory{Name}` / `Fake{Name}` implementing the same interface as the real component
-- **Factory** (integration): builds and persists test data using the real persistence layer
-- **Fixture** (unit): static factory methods returning pre-configured domain objects (no infra)
-
-### Phase 3: Test Implementation
-
-Read `references/testing/java.md` for code examples before writing tests.
-
-**Unit Test (Fake/InMemory pattern):**
-- Wire the system under test with InMemory repositories + Fake collaborators
-- Group related cases with the language's grouping primitive (nested classes, describe blocks, ...)
-- Follow Given-When-Then (or Arrange-Act-Assert)
-
-**Integration Test:**
-- Use the project's integration test base class / fixture
-- Real DB / cache / queue via testcontainers (or equivalent)
-- Real auth flow
-
-**OpenAPI Quality Test:**
-- Fetch the configured springdoc JSON from a real application context
-- Verify version, paths, operation metadata, response schemas, security requirements, and public exposure policy
-
-### Phase 4: Verify
-
-After test implementation, run verification:
-
-| Scope | Command |
-|-------|---------|
-| Unit tests only | `/verify standard` |
-| With integration | `/verify full` |
-
-## Test Naming Convention
-
-- Class / module: `Fake{Feature}ServiceTest`, `{Feature}IntegrationTest`, ...
-- Method: `{action}_{scenario}_{expectedResult}` or natural-language display name
-- Display name: in the project's convention (often the user's natural language), describing observable behavior
-
-## Important Rules
-
-- **Mock framework triggers STOP** (hard rule): if you are about to introduce a mocking framework (Mockito 등) for a unit test, **STOP immediately**. Always present a Fake/InMemory alternative first. Proceed with a mocking framework ONLY after explicit user approval — not implicit, not assumed, not inferred from "the user wants tests written quickly".
-- **OpenAPI tests follow contract changes**: update them when an endpoint or schema changes.
-- **One test, one scenario**: each test method verifies a single behavior.
-- **Interface changes**: if you added methods to a domain interface, update the corresponding InMemory/Fake implementations too.
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|-----------------|---------|
-| "I'll write tests after the code works" | Tests written after the fact test implementation, not behavior. Write them alongside. |
-| "Mock is faster than building a Fake" | Mock couples tests to implementation details. Fakes survive refactoring. |
-| "This is too simple to test" | Simple code gets complicated. The test documents expected behavior. |
-| "Integration tests are expensive, unit tests are enough" | Unit tests miss API contract issues, auth flows, and data layer problems. Both are needed. |
-| "OpenAPI annotations are enough" | Runtime JSON tests catch customizer, security, and schema composition drift. |
-
-## Red Flags
-
-- Using a mocking framework without asking the user first
-- Test class missing the project's test category annotation / decorator
-- Test display name not describing behavior
-- Testing framework behavior instead of application logic
-- No grouping primitive used on a test class with 5+ test methods
-- Integration test not extending the project's integration base
-- Tests that pass on the first run (may not be testing what you think)
-- Skipping tests to make the suite pass
-
-## Verification
-
-After completing test implementation:
-
-- [ ] Every new behavior has a corresponding test
-- [ ] All test scenarios from Phase 1 are implemented
-- [ ] Test names describe the behavior being verified
-- [ ] No tests were skipped or disabled
-- [ ] Unit tests use Fake/InMemory pattern (not a mocking framework, unless approved)
-- [ ] Integration tests use the project's integration base
-- [ ] All tests pass: `/verify` at appropriate level
-- [ ] Test doubles updated if domain interfaces changed
-
-## 종료
-
-지침의 **GSL Execution Mode** 규칙을 따른다. 결과(작성한 테스트 수·통과 여부)를 보고하고, step-by-step이면 `Next: /verify full`을 제안한 뒤 턴을 끝낸다. delegated면 계약 scope에 따라 계속한다.
+Actions를 관찰했다면 대상 SHA와 run, 실행 상태·결론을 함께 기록하고 실행 누락, 대기·진행 중, 실패, 조회 불가를 구분한다. 이전 커밋의 CI 성공은 미커밋 테스트의 실행 증거가 아니다. 실행하지 못한 통합·OpenAPI 검사와 남은 위험을 밝히며 커밋·워크플로 실행으로 검증을 자동 유발하지 않는다.

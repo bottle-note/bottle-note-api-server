@@ -11,7 +11,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 - If the user asks in English and there are grammar errors, provide grammar feedback in the response.
 - For complex or ambiguous questions, include a summary of your understanding in the response.
 - Keep answers clear and concise (3-5 lines recommended).
-- When code examples are needed, ask whether to show all at once or step by step.
+- When code examples are needed, show only the relevant scope; use step-by-step presentation when requested.
 - When writing code, keep comments to a single brief line.
 - When modifying existing code, always follow the project's existing patterns and conventions.
 - When multiple files need changes, list the files to be modified upfront.
@@ -50,7 +50,7 @@ graph LR
 git submodule update --init --recursive
 
 ./gradlew build                 # 전체 빌드
-./gradlew test                  # 기본 테스트 (integration, data-jpa-test 제외)
+./gradlew test                  # 기본 테스트 (integration, admin_integration 제외)
 ./gradlew unit_test             # 단위 테스트 (@Tag("unit"))
 ./gradlew integration_test      # 통합 테스트 (@Tag("integration"))
 ./gradlew check_rule_test       # 아키텍처 규칙 테스트 (@Tag("rule"))
@@ -99,19 +99,19 @@ gh workflow run deploy_development_applications.yml
 
 ## Skills (Development Workflow)
 
-Use these skills to follow the structured development lifecycle:
+요청에 맞는 스킬을 선택한다. 각 스킬은 독립적으로 사용할 수 있으며, 아래 공통 실행 원칙을 따른다.
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
 | `/define` | Requirements clarification | Starting a new feature, vague requirements |
-| `/plan` | Task breakdown | After /define, multi-file changes |
-| `/implement` | Incremental implementation | Building features (product + admin) |
+| `/plan` | Task breakdown | 계획 요청, 복잡한 변경의 의존 관계 정리 |
+| `/implement` | Implementation | 명확한 기능 구현·수정, 필요한 테스트 작성 |
 | `/test` | Test creation | Unit, integration, OpenAPI quality tests |
-| `/verify` | Local CI verification | Compile, unit test, integration test |
-| `/debug` | Systematic debugging | Build/test failures, unexpected errors |
-| `/self-review` | Pre-commit quality gate | Before every commit |
+| `/verify` | GitHub Actions verification | 기본은 CI 결과 확인, 로컬 검증은 명시 요청 시 |
+| `/debug` | Systematic debugging | 원인 진단, 수정 요청이 있으면 수정·회귀 확인 |
+| `/self-review` | Evidence-based review | 리뷰 요청, 허가된 변경의 자체 검토와 커밋 전 검토 |
 
-**Lifecycle:** `/define` -> `/plan` -> `/implement` (with `/self-review` per Task) -> `/test` -> `/verify full`
+구현에 필요한 테스트 작성과 자체 검토는 같은 요청 안에서 수행한다. 스킬 전환은 새로운 권한을 부여하지 않으며, 커밋·푸시·PR 및 로컬 전체 검증을 필수 후속 단계로 붙이지 않는다.
 
 **Detailed patterns** for product-api and admin-api implementation are in skill reference files:
 - `.claude/skills/implement/references/languages/java-spring.md` — Java/Spring 구현 패턴
@@ -125,10 +125,10 @@ Use these skills to follow the structured development lifecycle:
 | 대상 | codex | Claude Code |
 |---|---|---|
 | 지침 | `AGENTS.md` | `CLAUDE.md` |
-| 스킬 | `.agents` 디렉터리 | `.claude` 디렉터리 |
+| 스킬 | `.agents/skills` 디렉터리 | `.claude/skills` 디렉터리 |
 
 - 두 지침 문서는 런타임 이름, 스킬 디렉터리 경로, personal 지침 파일명, 첫 줄 제목만 다르고 나머지 본문은 완전히 같아야 한다. 이 네 가지 외의 차이는 동기화 누락이다.
-- 두 스킬 디렉터리는 바이트 단위로 같아야 한다. `diff -rq`로 확인하고, 스킬 파일 안에 특정 런타임의 디렉터리 경로를 하드코딩하지 않는다.
+- 두 skills 디렉터리의 배포 파일은 바이트 단위로 같아야 한다. `diff -r -x .DS_Store .agents/skills .claude/skills`로 확인하고, 스킬 파일 안에 특정 런타임의 디렉터리 경로를 하드코딩하지 않는다. 각 런타임의 로컬 설정과 OS 메타데이터는 비교 대상이 아니다.
 - Skills 표에 적은 슬래시 커맨드는 실제 스킬 디렉터리로 존재해야 한다. 스킬을 제거하면 표에서도 지운다.
 - 훅을 다시 도입한다면 머신 고유 절대경로와 런타임 전용 환경변수를 넣지 않는다. 저장소 루트는 `$(git rev-parse --show-toplevel)`로 구한다.
 
@@ -147,7 +147,7 @@ Use these skills to follow the structured development lifecycle:
 
 1. 도메인 모델 != `@Entity`가 원칙이나, 구현 중복 제거를 위해 도메인 엔티티(JPA 엔티티)를 허용한다. 의도된 트레이드오프다.
 2. 레포지토리는 2형으로 분리한다: 순수 자바 인터페이스인 도메인 레포지토리(포트) + 구현 레포지토리(JPA, QueryDSL, Redis).
-3. 도메인 레포지토리 시그니처에 Spring Data 타입(`Page`, `Pageable`, `Slice`, `Sort`) 노출 금지. 페이징은 자체 타입(`PageResponse`, cursor criteria)을 쓴다.
+3. 도메인 레포지토리 시그니처에 Spring Data 타입(`Page`, `Pageable`, `Slice`, `Sort`) 노출 금지. 페이징은 자체 타입(`KeysetPageResponse`, cursor criteria)을 쓴다.
 4. 기술 세부사항(QueryDSL, EntityManager, Redis)은 구현 레포지토리 안에 격리하고 포트 밖으로 새지 않는다.
 5. 코드는 자기 도메인 패키지에만 둔다. 타 도메인 파일을 자기 패키지에 두지 않는다.
 6. 타 도메인 접근은 Facade 경유만 허용한다. 타 도메인의 repository는 물론 service도 직접 참조하지 않는다.
@@ -155,7 +155,7 @@ Use these skills to follow the structured development lifecycle:
 8. Controller는 인터페이스에만 의존한다. 구현체 직접 주입 금지, 도메인 VO 직접 생성 금지.
 9. 트랜잭션 경계, 도메인 VO 생성/검증, cross-domain 조합은 Service가 소유한다.
 10. 테스트 더블은 Mockito가 아니라 포트와 Facade의 Fake/InMemory 구현을 쓴다.
-11. 공통 타입(`PageResponse`, cursor criteria, 공통 예외 베이스, 공통 어노테이션)은 `global`(공유 커널)에 둔다.
+11. 공통 타입(`KeysetPageResponse`, cursor criteria, 공통 예외 베이스, 공통 어노테이션)은 `global`(공유 커널)에 둔다.
 12. global은 어떤 도메인도 모른다. global → 도메인 import 금지.
 13. 동기 호출은 Facade, 부수효과 전파(히스토리, 알림 등)는 도메인 이벤트로 한다.
 14. 예외는 도메인이 소유한다. 도메인별 예외는 자기 exception 패키지에, 공통 베이스만 global에 둔다.
@@ -188,7 +188,7 @@ Use these skills to follow the structured development lifecycle:
 
 - Lombok: `@Getter`, `@Builder`, `@RequiredArgsConstructor`
 - 불변성: `record` 사용 (DTO), `final` 필드 선호
-- 페이징: `PageResponse`, `CursorPageable`
+- 페이징: 현재 공통 구현인 `KeysetPageRequest`, `KeysetPageResponse`, `KeysetPagination`과 대상 API의 계약을 따른다.
 
 ## 테스트 작성 규칙
 
@@ -217,7 +217,7 @@ Use these skills to follow the structured development lifecycle:
 - **API 테스트**: `MockMvcTester` 사용
 - **테스트 데이터 생성**: `{도메인명}TestFactory` 사용
 
-> Detailed code examples: see `/test` skill references (`test-infra.md`, `test-patterns.md`)
+> 테스트 인프라·픽스처·테스트 예시는 `/test`의 `references/testing/java.md`를 참조한다.
 
 ### 이벤트 기반 아키텍처
 
@@ -234,7 +234,7 @@ Use these skills to follow the structured development lifecycle:
 
 - 마이그레이션 원본은 `git.environment-variables/storage/db/migration/`에 두고, product-api와 admin-api의 `processResources`가 빌드 시 `classpath:db/migration`으로 복사한다. 저장소 소스 트리에는 `db/migration` 디렉터리가 없다.
 - 설정은 `enabled: ${FLYWAY_ENABLED:true}`, `baseline-on-migrate: false`, `locations: classpath:db/migration`이다. 기존 스키마에 임의로 baseline을 잡지 않는다.
-- batch 모듈은 `flyway.enabled=false`다. 마이그레이션 주체가 아니며, batch jar에 마이그레이션 SQL이 섞여 들어가면 빌드가 실패하는 가드가 있다. batch는 `storage/mysql/sql`의 지정된 쿼리 리소스만 패키징한다.
+- batch 모듈은 `flyway.enabled=false`이며 마이그레이션 주체가 아니다. batch는 `storage/mysql/sql`의 지정된 쿼리 리소스만 패키징한다. `verifyBatchPackagedResources`는 누락·금지 리소스를 검사하는 별도 태스크로, 현재 build·CI에 자동 연결되어 있지 않다. 빌드 성공만으로 해당 검사까지 통과했다고 판단하지 않는다.
 - 통합 테스트도 `flyway.enabled=true`로 동작한다. TestContainers 스키마 역시 Flyway가 만들며, 별도 init 스크립트를 쓰지 않는다.
 - 새 마이그레이션은 서브모듈 저장소에 추가한 뒤 서브모듈 포인터를 갱신해야 반영된다.
 
@@ -265,34 +265,33 @@ Use these skills to follow the structured development lifecycle:
 - OpenFeign: `@FeignClient`, 설정 분리 `FeignConfig`, 에러 처리 `ErrorDecoder`
 - AWS S3: PreSigned URL 생성 (SDK v2 `S3Client`/`S3Presigner`)
 
-## GSL Execution Mode
+## 스킬 실행 원칙
 
-GSL 스킬(define/plan/implement/test/verify/debug/self-review)은 `plan/{기능}.md` 문서를 공유 상태로 쓰는 개발 생명주기다. 진행 방식은 `/define` 승인 게이트에서 계약으로 확정되며, **plan 문서의 `## Execution Mode` 섹션이 유일한 근거다.** 문서에 선언이 없으면 step-by-step이다.
+스킬은 요청을 수행하는 개별 도구다. 모든 작업에 define → plan → implement → test → verify 순서를 강제하지 않는다. 사용자의 최신 명시 지시와 대화에서 승인한 범위가 스킬 및 계획 문서보다 우선한다.
 
-### step-by-step (기본값)
+### 요청과 권한
 
-- 각 GSL 스킬은 자기 작업과 종료 보고를 마치면 **턴을 끝낸다**. 다음 스킬 실행에는 사용자의 새 메시지가 필요하다.
-- `/implement`는 Task 하나를 커밋하고 보고한 뒤 정지한다. 예외: 사용자가 여러 Task의 연속 실행을 명시적으로 지정한 경우("Task 1~3 진행해", "결과까지 진행해")에만 이어서 진행한다.
-- 애매한 "계속", "continue"는 **다음 스킬로의 전환** 허가가 아니다 — 다음 명령을 안내하라는 뜻으로 해석한다. 단, 진행 중인 스킬 내부의 재개 신호는 그 스킬의 규정을 따른다 (`/implement`: 다음 Task 1개만 허가).
-- 종료 보고에는 다음 권장 명령을 한 줄로 제안한다 (실행하지 않는다).
-- 스킬 하나가 다른 스킬의 전체 워크플로를 내부에서 실행하지 않는다 (`/implement`가 Task 곁에 테스트 코드를 쓰는 것은 허용, `/test`·`/verify`·`/self-review`의 풀 워크플로 실행은 금지).
+- 분석·진단·리뷰는 기본 읽기 전용이다. 발견 사항과 수정안을 보고하며, 파일 수정·자동 포맷·stash로 넘어가지 않는다.
+- 수정·구현 요청은 범위가 명확하면 관련 탐색, 필요한 계획, 구현, 테스트 작성, 최소 관련 검사와 자체 검토까지 이어서 수행한다. 스킬을 참고한다는 이유로 단계마다 다시 승인받지 않는다.
+- 요구사항 정리나 계획만 요청받았다면 해당 산출물에서 끝낸다. 사용자에게 구현까지 위임받지 않았으면 구현하지 않는다.
+- commit, push, merge, PR 생성, history 변경은 각각 사용자의 명시적인 요청이나 승인이 있어야 한다. 구현 승인이나 계획 문서의 자동 생성된 scope를 Git 쓰기 권한으로 해석하지 않는다.
+- 배포, 공유 환경 변경, 외부 데이터 전송, 새 비용·권한, 파괴적 작업은 명시적으로 허가된 범위에서만 수행한다. 이전에 허가받은 같은 행동은 반복 확인하지 않는다.
+- 사용자가 단계별 진행을 선택하면 해당 경계를 지킨다. 그 외에는 승인된 요청의 완료까지 진행한다. "계속"은 직전 요청과 합의한 범위 안에서 해석하며 새로운 Git·운영 권한을 만들지 않는다.
 
-### delegated (define 승인 시 명시 선언)
+### 계획과 중단
 
-`/define` 승인 게이트에서 아래 형식으로 선언하고 plan 문서에 기록한 경우에만 유효하다.
+- 계획은 불확실성, 공개 계약·스키마 영향, 의존 관계와 작업 위험에 따라 작성한다. 파일 수나 코드 줄 수만으로 계획 승인, Task 분할, 컴파일 주기를 강제하지 않는다.
+- 장기 작업에는 `plan/{기능}.md`로 목표·수용 기준·진행 상태·검증 근거를 남길 수 있다. 문서가 없는 명확한 수정은 바로 진행할 수 있다. 산출물 이름은 공백과 `YYYY.MM.DD` 날짜를 사용한다.
+- 기존 계획의 `Execution Mode`는 사용자가 선택한 진행 방식과 범위를 확인하는 기록이다. 과거 step-by-step 선택은 존중하되 최신 지시가 우선하며, 오래된 문서만으로 새 권한을 추론하지 않는다.
+- 코드로 확인 가능한 가정은 조사해서 해결한다. 발견 때문에 성공 기준·공개 계약·데이터 호환성이나 허가 범위가 실질적으로 달라지면 근거와 선택지를 제시하고 해당 작업을 멈춘다.
+- 실패 시 같은 명령을 근거 없이 반복하지 않는다. 로그와 재현 조건으로 원인을 좁히고, 새 권한이나 정보가 필요할 때 구체적인 장애 요인을 보고한다.
 
-```markdown
-## Execution Mode
-- mode: delegated
-- scope: plan, implement, test, verify, commit   # push, pr 포함 가능
-- stop-conditions: 기본 3종 (+ 추가 조건)
-```
+### 검증 기본값: GitHub Actions
 
-- scope에 포함된 단계는 생명주기 순서(plan → implement → test → verify → commit → push → pr)대로 단계 간 승인 없이 이어 실행한다. 이는 위임 계약의 이행이므로 step-by-step의 스킬 격리 규칙이 적용되지 않는다. 단 Task마다 Progress Log 기록과 체크포인트 보고는 남긴다.
-- `push`가 scope에 없으면 커밋까지만 하고 푸시 직전에 정지한다. `pr`이 있으면 PR 오픈과 본문 작성까지 수행한다 — **이 저장소는 PR 본문이 체인지로그를 겸한다.**
-
-### stop-conditions (모드 무관, 무조건 정지)
-
-1. **가정 붕괴** — 작업 중 발견이 define의 Assumption을 깨면 즉시 정지하고 재개봉 프로토콜(define 수정 → WHAT이 바뀌었으면 재승인)을 따른다. 조용히 적응하지 않는다.
-2. **verify 반복 실패** — `/verify` 실패를 3회 시도 안에 해결하지 못하면 `/debug` 결과를 보고하고 정지한다.
-3. **scope 밖 행동** — 선언된 scope 밖의 되돌리기 어려운 행동(푸시, PR 오픈, 파일 대량 삭제, 인프라 변경)이 필요해지면 그 직전에 정지하고 확인받는다. step-by-step에서 scope는 사용자가 명시적으로 승인한 작업 범위를 뜻한다.
+- `/verify`와 일반적인 검증 요청은 GitHub Actions 결과 확인을 기본으로 한다. 로컬 전체 빌드·전체 테스트는 사용자가 명시적으로 요청한 경우에만 실행한다.
+- 구현 중 새 동작·수정한 오류·변경한 테스트에 필요한 최소 검사는 허용한다. 이미 통과한 검사를 새 변경이나 실패 근거 없이 반복하거나 전체 검증으로 확대하지 않는다.
+- 로컬 검증 요청의 범위와 명령은 `verify` 스킬을 따른다. `compileJava`는 일부 모듈에서 `spotlessApply`를 실행하므로 읽기 전용 확인으로 취급하지 않는다.
+- 허가된 push·PR 후에는 대상 커밋과 관련 Actions 실행을 대응시키고 상태·실패 로그를 확인한다. 로컬 commit만으로는 Actions가 시작되지 않으며, 검증을 만들기 위해 push·PR·워크플로 dispatch·재실행을 자동으로 수행하지 않는다.
+- CI의 저장소·워크플로·이벤트·대상 SHA·run URL과 결과를 확인한다. PR merge 커밋으로 검사했다면 PR head와의 관계를 명시한다. 다른 SHA의 성공이나 과거 성공을 현재 변경의 근거로 쓰지 않는다.
+- 실행 없음, 대기, 진행 중, 실패, 취소, 건너뜀을 성공과 구분한다. 필요한 검사가 빠졌으면 전체 통과로 보고하지 않는다. 로컬 미커밋 변경은 원격 CI가 검증한 내용에 포함되지 않는다.
+- 완료 보고에는 변경 결과, 수행한 검증과 증거, 실행하지 않은 검사와 남은 상태를 간결하게 적는다. PR 본문은 체인지로그를 겸하므로 변경 배경·동작·검증을 포함한다.
