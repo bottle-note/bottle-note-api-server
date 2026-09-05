@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.dto.response
 
+import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRowRequest
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(name = "AdminAlcoholExcelValidateResponse", description = "알코올 엑셀 업로드 검증 결과")
@@ -20,6 +21,8 @@ data class AdminAlcoholExcelValidateResponse(
 data class AdminAlcoholExcelRowResult(
 	@Schema(description = "엑셀 행 번호(1-based, 헤더=1, 설명=2, 데이터 시작=3)")
 	val rowNumber: Int,
+	@Schema(description = "공통 벌크 요청에 전달할 엑셀 행 식별자")
+	val clientRowId: String,
 	val korName: String?,
 	val engName: String?,
 	val abv: String?,
@@ -44,7 +47,9 @@ data class AdminAlcoholExcelRowResult(
 	val candidateAlcoholIds: List<Long>? = null,
 	val valid: Boolean,
 	val errors: List<AdminAlcoholExcelIssue>,
-	val warnings: List<AdminAlcoholExcelIssue>
+	val warnings: List<AdminAlcoholExcelIssue>,
+	@Schema(description = "오류가 없을 때만 반환하는 공통 벌크 정규화 행")
+	val normalized: AdminAlcoholBulkRowRequest? = null
 )
 
 @Schema(name = "AdminAlcoholExcelIssue", description = "행 단위 오류 또는 경고")
