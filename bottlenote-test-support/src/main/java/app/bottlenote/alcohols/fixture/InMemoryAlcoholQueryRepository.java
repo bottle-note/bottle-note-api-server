@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
+import app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
@@ -132,8 +133,17 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
-  public List<AlcoholBulkReferenceItem> findAllBulkReferenceItems() {
+  public List<AlcoholBulkCategoryItem> findBulkCategoryItems() {
     return alcohols.values().stream()
+        .filter(a -> !a.isDeleted())
+        .map(a -> new AlcoholBulkCategoryItem(a.getKorCategory(), a.getEngCategory(), a.getCategoryGroup(), a.getType()))
+        .distinct().toList();
+  }
+
+  @Override
+  public List<AlcoholBulkReferenceItem> findBulkReferenceItemsByDistilleryIds(List<Long> distilleryIds) {
+    return alcohols.values().stream()
+        .filter(a -> a.getDistillery() != null && distilleryIds.contains(a.getDistillery().getId()))
         .filter(a -> !a.isDeleted())
         .sorted(Comparator.comparing(Alcohol::getId))
         .map(

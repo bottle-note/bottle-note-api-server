@@ -30,6 +30,9 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.util.ReflectionTestUtils
 import java.io.ByteArrayInputStream
@@ -616,6 +619,71 @@ class AdminAlcoholExcelServiceTest {
 				.isInstanceOf(AlcoholException::class.java)
 				.extracting("exceptionCode")
 				.isEqualTo(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
+		}
+
+		@ParameterizedTest
+		@ValueSource(ints = [1, 2])
+		@DisplayName("설명 행을 삭제하면 첫 데이터를 누락시키지 않고 파일 오류를 반환한다")
+		fun validate_whenDescriptionRowDeleted_rejectsWithoutDroppingData(count: Int) {
+			for (legacy in listOf(false, true)) {
+				val file = workbookAsMultipart { workbook ->
+					if (legacy) workbook.removeName(workbook.getName("AlcoholImportDescriptionRow"))
+					repeat(count) { writeDataRow(workbook, validRowValues(), it + 2) }
+					val sheet = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+					sheet.removeRow(sheet.getRow(1))
+					sheet.shiftRows(2, count + 1, -1)
+				}
+				assertThatThrownBy { service.validate(file) }
+					.isInstanceOf(AlcoholException::class.java)
+					.extracting("exceptionCode")
+					.isEqualTo(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
+			}
+			assertThat(bulkService.receivedRequests).isEmpty()
+		}
+
+		@Test
+		@DisplayName("설명 문구를 편집하거나 기존 템플릿을 사용해도 데이터 행을 검증한다")
+		fun validate_whenDescriptionEditedOrLegacy_acceptsData() {
+			val edited = workbookAsMultipart { workbook ->
+				val row = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME).getRow(1)
+				row.forEach { it.setCellValue("자유롭게 수정한 안내 문구") }
+				writeDataRow(workbook, validRowValues())
+			}
+			assertThat(service.validate(edited).totalRows).isEqualTo(1)
+			val legacy = workbookAsMultipart { workbook ->
+				workbook.removeName(workbook.getName("AlcoholImportDescriptionRow"))
+				writeDataRow(workbook, validRowValues())
+			}
+			assertThat(service.validate(legacy).totalRows).isEqualTo(1)
+		}
+
+		@ParameterizedTest
+		@CsvSource(
+			"40, 0.0;0.0%, 40",
+			"0.4, 0%;0.0, 40%",
+			"-0.4, 0.0;0%, -40%",
+			"0, 0%;0.0;0.0, 0",
+			"0, 0.0;0.0;0%, 0%",
+			"40, [<1]0%;0.0, 40",
+			"0.4, [<1]0%;0.0, 40%",
+			"40, [<1]0%;[>100]0%;0.0, 40",
+			"40, 0_% , 40",
+			"40, 0*% , 40",
+			"-0.4, \"[<1]\"0%;0.0, -0.4",
+			"40, 0.0\"; %\";0%, 40"
+		)
+		@DisplayName("숫자에 실제 적용되는 서식 구간의 퍼센트만 도수 변환에 사용한다")
+		fun validate_whenNumberFormatHasSections_selectsApplicableSection(value: Double, format: String, expected: String) {
+			val file = workbookAsMultipart { workbook ->
+				writeDataRow(workbook, validRowValues())
+				val cell = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME).getRow(2).getCell(2)
+				cell.setCellValue(value)
+				cell.cellStyle = workbook.createCellStyle().apply {
+					dataFormat = workbook.createDataFormat().getFormat(format)
+				}
+			}
+			service.validate(file)
+			assertThat(bulkService.receivedRequests.single().rows().single().abv()).isEqualTo(expected)
 		}
 
 		@Test

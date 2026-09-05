@@ -22,6 +22,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkCreateResponse.Creat
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkValidateResponse;
+import app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem;
 import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
@@ -144,7 +145,7 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
     Map<CategoryKey, Set<AlcoholCategoryGroup>> categories = new HashMap<>();
     Map<CategoryKey, Set<AlcoholType>> categoryTypes = new HashMap<>();
     Map<IdentityKey, Set<Long>> candidates = new HashMap<>();
-    for (AlcoholBulkReferenceItem item : alcoholRepository.findAllBulkReferenceItems()) {
+    for (AlcoholBulkCategoryItem item : alcoholRepository.findBulkCategoryItems()) {
       if (item.categoryGroup() != null) {
         categories
             .computeIfAbsent(
@@ -157,6 +158,12 @@ public class DefaultAdminAlcoholBulkService implements AdminAlcoholBulkService {
                 categoryKey(item.korCategory(), item.engCategory()), ignored -> new HashSet<>())
             .add(item.type());
       }
+    }
+    List<AlcoholBulkReferenceItem> existing =
+        distilleryIds.isEmpty()
+            ? List.of()
+            : alcoholRepository.findBulkReferenceItemsByDistilleryIds(List.copyOf(distilleryIds));
+    for (AlcoholBulkReferenceItem item : existing) {
       addCandidate(
           candidates,
           identity(item.korName(), item.distilleryId(), item.abv(), item.volume()),

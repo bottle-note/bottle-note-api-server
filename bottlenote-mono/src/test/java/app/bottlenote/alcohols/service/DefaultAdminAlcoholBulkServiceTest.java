@@ -339,6 +339,41 @@ class DefaultAdminAlcoholBulkServiceTest {
   }
 
   @Test
+  @DisplayName("중복 후보 조회는 요청한 증류소로 제한하고 다른 증류소의 카테고리는 유지한다")
+  void 중복_후보_조회_범위를_제한한다() {
+    Distillery other =
+        distilleries.save(Distillery.builder().korName("다른 증류소").engName("Other").build());
+    alcohols.save(
+        Alcohol.builder()
+            .korName("참조용")
+            .engName("Reference")
+            .type(AlcoholType.WHISKY)
+            .korCategory("싱글몰트")
+            .engCategory("Single Malts")
+            .categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
+            .distillery(other)
+            .abv("40")
+            .volume("700")
+            .build());
+    Row row = new Row();
+    row.group = null;
+    var result = validate(row);
+    assertThat(result.valid()).isTrue();
+    assertThat(result.normalized().categoryGroup()).isEqualTo("SINGLE_MALT");
+    assertThat(result.candidateAlcoholIds()).isEmpty();
+    assertThat(alcohols.requestedDistilleryIds).containsExactly(1L);
+  }
+
+  @Test
+  @DisplayName("유효한 증류소 ID가 없으면 중복 후보 조회를 생략한다")
+  void 증류소_없으면_후보를_조회하지_않는다() {
+    Row row = new Row();
+    row.distilleryId = null;
+    assertThat(validate(row).valid()).isFalse();
+    assertThat(alcohols.bulkReads).isZero();
+  }
+
+  @Test
   @DisplayName("비위스키 기존 데이터가 있을 때 그룹 도출과 중복 후보에 반영한다")
   void 비위스키_기존_데이터도_참조한다() {
     Alcohol existing =
@@ -462,11 +497,14 @@ class DefaultAdminAlcoholBulkServiceTest {
 
   private static final class CountingAlcoholRepository extends InMemoryAlcoholQueryRepository {
     int bulkReads;
+    List<Long> requestedDistilleryIds = List.of();
 
     @Override
-    public List<AlcoholBulkReferenceItem> findAllBulkReferenceItems() {
+    public List<AlcoholBulkReferenceItem> findBulkReferenceItemsByDistilleryIds(
+        List<Long> distilleryIds) {
       bulkReads++;
-      return super.findAllBulkReferenceItems();
+      requestedDistilleryIds = List.copyOf(distilleryIds);
+      return super.findBulkReferenceItemsByDistilleryIds(distilleryIds);
     }
   }
 
