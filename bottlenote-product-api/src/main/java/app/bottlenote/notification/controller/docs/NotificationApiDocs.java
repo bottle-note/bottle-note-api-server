@@ -49,7 +49,7 @@ public final class NotificationApiDocs {
           - `createAt/readAt` 값은 Asia/Seoul `+09:00` offset으로 반환하고 `readAt`은 null일 수 있음
 
           별도 Action 실행 endpoint는 제공하지 않습니다. 앱과 웹은 응답의 semantic `type`을 각 플랫폼 내부 route로 변환합니다.
-          `OPEN_REVIEW` v1은 {replyId}, v2는 빈 payload로 댓글 없는 리뷰를 엽니다. `OPEN_USER` v1은 빈 payload와 targetId로 사용자 프로필을 엽니다.
+          `OPEN_REVIEW` v1은 {replyId}, `OPEN_REVIEW` v2는 빈 payload로 댓글 없는 리뷰를 엽니다. `OPEN_USER` v1은 빈 payload와 targetId로 사용자 프로필을 엽니다.
           클라이언트가 type/version을 지원하지 않으면 알림함으로 fallback합니다.
           `OPEN_REVIEW` 이동 시 리뷰 상세 API가 존재 여부와 접근 권한을 다시 검증합니다. 댓글만 삭제됐으면 리뷰 상세를 열고 댓글 강조를 생략하며,
           리뷰가 삭제됐거나 접근 권한이 없으면 `fallbackType=OPEN_NOTIFICATION_CENTER`를 적용합니다. 서버 응답에는 raw URL 또는 route 문자열을 포함하지 않습니다.
