@@ -55,23 +55,18 @@ public record NotificationListOpenApiSchema(
       @Schema(description = "Action 타입에 따른 이동 대상 식별자", example = "10") Long targetId,
       @Schema(
               description = "Action 타입별 payload",
-              oneOf = {OpenReviewActionPayload.class, OpenHelpActionPayload.class})
-          ActionPayload payload,
+              anyOf = {
+                OpenReviewActionPayload.class,
+                OpenHelpActionPayload.class,
+                OpenReviewDetailActionPayload.class,
+                OpenUserActionPayload.class
+              })
+          Object payload,
       @Schema(description = "Action payload 스키마 버전", example = "1") Integer version,
       @Schema(
               description = "이동 대상 삭제 또는 접근 불가 시 사용할 공통 fallback",
               example = "OPEN_NOTIFICATION_CENTER")
           NotificationActionFallbackType fallbackType) {}
-
-  /**
-   * Action 타입에 따라 선택되는 payload의 공통 OpenAPI 계약이다.
-   *
-   * <p>클라이언트는 Action type과 version을 먼저 확인한 뒤 대응 DTO로 해석한다.
-   */
-  @Schema(
-      name = "NotificationActionPayload",
-      oneOf = {OpenReviewActionPayload.class, OpenHelpActionPayload.class})
-  public sealed interface ActionPayload permits OpenReviewActionPayload, OpenHelpActionPayload {}
 
   /**
    * 리뷰 상세 화면에서 강조할 댓글 정보를 표현한다.
@@ -80,8 +75,7 @@ public record NotificationListOpenApiSchema(
    */
   @Schema(name = "OpenReviewActionPayload", description = "리뷰 상세에서 강조할 댓글 정보")
   public record OpenReviewActionPayload(
-      @Schema(description = "강조 대상 댓글 식별자, 삭제된 댓글이면 강조를 생략함", example = "20") Long replyId)
-      implements ActionPayload {}
+      @Schema(description = "강조 대상 댓글 식별자, 삭제된 댓글이면 강조를 생략함", example = "20") Long replyId) {}
 
   /**
    * 문의 상세 이동에 사용하는 빈 payload schema다.
@@ -89,5 +83,13 @@ public record NotificationListOpenApiSchema(
    * <p>이동 대상은 targetId만 사용하며 추가 필드를 허용하지 않는다.
    */
   @Schema(name = "OpenHelpActionPayload", description = "문의 상세 이동용 빈 payload")
-  public record OpenHelpActionPayload() implements ActionPayload {}
+  public record OpenHelpActionPayload() {}
+
+  @Schema(
+      name = "OpenReviewDetailActionPayload",
+      description = "OPEN_REVIEW v2의 댓글 없는 리뷰 상세 이동용 빈 payload")
+  public record OpenReviewDetailActionPayload() {}
+
+  @Schema(name = "OpenUserActionPayload", description = "OPEN_USER v1의 사용자 프로필 이동용 빈 payload")
+  public record OpenUserActionPayload() {}
 }

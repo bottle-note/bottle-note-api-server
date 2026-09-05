@@ -21,6 +21,15 @@ public class InMemoryNotificationRepository implements NotificationRepository {
   private final List<Notification> database = new ArrayList<>();
 
   @Override
+  public synchronized void saveIfAbsent(Notification notification) {
+    if (notification.getSourceType() != null && notification.getSourceId() != null
+        && existsBySourceTypeAndSourceIdAndUserId(notification.getSourceType(), notification.getSourceId(), notification.getUserId())) {
+      return;
+    }
+    save(notification);
+  }
+
+  @Override
   public Notification save(Notification notification) {
     Objects.requireNonNull(notification, "notification은 null일 수 없습니다.");
     if (notification.getId() == null) {

@@ -40,6 +40,11 @@ public class InMemoryLikesRepository implements LikesRepository {
   }
 
   @Override
+  public Optional<Likes> findForUpdateByReviewIdAndUserId(Long reviewId, Long userId) {
+    return findByReviewIdAndUserId(reviewId, userId);
+  }
+
+  @Override
   public Optional<Likes> findByReviewIdAndUserId(Long reviewId, Long userId) {
     Optional<Likes> first =
         database.values().stream()
