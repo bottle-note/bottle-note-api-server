@@ -12,7 +12,7 @@ package app.bottlenote.alcohols.excel
  * 5. 카테고리
  * 6. 알코올 데이터 (실제 입력 시트)
  *
- * 검증할 때는 알코올 데이터 시트와 첫 행의 정확한 13개 헤더만 필수다.
+ * 검증할 때는 알코올 데이터 시트, 첫 행의 정확한 13개 헤더와 두 번째 설명 행이 필수다.
  * 안내·참조 시트의 순서와 추가 메모 시트는 허용한다.
  *
  * 매핑 규칙:
@@ -132,7 +132,7 @@ object AlcoholExcelSchema {
 			ErrorCatalogItem("EXCEL_FILE_TOO_LARGE", "엑셀 파일 크기는 5MiB를 초과할 수 없습니다."),
 			ErrorCatalogItem("EXCEL_SHEET_NOT_FOUND", "필수 시트가 없거나 시트명이 올바르지 않습니다."),
 			ErrorCatalogItem("EXCEL_HEADER_MISMATCH", "엑셀 헤더(1행)가 고정 템플릿과 일치하지 않습니다."),
-			ErrorCatalogItem("EXCEL_DESCRIPTION_MISMATCH", "엑셀 설명(2행)이 고정 템플릿과 일치하지 않습니다."),
+			ErrorCatalogItem("EXCEL_DESCRIPTION_MISMATCH", "엑셀 설명 행(2행)을 확인할 수 없습니다. 템플릿을 다시 내려받아 데이터는 3행부터 입력해 주세요."),
 			ErrorCatalogItem("EXCEL_DUPLICATE_HEADER", "엑셀 헤더에 중복된 필드명이 있습니다."),
 			ErrorCatalogItem("EXCEL_FORMULA_NOT_ALLOWED", "수식 셀은 허용되지 않습니다."),
 			ErrorCatalogItem("EXCEL_EXTERNAL_LINK_NOT_ALLOWED", "외부 링크는 허용되지 않습니다."),

@@ -15,7 +15,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelRowResult
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelValidateResponse
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
 import app.bottlenote.alcohols.dto.response.AdminRegionItem
-import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem
+import app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem
 import app.bottlenote.alcohols.dto.response.CategoryItem
 import app.bottlenote.alcohols.dto.response.TastingTagNodeItem
 import app.bottlenote.alcohols.excel.AlcoholExcelSchema.Column
@@ -26,6 +26,7 @@ import org.apache.poi.ooxml.POIXMLException
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException
 import org.apache.poi.openxml4j.opc.OPCPackage
 import org.apache.poi.openxml4j.util.ZipSecureFile
+import org.apache.poi.ss.format.CellFormatPart
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellStyle
@@ -62,6 +63,8 @@ class AdminAlcoholExcelServiceImpl(
 ) : AdminAlcoholExcelService {
 	companion object {
 		private const val REFERENCE_PAGE_SIZE = 1_000
+		private const val DESCRIPTION_MARKER = "AlcoholImportDescriptionRow"
+		private const val DESCRIPTION_REFERENCE = "'알코올 데이터'!\$A\$2:\$M\$2"
 		private const val MAX_ZIP_ENTRIES = 200
 		private const val MAX_TOTAL_UNCOMPRESSED_BYTES = 50L * 1024 * 1024
 
@@ -121,6 +124,10 @@ class AdminAlcoholExcelServiceImpl(
 				styles
 			)
 			writeHeaderAndDescription(dataSheet, styles)
+			workbook.createName().apply {
+				nameName = DESCRIPTION_MARKER
+				refersToFormula = DESCRIPTION_REFERENCE
+			}
 			addDropdownValidations(
 				workbook = workbook,
 				dataSheet = dataSheet,
@@ -257,8 +264,18 @@ class AdminAlcoholExcelServiceImpl(
 		val headerRow =
 			dataSheet.getRow(AlcoholExcelSchema.HEADER_ROW_INDEX)
 				?: throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
-		dataSheet.getRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX)
+		val descriptionRow = dataSheet.getRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX)
 			?: throw AlcoholException(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
+		val marker = workbook.getName(DESCRIPTION_MARKER)
+		val recognizableLegacyDescription = AlcoholExcelSchema.DESCRIPTIONS.indices.any {
+			readRawCell(descriptionRow.getCell(it)) == AlcoholExcelSchema.DESCRIPTIONS[it]
+		} ||
+			isCompletelyBlank(descriptionRow)
+		if ((marker != null && marker.refersToFormula != DESCRIPTION_REFERENCE) ||
+			(marker == null && !recognizableLegacyDescription)
+		) {
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
+		}
 
 		val headers = AlcoholExcelSchema.HEADERS.indices.map { readRawCell(headerRow.getCell(it)) }
 		if (headers != AlcoholExcelSchema.HEADERS) {
@@ -520,6 +537,7 @@ class AdminAlcoholExcelServiceImpl(
 				"6. 알코올 데이터: 실제 입력 시트",
 				"",
 				"[입력 규칙]",
+				"- 1행은 헤더, 2행은 설명입니다. 두 행은 삭제하지 말고 데이터는 3행부터 입력합니다.",
 				"- 주류 종류와 카테고리 그룹은 한글 표시값 또는 enum 이름을 입력합니다.",
 				"- 카테고리 ID는 그룹|한글|영문 형식입니다. 카테고리 그룹은 비워 두면 ID의 그룹을 자동 사용합니다.",
 				"- 지역/증류소/테이스팅 태그는 ID를 입력합니다. 참조 시트는 안내용이므로 삭제하거나 순서를 바꿔도 됩니다.",
@@ -656,7 +674,7 @@ class AdminAlcoholExcelServiceImpl(
 			CellType.STRING -> cell.stringCellValue?.trim().orEmpty()
 			CellType.NUMERIC -> {
 				val value = BigDecimal.valueOf(cell.numericCellValue).stripTrailingZeros().toPlainString()
-				if (percentageFormatted && hasPercentageFormat(cell.cellStyle.dataFormatString)) {
+				if (percentageFormatted && hasPercentageFormat(applicableNumberFormat(cell.cellStyle.dataFormatString, cell.numericCellValue))) {
 					BigDecimal(value).multiply(BigDecimal(100)).stripTrailingZeros().toPlainString() + "%"
 				} else {
 					value
@@ -683,15 +701,50 @@ class AdminAlcoholExcelServiceImpl(
 	}
 
 	private fun loadBulkReferenceCategories(): List<CategoryItem> = alcoholQueryRepository
-		.findAllBulkReferenceItems()
+		.findBulkCategoryItems()
 		.mapNotNull(::toCategoryItem)
 		.distinctBy(::categoryStableId)
 
-	private fun toCategoryItem(item: AlcoholBulkReferenceItem): CategoryItem? {
+	private fun toCategoryItem(item: AlcoholBulkCategoryItem): CategoryItem? {
 		val group = item.categoryGroup() ?: return null
 		val korCategory = item.korCategory()?.takeIf(String::isNotBlank) ?: return null
 		val engCategory = item.engCategory()?.takeIf(String::isNotBlank) ?: return null
 		return CategoryItem(korCategory, engCategory, group)
+	}
+
+	private fun applicableNumberFormat(format: String?, value: Double): String? {
+		if (format.isNullOrEmpty()) return format
+		val sections = mutableListOf<String>()
+		var start = 0
+		var quoted = false
+		var index = 0
+		while (index < format.length) {
+			when (format[index]) {
+				'"' -> quoted = !quoted
+				'\\' -> index++
+				'_', '*' -> if (!quoted) index++
+				';' -> if (!quoted) {
+					sections += format.substring(start, index)
+					start = index + 1
+				}
+			}
+			index++
+		}
+		sections += format.substring(start)
+		fun applies(section: String, fallback: Boolean): Boolean {
+			val parsed = CellFormatPart.FORMAT_PAT.matcher(section)
+			return if (parsed.matches() && parsed.group(CellFormatPart.CONDITION_OPERATOR_GROUP) != null) {
+				CellFormatPart(section).applies(value)
+			} else {
+				fallback
+			}
+		}
+		val first = sections[0]
+		if (applies(first, sections.size == 1 || if (sections.size == 2) value >= 0 else value > 0)) return first
+		if (sections.size == 1) return null
+		val second = sections[1]
+		if (applies(second, sections.size == 2 || value < 0)) return second
+		return sections.getOrNull(2)
 	}
 
 	private fun hasPercentageFormat(format: String?): Boolean {
@@ -702,6 +755,7 @@ class AdminAlcoholExcelServiceImpl(
 			when (format[index]) {
 				'"' -> quoted = !quoted
 				'\\' -> index++
+				'_', '*' -> if (!quoted) index++
 				'%' -> if (!quoted) return true
 			}
 			index++

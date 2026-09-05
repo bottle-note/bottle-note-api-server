@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.repository;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem;
 import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import java.util.List;
@@ -16,11 +17,21 @@ public interface JpaAlcoholQueryRepository
   @Override
   @Query(
       """
+      select distinct new app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem(
+          a.korCategory, a.engCategory, a.categoryGroup, a.type)
+      from alcohol a where a.deletedAt is null
+      """)
+  List<AlcoholBulkCategoryItem> findBulkCategoryItems();
+
+  @Override
+  @Query(
+      """
       select new app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem(
           a.id, a.korName, a.engName, a.korCategory, a.engCategory, a.categoryGroup, a.type, a.distillery.id, a.abv, a.volume)
-      from alcohol a where a.deletedAt is null order by a.id
+      from alcohol a where a.deletedAt is null and a.distillery.id in :distilleryIds order by a.id
       """)
-  List<AlcoholBulkReferenceItem> findAllBulkReferenceItems();
+  List<AlcoholBulkReferenceItem> findBulkReferenceItemsByDistilleryIds(
+      @Param("distilleryIds") List<Long> distilleryIds);
 
   @Override
   @Query("select distinct a from alcohol a left join fetch a.region where a.id in :ids")

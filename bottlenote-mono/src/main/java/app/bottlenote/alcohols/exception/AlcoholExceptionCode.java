@@ -41,7 +41,8 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   EXCEL_FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "엑셀 파일 크기는 5MiB를 초과할 수 없습니다."),
   EXCEL_SHEET_NOT_FOUND(HttpStatus.BAD_REQUEST, "필수 시트가 없거나 시트명이 올바르지 않습니다."),
   EXCEL_HEADER_MISMATCH(HttpStatus.BAD_REQUEST, "엑셀 헤더(1행)가 고정 템플릿과 일치하지 않습니다."),
-  EXCEL_DESCRIPTION_MISMATCH(HttpStatus.BAD_REQUEST, "엑셀 설명(2행)이 고정 템플릿과 일치하지 않습니다."),
+  EXCEL_DESCRIPTION_MISMATCH(
+      HttpStatus.BAD_REQUEST, "엑셀 설명 행(2행)을 확인할 수 없습니다. 템플릿을 다시 내려받아 데이터는 3행부터 입력해 주세요."),
   EXCEL_DUPLICATE_HEADER(HttpStatus.BAD_REQUEST, "엑셀 헤더에 중복된 필드명이 있습니다."),
   EXCEL_FORMULA_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "수식 셀은 허용되지 않습니다."),
   EXCEL_EXTERNAL_LINK_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "외부 링크는 허용되지 않습니다."),

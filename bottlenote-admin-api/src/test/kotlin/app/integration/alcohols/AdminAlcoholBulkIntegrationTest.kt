@@ -4,6 +4,7 @@ import app.IntegrationTestSupport
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.alcohols.domain.Alcohol
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository
 import app.bottlenote.alcohols.domain.Distillery
 import app.bottlenote.alcohols.domain.Region
 import app.bottlenote.alcohols.excel.AlcoholExcelSchema
@@ -44,6 +45,9 @@ class AdminAlcoholBulkIntegrationTest : IntegrationTestSupport() {
 	private lateinit var tastingTagTestFactory: TastingTagTestFactory
 
 	@Autowired
+	private lateinit var alcoholQueryRepository: AlcoholQueryRepository
+
+	@Autowired
 	private lateinit var jdbcTemplate: JdbcTemplate
 
 	@Autowired
@@ -58,6 +62,30 @@ class AdminAlcoholBulkIntegrationTest : IntegrationTestSupport() {
 		val admin = adminUserTestFactory.persistRootAdmin()
 		adminId = admin.id
 		accessToken = getAccessToken(admin)
+	}
+
+	@Test
+	@DisplayName("카테고리는 모든 주종에서 중복 없이 조회하고 후보는 지정 증류소의 미삭제 주류만 조회한다")
+	fun bulkReferencesAreScopedAndCategoriesAreDistinct() {
+		val region = alcoholTestFactory.persistRegion()
+		val selected = alcoholTestFactory.persistDistillery()
+		val other = alcoholTestFactory.persistDistillery()
+		fun persist(distillery: Distillery, category: String, type: AlcoholType): Alcohol = alcoholTestFactory.persistAlcohol(
+			Alcohol.builder().type(type).korCategory(category).engCategory(category)
+				.categoryGroup(AlcoholCategoryGroup.OTHER).region(region).distillery(distillery)
+		)
+		val included = persist(selected, "review rum", AlcoholType.RUM)
+		persist(selected, "review rum", AlcoholType.RUM)
+		val excluded = persist(other, "review wine", AlcoholType.WINE)
+		val deleted = persist(selected, "review deleted", AlcoholType.RUM)
+		jdbcTemplate.update("UPDATE alcohols SET deleted_at = NOW() WHERE id = ?", deleted.id)
+
+		val candidates = alcoholQueryRepository.findBulkReferenceItemsByDistilleryIds(listOf(selected.id))
+		assertThat(candidates.map { it.alcoholId() }).contains(included.id).doesNotContain(excluded.id, deleted.id)
+		assertThat(candidates.map { it.distilleryId() }).containsOnly(selected.id)
+		val categories = alcoholQueryRepository.findBulkCategoryItems()
+		assertThat(categories.count { it.korCategory() == "review rum" }).isEqualTo(1)
+		assertThat(categories.map { it.korCategory() }).contains("review wine").doesNotContain("review deleted")
 	}
 
 	@Nested
