@@ -53,6 +53,11 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
+  public Optional<Review> findByIdForUpdate(Long reviewId) {
+    return findById(reviewId);
+  }
+
+  @Override
   public List<Review> findAll() {
     return List.copyOf(database.values());
   }

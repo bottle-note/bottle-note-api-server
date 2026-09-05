@@ -12,6 +12,7 @@ import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.LikesRepository;
+import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.service.LikesCommandService;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
@@ -43,7 +44,9 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Tag("integration")
@@ -66,6 +69,7 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
   @Autowired private UserHistoryRepository histories;
   @Autowired private ApplicationEventPublisher events;
   @Autowired private PlatformTransactionManager transactionManager;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private TransactionTemplate transaction;
   private User reviewAuthor;
@@ -179,6 +183,93 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
   @Nested
   @DisplayName("좋아요와 팔로우 상태가 바뀔 때")
   class Relationships {
+    @Test
+    @DisplayName("최초 좋아요를 동시에 요청할 때 관계와 알림 한 건을 유지한다")
+    void concurrentFirstLikes_keepOneRelationshipAndNotification() throws Exception {
+      int requests = 8;
+      CountDownLatch ready = new CountDownLatch(requests);
+      CountDownLatch start = new CountDownLatch(1);
+      List<Future<LikesUpdateResponse>> futures = new ArrayList<>();
+      List<Long> relationIds = new ArrayList<>();
+      try (var executor = Executors.newFixedThreadPool(requests)) {
+        for (int index = 0; index < requests; index++) {
+          futures.add(
+              executor.submit(
+                  () -> {
+                    ready.countDown();
+                    awaitSignal(start);
+                    return likesService.updateLikes(actor.getId(), review.getId(), LikeStatus.LIKE);
+                  }));
+        }
+        try {
+          assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+        } finally {
+          start.countDown();
+        }
+        for (Future<LikesUpdateResponse> future : futures) {
+          relationIds.add(future.get(15, TimeUnit.SECONDS).likesId());
+        }
+      }
+
+      assertThat(relationIds).containsOnly(relationIds.getFirst());
+      assertSingleLikeRelationship();
+      awaitCounts(1, requests);
+      likesService.updateLikes(actor.getId(), review.getId(), LikeStatus.DISLIKE);
+      LikesUpdateResponse reactivated =
+          likesService.updateLikes(actor.getId(), review.getId(), LikeStatus.LIKE);
+      assertThat(reactivated.likesId()).isEqualTo(relationIds.getFirst());
+      assertSingleLikeRelationship();
+      awaitCounts(1, requests + 2);
+    }
+
+    @Test
+    @DisplayName("이전 snapshot에서 관계가 없었어도 먼저 커밋된 좋아요 관계를 재사용한다")
+    void firstLikeWithOlderSnapshot_reusesCommittedRelationship() throws Exception {
+      CountDownLatch firstSaved = new CountDownLatch(1);
+      CountDownLatch allowCommit = new CountDownLatch(1);
+      CountDownLatch snapshotCreated = new CountDownLatch(1);
+      TransactionTemplate olderSnapshot = new TransactionTemplate(transactionManager);
+      olderSnapshot.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
+
+      try (var executor = Executors.newFixedThreadPool(2)) {
+        Future<LikesUpdateResponse> first =
+            executor.submit(
+                () ->
+                    transaction.execute(
+                        status -> {
+                          LikesUpdateResponse response =
+                              likesService.updateLikes(
+                                  actor.getId(), review.getId(), LikeStatus.LIKE);
+                          firstSaved.countDown();
+                          awaitSignal(allowCommit);
+                          return response;
+                        }));
+        Future<LikesUpdateResponse> second =
+            executor.submit(
+                () -> {
+                  awaitSignal(firstSaved);
+                  return olderSnapshot.execute(
+                      status -> {
+                        assertThat(likes.findByReviewIdAndUserId(review.getId(), actor.getId()))
+                            .isEmpty();
+                        snapshotCreated.countDown();
+                        return likesService.updateLikes(
+                            actor.getId(), review.getId(), LikeStatus.LIKE);
+                      });
+                });
+        try {
+          assertThat(snapshotCreated.await(5, TimeUnit.SECONDS)).isTrue();
+        } finally {
+          allowCommit.countDown();
+        }
+        assertThat(second.get(15, TimeUnit.SECONDS).likesId())
+            .isEqualTo(first.get(15, TimeUnit.SECONDS).likesId());
+      }
+
+      assertSingleLikeRelationship();
+      awaitCounts(1, 2);
+    }
+
     @Test
     @DisplayName("좋아요 반복과 취소와 재활성화는 알림 한 건을 유지하고 History는 요청마다 남긴다")
     void likeTransitions_keepFirstNotificationAndAllHistory() {
@@ -327,6 +418,27 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
         source.getId(),
         parentId,
         source.getContent());
+  }
+
+  private void assertSingleLikeRelationship() {
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM likes WHERE review_id = ? AND user_id = ?",
+                Long.class,
+                review.getId(),
+                actor.getId()))
+        .isEqualTo(1L);
+  }
+
+  private static void awaitSignal(CountDownLatch signal) {
+    try {
+      if (!signal.await(10, TimeUnit.SECONDS)) {
+        throw new IllegalStateException("좋아요 경쟁 테스트 신호 시간 초과");
+      }
+    } catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException(exception);
+    }
   }
 
   private List<Notification> messages(User user) {

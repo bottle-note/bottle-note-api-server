@@ -1,14 +1,11 @@
 package app.bottlenote.like.service;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.LikeUserInfo;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.event.payload.ReviewLikeActivityEvent;
-import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
@@ -17,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -29,16 +27,15 @@ public class LikesCommandService {
   private final LikesRepository likesRepository;
   private final ApplicationEventPublisher eventPublisher;
 
-  @Transactional
+  @Transactional(isolation = Isolation.READ_COMMITTED)
   public LikesUpdateResponse updateLikes(Long userId, Long reviewId, LikeStatus status) {
+    // 관계가 없는 최초 요청도 기존 리뷰 행을 잠가 커밋까지 직렬화한다.
+    reviewFacade.lockReviewForUpdate(reviewId);
     Likes likes =
         likesRepository
-            .findByReviewIdAndUserId(reviewId, userId)
+            .findForUpdateByReviewIdAndUserId(reviewId, userId)
             .orElseGet(
                 () -> {
-                  if (!reviewFacade.isExistReview(reviewId)) {
-                    throw new ReviewException(REVIEW_NOT_FOUND);
-                  }
                   UserProfileItem userProfileItem = userFacade.getUserProfileInfo(userId);
                   LikeUserInfo userInfo =
                       LikeUserInfo.create(userProfileItem.id(), userProfileItem.nickname());
