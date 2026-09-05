@@ -5,6 +5,5 @@ public enum NotificationKind {
   REVIEW_REPLY,
   REVIEW_LIKE,
   FOLLOW,
-  BEST_REVIEW,
   HELP_ANSWER
 }

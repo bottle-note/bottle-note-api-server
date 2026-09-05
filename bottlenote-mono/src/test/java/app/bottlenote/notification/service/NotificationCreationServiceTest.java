@@ -96,7 +96,6 @@ class NotificationCreationServiceTest {
       case REVIEW_REPLY -> NotificationMessage.reviewReplyResponse(1L, 2L, sourceId, "답글", "내용");
       case REVIEW_LIKE -> NotificationMessage.reviewLike(1L, 2L, sourceId, "좋아요", "내용");
       case FOLLOW -> NotificationMessage.follow(1L, 2L, sourceId, "팔로우", "내용");
-      case BEST_REVIEW -> NotificationMessage.bestReview(1L, 2L, sourceId, "베스트 리뷰", "내용");
       case HELP_ANSWER -> NotificationMessage.helpAnswer(1L, sourceId, "문의 답변", "내용");
     };
   }

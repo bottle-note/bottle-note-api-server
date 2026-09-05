@@ -49,10 +49,10 @@ class NotificationPreferenceServiceTest {
   @Test
   @DisplayName("같은 설정을 반복하거나 다시 허용할 때 최종 상태를 반환한다")
   void 반복_설정을_처리한다() {
-    var off = new NotificationPreferenceRequest(Map.of(NotificationKind.BEST_REVIEW, false));
+    var off = new NotificationPreferenceRequest(Map.of(NotificationKind.REVIEW_LIKE, false));
     assertThat(service.updatePreferences(1L, off)).isEqualTo(service.updatePreferences(1L, off));
     assertThat(service.updatePreferences(1L,
-        new NotificationPreferenceRequest(Map.of(NotificationKind.BEST_REVIEW, true))).settings())
+        new NotificationPreferenceRequest(Map.of(NotificationKind.REVIEW_LIKE, true))).settings())
         .containsOnlyValues(true);
   }
 

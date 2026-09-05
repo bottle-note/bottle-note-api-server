@@ -106,43 +106,6 @@ jobs:
           name: source-format-${{ github.run_number }}
           path: ${{ runner.temp }}/source-format.patch
 
-  batch-notification-tests:
-    needs: prepare
-    timeout-minutes: 20
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
-      - name: setup jdk
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: restore gradle cache
-        uses: actions/cache/restore@v6
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-${{ runner.arch }}-gradle-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-gradle-
-
-      - name: run best review selection tests
-        run: ./gradlew :bottlenote-batch:batch_test --tests "app.batch.bottlenote.job.ranking.*"
-
-      - name: upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: batch-notification-test-results-${{ github.run_number }}
-          path: |
-            */build/reports/tests/batch_test/
-            */build/test-results/batch_test/
-
   rule-tests:
     needs: prepare
     timeout-minutes: 10
@@ -239,7 +202,7 @@ jobs:
             */build/test-results/${{ matrix.task }}/
 
   product-ci-final-build:
-    needs: [ unit-tests, rule-tests, integration-tests, batch-notification-tests ]
+    needs: [ unit-tests, rule-tests, integration-tests ]
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
@@ -280,7 +243,7 @@ jobs:
   # 테스트 리포트 발행은 빌드와 별개 관심사다. 테스트가 실패했을 때야말로 리포트가 필요하므로
   # 검증 잡의 성패와 무관하게(if: always) 실행한다.
   test-report:
-    needs: [ unit-tests, rule-tests, integration-tests, batch-notification-tests ]
+    needs: [ unit-tests, rule-tests, integration-tests ]
     if: always()
     timeout-minutes: 5
     runs-on: ubuntu-latest

@@ -87,10 +87,4 @@ public record NotificationMessage(
         NotificationAction.openUser(actorId), NotificationKind.FOLLOW);
   }
 
-  public static NotificationMessage bestReview(
-      Long userId, Long reviewId, Long selectionId, String title, String content) {
-    return new NotificationMessage(userId, NotificationType.SYSTEM, NotificationCategory.REVIEW,
-        title, content, NotificationSourceType.BEST_REVIEW_SELECTION, selectionId,
-        NotificationAction.openReview(reviewId), NotificationKind.BEST_REVIEW);
-  }
 }
