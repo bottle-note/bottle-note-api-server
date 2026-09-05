@@ -6,19 +6,27 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository
 import app.bottlenote.alcohols.domain.DistilleryRepository
 import app.bottlenote.alcohols.domain.RegionRepository
 import app.bottlenote.alcohols.domain.TastingTagRepository
+import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRequest
+import app.bottlenote.alcohols.dto.request.AdminAlcoholBulkRowRequest
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkIssueItem
+import app.bottlenote.alcohols.dto.response.AdminAlcoholBulkRowItem
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelIssue
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelRowResult
 import app.bottlenote.alcohols.dto.response.AdminAlcoholExcelValidateResponse
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
 import app.bottlenote.alcohols.dto.response.AdminRegionItem
+import app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem
 import app.bottlenote.alcohols.dto.response.CategoryItem
 import app.bottlenote.alcohols.dto.response.TastingTagNodeItem
 import app.bottlenote.alcohols.excel.AlcoholExcelSchema.Column
 import app.bottlenote.alcohols.exception.AlcoholException
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode
-import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem
+import app.bottlenote.alcohols.service.AdminAlcoholBulkService
+import org.apache.poi.ooxml.POIXMLException
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException
 import org.apache.poi.openxml4j.opc.OPCPackage
 import org.apache.poi.openxml4j.util.ZipSecureFile
+import org.apache.poi.ss.format.CellFormatPart
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellStyle
@@ -40,9 +48,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.math.BigDecimal
-import java.math.RoundingMode
-import java.text.Normalizer
 import java.util.Locale
 import java.util.zip.ZipInputStream
 
@@ -51,10 +58,13 @@ class AdminAlcoholExcelServiceImpl(
 	private val regionRepository: RegionRepository,
 	private val distilleryRepository: DistilleryRepository,
 	private val tastingTagRepository: TastingTagRepository,
-	private val alcoholQueryRepository: AlcoholQueryRepository
+	private val alcoholQueryRepository: AlcoholQueryRepository,
+	private val adminAlcoholBulkService: AdminAlcoholBulkService
 ) : AdminAlcoholExcelService {
 	companion object {
 		private const val REFERENCE_PAGE_SIZE = 1_000
+		private const val DESCRIPTION_MARKER = "AlcoholImportDescriptionRow"
+		private const val DESCRIPTION_REFERENCE = "'알코올 데이터'!\$A\$2:\$M\$2"
 		private const val MAX_ZIP_ENTRIES = 200
 		private const val MAX_TOTAL_UNCOMPRESSED_BYTES = 50L * 1024 * 1024
 
@@ -78,7 +88,7 @@ class AdminAlcoholExcelServiceImpl(
 			val regions = loadRegions()
 			val distilleries = loadDistilleries()
 			val tags = loadTastingTags()
-			val categories = alcoholQueryRepository.findAllCategoryItems()
+			val categories = loadBulkReferenceCategories()
 
 			writeGuideSheet(guideSheet, styles)
 			writeReferenceSheet(
@@ -114,6 +124,10 @@ class AdminAlcoholExcelServiceImpl(
 				styles
 			)
 			writeHeaderAndDescription(dataSheet, styles)
+			workbook.createName().apply {
+				nameName = DESCRIPTION_MARKER
+				refersToFormula = DESCRIPTION_REFERENCE
+			}
 			addDropdownValidations(
 				workbook = workbook,
 				dataSheet = dataSheet,
@@ -145,49 +159,31 @@ class AdminAlcoholExcelServiceImpl(
 
 			rejectUnsafeWorkbook(workbook)
 
+			val parsedRows = mutableListOf<ParsedRow>()
+			for (row in dataSheet) {
+				if (row.rowNum < AlcoholExcelSchema.DATA_START_ROW_INDEX) continue
+				if (isCompletelyBlank(row)) continue
+				parsedRows += parseRow(row.rowNum, row)
+				if (parsedRows.size > AlcoholExcelSchema.MAX_DATA_ROWS) {
+					throw AlcoholException(AlcoholExceptionCode.EXCEL_ROW_LIMIT_EXCEEDED)
+				}
+			}
+
+			if (parsedRows.isEmpty()) {
+				return AdminAlcoholExcelValidateResponse(0, 0, 0, 0, emptyList())
+			}
+
+			val adapters = parsedRows.map(::toBulkAdapterRow)
+			val commonRows =
+				adminAlcoholBulkService
+					.validate(AdminAlcoholBulkRequest(adapters.map { it.request }))
+					.rows()
+					.associateBy { it.clientRowId() }
 			val regionsById = loadRegions().associateBy { it.id }
 			val distilleriesById = loadDistilleries().associateBy { it.id }
-			val tagsById = loadTastingTags().associateBy { it.id }
-			val categories = alcoholQueryRepository.findAllCategoryItems()
-			val categoriesById = categories.associateBy { categoryStableId(it) }
-
-			val parsedRows = mutableListOf<ParsedRow>()
-			val lastRow = dataSheet.lastRowNum
-			for (rowIndex in AlcoholExcelSchema.DATA_START_ROW_INDEX..lastRow) {
-				val row = dataSheet.getRow(rowIndex) ?: continue
-				if (isCompletelyBlank(row)) continue
-				parsedRows += parseRow(rowIndex, row)
+			val results = adapters.map { adapter ->
+				adaptResult(adapter, commonRows[adapter.request.clientRowId()], regionsById, distilleriesById)
 			}
-
-			if (parsedRows.size > AlcoholExcelSchema.MAX_DATA_ROWS) {
-				throw AlcoholException(AlcoholExceptionCode.EXCEL_ROW_LIMIT_EXCEEDED)
-			}
-
-			val distilleryIds = parsedRows.mapNotNull { it.distilleryId.toLongOrNull() }.distinct()
-			val existingTargetsByIdentity =
-				alcoholQueryRepository
-					.findMatchTargetsByDistilleryIdIn(distilleryIds)
-					.groupBy(::normalizedIdentityKey)
-					.mapValues { (_, targets) -> targets.mapNotNull { it.alcoholId() } }
-
-			// 파일 내부 중복은 정규화된 숫자 기준으로 판정한다.
-			val identityCounts =
-				parsedRows
-					.map { it to normalizedIdentityKey(it) }
-					.groupingBy { it.second }
-					.eachCount()
-			val results =
-				parsedRows.map { parsed ->
-					validateParsedRow(
-						parsed = parsed,
-						regionsById = regionsById,
-						distilleriesById = distilleriesById,
-						tagsById = tagsById,
-						categoriesById = categoriesById,
-						existingTargetsByIdentity = existingTargetsByIdentity,
-						identityCounts = identityCounts
-					)
-				}
 
 			return AdminAlcoholExcelValidateResponse(
 				totalRows = results.size,
@@ -214,12 +210,23 @@ class AdminAlcoholExcelServiceImpl(
 	}
 
 	private fun openSecureWorkbook(bytes: ByteArray): Workbook {
-		preflightZip(bytes)
 		var pkg: OPCPackage? = null
 		return try {
+			preflightZip(bytes)
 			pkg = OPCPackage.open(ByteArrayInputStream(bytes))
 			XSSFWorkbook(pkg)
-		} catch (_: Exception) {
+		} catch (exception: AlcoholException) {
+			throw exception
+		} catch (_: IOException) {
+			pkg?.close()
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+		} catch (_: InvalidFormatException) {
+			pkg?.close()
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+		} catch (_: POIXMLException) {
+			pkg?.close()
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
+		} catch (_: IllegalArgumentException) {
 			pkg?.close()
 			throw AlcoholException(AlcoholExceptionCode.EXCEL_INVALID_FILE_TYPE)
 		}
@@ -252,29 +259,37 @@ class AdminAlcoholExcelServiceImpl(
 	}
 
 	private fun validateWorkbookStructure(workbook: Workbook) {
-		val sheetNames = (0 until workbook.numberOfSheets).map(workbook::getSheetName)
-		if (sheetNames != AlcoholExcelSchema.SHEET_ORDER) {
-			throw AlcoholException(AlcoholExceptionCode.EXCEL_SHEET_NOT_FOUND)
-		}
-		AlcoholExcelSchema.SHEET_ORDER.forEach { name ->
-			if (workbook.getSheet(name) == null) throw AlcoholException(AlcoholExceptionCode.EXCEL_SHEET_NOT_FOUND)
-		}
 		val dataSheet = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+			?: throw AlcoholException(AlcoholExceptionCode.EXCEL_SHEET_NOT_FOUND)
 		val headerRow =
 			dataSheet.getRow(AlcoholExcelSchema.HEADER_ROW_INDEX)
 				?: throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
-		val descriptionRow =
-			dataSheet.getRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX)
-				?: throw AlcoholException(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
+		val descriptionRow = dataSheet.getRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX)
+			?: throw AlcoholException(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
+		val marker = workbook.getName(DESCRIPTION_MARKER)
+		val recognizableLegacyDescription = AlcoholExcelSchema.DESCRIPTIONS.indices.any {
+			readRawCell(descriptionRow.getCell(it)) == AlcoholExcelSchema.DESCRIPTIONS[it]
+		} ||
+			isCompletelyBlank(descriptionRow)
+		if ((marker != null && marker.refersToFormula != DESCRIPTION_REFERENCE) ||
+			(marker == null && !recognizableLegacyDescription)
+		) {
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
+		}
 
 		val headers = AlcoholExcelSchema.HEADERS.indices.map { readRawCell(headerRow.getCell(it)) }
 		if (headers != AlcoholExcelSchema.HEADERS) {
 			if (headers.size != headers.distinct().size) throw AlcoholException(AlcoholExceptionCode.EXCEL_DUPLICATE_HEADER)
 			throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
 		}
-		val descriptions = AlcoholExcelSchema.DESCRIPTIONS.indices.map { readRawCell(descriptionRow.getCell(it)) }
-		if (descriptions != AlcoholExcelSchema.DESCRIPTIONS) {
-			throw AlcoholException(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
+		if (headerRow.any { it.columnIndex >= AlcoholExcelSchema.HEADERS.size && readRawCell(it).isNotBlank() }) {
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
+		}
+		for (row in dataSheet) {
+			if (row.rowNum < AlcoholExcelSchema.DATA_START_ROW_INDEX) continue
+			if (row.any { it.columnIndex >= AlcoholExcelSchema.HEADERS.size && readRawCell(it).isNotBlank() }) {
+				throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
+			}
 		}
 	}
 
@@ -284,10 +299,8 @@ class AdminAlcoholExcelServiceImpl(
 		}
 		for (sheetIndex in 0 until workbook.numberOfSheets) {
 			val sheet = workbook.getSheetAt(sheetIndex)
-			for (rowIndex in 0..sheet.lastRowNum) {
-				val row = sheet.getRow(rowIndex) ?: continue
-				for (cellIndex in 0 until row.lastCellNum.coerceAtLeast(0)) {
-					val cell = row.getCell(cellIndex) ?: continue
+			for (row in sheet) {
+				for (cell in row) {
 					if (cell.cellType == CellType.FORMULA || cell.cellType == CellType.ERROR) {
 						throw AlcoholException(AlcoholExceptionCode.EXCEL_FORMULA_NOT_ALLOWED)
 					}
@@ -304,7 +317,7 @@ class AdminAlcoholExcelServiceImpl(
 		rowIndex: Int,
 		row: Row
 	): ParsedRow {
-		fun cell(column: Column): String = readRawCell(row.getCell(column.index))
+		fun cell(column: Column): String = readRawCell(row.getCell(column.index), percentageFormatted = column == Column.ABV)
 		return ParsedRow(
 			rowNumber = rowIndex + 1,
 			korName = cell(Column.KOR_NAME),
@@ -323,286 +336,141 @@ class AdminAlcoholExcelServiceImpl(
 		)
 	}
 
-	private fun validateParsedRow(
-		parsed: ParsedRow,
-		regionsById: Map<Long, AdminRegionItem>,
-		distilleriesById: Map<Long, AdminDistilleryItem>,
-		tagsById: Map<Long, TastingTagNodeItem>,
-		categoriesById: Map<String, CategoryItem>,
-		existingTargetsByIdentity: Map<IdentityKey, List<Long>>,
-		identityCounts: Map<IdentityKey, Int>
-	): AdminAlcoholExcelRowResult {
+	private fun toBulkAdapterRow(parsed: ParsedRow): BulkAdapterRow {
 		val errors = mutableListOf<AdminAlcoholExcelIssue>()
-		val warnings = mutableListOf<AdminAlcoholExcelIssue>()
-
-		fun requireValue(
-			value: String,
-			column: Column
-		): String? {
-			if (value.isBlank()) {
-				errors += issue("REQUIRED_FIELD", column.header, "${column.header} 필드가 누락되었거나 비어 있습니다.")
-				return null
-			}
-			return value
+		val categoryParts = parsed.categoryId.trim().split("|").map(String::trim)
+		val validCategory = categoryParts.size == 3 && categoryParts.all(String::isNotBlank)
+		if (!validCategory) {
+			errors += issue("INVALID_ID", Column.CATEGORY_ID.header, "카테고리 ID는 그룹|한글|영문 형식으로 입력해야 합니다.")
 		}
-
-		val korName = requireValue(parsed.korName, Column.KOR_NAME)
-		val engName = requireValue(parsed.engName, Column.ENG_NAME)
-		val abvRaw = requireValue(parsed.abv, Column.ABV)
-		val typeRaw = requireValue(parsed.type, Column.TYPE)
-		val categoryIdRaw = requireValue(parsed.categoryId, Column.CATEGORY_ID)
-		val categoryGroupRaw = requireValue(parsed.categoryGroup, Column.CATEGORY_GROUP)
-		val regionIdRaw = requireValue(parsed.regionId, Column.REGION_ID)
-		val distilleryIdRaw = requireValue(parsed.distilleryId, Column.DISTILLERY_ID)
-		val age = requireValue(parsed.age, Column.AGE)
-		val cask = requireValue(parsed.cask, Column.CASK)
-		val description = requireValue(parsed.description, Column.DESCRIPTION)
-		val volumeRaw = requireValue(parsed.volume, Column.VOLUME)
-
-		val abvNormalized = abvRaw?.let { parseDecimal(it, Column.ABV, errors) }
-		val volumeNormalized = volumeRaw?.let { parseDecimal(it, Column.VOLUME, errors) }
-		val abvDisplay = abvNormalized?.let { formatWithSuffix(it, "%") }
-		val volumeDisplay = volumeNormalized?.let { formatWithSuffix(it, "ml") }
-
-		var typeName: String? = null
-		if (typeRaw != null) {
-			val matchedType =
-				AlcoholType.entries.firstOrNull {
-					it.type == typeRaw.trim() || it.name == typeRaw.trim().uppercase(Locale.ROOT)
-				}
-			if (matchedType == null) {
-				errors += issue("INVALID_ENUM_VALUE", Column.TYPE.header, "${Column.TYPE.header} 필드가 잘못 입력되었습니다. 허용된 한글 값을 입력하세요.")
-			} else {
-				typeName = matchedType.name
-			}
-		}
-
-		var categoryGroupName: String? = null
-		var matchedCategoryGroup: AlcoholCategoryGroup? = null
-		if (categoryGroupRaw != null) {
-			matchedCategoryGroup =
-				AlcoholCategoryGroup.entries.firstOrNull {
-					it.description == categoryGroupRaw.trim() || it.name == categoryGroupRaw.trim().uppercase(Locale.ROOT)
-				}
-			if (matchedCategoryGroup == null) {
-				errors +=
-					issue(
-						"INVALID_ENUM_VALUE",
-						Column.CATEGORY_GROUP.header,
-						"${Column.CATEGORY_GROUP.header} 필드가 잘못 입력되었습니다. 허용된 한글 값을 입력하세요."
-					)
-			} else {
-				categoryGroupName = matchedCategoryGroup.name
-			}
-		}
-
-		var korCategory: String? = null
-		var engCategory: String? = null
-		if (categoryIdRaw != null) {
-			val stableId = categoryIdRaw.trim()
-			if (stableId.isBlank()) {
-				errors += issue("INVALID_ID", Column.CATEGORY_ID.header, "${Column.CATEGORY_ID.header} 필드가 잘못 입력되었습니다. 참조 시트의 ID를 입력하세요.")
-			} else {
-				val category = categoriesById[stableId]
-				if (category == null) {
-					errors += issue("CATEGORY_NOT_FOUND", Column.CATEGORY_ID.header, "카테고리 ID를 찾을 수 없습니다: $stableId")
-				} else {
-					korCategory = category.korCategory()
-					engCategory = category.engCategory()
-					if (matchedCategoryGroup != null && category.categoryGroup() != matchedCategoryGroup) {
-						errors +=
-							issue(
-								"CATEGORY_GROUP_MISMATCH",
-								Column.CATEGORY_GROUP.header,
-								"카테고리 ID와 카테고리 그룹이 일치하지 않습니다: ID=$stableId, 그룹=${matchedCategoryGroup.description}"
-							)
-					} else if (matchedCategoryGroup == null && category.categoryGroup() != null) {
-						matchedCategoryGroup = category.categoryGroup()
-						categoryGroupName = matchedCategoryGroup?.name
-					}
-				}
-			}
-		}
-
-		var regionId: Long? = null
-		var regionName: String? = null
-		if (regionIdRaw != null) {
-			val parsedId = parseLongId(regionIdRaw, Column.REGION_ID, errors)
-			if (parsedId != null) {
-				val region = regionsById[parsedId]
-				if (region == null) {
-					errors += issue("REGION_NOT_FOUND", Column.REGION_ID.header, "지역 ID를 찾을 수 없습니다: $parsedId")
-				} else {
-					regionId = parsedId
-					regionName = region.korName()
-				}
-			}
-		}
-
-		var distilleryId: Long? = null
-		var distilleryName: String? = null
-		if (distilleryIdRaw != null) {
-			val parsedId = parseLongId(distilleryIdRaw, Column.DISTILLERY_ID, errors)
-			if (parsedId != null) {
-				val distillery = distilleriesById[parsedId]
-				if (distillery == null) {
-					errors += issue("DISTILLERY_NOT_FOUND", Column.DISTILLERY_ID.header, "증류소 ID를 찾을 수 없습니다: $parsedId")
-				} else {
-					distilleryId = parsedId
-					distilleryName = distillery.korName()
-				}
-			}
-		}
-
-		val tastingTagIds = mutableListOf<Long>()
-		if (parsed.tastingTagIds.isNotBlank()) {
-			val rawIds =
-				parsed.tastingTagIds
-					.split("|")
-					.map { it.trim() }
-					.filter { it.isNotEmpty() }
-			val seen = mutableSetOf<Long>()
-			rawIds.forEach { raw ->
-				val id = parseLongId(raw, Column.TASTING_TAG_IDS, errors) ?: return@forEach
-				if (!seen.add(id)) {
-					errors += issue("DUPLICATE_TASTING_TAG", Column.TASTING_TAG_IDS.header, "중복된 테이스팅 태그 ID입니다: $id")
-					return@forEach
-				}
-				val tag = tagsById[id]
-				if (tag == null) {
-					errors += issue("TASTING_TAG_NOT_FOUND", Column.TASTING_TAG_IDS.header, "테이스팅 태그 ID를 찾을 수 없습니다: $id")
-				} else {
-					tastingTagIds += id
-				}
-			}
-		}
-
-		if (identityCounts[normalizedIdentityKey(parsed)]?.let { it > 1 } == true) {
-			errors +=
-				issue(
-					"DUPLICATE_IN_FILE",
-					null,
-					"파일 내부에 동일한 식별 조합(이름·증류소·도수·용량)이 중복됩니다: ${parsed.korName}/${parsed.distilleryId}/${parsed.abv}/${parsed.volume}"
-				)
-		}
-
-		val candidateIds =
-			if (korName != null && distilleryId != null && abvNormalized != null && volumeNormalized != null) {
-				existingTargetsByIdentity[
-					IdentityKey(
-						normalizeIdentity(korName),
-						distilleryId.toString(),
-						normalizeNumericIdentity(abvNormalized),
-						normalizeNumericIdentity(volumeNormalized)
-					)
-				].orEmpty()
-			} else {
-				emptyList()
-			}
-		if (candidateIds.isNotEmpty()) {
-			warnings +=
-				issue(
-					"DUPLICATE_CANDIDATE",
-					null,
-					"이미 등록된 위스키입니다 이름=$korName, 증류소ID=$distilleryId, 도수=$abvDisplay, 용량=$volumeDisplay, 후보ID=${candidateIds.joinToString(",")}"
-				)
-		}
-
-		return AdminAlcoholExcelRowResult(
-			rowNumber = parsed.rowNumber,
-			korName = korName ?: parsed.korName.ifBlank { null },
-			engName = engName ?: parsed.engName.ifBlank { null },
-			abv = abvDisplay ?: abvRaw,
-			type = typeName ?: typeRaw,
-			korCategory = korCategory,
-			engCategory = engCategory,
-			categoryGroup = categoryGroupName ?: categoryGroupRaw,
-			region = regionName,
-			distillery = distilleryName,
-			age = age ?: parsed.age.ifBlank { null },
-			cask = cask ?: parsed.cask.ifBlank { null },
-			description = description ?: parsed.description.ifBlank { null },
-			volume = volumeDisplay ?: volumeRaw,
-			tastingTags = parsed.tastingTagIds.ifBlank { null },
-			regionId = regionId,
-			distilleryId = distilleryId,
-			tastingTagIds = tastingTagIds.takeIf { it.isNotEmpty() },
-			candidateAlcoholIds = candidateIds.takeIf { it.isNotEmpty() },
-			valid = errors.isEmpty(),
+		val categoryGroup = parsed.categoryGroup.ifBlank { categoryParts.getOrNull(0).orEmpty() }
+		val regionId = parseInputId(parsed.regionId, Column.REGION_ID, errors)
+		val distilleryId = parseInputId(parsed.distilleryId, Column.DISTILLERY_ID, errors)
+		val tastingTagIds = parseTastingTagIds(parsed.tastingTagIds, errors)
+		return BulkAdapterRow(
+			parsed = parsed,
+			request = AdminAlcoholBulkRowRequest(
+				parsed.rowNumber.toString(),
+				parsed.korName,
+				parsed.engName,
+				parsed.abv,
+				parsed.type,
+				categoryParts.getOrNull(1),
+				categoryParts.getOrNull(2),
+				categoryGroup,
+				regionId,
+				distilleryId,
+				parsed.age.ifBlank { null },
+				parsed.cask.ifBlank { null },
+				parsed.description.ifBlank { null },
+				parsed.volume,
+				tastingTagIds,
+				null
+			),
 			errors = errors,
-			warnings = warnings
+			warnings = emptyList()
 		)
 	}
 
-	private fun parseDecimal(
-		raw: String,
-		column: Column,
-		errors: MutableList<AdminAlcoholExcelIssue>
-	): BigDecimal? {
-		val cleaned = raw.trim().replace(",", "")
-		if (!cleaned.matches(Regex("""^\d+(\.\d{1,2})?$"""))) {
-			errors +=
-				issue(
-					"INVALID_NUMBER",
-					column.header,
-					"${column.header} 필드가 잘못 입력되었습니다. 숫자만 입력하고 소수 2자리까지 허용됩니다."
-				)
-			return null
-		}
-		return BigDecimal(cleaned).setScale(2, RoundingMode.UNNECESSARY)
-	}
-
-	private fun parseLongId(
-		raw: String,
-		column: Column,
-		errors: MutableList<AdminAlcoholExcelIssue>
-	): Long? {
-		val cleaned = raw.trim()
-		if (!cleaned.matches(Regex("""^\d+$"""))) {
-			errors +=
-				issue(
-					"INVALID_ID",
-					column.header,
-					"${column.header} 필드가 잘못 입력되었습니다. 참조 시트의 ID 숫자를 입력하세요."
-				)
-			return null
-		}
-		return cleaned.toLongOrNull()
-			?: run {
-				errors +=
-					issue(
-						"INVALID_ID",
-						column.header,
-						"${column.header} 필드가 잘못 입력되었습니다. Long 범위의 참조 ID를 입력하세요."
-					)
-				null
+	private fun adaptResult(
+		adapter: BulkAdapterRow,
+		common: AdminAlcoholBulkRowItem?,
+		regionsById: Map<Long, AdminRegionItem>,
+		distilleriesById: Map<Long, AdminDistilleryItem>
+	): AdminAlcoholExcelRowResult {
+		val commonErrors =
+			common?.errors().orEmpty().map(::adaptIssue).ifEmpty {
+				if (common == null) {
+					listOf(issue("BULK_ROW_RESULT_MISSING", null, "공통 검증 결과에서 행을 찾을 수 없습니다."))
+				} else {
+					emptyList()
+				}
 			}
+		val commonWarnings = common?.warnings().orEmpty().map(::adaptIssue)
+		val errors = adapter.errors + commonErrors
+		val normalized = common?.normalized()?.takeIf { errors.isEmpty() && common.valid() }
+		return AdminAlcoholExcelRowResult(
+			rowNumber = adapter.parsed.rowNumber,
+			clientRowId = adapter.request.clientRowId(),
+			korName = normalized?.korName() ?: adapter.parsed.korName.ifBlank { null },
+			engName = normalized?.engName() ?: adapter.parsed.engName.ifBlank { null },
+			abv = normalized?.abv() ?: adapter.parsed.abv.ifBlank { null },
+			type = normalized?.type() ?: adapter.parsed.type.ifBlank { null },
+			korCategory = normalized?.korCategory() ?: adapter.request.korCategory(),
+			engCategory = normalized?.engCategory() ?: adapter.request.engCategory(),
+			categoryGroup = normalized?.categoryGroup() ?: adapter.request.categoryGroup(),
+			region = normalized?.regionId()?.let { regionsById[it]?.korName() },
+			distillery = normalized?.distilleryId()?.let { distilleriesById[it]?.korName() },
+			age = normalized?.age() ?: adapter.request.age(),
+			cask = normalized?.cask() ?: adapter.request.cask(),
+			description = normalized?.description() ?: adapter.request.description(),
+			volume = normalized?.volume() ?: adapter.parsed.volume.ifBlank { null },
+			tastingTags = adapter.parsed.tastingTagIds.ifBlank { null },
+			regionId = normalized?.regionId() ?: adapter.request.regionId(),
+			distilleryId = normalized?.distilleryId() ?: adapter.request.distilleryId(),
+			tastingTagIds = normalized?.tastingTagIds() ?: adapter.request.tastingTagIds(),
+			candidateAlcoholIds = common?.candidateAlcoholIds()?.takeIf { it.isNotEmpty() },
+			valid = errors.isEmpty() && common?.valid() == true,
+			errors = errors,
+			warnings = adapter.warnings + commonWarnings,
+			normalized = normalized
+		)
 	}
 
-	private fun formatWithSuffix(
-		value: BigDecimal,
-		suffix: String
-	): String = value.stripTrailingZeros().toPlainString() + suffix
-
-	private fun stripUnit(value: String?): String = value
-		.orEmpty()
-		.trim()
-		.replace("%", "", ignoreCase = true)
-		.replace("ml", "", ignoreCase = true)
-		.trim()
-
-	private fun normalizeNumericIdentity(value: String?): String {
-		val cleaned = stripUnit(value)
-		if (cleaned.isBlank()) return ""
-		return runCatching {
-			BigDecimal(cleaned).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
-		}.getOrElse { normalizeIdentity(cleaned) }
+	private fun parseInputId(raw: String, column: Column, errors: MutableList<AdminAlcoholExcelIssue>): Long? {
+		if (raw.isBlank()) return null
+		if (!raw.trim().matches(Regex("""^\d+$"""))) {
+			errors += issue("INVALID_ID", column.header, "${column.header} 필드는 Long 범위의 숫자여야 합니다.")
+			return null
+		}
+		return raw.trim().toLongOrNull() ?: run {
+			errors += issue("INVALID_ID", column.header, "${column.header} 필드는 Long 범위의 숫자여야 합니다.")
+			null
+		}
 	}
 
-	private fun normalizeNumericIdentity(value: BigDecimal?): String {
-		if (value == null) return ""
-		return value.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
+	private fun parseTastingTagIds(raw: String, errors: MutableList<AdminAlcoholExcelIssue>): List<Long>? {
+		if (raw.isBlank()) return emptyList()
+		return raw.split("|").mapNotNull { value ->
+			parseInputId(value.trim(), Column.TASTING_TAG_IDS, errors)
+		}
 	}
+
+	private fun adaptIssue(issue: AdminAlcoholBulkIssueItem): AdminAlcoholExcelIssue = AdminAlcoholExcelIssue(excelIssueCode(issue), excelFieldName(issue.field()), issue.message())
+
+	private fun excelIssueCode(issue: AdminAlcoholBulkIssueItem): String = when (issue.code()) {
+		"REQUIRED" -> "REQUIRED_FIELD"
+		"INVALID_QUANTITY" -> "INVALID_NUMBER"
+		"INVALID_ENUM" -> "INVALID_ENUM_VALUE"
+		"INVALID_REFERENCE" ->
+			when (issue.field()) {
+				"regionId" -> "REGION_NOT_FOUND"
+				"distilleryId" -> "DISTILLERY_NOT_FOUND"
+				"tastingTagIds" -> "TASTING_TAG_NOT_FOUND"
+				else -> "INVALID_ID"
+			}
+		"DUPLICATE_TAG_REMOVED" -> "DUPLICATE_TASTING_TAG"
+		"DUPLICATE_REQUEST_ROW" -> "DUPLICATE_IN_FILE"
+		"DUPLICATE_DB_CANDIDATE" -> "DUPLICATE_CANDIDATE"
+		else -> issue.code()
+	}
+
+	private fun excelFieldName(field: String?): String? = mapOf(
+		"korName" to Column.KOR_NAME.header,
+		"engName" to Column.ENG_NAME.header,
+		"abv" to Column.ABV.header,
+		"type" to Column.TYPE.header,
+		"korCategory" to Column.CATEGORY_ID.header,
+		"engCategory" to Column.CATEGORY_ID.header,
+		"categoryGroup" to Column.CATEGORY_GROUP.header,
+		"regionId" to Column.REGION_ID.header,
+		"distilleryId" to Column.DISTILLERY_ID.header,
+		"age" to Column.AGE.header,
+		"cask" to Column.CASK.header,
+		"description" to Column.DESCRIPTION.header,
+		"volume" to Column.VOLUME.header,
+		"tastingTagIds" to Column.TASTING_TAG_IDS.header
+	)[field] ?: field
 
 	private fun writeHeaderAndDescription(
 		sheet: Sheet,
@@ -658,7 +526,7 @@ class AdminAlcoholExcelServiceImpl(
 		val lines =
 			listOf(
 				"BottleNote 알코올 일괄 등록 템플릿",
-				"1페이지(이 시트)는 설명·예제·오류 코드입니다. 실제 입력은 마지막 시트 '알코올 데이터'에만 작성하세요.",
+				"이 시트는 설명·예제·오류 코드입니다. 실제 입력은 '알코올 데이터' 시트에만 작성하세요.",
 				"",
 				"[시트 구성]",
 				"1. 사용 안내: 설명, 예제, 오류 코드",
@@ -666,14 +534,17 @@ class AdminAlcoholExcelServiceImpl(
 				"3. 증류소: ID / 한글 이름 / 영문 이름",
 				"4. 테이스팅 태그: ID / 한글 이름 / 영문 이름",
 				"5. 카테고리: ID / 카테고리 그룹 / 한글 카테고리 / 영문 카테고리",
-				"6. 알코올 데이터: 실제 입력 시트(마지막 고정)",
+				"6. 알코올 데이터: 실제 입력 시트",
 				"",
 				"[입력 규칙]",
-				"- 주류 종류, 카테고리 그룹만 한글 enum 값을 입력합니다.",
-				"- 지역/증류소/테이스팅 태그/카테고리는 참조 시트의 ID를 입력합니다.",
-				"- 도수와 용량은 숫자만 입력합니다. 소수 2자리까지 허용되며 서버가 % / ml를 붙입니다.",
-				"- 설명(디스크립션)은 필수입니다.",
+				"- 1행은 헤더, 2행은 설명입니다. 두 행은 삭제하지 말고 데이터는 3행부터 입력합니다.",
+				"- 주류 종류와 카테고리 그룹은 한글 표시값 또는 enum 이름을 입력합니다.",
+				"- 카테고리 ID는 그룹|한글|영문 형식입니다. 카테고리 그룹은 비워 두면 ID의 그룹을 자동 사용합니다.",
+				"- 지역/증류소/테이스팅 태그는 ID를 입력합니다. 참조 시트는 안내용이므로 삭제하거나 순서를 바꿔도 됩니다.",
+				"- 도수는 % 표기를, 용량은 ml·cl·L 표기를 허용합니다. 숫자 셀의 퍼센트 서식도 지원합니다.",
+				"- 숙성 연도, 캐스크, 설명은 선택입니다.",
 				"- 테이스팅 태그 ID는 여러 개일 때 | 로 구분합니다. 예: 1|3",
+				"- 파일 내부 중복과 기존 등록 후보는 경고(WARN)로 반환합니다.",
 				"- 이미지는 이 템플릿에 포함되지 않습니다.",
 				"- 수식 셀과 외부 링크는 허용되지 않습니다.",
 				"",
@@ -797,13 +668,17 @@ class AdminAlcoholExcelServiceImpl(
 
 	private fun isCompletelyBlank(row: Row): Boolean = AlcoholExcelSchema.HEADERS.indices.all { index -> readRawCell(row.getCell(index)).isBlank() }
 
-	private fun readRawCell(cell: Cell?): String {
+	private fun readRawCell(cell: Cell?, percentageFormatted: Boolean = false): String {
 		if (cell == null) return ""
 		return when (cell.cellType) {
 			CellType.STRING -> cell.stringCellValue?.trim().orEmpty()
 			CellType.NUMERIC -> {
-				val value = cell.numericCellValue
-				if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
+				val value = BigDecimal.valueOf(cell.numericCellValue).stripTrailingZeros().toPlainString()
+				if (percentageFormatted && hasPercentageFormat(applicableNumberFormat(cell.cellStyle.dataFormatString, cell.numericCellValue))) {
+					BigDecimal(value).multiply(BigDecimal(100)).stripTrailingZeros().toPlainString() + "%"
+				} else {
+					value
+				}
 			}
 			CellType.BOOLEAN -> cell.booleanCellValue.toString()
 			CellType.BLANK -> ""
@@ -823,6 +698,69 @@ class AdminAlcoholExcelServiceImpl(
 		val kor = item.korCategory().orEmpty()
 		val eng = item.engCategory().orEmpty()
 		return listOf(group, kor, eng).joinToString("|")
+	}
+
+	private fun loadBulkReferenceCategories(): List<CategoryItem> = alcoholQueryRepository
+		.findBulkCategoryItems()
+		.mapNotNull(::toCategoryItem)
+		.distinctBy(::categoryStableId)
+
+	private fun toCategoryItem(item: AlcoholBulkCategoryItem): CategoryItem? {
+		val group = item.categoryGroup() ?: return null
+		val korCategory = item.korCategory()?.takeIf(String::isNotBlank) ?: return null
+		val engCategory = item.engCategory()?.takeIf(String::isNotBlank) ?: return null
+		return CategoryItem(korCategory, engCategory, group)
+	}
+
+	private fun applicableNumberFormat(format: String?, value: Double): String? {
+		if (format.isNullOrEmpty()) return format
+		val sections = mutableListOf<String>()
+		var start = 0
+		var quoted = false
+		var index = 0
+		while (index < format.length) {
+			when (format[index]) {
+				'"' -> quoted = !quoted
+				'\\' -> index++
+				'_', '*' -> if (!quoted) index++
+				';' -> if (!quoted) {
+					sections += format.substring(start, index)
+					start = index + 1
+				}
+			}
+			index++
+		}
+		sections += format.substring(start)
+		fun applies(section: String, fallback: Boolean): Boolean {
+			val parsed = CellFormatPart.FORMAT_PAT.matcher(section)
+			return if (parsed.matches() && parsed.group(CellFormatPart.CONDITION_OPERATOR_GROUP) != null) {
+				CellFormatPart(section).applies(value)
+			} else {
+				fallback
+			}
+		}
+		val first = sections[0]
+		if (applies(first, sections.size == 1 || if (sections.size == 2) value >= 0 else value > 0)) return first
+		if (sections.size == 1) return null
+		val second = sections[1]
+		if (applies(second, sections.size == 2 || value < 0)) return second
+		return sections.getOrNull(2)
+	}
+
+	private fun hasPercentageFormat(format: String?): Boolean {
+		if (format.isNullOrEmpty()) return false
+		var quoted = false
+		var index = 0
+		while (index < format.length) {
+			when (format[index]) {
+				'"' -> quoted = !quoted
+				'\\' -> index++
+				'_', '*' -> if (!quoted) index++
+				'%' -> if (!quoted) return true
+			}
+			index++
+		}
+		return false
 	}
 
 	private fun loadRegions(): List<AdminRegionItem> {
@@ -858,28 +796,6 @@ class AdminAlcoholExcelServiceImpl(
 		return items
 	}
 
-	private fun normalizeIdentity(value: String?): String {
-		if (value.isNullOrBlank()) return ""
-		val nfkc = Normalizer.normalize(value.trim(), Normalizer.Form.NFKC)
-		return nfkc.lowercase(Locale.ROOT).replace(Regex("\\s+"), " ")
-	}
-
-	private fun normalizedIdentityKey(parsed: ParsedRow): IdentityKey = IdentityKey(
-		normalizeIdentity(parsed.korName),
-		normalizeIdIdentity(parsed.distilleryId),
-		normalizeNumericIdentity(parsed.abv),
-		normalizeNumericIdentity(parsed.volume)
-	)
-
-	private fun normalizeIdIdentity(value: String): String = value.trim().toLongOrNull()?.toString() ?: normalizeIdentity(value)
-
-	private fun normalizedIdentityKey(target: AlcoholMatchTargetItem): IdentityKey = IdentityKey(
-		normalizeIdentity(target.korName()),
-		target.distilleryId()?.toString().orEmpty(),
-		normalizeNumericIdentity(target.abv()),
-		normalizeNumericIdentity(target.volume())
-	)
-
 	private data class ParsedRow(
 		val rowNumber: Int,
 		val korName: String,
@@ -897,11 +813,11 @@ class AdminAlcoholExcelServiceImpl(
 		val tastingTagIds: String
 	)
 
-	private data class IdentityKey(
-		val name: String,
-		val distilleryId: String,
-		val abv: String,
-		val volume: String
+	private data class BulkAdapterRow(
+		val parsed: ParsedRow,
+		val request: AdminAlcoholBulkRowRequest,
+		val errors: List<AdminAlcoholExcelIssue>,
+		val warnings: List<AdminAlcoholExcelIssue>
 	)
 
 	private class TemplateStyles(
