@@ -258,6 +258,7 @@ gh workflow run deploy_development_applications.yml
 1. **도메인 레포지토리** (필수): `{도메인명}Repository`, `{domain}.domain` 위치, `@DomainRepository`는 선택. Spring/JPA 비의존 순수 인터페이스이며 Service는 여기에만 의존한다.
 2. **JPA 레포지토리** (필수): `Jpa{도메인명}Repository`, `{domain}.repository` 위치, `@JpaRepositoryImpl` 필수. `JpaRepository<T, ID>` 상속 + 도메인 레포지토리 구현. 단순 조회는 메서드 쿼리 또는 `@Query` JPQL로 해결한다.
 3. **QueryDSL 레포지토리** (복잡한 쿼리만): `Custom{도메인명}Repository` / `Custom{도메인명}RepositoryImpl` / `{도메인명}QuerySupporter`(`@Component`), 전부 repository 패키지. 동적 조건 조합·다중 조인·복잡한 Projection에만 쓰고, 단순 CRUD나 단일 조건 조회에는 쓰지 않는다.
+4. **JDBC 레포지토리** (집계 전용): `Jdbc{도메인명}Repository`, `{domain}.repository` 위치, `@Repository`. 엔티티 매핑이 필요 없는 통계·집계 SQL에만 쓰며 `NamedParameterJdbcTemplate`과 바인딩 파라미터로 작성한다. 도메인 레포지토리 포트를 구현하고 SQL은 이 클래스 밖으로 새지 않는다.
 
 > 구현 예시: `.agents/skills/implement/references/languages/java-spring.md`
 
