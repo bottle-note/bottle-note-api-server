@@ -15,6 +15,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin 주류 인기도 시계열 API")
@@ -70,34 +71,32 @@ class AdminAlcoholStatisticsIntegrationTest : IntegrationTestSupport() {
 			BigDecimal("0.41"),
 			BigDecimal("0.51")
 		)
-		popularityTestFactory.persistSnapshot(
-			alcohol.id,
-			BucketGranularity.HOUR,
-			openWeek.plusHours(1),
-			4L,
-			12L,
-			5L,
-			6L,
-			BigDecimal("0.01"),
-			BigDecimal("0.02"),
-			BigDecimal("0.03"),
-			BigDecimal("0.04"),
-			BigDecimal("0.05")
-		)
-		popularityTestFactory.persistSnapshot(
-			alcohol.id,
-			BucketGranularity.HOUR,
-			openWeek.plusHours(2),
-			6L,
-			13L,
-			7L,
-			8L,
-			BigDecimal("0.06"),
-			BigDecimal("0.07"),
-			BigDecimal("0.08"),
-			BigDecimal("0.09"),
-			BigDecimal("0.10")
-		)
+		val hourBuckets = hourBucketsInOpenWeek(now, openWeek)
+		var expectedInterest = 0L
+		hourBuckets.forEachIndexed { index, bucketAt ->
+			val interest = if (hourBuckets.size == 1) {
+				10L
+			} else if (index == 0) {
+				4L
+			} else {
+				6L
+			}
+			expectedInterest += interest
+			popularityTestFactory.persistSnapshot(
+				alcohol.id,
+				BucketGranularity.HOUR,
+				bucketAt,
+				interest,
+				13L,
+				7L,
+				8L,
+				BigDecimal("0.06"),
+				BigDecimal("0.07"),
+				BigDecimal("0.08"),
+				BigDecimal("0.09"),
+				BigDecimal("0.10")
+			)
+		}
 
 		val result =
 			mockMvcTester
@@ -118,7 +117,7 @@ class AdminAlcoholStatisticsIntegrationTest : IntegrationTestSupport() {
 		assertThat(points[1].path("partial").asBoolean()).isFalse()
 		assertThat(points[1].path("values").path("interestValue").asLong()).isEqualTo(2L)
 		assertThat(points[2].path("partial").asBoolean()).isTrue()
-		assertThat(points[2].path("values").path("interestValue").asLong()).isEqualTo(10L)
+		assertThat(points[2].path("values").path("interestValue").asLong()).isEqualTo(expectedInterest)
 		assertThat(points[2].path("values").path("popularityScore").isNull).isTrue()
 		assertThat(points[2].path("values").path("interestScore").isNull).isTrue()
 	}
@@ -139,24 +138,31 @@ class AdminAlcoholStatisticsIntegrationTest : IntegrationTestSupport() {
 			4L,
 			BigDecimal("16.0")
 		)
-		popularityTestFactory.persistRating(
-			alcohol.id,
-			BucketGranularity.HOUR,
-			openWeek.plusHours(1),
-			8L,
-			BigDecimal("32.0"),
-			1L,
-			BigDecimal("4.0")
-		)
-		popularityTestFactory.persistRating(
-			alcohol.id,
-			BucketGranularity.HOUR,
-			openWeek.plusHours(2),
-			10L,
-			BigDecimal("45.0"),
-			2L,
-			BigDecimal("13.0")
-		)
+		val hourBuckets = hourBucketsInOpenWeek(now, openWeek)
+		var expectedDeltaCount = 0L
+		var expectedDeltaSum = BigDecimal.ZERO
+		var expectedCount = 0L
+		var expectedSum = BigDecimal.ZERO
+		hourBuckets.forEachIndexed { index, bucketAt ->
+			val last = index == hourBuckets.lastIndex
+			val ratingCount = if (hourBuckets.size == 1 || last) 10L else 8L
+			val ratingSum = if (hourBuckets.size == 1 || last) BigDecimal("45.0") else BigDecimal("32.0")
+			val deltaCount = if (hourBuckets.size == 1 || last) 2L else 1L
+			val deltaSum = if (hourBuckets.size == 1 || last) BigDecimal("13.0") else BigDecimal("4.0")
+			expectedDeltaCount += deltaCount
+			expectedDeltaSum = expectedDeltaSum.add(deltaSum)
+			expectedCount = ratingCount
+			expectedSum = ratingSum
+			popularityTestFactory.persistRating(
+				alcohol.id,
+				BucketGranularity.HOUR,
+				bucketAt,
+				ratingCount,
+				ratingSum,
+				deltaCount,
+				deltaSum
+			)
+		}
 
 		val result =
 			mockMvcTester
@@ -171,7 +177,70 @@ class AdminAlcoholStatisticsIntegrationTest : IntegrationTestSupport() {
 		result.assertThat().hasStatusOk()
 		val last = mapper.readTree(result.response.contentAsString).path("data").path("points").last()
 		assertThat(last.path("partial").asBoolean()).isTrue()
+		assertThat(last.path("values").path("deltaRatingCount").asLong()).isEqualTo(expectedDeltaCount)
+		assertThat(BigDecimal(last.path("values").path("deltaRatingSum").asText())).isEqualByComparingTo(expectedDeltaSum)
+		assertThat(last.path("values").path("ratingCount").asLong()).isEqualTo(expectedCount)
+		assertThat(BigDecimal(last.path("values").path("ratingSum").asText())).isEqualByComparingTo(expectedSum)
 		assertThat(last.path("values").path("averageRating").asDouble()).isEqualTo(4.5)
+	}
+
+	@Test
+	@DisplayName("observations/INTEREST WEEK는 조회수 합과 최신 누적값을 내린다")
+	fun interestWeekReturnsHourSumAndLatestCumulative() {
+		val alcohol = alcoholTestFactory.persistAlcohol()
+		val now = LocalDateTime.now(seoul)
+		val openWeek = BucketGranularity.WEEK.startAt(now)
+		val closed = openWeek.minusWeeks(1)
+		popularityTestFactory.persistInterest(alcohol.id, BucketGranularity.WEEK, closed, 10L, 100L)
+		val hourBuckets = hourBucketsInOpenWeek(now, openWeek)
+		var expectedView = 0L
+		var expectedCumulative = 0L
+		hourBuckets.forEachIndexed { index, bucketAt ->
+			val last = index == hourBuckets.lastIndex
+			val viewCount = if (hourBuckets.size == 1 || last) 4L else 3L
+			val cumulative = if (hourBuckets.size == 1 || last) 107L else 103L
+			expectedView += viewCount
+			expectedCumulative = cumulative
+			popularityTestFactory.persistInterest(
+				alcohol.id,
+				BucketGranularity.HOUR,
+				bucketAt,
+				viewCount,
+				cumulative
+			)
+		}
+
+		val result =
+			mockMvcTester
+				.get()
+				.uri("/v1/statistics/alcohols/{alcoholId}/observations/{axis}", alcohol.id, "INTEREST")
+				.header("Authorization", "Bearer $accessToken")
+				.param("from", closed.toLocalDate().toString())
+				.param("to", now.toLocalDate().toString())
+				.param("granularity", "WEEK")
+				.exchange()
+
+		result.assertThat().hasStatusOk()
+		val last = mapper.readTree(result.response.contentAsString).path("data").path("points").last()
+		assertThat(last.path("partial").asBoolean()).isTrue()
+		assertThat(last.path("values").path("viewCount").asLong()).isEqualTo(expectedView)
+		assertThat(last.path("values").path("cumulativeViewCount").asLong()).isEqualTo(expectedCumulative)
+	}
+
+	@Test
+	@DisplayName("HOUR 32일은 400이다")
+	fun hourRangeTooLongReturnsBadRequest() {
+		val alcohol = alcoholTestFactory.persistAlcohol()
+		val today = LocalDate.now(seoul)
+		assertThat(
+			mockMvcTester
+				.get()
+				.uri("/v1/statistics/alcohols/{alcoholId}/popularity", alcohol.id)
+				.header("Authorization", "Bearer $accessToken")
+				.param("from", today.minusDays(31).toString())
+				.param("to", today.toString())
+				.param("granularity", "HOUR")
+		).hasStatus(HttpStatus.BAD_REQUEST)
 	}
 
 	@Test
@@ -209,5 +278,10 @@ class AdminAlcoholStatisticsIntegrationTest : IntegrationTestSupport() {
 				.get()
 				.uri("/v1/statistics/alcohols/{alcoholId}/popularity", 1L)
 		).hasStatus(HttpStatus.FORBIDDEN)
+	}
+
+	private fun hourBucketsInOpenWeek(now: LocalDateTime, openWeek: LocalDateTime): List<LocalDateTime> {
+		val nowHour = now.truncatedTo(ChronoUnit.HOURS)
+		return linkedSetOf(openWeek, nowHour).toList()
 	}
 }

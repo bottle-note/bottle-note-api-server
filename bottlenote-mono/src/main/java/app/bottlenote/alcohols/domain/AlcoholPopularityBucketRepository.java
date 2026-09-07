@@ -19,4 +19,8 @@ public interface AlcoholPopularityBucketRepository<T> {
   /** 시계열 조회 — 구간 경계는 양끝을 포함한다. */
   List<T> findByAlcoholIdAndBucketGranularityAndBucketAtBetweenOrderByBucketAtAsc(
       Long alcoholId, BucketGranularity bucketGranularity, LocalDateTime from, LocalDateTime to);
+
+  /** 지정 시각 직전 버킷 중 가장 최근 1건. 열린 버킷 상태값 이어받기에 쓴다. */
+  Optional<T> findTopByAlcoholIdAndBucketGranularityAndBucketAtLessThanOrderByBucketAtDesc(
+      Long alcoholId, BucketGranularity bucketGranularity, LocalDateTime bucketAt);
 }

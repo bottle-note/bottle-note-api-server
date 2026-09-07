@@ -56,6 +56,19 @@ public class InMemoryAlcoholPickObservationRepository implements AlcoholPickObse
   }
 
   @Override
+  public Optional<AlcoholPickObservation>
+      findTopByAlcoholIdAndBucketGranularityAndBucketAtLessThanOrderByBucketAtDesc(
+          Long alcoholId, BucketGranularity bucketGranularity, LocalDateTime bucketAt) {
+    return rows.stream()
+        .filter(
+            row ->
+                row.getAlcoholId().equals(alcoholId)
+                    && row.getBucketGranularity() == bucketGranularity
+                    && row.getBucketAt().isBefore(bucketAt))
+        .max(Comparator.comparing(AlcoholPickObservation::getBucketAt));
+  }
+
+  @Override
   public AlcoholPickObservation save(AlcoholPickObservation observation) {
     rows.removeIf(
         saved ->

@@ -41,7 +41,7 @@ public class AlcoholPopularityTestFactory {
             .alcoholId(alcoholId)
             .bucketGranularity(granularity)
             .bucketAt(bucketAt)
-            .observedAt(bucketAt.plusHours(1))
+            .observedAt(observedAt(granularity, bucketAt))
             .interestValue(interestValue)
             .interestSourceBucketAt(bucketAt)
             .interestScore(interestScore)
@@ -74,7 +74,7 @@ public class AlcoholPopularityTestFactory {
             .alcoholId(alcoholId)
             .bucketGranularity(granularity)
             .bucketAt(bucketAt)
-            .observedAt(bucketAt.plusHours(1))
+            .observedAt(observedAt(granularity, bucketAt))
             .viewCount(viewCount)
             .cumulativeViewCount(cumulativeViewCount)
             .build();
@@ -98,7 +98,7 @@ public class AlcoholPopularityTestFactory {
             .alcoholId(alcoholId)
             .bucketGranularity(granularity)
             .bucketAt(bucketAt)
-            .observedAt(bucketAt.plusHours(1))
+            .observedAt(observedAt(granularity, bucketAt))
             .ratingCount(ratingCount)
             .ratingSum(ratingSum)
             .deltaRatingCount(deltaRatingCount)
@@ -123,7 +123,7 @@ public class AlcoholPopularityTestFactory {
             .alcoholId(alcoholId)
             .bucketGranularity(granularity)
             .bucketAt(bucketAt)
-            .observedAt(bucketAt.plusHours(1))
+            .observedAt(observedAt(granularity, bucketAt))
             .pickCount(pickCount)
             .unpickCount(unpickCount)
             .deltaPickCount(deltaPickCount)
@@ -152,7 +152,7 @@ public class AlcoholPopularityTestFactory {
             .alcoholId(alcoholId)
             .bucketGranularity(granularity)
             .bucketAt(bucketAt)
-            .observedAt(bucketAt.plusHours(1))
+            .observedAt(observedAt(granularity, bucketAt))
             .reviewCount(reviewCount)
             .likeCount(likeCount)
             .dislikeCount(dislikeCount)
@@ -165,5 +165,10 @@ public class AlcoholPopularityTestFactory {
     em.persist(observation);
     em.flush();
     return observation;
+  }
+
+  private LocalDateTime observedAt(BucketGranularity granularity, LocalDateTime bucketAt) {
+    LocalDateTime endAt = granularity.endAt(bucketAt);
+    return granularity == BucketGranularity.HOUR ? endAt : endAt.plusMinutes(1);
   }
 }
