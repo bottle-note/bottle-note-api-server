@@ -1,163 +1,53 @@
 ---
 name: debug
 description: |
-  Systematic root-cause debugging for build failures, test failures, and runtime errors.
-  Trigger: "/debug", or when the user says "에러 났어", "테스트 실패", "빌드 안 돼", "왜 안 되지", "debug this", "this is broken".
-  Follows a structured 6-step process: STOP, REPRODUCE, LOCALIZE, FIX, GUARD, VERIFY.
-  상태 기반: 컴파일·테스트·ArchUnit 룰 실패 출력이 있을 때, /verify가 FAIL을 보고했을 때, 이전에 되던 것이 안 될 때.
-  Use when anything unexpected happens — do not guess at fixes.
+  /debug, 빌드·테스트 실패, 런타임 오류의 원인 진단에 사용한다.
+  재현 근거로 원인을 좁히고, 수정이 허가된 작업에서는 필요한 수정과 회귀 테스트까지 수행한다.
 argument-hint: "[error description or test name]"
 ---
 
-# Debugging and Error Recovery
+# Debug
 
-## Overview
+오류의 원인을 증거로 설명하고, 허가된 범위에서 해결한다. 실행 범위와 승인, Git 작업, 검증은 저장소 지침의 `스킬 실행 원칙`을 따른다.
 
-When something breaks, stop adding features, preserve evidence, and follow a structured process to find and fix the root cause. Guessing wastes time. This skill works for build errors, test failures, runtime bugs, and unexpected behavior across any language or stack.
+## 진단과 수정 모드
 
-## When to Use
+- 원인 확인·분석 요청이나 수정 요청이 없는 `/debug`는 읽기 전용이다. 코드, 설정, 기존 로그와 CI 결과를 조사하고 수정안을 제시한다.
+- 사용자가 오류 수정을 요청했거나 진행 중인 구현 범위에 속하는 오류라면 필요한 수정과 회귀 테스트를 작성한다. 같은 수정 권한을 다시 묻지 않는다.
+- 기존 작업을 보존한다. 진단을 위해 자동 stash, 되돌리기, 자동 포맷을 실행하지 않는다. 포맷 오류도 위치와 원인을 먼저 확인하고 수정 권한이 있을 때 관련 부분만 고친다.
 
-- Build / compile / type-check fails
-- Tests fail (unit, integration, architecture rule, lint)
-- Runtime behavior does not match expectations
-- An error appears in logs or console
-- Something worked before and stopped working
+## 원인 조사
 
-## When NOT to Use
+1. 요청·기대 동작·실제 결과와 발생 조건을 기록한다. 오류 위치, 관련 커밋 SHA, 실행 환경을 확인하고 민감한 값은 제외한다.
+2. 기존 실패 로그와 코드에서 재현 절차를 찾는다. GitHub Actions 실패라면 대상 SHA, run·job·step과 실패 출력을 연결한다. 다른 커밋의 실패를 현재 변경의 실패로 단정하지 않는다.
+3. 스택 트레이스의 원인 예외와 애플리케이션 호출 경로를 함께 읽고 검증 가능한 가설을 좁힌다. 재현하지 못했어도 접근 가능한 코드·설정·환경 차이 분석은 계속하며, 추론과 확인된 원인을 구분한다.
+4. 로컬 재현 실행은 공통 실행 계약이 허용한 최소 검사 또는 사용자가 명시한 로컬 실행 범위에서만 한다. 기존 실패 증거로 판단할 수 있으면 같은 검사를 반복하지 않는다.
 
-- Implementing new features (use `/implement`)
-- Writing new tests (use `/test`)
-- Code cleanup or refactoring (use `/self-review` for review, `/implement` for changes)
+실패 종류에 따라 다음 근거를 확인한다.
 
-## Process
+- 컴파일·의존성: 오류가 난 모듈, 변경된 인터페이스와 호출부, 선언된 버전 및 실제 의존성 해석 오류를 확인한다.
+- 단위 테스트: Service의 계약, fixture, 포트·Facade의 Fake/InMemory 구현과 새 의존성 연결을 확인한다.
+- 통합 테스트: TestContainers 준비 상태, 인증·테스트 데이터, Flyway 마이그레이션과 엔티티의 일치 여부를 확인한다. 스키마 오류를 `ddl-auto` 변경이나 임의 baseline으로 우회하지 않는다.
+- 아키텍처·런타임: 타 도메인 Facade 경유, 트랜잭션·이벤트 경계와 실제 실행 경로를 확인한다. API 문제는 요청·응답과 런타임 OpenAPI 계약도 비교한다.
 
-### Step 1: STOP
+프로젝트 구현 패턴이 필요할 때만 [Java/Spring 패턴](../implement/references/languages/java-spring.md)과 [BottleNote 패턴](../implement/references/languages/bottlenote-patterns.md)을 읽는다. 참고 문서의 예시가 현재 코드나 공통 실행 계약을 대체하지 않는다.
 
-Stop all other changes immediately.
+## 허가된 수정과 회귀 증거
 
-- Do NOT push past a failing test to work on the next feature
-- Preserve the error output — copy the full message before doing anything
-- If you have uncommitted work in progress, stash it: `git stash`
-- Read the COMPLETE error message before forming any hypothesis
+- 확인한 원인을 해결하는 데 필요한 변경만 한다. 파일 수로 원인 분석이나 작업 중단을 결정하지 않는다.
+- 실패한 검증을 삭제·비활성화하거나, 잘못된 실제 결과에 맞춰 기대값을 낮추지 않는다. 기대값 자체가 잘못됐다면 요구사항이나 API 계약의 근거를 제시한다.
+- 원래 실패 조건을 검증하는 회귀 테스트를 작성한다. 포트·Facade가 바뀌면 관련 Fake/InMemory도 갱신하고 [테스트 패턴](../test/references/testing/java.md)을 따른다.
+- 수정 전 실패와 수정 후 성공을 실제로 확인한 경우 각각의 증거를 남긴다. 수정 전 실행 없이 작성한 회귀 테스트나 미실행 테스트를 실패·성공 증거로 표현하지 않는다.
+- 새로운 가설, 코드·입력·환경 변화 없이 같은 실패를 반복 실행하지 않는다. 횟수만으로 진단을 중단하지 말고 다른 접근 가능한 근거를 조사한다.
+- 실제 실패가 수용 조건을 깨면 충족되지 않은 조건과 영향을 보고한다. 중요한 요구사항·계약 변경이나 권한 밖의 조치가 필요할 때만 해당 결정을 확인하며, 독립적으로 진행할 수 있는 진단은 계속한다.
 
-### Step 2: REPRODUCE
+## 검증과 보고
 
-Make the failure happen reliably. If you cannot reproduce it, you cannot fix it with confidence.
+기본 검증 결과는 대상 커밋의 GitHub Actions에서 확인한다. 로컬 전체 검증은 명시 요청이 있을 때만 수행하며, 허용된 최소 재현·회귀 검사를 전체 CI 통과로 표현하지 않는다. 동일한 변경과 범위에 유효한 검증 증거가 있으면 재사용한다.
 
-```
-Can you reproduce the failure?
-├── YES → Proceed to Step 3
-└── NO
-    ├── Check environment differences (containers running? submodules / deps initialized?)
-    ├── Run in isolation (single test, clean build)
-    └── If truly non-reproducible, document conditions and monitor
-```
+보고에는 다음을 포함한다.
 
-For exact reproduction commands, see `verify/references/verify/java-gradle.md`.
-
-### Step 3: LOCALIZE
-
-Narrow down WHERE the failure happens. Triage by failure category:
-
-```
-Build / type-check failure:
-├── Compile error → check the affected module's source
-├── Format / lint error → run the project's auto-fix command (see verify references)
-└── Dependency resolution → check the project's lockfile / version manifest
-
-Test failure:
-├── Unit test
-│   ├── Test double (Fake/InMemory) out of sync with the interface it implements?
-│   ├── Service logic changed but test not updated?
-│   └── New dependency not wired in test setup?
-├── Integration test
-│   ├── Required infrastructure running? (DB, queue, cache — testcontainers / docker / etc.)
-│   ├── Schema / migration up to date?
-│   ├── Test data setup missing or stale?
-│   └── Auth / token setup correct?
-└── Architecture / lint rule
-    ├── Boundary violation (cross-module direct access)?
-    ├── New code in wrong package / layer?
-    └── Cyclic dependency introduced?
-```
-
-**For stack traces:** read bottom-up, find the first line in your own code (not framework / vendor).
-
-For project-specific triage trees, consult `implement/references/languages/java-spring.md` and `bottlenote-patterns.md`.
-
-### Step 4: FIX
-
-Fix the ROOT CAUSE, not the symptom.
-
-```
-Symptom: "Test expects 3 items but gets 2"
-
-Symptom fix (bad):
-  → Change assertion to expect 2
-
-Root cause fix (good):
-  → The query has a WHERE clause that filters out soft-deleted items
-  → Fix the test data setup to not include soft-deleted items
-```
-
-Rules:
-- One change at a time — compile / type-check after each change
-- If a fix requires more than 5 files, reconsider whether the diagnosis is correct
-- Do NOT suppress errors (disabled annotations, empty catch blocks, lint-disable comments)
-- Do NOT delete or skip failing tests
-
-### Step 5: GUARD
-
-Write a regression test that would have caught this bug.
-
-- Use a descriptive test display name in the project's convention
-- The test should FAIL without the fix and PASS with it
-- If the fix changed an interface, **update the corresponding test doubles** (InMemory/Fake implementations) — this is the most common source of cascading breakage
-
-### Step 6: VERIFY
-
-Run verification to confirm the fix and check for regressions. See `/verify` for level selection:
-
-| Original failure | Minimum verification |
-|------------------|----------------------|
-| Compile / type-check | `/verify quick` |
-| Unit test | `/verify standard` |
-| Integration test | `/verify full` |
-| Architecture rule | `/verify standard` (rule tests usually run in L1/L2) |
-| Unknown / broad | `/verify full` |
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|-----------------|---------|
-| "I know what the bug is, I'll just fix it" | You might be right 70% of the time. The other 30% costs hours. Reproduce first. |
-| "The failing test is probably wrong" | Verify that assumption. If the test is wrong, fix the test. Do not skip it. |
-| "Let me just revert and redo everything" | Reverting destroys diagnostic information. Understand WHAT broke before reverting. |
-| "This is a flaky test, ignore it" | Flaky tests mask real bugs. Fix the flakiness or understand why it is intermittent. |
-| "I'll fix it in the next commit" | Fix it now. The next commit will introduce new issues on top of this one. |
-
-## Red Flags
-
-- Changing more than 5 files to fix a "simple" bug (diagnosis is likely wrong)
-- Fixing without reproducing first
-- Multiple stacked fixes without verifying between each one
-- Suppressing errors instead of fixing root cause
-- Changing test assertions to match wrong behavior
-- "It works now" without understanding what changed
-- No regression test added after a bug fix
-
-## Verification
-
-After fixing a bug:
-
-- [ ] Root cause identified and understood (not just symptom)
-- [ ] Fix addresses the root cause specifically
-- [ ] Regression test exists that fails without the fix
-- [ ] All existing tests pass
-- [ ] Build / type-check succeeds
-- [ ] Test doubles updated if interfaces changed
-- [ ] Original failure scenario verified end-to-end
-
-## 종료
-
-지침의 **GSL Execution Mode** 규칙을 따른다. 근본 원인·수정 내용·회귀 테스트를 보고한다. step-by-step이면 턴을 끝내고, delegated면 중단됐던 단계로 복귀한다 (단, 가정 붕괴가 원인이었다면 재개봉 프로토콜이 우선한다).
+- 원인과 재현 조건, 이를 뒷받침한 코드·로그·실행 결과를 설명한다.
+- 수정 모드라면 변경 범위와 회귀 테스트를 설명하고, 실제 실행한 명령·결과·확인된 테스트 수를 기록한다.
+- Actions는 정확한 대상 SHA와 관찰한 실행 상태·결론을 보고한다. 실행 누락, 대기·진행 중, 실패, 조회 불가를 구분하고 미커밋 변경이 검증됐다고 주장하지 않는다.
+- 해결하지 못한 실패, 재현·회귀·전체 검증의 미확인 범위와 이유를 밝힌다. 진단만 한 경우에는 수정 완료라고 보고하지 않는다.
