@@ -92,6 +92,7 @@ public class JdbcVisitorStatisticsRepository implements VisitorStatisticsReposit
         params.addValue(name, ipPrefixes.get(index) + "%");
       }
     }
+    // ADR: 루트 관리자 제외는 user 도메인 테이블을 통계 SQL에서 직접 읽는다.
     sql.append(" AND (user_id IS NULL OR user_id NOT IN (SELECT user_id FROM root_admins))");
     return sql.toString();
   }
@@ -100,7 +101,7 @@ public class JdbcVisitorStatisticsRepository implements VisitorStatisticsReposit
     return switch (granularity) {
       case DAY -> "DATE(occurred_at)";
       case WEEK -> "DATE_SUB(DATE(occurred_at), INTERVAL WEEKDAY(occurred_at) DAY)";
-      case MONTH -> "DATE_FORMAT(occurred_at, '%Y-%m-01')";
+      case MONTH -> "DATE_SUB(DATE(occurred_at), INTERVAL DAYOFMONTH(occurred_at) - 1 DAY)";
       case HOUR -> throw new IllegalArgumentException("HOUR는 방문자 통계에서 지원하지 않습니다.");
     };
   }
@@ -138,9 +139,6 @@ public class JdbcVisitorStatisticsRepository implements VisitorStatisticsReposit
     }
     if (value instanceof LocalDateTime dateTime) {
       return dateTime.toLocalDate().atStartOfDay();
-    }
-    if (value instanceof String text) {
-      return LocalDate.parse(text.substring(0, 10)).atStartOfDay();
     }
     throw new IllegalStateException("지원하지 않는 bucket_at 타입: " + value);
   }

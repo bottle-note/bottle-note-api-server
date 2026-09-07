@@ -33,7 +33,7 @@ public record TimeSeriesRange(
     if (!supported.contains(granularity)) {
       throw new TimeSeriesException(TimeSeriesExceptionCode.UNSUPPORTED_GRANULARITY);
     }
-    if (resolvedFrom.isAfter(resolvedTo)) {
+    if (resolvedFrom.isAfter(resolvedTo) || resolvedTo.isAfter(today)) {
       throw new TimeSeriesException(TimeSeriesExceptionCode.INVALID_RANGE);
     }
     // 검증은 truncate 전 원본 날짜 기준이다.

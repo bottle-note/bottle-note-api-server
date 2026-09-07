@@ -114,6 +114,30 @@ class TimeSeriesAssemblerTest {
   }
 
   @Test
+  @DisplayName("명시적 null 값도 fill 규칙을 탄다")
+  void 명시적_null도_fill을_적용할_수_있다() {
+    TimeSeriesDescriptor visitors =
+        new TimeSeriesDescriptor("visitors", "방문자", TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO);
+    TimeSeriesDescriptor picks =
+        new TimeSeriesDescriptor("picks", "픽", TimeSeriesUnit.COUNT, TimeSeriesFill.PREVIOUS);
+    Map<LocalDateTime, Map<String, Number>> valuesByBucket = new LinkedHashMap<>();
+    Map<String, Number> first = new LinkedHashMap<>();
+    first.put("visitors", 5);
+    first.put("picks", 7);
+    valuesByBucket.put(LocalDateTime.of(2026, 9, 1, 0, 0), first);
+    Map<String, Number> second = new LinkedHashMap<>();
+    second.put("visitors", null);
+    second.put("picks", null);
+    valuesByBucket.put(LocalDateTime.of(2026, 9, 2, 0, 0), second);
+
+    TimeSeries series =
+        TimeSeriesAssembler.assemble(DAY_RANGE, List.of(visitors, picks), valuesByBucket, NOW);
+
+    assertThat(series.points().get(1).values().get("visitors")).isEqualTo(0L);
+    assertThat(series.points().get(1).values().get("picks")).isEqualTo(7);
+  }
+
+  @Test
   @DisplayName("values는 시리즈 key 순서를 유지하고 null 값을 허용한다")
   void values의_순서와_null을_유지할_수_있다() {
     TimeSeriesDescriptor visitors =

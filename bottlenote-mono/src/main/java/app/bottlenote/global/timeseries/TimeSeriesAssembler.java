@@ -54,8 +54,10 @@ public final class TimeSeriesAssembler {
       Map<String, Number> source,
       Map<String, Number> previousValues) {
     String key = descriptor.key();
-    if (source.containsKey(key)) {
-      return source.get(key);
+    Number value = source.get(key);
+    // 키가 없거나 값이 null이면 결측으로 보고 fill 규칙을 탄다.
+    if (value != null) {
+      return value;
     }
     return switch (descriptor.fill()) {
       case ZERO -> 0L;
