@@ -369,38 +369,19 @@ class AlcoholPopularityTimeSeriesServiceTest {
   }
 
   @Test
-  @DisplayName("to가 미래인 WEEK 요청은 현재 주만 롤다운하고 뒤 버킷은 fill 규칙이다")
-  void 미래_구간의_뒤_버킷은_롤다운하지_않을_수_있다() {
-    snapshotRepository.save(
-        snapshot(
-            LocalDateTime.of(2026, 9, 7, 10, 0),
-            BucketGranularity.HOUR,
-            5L,
-            24L,
-            8L,
-            12L,
-            "0.01",
-            "0.02",
-            "0.03",
-            "0.04",
-            "0.05"));
-
-    TimeSeries series =
-        service.findPopularity(
-            alcoholId,
-            new AlcoholPopularityTimeSeriesRequest(
-                LocalDate.of(2026, 9, 7), LocalDate.of(2026, 9, 21), TimeSeriesGranularity.WEEK));
-
-    TimeSeriesPoint current = pointAt(series, OPEN_WEEK);
-    assertThat(current.partial()).isTrue();
-    assertThat(current.values().get("interestValue")).isEqualTo(5L);
-    assertThat(current.values().get("ratingValue")).isEqualTo(24L);
-
-    LocalDateTime nextWeek = LocalDateTime.of(2026, 9, 14, 0, 0);
-    TimeSeriesPoint future = pointAt(series, nextWeek);
-    assertThat(future.values().get("interestValue")).isEqualTo(0L);
-    assertThat(future.values().get("popularityScore")).isNull();
-    assertThat(future.values().get("ratingValue")).isEqualTo(24L);
+  @DisplayName("to가 오늘보다 뒤인 WEEK 요청은 INVALID_RANGE 예외를 던진다")
+  void 미래_to_요청은_거절할_수_있다() {
+    // 커널이 미래 to를 거절하므로 미래 주 버킷은 롤다운 대상이 될 수 없다.
+    assertThatThrownBy(
+            () ->
+                service.findPopularity(
+                    alcoholId,
+                    new AlcoholPopularityTimeSeriesRequest(
+                        LocalDate.of(2026, 9, 7),
+                        LocalDate.of(2026, 9, 21),
+                        TimeSeriesGranularity.WEEK)))
+        .isInstanceOf(TimeSeriesException.class)
+        .hasFieldOrPropertyWithValue("exceptionCode", TimeSeriesExceptionCode.INVALID_RANGE);
   }
 
   @Test
