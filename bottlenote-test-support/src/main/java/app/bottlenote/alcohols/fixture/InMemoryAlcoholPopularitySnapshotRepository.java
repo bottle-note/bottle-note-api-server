@@ -57,6 +57,19 @@ public class InMemoryAlcoholPopularitySnapshotRepository
   }
 
   @Override
+  public Optional<AlcoholPopularitySnapshot>
+      findTopByAlcoholIdAndBucketGranularityAndBucketAtLessThanOrderByBucketAtDesc(
+          Long alcoholId, BucketGranularity bucketGranularity, LocalDateTime bucketAt) {
+    return snapshots.stream()
+        .filter(
+            snapshot ->
+                snapshot.getAlcoholId().equals(alcoholId)
+                    && snapshot.getBucketGranularity() == bucketGranularity
+                    && snapshot.getBucketAt().isBefore(bucketAt))
+        .max(Comparator.comparing(AlcoholPopularitySnapshot::getBucketAt));
+  }
+
+  @Override
   public AlcoholPopularitySnapshot save(AlcoholPopularitySnapshot snapshot) {
     snapshots.removeIf(
         saved ->

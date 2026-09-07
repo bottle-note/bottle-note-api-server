@@ -27,7 +27,6 @@ import app.bottlenote.global.timeseries.TimeSeriesGranularity;
 import app.bottlenote.global.timeseries.TimeSeriesRange;
 import app.bottlenote.global.timeseries.TimeSeriesUnit;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -73,7 +72,7 @@ public class AlcoholPopularityTimeSeriesService {
           descriptor("deltaRatingSum", "평점 합 증감", TimeSeriesUnit.DECIMAL, TimeSeriesFill.ZERO),
           descriptor("ratingCount", "누적 평점 수", TimeSeriesUnit.COUNT, TimeSeriesFill.PREVIOUS),
           descriptor("ratingSum", "누적 평점 합", TimeSeriesUnit.DECIMAL, TimeSeriesFill.PREVIOUS),
-          descriptor("averageRating", "평균 평점", TimeSeriesUnit.DECIMAL, TimeSeriesFill.NULL));
+          descriptor("averageRating", "평균 평점", TimeSeriesUnit.DECIMAL, TimeSeriesFill.PREVIOUS));
   private static final List<TimeSeriesDescriptor> PICK_SERIES =
       List.of(
           descriptor("deltaPickCount", "PICK 증감", TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO),
@@ -138,18 +137,18 @@ public class AlcoholPopularityTimeSeriesService {
     requireAlcohol(alcoholId);
     TimeSeriesRange range = resolveRange(request);
     LocalDateTime now = LocalDateTime.now(clock);
+    LocalDateTime openStart = openBucketStart(range, now);
     List<AlcoholPopularitySnapshot> rows = loadRows(snapshotRepository, alcoholId, range);
     Map<LocalDateTime, Map<String, Number>> valuesByBucket =
         toValuesByBucket(
             rows,
             AlcoholPopularitySnapshot::getBucketAt,
             AlcoholPopularityTimeSeriesService::popularityValues,
-            openBucketStart(range, now));
+            openStart);
     rolldownIfOpen(
-        range,
-        now,
+        openStart,
         valuesByBucket,
-        openStart -> rolldownPopularity(alcoholId, openStart, range.granularity()));
+        start -> rolldownPopularity(alcoholId, start, range.granularity()));
     return TimeSeriesAssembler.assemble(range, POPULARITY_SERIES, valuesByBucket, now);
   }
 
@@ -219,15 +218,14 @@ public class AlcoholPopularityTimeSeriesService {
       Long alcoholId, AlcoholPopularityTimeSeriesRequest request, ObservationAssembly<T> assembly) {
     TimeSeriesRange range = resolveRange(request);
     LocalDateTime now = LocalDateTime.now(clock);
+    LocalDateTime openStart = openBucketStart(range, now);
     List<T> rows = loadRows(assembly.repository(), alcoholId, range);
     Map<LocalDateTime, Map<String, Number>> valuesByBucket =
-        toValuesByBucket(
-            rows, assembly.bucketAt(), assembly.toValues(), openBucketStart(range, now));
+        toValuesByBucket(rows, assembly.bucketAt(), assembly.toValues(), openStart);
     rolldownIfOpen(
-        range,
-        now,
+        openStart,
         valuesByBucket,
-        openStart -> assembly.rolldown().apply(alcoholId, openStart, range.granularity()));
+        start -> assembly.rolldown().apply(alcoholId, start, range.granularity()));
     return TimeSeriesAssembler.assemble(range, assembly.series(), valuesByBucket, now);
   }
 
@@ -285,11 +283,9 @@ public class AlcoholPopularityTimeSeriesService {
   }
 
   private void rolldownIfOpen(
-      TimeSeriesRange range,
-      LocalDateTime now,
+      LocalDateTime openStart,
       Map<LocalDateTime, Map<String, Number>> valuesByBucket,
       Function<LocalDateTime, Map<String, Number>> rolldown) {
-    LocalDateTime openStart = openBucketStart(range, now);
     if (openStart == null) {
       return;
     }
@@ -300,9 +296,9 @@ public class AlcoholPopularityTimeSeriesService {
     if (range.granularity() == TimeSeriesGranularity.HOUR) {
       return null;
     }
-    LocalDateTime last = range.to();
-    if (range.granularity().next(last).isAfter(now)) {
-      return last;
+    LocalDateTime candidate = range.granularity().truncate(now);
+    if (range.buckets().contains(candidate)) {
+      return candidate;
     }
     return null;
   }
@@ -314,6 +310,7 @@ public class AlcoholPopularityTimeSeriesService {
     Map<String, Number> values = new LinkedHashMap<>();
     values.put("interestValue", sumLong(hours, AlcoholPopularitySnapshot::getInterestValue));
     latest(hours)
+        .or(() -> latestClosed(snapshotRepository, alcoholId, granularity, start))
         .ifPresent(
             last -> {
               values.put("ratingValue", last.getRatingValue());
@@ -330,6 +327,7 @@ public class AlcoholPopularityTimeSeriesService {
     Map<String, Number> values = new LinkedHashMap<>();
     values.put("viewCount", sumLong(hours, AlcoholInterestObservation::getViewCount));
     latest(hours)
+        .or(() -> latestClosed(interestRepository, alcoholId, granularity, start))
         .ifPresent(last -> values.put("cumulativeViewCount", last.getCumulativeViewCount()));
     return values;
   }
@@ -342,12 +340,15 @@ public class AlcoholPopularityTimeSeriesService {
     values.put("deltaRatingCount", sumLong(hours, AlcoholRatingObservation::getDeltaRatingCount));
     values.put("deltaRatingSum", sumDecimal(hours, AlcoholRatingObservation::getDeltaRatingSum));
     latest(hours)
+        .or(() -> latestClosed(ratingRepository, alcoholId, granularity, start))
         .ifPresent(
             last -> {
               values.put("ratingCount", last.getRatingCount());
               values.put("ratingSum", last.getRatingSum());
-              values.put(
-                  "averageRating", averageRating(last.getRatingCount(), last.getRatingSum()));
+              BigDecimal average = last.averageRating();
+              if (average != null) {
+                values.put("averageRating", average);
+              }
             });
     return values;
   }
@@ -359,6 +360,7 @@ public class AlcoholPopularityTimeSeriesService {
     Map<String, Number> values = new LinkedHashMap<>();
     values.put("deltaPickCount", sumLong(hours, AlcoholPickObservation::getDeltaPickCount));
     latest(hours)
+        .or(() -> latestClosed(pickRepository, alcoholId, granularity, start))
         .ifPresent(
             last -> {
               values.put("pickCount", last.getPickCount());
@@ -379,6 +381,7 @@ public class AlcoholPopularityTimeSeriesService {
         "deltaDislikeCount", sumLong(hours, AlcoholEngagementObservation::getDeltaDislikeCount));
     values.put("deltaReplyCount", sumLong(hours, AlcoholEngagementObservation::getDeltaReplyCount));
     latest(hours)
+        .or(() -> latestClosed(engagementRepository, alcoholId, granularity, start))
         .ifPresent(
             last -> {
               values.put("reviewCount", last.getReviewCount());
@@ -426,7 +429,10 @@ public class AlcoholPopularityTimeSeriesService {
     values.put("deltaRatingSum", observation.getDeltaRatingSum());
     values.put("ratingCount", observation.getRatingCount());
     values.put("ratingSum", observation.getRatingSum());
-    values.put("averageRating", observation.averageRating());
+    BigDecimal average = observation.averageRating();
+    if (average != null) {
+      values.put("averageRating", average);
+    }
     return values;
   }
 
@@ -463,6 +469,15 @@ public class AlcoholPopularityTimeSeriesService {
     return Optional.of(rows.getLast());
   }
 
+  private <T> Optional<T> latestClosed(
+      AlcoholPopularityBucketRepository<T> repository,
+      Long alcoholId,
+      TimeSeriesGranularity granularity,
+      LocalDateTime openStart) {
+    return repository.findTopByAlcoholIdAndBucketGranularityAndBucketAtLessThanOrderByBucketAtDesc(
+        alcoholId, toBucket(granularity), openStart);
+  }
+
   private static <T> long sumLong(List<T> rows, Function<T, Long> getter) {
     long sum = 0L;
     for (T row : rows) {
@@ -484,12 +499,5 @@ public class AlcoholPopularityTimeSeriesService {
 
   private static long nz(Long value) {
     return value == null ? 0L : value;
-  }
-
-  private static BigDecimal averageRating(Long ratingCount, BigDecimal ratingSum) {
-    if (ratingCount == null || ratingCount == 0L || ratingSum == null) {
-      return null;
-    }
-    return ratingSum.divide(BigDecimal.valueOf(ratingCount), 2, RoundingMode.HALF_UP);
   }
 }

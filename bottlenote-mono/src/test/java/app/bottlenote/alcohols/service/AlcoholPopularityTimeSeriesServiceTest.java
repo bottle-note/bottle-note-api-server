@@ -265,8 +265,10 @@ class AlcoholPopularityTimeSeriesServiceTest {
 
     ratingRepository.save(
         rating(LocalDateTime.of(2026, 9, 8, 12, 0), BucketGranularity.HOUR, 0L, "0.0", 0L, "0.0"));
-    TimeSeries empty = service.findObservations(alcoholId, PopularityAxis.RATING, weekRequest());
-    assertThat(pointAt(empty, OPEN_WEEK).values().get("averageRating")).isNull();
+    TimeSeries emptyCount =
+        service.findObservations(alcoholId, PopularityAxis.RATING, weekRequest());
+    assertThat(pointAt(emptyCount, OPEN_WEEK).values().get("averageRating"))
+        .isEqualTo(new BigDecimal("4.00"));
   }
 
   @Test
@@ -364,6 +366,111 @@ class AlcoholPopularityTimeSeriesServiceTest {
     assertThat(open.partial()).isTrue();
     assertThat(open.values().get("viewCount")).isEqualTo(7L);
     assertThat(open.values().get("cumulativeViewCount")).isEqualTo(107L);
+  }
+
+  @Test
+  @DisplayName("to가 미래인 WEEK 요청은 현재 주만 롤다운하고 뒤 버킷은 fill 규칙이다")
+  void 미래_구간의_뒤_버킷은_롤다운하지_않을_수_있다() {
+    snapshotRepository.save(
+        snapshot(
+            LocalDateTime.of(2026, 9, 7, 10, 0),
+            BucketGranularity.HOUR,
+            5L,
+            24L,
+            8L,
+            12L,
+            "0.01",
+            "0.02",
+            "0.03",
+            "0.04",
+            "0.05"));
+
+    TimeSeries series =
+        service.findPopularity(
+            alcoholId,
+            new AlcoholPopularityTimeSeriesRequest(
+                LocalDate.of(2026, 9, 7), LocalDate.of(2026, 9, 21), TimeSeriesGranularity.WEEK));
+
+    TimeSeriesPoint current = pointAt(series, OPEN_WEEK);
+    assertThat(current.partial()).isTrue();
+    assertThat(current.values().get("interestValue")).isEqualTo(5L);
+    assertThat(current.values().get("ratingValue")).isEqualTo(24L);
+
+    LocalDateTime nextWeek = LocalDateTime.of(2026, 9, 14, 0, 0);
+    TimeSeriesPoint future = pointAt(series, nextWeek);
+    assertThat(future.values().get("interestValue")).isEqualTo(0L);
+    assertThat(future.values().get("popularityScore")).isNull();
+    assertThat(future.values().get("ratingValue")).isEqualTo(24L);
+  }
+
+  @Test
+  @DisplayName("열린 WEEK가 첫 버킷이고 HOUR가 없으면 직전 닫힌 WEEK 상태값을 이어받는다")
+  void 첫_열린_버킷_상태값을_직전_닫힌_행에서_이을_수_있다() {
+    snapshotRepository.save(
+        snapshot(
+            CLOSED_WEEK_2,
+            BucketGranularity.WEEK,
+            100L,
+            20L,
+            5L,
+            8L,
+            "0.10",
+            "0.20",
+            "0.30",
+            "0.40",
+            "0.50"));
+    ratingRepository.save(rating(CLOSED_WEEK_2, BucketGranularity.WEEK, 4L, "16.0", 4L, "16.0"));
+
+    AlcoholPopularityTimeSeriesRequest openOnly =
+        new AlcoholPopularityTimeSeriesRequest(
+            LocalDate.of(2026, 9, 7), TO, TimeSeriesGranularity.WEEK);
+
+    TimeSeries popularity = service.findPopularity(alcoholId, openOnly);
+    TimeSeriesPoint popularityOpen = pointAt(popularity, OPEN_WEEK);
+    assertThat(popularityOpen.partial()).isTrue();
+    assertThat(popularityOpen.values().get("interestValue")).isEqualTo(0L);
+    assertThat(popularityOpen.values().get("ratingValue")).isEqualTo(20L);
+    assertThat(popularityOpen.values().get("pickValue")).isEqualTo(5L);
+    assertThat(popularityOpen.values().get("engagementValue")).isEqualTo(8L);
+
+    TimeSeries rating = service.findObservations(alcoholId, PopularityAxis.RATING, openOnly);
+    TimeSeriesPoint ratingOpen = pointAt(rating, OPEN_WEEK);
+    assertThat(ratingOpen.values().get("deltaRatingCount")).isEqualTo(0L);
+    assertThat(ratingOpen.values().get("ratingCount")).isEqualTo(4L);
+    assertThat(ratingOpen.values().get("ratingSum")).isEqualTo(new BigDecimal("16.0"));
+    assertThat(ratingOpen.values().get("averageRating")).isEqualTo(new BigDecimal("4.00"));
+  }
+
+  @Test
+  @DisplayName("닫힌 행도 HOUR 행도 없으면 상태값은 null이다")
+  void 이어받을_닫힌_행이_없으면_상태값이_null일_수_있다() {
+    TimeSeries series = service.findPopularity(alcoholId, weekRequest());
+
+    TimeSeriesPoint open = pointAt(series, OPEN_WEEK);
+    assertThat(open.values().get("interestValue")).isEqualTo(0L);
+    assertThat(open.values().get("ratingValue")).isNull();
+    assertThat(open.values().get("pickValue")).isNull();
+    assertThat(open.values().get("engagementValue")).isNull();
+    assertThat(open.values().get("popularityScore")).isNull();
+  }
+
+  @Test
+  @DisplayName("HOUR 조회에서 평점 변화가 없는 시간은 직전 평균을 이어받는다")
+  void HOUR_averageRating을_PREVIOUS로_이을_수_있다() {
+    ratingRepository.save(
+        rating(LocalDateTime.of(2026, 9, 9, 10, 0), BucketGranularity.HOUR, 4L, "16.0", 0L, "0.0"));
+
+    TimeSeries series =
+        service.findObservations(
+            alcoholId,
+            PopularityAxis.RATING,
+            new AlcoholPopularityTimeSeriesRequest(
+                LocalDate.of(2026, 9, 9), LocalDate.of(2026, 9, 9), TimeSeriesGranularity.HOUR));
+
+    assertThat(pointAt(series, LocalDateTime.of(2026, 9, 9, 10, 0)).values().get("averageRating"))
+        .isEqualTo(new BigDecimal("4.00"));
+    assertThat(pointAt(series, LocalDateTime.of(2026, 9, 9, 11, 0)).values().get("averageRating"))
+        .isEqualTo(new BigDecimal("4.00"));
   }
 
   private AlcoholPopularityTimeSeriesRequest weekRequest() {
