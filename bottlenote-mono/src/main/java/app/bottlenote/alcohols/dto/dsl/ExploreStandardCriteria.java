@@ -30,6 +30,8 @@ public record ExploreStandardCriteria(
     Integer size,
     LocalDateTime popularityBucketAt) {
 
+  public static final String NO_POPULARITY_BUCKET = "NONE";
+
   public static ExploreStandardCriteria of(
       ExploreStandardRequest request, Long userId, long seed, LocalDateTime popularityBucketAt) {
     return new ExploreStandardCriteria(

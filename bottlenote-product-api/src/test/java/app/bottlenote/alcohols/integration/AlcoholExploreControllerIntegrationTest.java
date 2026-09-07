@@ -12,10 +12,21 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
+import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.rating.fixture.RatingTestFactory;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.fixture.UserTestFactory;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -40,6 +51,9 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private AlcoholQueryRepository alcoholQueryRepository;
+  @Autowired private RatingTestFactory ratingTestFactory;
+  @Autowired private UserTestFactory userTestFactory;
+  @Autowired private HmacCursorCodec cursorCodec;
 
   private MvcTestResult exchangeGet(
       java.util.function.Consumer<
@@ -404,13 +418,13 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
   }
 
   // =============================================================================================
-  // RANDOM seed
+  // 정렬 커서 안정성
   // =============================================================================================
 
-  /** RANDOM 정렬은 CRC32(seed,id) keyset이며, seed는 다음 커서 extra에만 이어진다. */
+  /** 정렬별 커서가 최초 조회 기준과 동점 순서를 유지하는지 검증한다. */
   @Nested
-  @DisplayName("RANDOM seed")
-  class RandomSeed {
+  @DisplayName("정렬 커서 안정성")
+  class SortCursorStability {
 
     @Test
     @DisplayName("nextCursor로 이어 요청하면 첫 페이지와 중복되지 않는다")
@@ -472,17 +486,212 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("HOUR Snapshot이 없으면 POPULAR 목록은 비어 있다")
-    void popular_without_snapshot_returns_empty_page() throws Exception {
-      alcoholTestFactory.persistAlcohols(3);
+    @DisplayName("HOUR Snapshot이 없어도 POPULAR 목록은 전체 주류를 반환한다")
+    void popular_without_snapshot_returns_all_alcohols() throws Exception {
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(3);
 
       exchangeGet(b -> b.param("sortType", "POPULAR").param("sortOrder", "DESC").param("size", "3"))
           .assertThat()
           .hasStatusOk()
           .bodyJson()
-          .extractingPath("$.data.items")
+          .extractingPath("$.data.items[*].alcoholId")
           .asArray()
-          .isEmpty();
+          .containsExactly(
+              alcohols.get(0).getId().intValue(),
+              alcohols.get(1).getId().intValue(),
+              alcohols.get(2).getId().intValue());
+    }
+
+    @Test
+    @DisplayName("31개에만 Snapshot이 있어도 POPULAR과 RANDOM은 34개 ID를 누락과 중복 없이 반환한다")
+    void partial_snapshot_keeps_same_ids_across_sorts_and_page_sizes() throws Exception {
+      String keyword = "개수일치";
+      List<Alcohol> alcohols = persistNamedAlcohols(keyword, 34);
+      LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now()).minusHours(1);
+      for (int index = 0; index < 31; index++) {
+        alcoholTestFactory.persistPopularitySnapshot(
+            alcohols.get(index).getId(),
+            BucketGranularity.HOUR,
+            bucket,
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(index + 1L, 2));
+      }
+      Set<Integer> expectedIds = new HashSet<>(alcoholIds(alcohols));
+
+      for (int size : List.of(10, 20)) {
+        List<Integer> popularIds =
+            fetchAllIds(keyword, SearchSortType.POPULAR, SortOrder.DESC, size);
+        List<Integer> randomIds =
+            fetchAllIds(keyword, SearchSortType.RANDOM, SortOrder.DESC, size);
+
+        assertCompleteIdSet(popularIds, expectedIds);
+        assertCompleteIdSet(randomIds, expectedIds);
+        assertThat(new HashSet<>(popularIds)).isEqualTo(new HashSet<>(randomIds));
+      }
+    }
+
+    @ParameterizedTest(name = "sortOrder={0}")
+    @EnumSource(SortOrder.class)
+    @DisplayName("POPULAR은 실제 0점과 Snapshot이 없는 주류를 ID 오름차순 동점으로 페이징한다")
+    void popular_zero_score_tie_uses_id_ascending(SortOrder sortOrder) throws Exception {
+      String keyword = "0점동점";
+      Alcohol actualZero =
+          alcoholTestFactory.persistAlcoholWithName(keyword + " Snapshot", "Zero Snapshot");
+      Alcohol withoutSnapshot =
+          alcoholTestFactory.persistAlcoholWithName(keyword + " Missing", "Zero Missing");
+      Alcohol positive =
+          alcoholTestFactory.persistAlcoholWithName(keyword + " Positive", "Positive");
+      LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now()).minusHours(1);
+      alcoholTestFactory.persistPopularitySnapshot(
+          actualZero.getId(),
+          BucketGranularity.HOUR,
+          bucket,
+          BigDecimal.ZERO,
+          BigDecimal.ZERO);
+      alcoholTestFactory.persistPopularitySnapshot(
+          positive.getId(),
+          BucketGranularity.HOUR,
+          bucket,
+          BigDecimal.ZERO,
+          BigDecimal.ONE);
+
+      List<Integer> ids = fetchAllIds(keyword, SearchSortType.POPULAR, sortOrder, 1);
+
+      List<Integer> zeroTieIds =
+          List.of(actualZero.getId().intValue(), withoutSnapshot.getId().intValue());
+      if (sortOrder == SortOrder.ASC) {
+        assertThat(ids).containsExactlyElementsOf(
+            List.of(zeroTieIds.get(0), zeroTieIds.get(1), positive.getId().intValue()));
+      } else {
+        assertThat(ids).containsExactlyElementsOf(
+            List.of(positive.getId().intValue(), zeroTieIds.get(0), zeroTieIds.get(1)));
+      }
+    }
+
+    @Test
+    @DisplayName("Snapshot 부재 커서는 페이지 중간에 첫 Snapshot이 생겨도 0점 기준을 유지한다")
+    void no_snapshot_cursor_keeps_zero_score_baseline() throws Exception {
+      String keyword = "무스냅샷커서";
+      List<Alcohol> alcohols = persistNamedAlcohols(keyword, 5);
+      MvcTestResult first =
+          exchangeGet(
+              b ->
+                  b.param("keyword", keyword)
+                      .param("sortType", "POPULAR")
+                      .param("sortOrder", "DESC")
+                      .param("size", "2"));
+      String firstCursor = nextCursor(first);
+      assertThat(cursorCodec.verify(firstCursor, popularContext(keyword, SortOrder.DESC, 2)).extra())
+          .containsEntry("bucketAt", ExploreStandardCriteria.NO_POPULARITY_BUCKET);
+
+      LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now());
+      for (int index = 0; index < alcohols.size(); index++) {
+        alcoholTestFactory.persistPopularitySnapshot(
+            alcohols.get(index).getId(),
+            BucketGranularity.HOUR,
+            bucket,
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(alcohols.size() - index));
+      }
+
+      MvcTestResult second =
+          exchangeGet(
+              b ->
+                  b.param("keyword", keyword)
+                      .param("sortType", "POPULAR")
+                      .param("sortOrder", "DESC")
+                      .param("cursor", firstCursor)
+                      .param("size", "2"));
+      String secondCursor = nextCursor(second);
+      MvcTestResult third =
+          exchangeGet(
+              b ->
+                  b.param("keyword", keyword)
+                      .param("sortType", "POPULAR")
+                      .param("sortOrder", "DESC")
+                      .param("cursor", secondCursor)
+                      .param("size", "2"));
+
+      List<Integer> ids = new ArrayList<>();
+      ids.addAll(alcoholIds(first));
+      ids.addAll(alcoholIds(second));
+      ids.addAll(alcoholIds(third));
+      assertThat(ids).containsExactlyElementsOf(alcoholIds(alcohols));
+      third.assertThat().bodyJson().extractingPath("$.meta.pagination.hasNext").isEqualTo(false);
+    }
+
+    @Test
+    @DisplayName("부분 Snapshot 상태에서도 POPULAR은 평점 범위와 삭제 필터를 유지한다")
+    void popular_partial_snapshot_keeps_rating_and_deleted_filters() throws Exception {
+      String keyword = "부분스냅샷필터";
+      User ratingUser = userTestFactory.persistUser();
+      Alcohol withSnapshot =
+          alcoholTestFactory.persistAlcoholWithName(keyword + " Included Snapshot", "Included A");
+      Alcohol withoutSnapshot =
+          alcoholTestFactory.persistAlcoholWithName(keyword + " Included Missing", "Included B");
+      Alcohol belowRange =
+          alcoholTestFactory.persistAlcoholWithName(keyword + " Below", "Below");
+      Alcohol deleted =
+          alcoholTestFactory.persistAlcoholWithName(keyword + " Deleted", "Deleted");
+      ratingTestFactory.persistRating(ratingUser, withSnapshot, 4);
+      ratingTestFactory.persistRating(ratingUser, withoutSnapshot, 4);
+      ratingTestFactory.persistRating(ratingUser, belowRange, 2);
+      ratingTestFactory.persistRating(ratingUser, deleted, 5);
+      LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now()).minusHours(1);
+      alcoholTestFactory.persistPopularitySnapshot(
+          withSnapshot.getId(),
+          BucketGranularity.HOUR,
+          bucket,
+          BigDecimal.ZERO,
+          BigDecimal.ONE);
+      alcoholTestFactory.persistPopularitySnapshot(
+          belowRange.getId(),
+          BucketGranularity.HOUR,
+          bucket,
+          BigDecimal.ZERO,
+          BigDecimal.TEN);
+      deleted.delete();
+      alcoholQueryRepository.save(deleted);
+
+      exchangeGet(
+              b ->
+                  b.param("keyword", keyword)
+                      .param("sortType", "POPULAR")
+                      .param("sortOrder", "DESC")
+                      .param("ratingFrom", "4.0")
+                      .param("ratingTo", "5.0")
+                      .param("size", "10"))
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .containsExactly(withSnapshot.getId().intValue(), withoutSnapshot.getId().intValue())
+          .doesNotContain(belowRange.getId().intValue(), deleted.getId().intValue());
+    }
+
+    @ParameterizedTest(name = "bucketAt={0}")
+    @ValueSource(strings = {"MISSING", "", " ", "not-a-date"})
+    @DisplayName("서명된 POPULAR 커서의 bucketAt이 누락되거나 형식이 틀리면 400을 반환한다")
+    void popular_cursor_rejects_invalid_bucket_at(String bucketAt) {
+      getToken();
+      String context = popularContext(null, SortOrder.DESC, 1);
+      Map<String, String> extra =
+          "MISSING".equals(bucketAt) ? Map.of() : Map.of("bucketAt", bucketAt);
+      String cursor =
+          cursorCodec.encode(context, Map.of("id", "1", "sort", "0"), extra);
+
+      exchangeGet(
+              b ->
+                  b.param("sortType", "POPULAR")
+                      .param("sortOrder", "DESC")
+                      .param("cursor", cursor)
+                      .param("size", "1"))
+          .assertThat()
+          .hasStatus(HttpStatus.BAD_REQUEST)
+          .bodyJson()
+          .extractingPath("$.errors[0].code")
+          .isEqualTo("INVALID_CURSOR");
     }
 
     @Test
@@ -592,5 +801,83 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .asArray()
           .containsExactly(alcohols.get(2).getId().intValue(), alcohols.get(3).getId().intValue());
     }
+  }
+
+  private List<Alcohol> persistNamedAlcohols(String keyword, int count) {
+    List<Alcohol> alcohols = new ArrayList<>();
+    for (int index = 0; index < count; index++) {
+      alcohols.add(
+          alcoholTestFactory.persistAlcoholWithName(
+              keyword + " " + index, "Explore Regression " + index));
+    }
+    return alcohols;
+  }
+
+  private List<Integer> fetchAllIds(
+      String keyword, SearchSortType sortType, SortOrder sortOrder, int size) throws Exception {
+    List<Integer> ids = new ArrayList<>();
+    Set<String> seenCursors = new HashSet<>();
+    String cursor = null;
+    int pageCount = 0;
+    boolean hasNext;
+    do {
+      assertThat(++pageCount).as("페이지 순회가 종료되어야 한다").isLessThanOrEqualTo(100);
+      String currentCursor = cursor;
+      MvcTestResult page =
+          exchangeGet(
+              b -> {
+                b.param("keyword", keyword)
+                    .param("sortType", sortType.name())
+                    .param("sortOrder", sortOrder.name())
+                    .param("size", String.valueOf(size));
+                if (currentCursor != null) {
+                  b.param("cursor", currentCursor);
+                }
+              });
+      page.assertThat().hasStatusOk();
+      ids.addAll(alcoholIds(page));
+      hasNext = readJsonPath(page, "$.meta.pagination.hasNext");
+      cursor = hasNext ? nextCursor(page) : null;
+      if (hasNext) {
+        assertThat(cursor).isNotBlank();
+        assertThat(seenCursors.add(cursor)).as("다음 커서가 반복되지 않아야 한다").isTrue();
+      }
+    } while (hasNext);
+    return ids;
+  }
+
+  private String popularContext(String keyword, SortOrder sortOrder, int size) {
+    ExploreStandardRequest request =
+        ExploreStandardRequest.builder()
+            .keyword(keyword)
+            .sortType(SearchSortType.POPULAR)
+            .sortOrder(sortOrder)
+            .size(size)
+            .build();
+    return ExploreStandardCriteria.of(request, getTokenUserId(), 0L, null).context();
+  }
+
+  private void assertCompleteIdSet(List<Integer> actualIds, Set<Integer> expectedIds) {
+    assertThat(actualIds).hasSize(expectedIds.size());
+    assertThat(new HashSet<>(actualIds))
+        .hasSize(actualIds.size())
+        .containsExactlyInAnyOrderElementsOf(expectedIds);
+  }
+
+  private List<Integer> alcoholIds(List<Alcohol> alcohols) {
+    return alcohols.stream().map(alcohol -> alcohol.getId().intValue()).toList();
+  }
+
+  private List<Integer> alcoholIds(MvcTestResult result) throws Exception {
+    return readJsonPath(result, "$.data.items[*].alcoholId");
+  }
+
+  private String nextCursor(MvcTestResult result) throws Exception {
+    return readJsonPath(result, "$.meta.pagination.nextCursor");
+  }
+
+  private <T> T readJsonPath(MvcTestResult result, String path) throws Exception {
+    return com.jayway.jsonpath.JsonPath.read(
+        result.getMvcResult().getResponse().getContentAsString(), path);
   }
 }
