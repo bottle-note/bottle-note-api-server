@@ -95,7 +95,7 @@ public class UserTestFactory {
   /** 상품 회원 루트 관리자(root_admins)를 만든다. */
   @Transactional
   @NotNull
-  public User persistRootAdminUser() {
+  public User persistUserAsRootAdmin() {
     User user = persistUser();
     em.persist(RootAdmin.builder().user(user).build());
     em.flush();

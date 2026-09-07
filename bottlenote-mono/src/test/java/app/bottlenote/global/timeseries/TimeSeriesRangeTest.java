@@ -46,6 +46,22 @@ class TimeSeriesRangeTest {
   }
 
   @Test
+  @DisplayName("to가 today보다 뒤면 INVALID_RANGE다")
+  void to가_today보다_뒤면_예외를_던질_수_있다() {
+    assertThatThrownBy(
+            () ->
+                TimeSeriesRange.of(
+                    LocalDate.of(2026, 9, 1),
+                    LocalDate.of(2026, 9, 8),
+                    TimeSeriesGranularity.DAY,
+                    ALL,
+                    30,
+                    TODAY))
+        .isInstanceOf(TimeSeriesException.class)
+        .hasFieldOrPropertyWithValue("exceptionCode", TimeSeriesExceptionCode.INVALID_RANGE);
+  }
+
+  @Test
   @DisplayName("포함 일수가 maxDays와 같으면 통과하고 초과하면 RANGE_TOO_LONG이다")
   void maxDays_경계를_검증할_수_있다() {
     TimeSeriesRange exact =

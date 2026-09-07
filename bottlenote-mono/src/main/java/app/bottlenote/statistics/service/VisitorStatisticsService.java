@@ -33,21 +33,7 @@ public class VisitorStatisticsService {
       EnumSet.of(
           TimeSeriesGranularity.DAY, TimeSeriesGranularity.WEEK, TimeSeriesGranularity.MONTH);
   static final int MAX_DAYS = 90;
-  private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
-
-  private static final List<TimeSeriesDescriptor> ACTIVE_SERIES =
-      List.of(
-          new TimeSeriesDescriptor(
-              "visitors", "방문자 DAU", TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO),
-          new TimeSeriesDescriptor("members", "회원 DAU", TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO));
-  private static final List<TimeSeriesDescriptor> RETENTION_SERIES =
-      List.of(
-          new TimeSeriesDescriptor(
-              "visitors", "방문자 DAU", TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO),
-          new TimeSeriesDescriptor(
-              "returningVisitors", "재방문자", TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO),
-          new TimeSeriesDescriptor(
-              "retentionRate", "재방문율", TimeSeriesUnit.PERCENT, TimeSeriesFill.ZERO));
+  private static final ZoneId ZONE = ZoneId.of(TimeSeries.TIMEZONE);
 
   private final VisitorStatisticsRepository visitorStatisticsRepository;
 
@@ -64,7 +50,8 @@ public class VisitorStatisticsService {
       values.put("members", bucket.members());
       valuesByBucket.put(bucket.bucketAt(), values);
     }
-    return TimeSeriesAssembler.assemble(range, ACTIVE_SERIES, valuesByBucket, now());
+    return TimeSeriesAssembler.assemble(
+        range, activeSeries(range.granularity()), valuesByBucket, now());
   }
 
   @Transactional(readOnly = true)
@@ -82,7 +69,37 @@ public class VisitorStatisticsService {
       values.put("retentionRate", retentionRate(bucket.visitors(), bucket.returningVisitors()));
       valuesByBucket.put(bucket.bucketAt(), values);
     }
-    return TimeSeriesAssembler.assemble(range, RETENTION_SERIES, valuesByBucket, now());
+    return TimeSeriesAssembler.assemble(
+        range, retentionSeries(range.granularity()), valuesByBucket, now());
+  }
+
+  private List<TimeSeriesDescriptor> activeSeries(TimeSeriesGranularity granularity) {
+    String suffix = activitySuffix(granularity);
+    return List.of(
+        new TimeSeriesDescriptor(
+            "visitors", "방문자 " + suffix, TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO),
+        new TimeSeriesDescriptor(
+            "members", "회원 " + suffix, TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO));
+  }
+
+  private List<TimeSeriesDescriptor> retentionSeries(TimeSeriesGranularity granularity) {
+    String suffix = activitySuffix(granularity);
+    return List.of(
+        new TimeSeriesDescriptor(
+            "visitors", "방문자 " + suffix, TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO),
+        new TimeSeriesDescriptor(
+            "returningVisitors", "재방문자", TimeSeriesUnit.COUNT, TimeSeriesFill.ZERO),
+        new TimeSeriesDescriptor(
+            "retentionRate", "재방문율", TimeSeriesUnit.PERCENT, TimeSeriesFill.ZERO));
+  }
+
+  private String activitySuffix(TimeSeriesGranularity granularity) {
+    return switch (granularity) {
+      case DAY -> "DAU";
+      case WEEK -> "WAU";
+      case MONTH -> "MAU";
+      case HOUR -> throw new IllegalArgumentException("HOUR는 방문자 통계에서 지원하지 않습니다.");
+    };
   }
 
   private TimeSeriesRange rangeOf(VisitorStatisticsRequest request) {

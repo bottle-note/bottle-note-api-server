@@ -107,6 +107,38 @@ class VisitorStatisticsServiceTest {
   }
 
   @Test
+  @DisplayName("집계 단위에 따라 방문자 시리즈 label이 DAU, WAU, MAU로 바뀐다")
+  void granularity별_시리즈_label을_쓸_수_있다() {
+    LocalDate from = LocalDate.of(2026, 8, 1);
+    LocalDate to = LocalDate.of(2026, 8, 10);
+
+    TimeSeries day =
+        service.findActiveVisitors(
+            new VisitorStatisticsRequest(from, to, TimeSeriesGranularity.DAY));
+    TimeSeries week =
+        service.findActiveVisitors(
+            new VisitorStatisticsRequest(from, to, TimeSeriesGranularity.WEEK));
+    TimeSeries month =
+        service.findActiveVisitors(
+            new VisitorStatisticsRequest(from, to, TimeSeriesGranularity.MONTH));
+    TimeSeries retention =
+        service.findRetention(new VisitorStatisticsRequest(from, to, TimeSeriesGranularity.WEEK));
+
+    assertThat(day.series())
+        .extracting(descriptor -> descriptor.label())
+        .containsExactly("방문자 DAU", "회원 DAU");
+    assertThat(week.series())
+        .extracting(descriptor -> descriptor.label())
+        .containsExactly("방문자 WAU", "회원 WAU");
+    assertThat(month.series())
+        .extracting(descriptor -> descriptor.label())
+        .containsExactly("방문자 MAU", "회원 MAU");
+    assertThat(retention.series())
+        .extracting(descriptor -> descriptor.label())
+        .containsExactly("방문자 WAU", "재방문자", "재방문율");
+  }
+
+  @Test
   @DisplayName("조회 구간이 90일을 넘으면 RANGE_TOO_LONG이다")
   void 구간이_90일을_넘으면_예외를_던질_수_있다() {
     LocalDate today = LocalDate.now(ZONE);
