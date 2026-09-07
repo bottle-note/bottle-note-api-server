@@ -63,7 +63,7 @@ object AdminAlcoholStatisticsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "인기도 시계열",
-		content = [Content(schema = Schema(implementation = AlcoholPopularityTimeSeriesEnvelope::class))]
+		content = [Content(schema = Schema(implementation = TimeSeries::class))]
 	)
 	annotation class GetPopularity
 
@@ -117,16 +117,7 @@ object AdminAlcoholStatisticsApiDocs {
 	@ApiResponse(
 		responseCode = "200",
 		description = "축별 관측 시계열",
-		content = [Content(schema = Schema(implementation = AlcoholPopularityTimeSeriesEnvelope::class))]
+		content = [Content(schema = Schema(implementation = TimeSeries::class))]
 	)
 	annotation class GetObservations
-
-	@Schema(name = "AlcoholPopularityTimeSeriesEnvelope")
-	data class AlcoholPopularityTimeSeriesEnvelope(
-		val success: Boolean,
-		val code: Int,
-		val data: TimeSeries,
-		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap()
-	)
 }
