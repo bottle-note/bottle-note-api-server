@@ -42,6 +42,24 @@ spring:
     time-zone: Asia/Seoul
 
 bottlenote:
+  statistics:
+    exclusion:
+      device-types: [봇, 도구]
+      ip-prefixes:
+        - 110.93.150.   # NAVER 검색 크롤러
+        - 114.111.32.
+        - 211.249.46.
+        - 193.122.101.  # 자사 Next.js SSR
+        - 193.123.252.
+        - 158.179.171.
+        - 144.24.67.
+        - 57.141.18.    # Meta 링크 미리보기
+        - 40.77.167.    # Bingbot
+        - 40.77.177.
+        - 40.77.179.
+        - 52.167.144.
+        - 66.249.       # Googlebot
+        - 74.125.       # Google 인프라
   access-control:
     # 전역 spring.data.redis.timeout(15s)과 분리 — Redis 장애 시 요청 스레드 점유 상한
     redis-command-timeout: 200ms

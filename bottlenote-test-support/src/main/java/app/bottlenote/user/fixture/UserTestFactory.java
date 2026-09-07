@@ -5,6 +5,7 @@ import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.Follow;
+import app.bottlenote.user.domain.RootAdmin;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -87,6 +88,16 @@ public class UserTestFactory {
     User.UserBuilder filledBuilder = fillMissingUserFields(builder);
     User user = filledBuilder.build();
     em.persist(user);
+    em.flush();
+    return user;
+  }
+
+  /** 상품 회원 루트 관리자(root_admins)를 만든다. */
+  @Transactional
+  @NotNull
+  public User persistRootAdminUser() {
+    User user = persistUser();
+    em.persist(RootAdmin.builder().user(user).build());
     em.flush();
     return user;
   }
