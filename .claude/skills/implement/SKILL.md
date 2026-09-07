@@ -1,93 +1,53 @@
 ---
 name: implement
-description: |
-  승인된 Tasks를 Slice 단위로 얇게 구현하고 Task 단위로 커밋한다. Execution Mode에 따라 Task별 정지 또는 자율 연속 진행한다.
-  Trigger: "/implement", 또는 사용자가 "API 추가", "기능 구현", "기능 개발", "build this"라고 할 때.
-  상태 기반: plan/{기능}.md에 미완료 Task가 있을 때. Controller/Service/Repository/Facade 등 다중 파일 구현 작업일 때.
-  Java/Spring 패턴은 references/languages/java-spring.md, 프로젝트 특화 패턴은 bottlenote-patterns.md를 따른다.
-argument-hint: "[feature-name or task number]"
+description: >-
+  명확한 기능 구현, 수정, 리팩토링 요청을 기존 프로젝트 패턴에 맞게 수행한다.
+  필요한 다중 파일 변경과 관련 테스트 작성, 최소 검사를 포함하며 계획 문서나 자동 커밋을 전제하지 않는다.
 ---
 
-# Implement — Slice 실행과 Task 커밋
+# Implement: 구현과 관련 테스트
 
-References (코딩 전에 해당 항목을 읽는다):
-- `references/languages/java-spring.md` — Java/Spring 구현 패턴 (product-api·mono)
-- `references/languages/bottlenote-patterns.md` — 프로젝트 특화 패턴 (InMemory 갱신 체크리스트 등)
-- `references/types/web-api.md` — API 계층 패턴 / `references/types/batch.md` — batch 작업 시
+사용자 요청과 프로젝트 지침의 `스킬 실행 원칙`을 따른다. 명확한 요청은 필요한 구현과 테스트 작성까지 수행하며, 승인된 계획 문서나 별도의 실행 모드 선언을 선행 조건으로 요구하지 않는다.
 
-## 철학: Slice는 에이전트 전권
+## 시작과 범위
 
-Task는 `/plan`에서 승인된 계약(관절)이고, 그 안에서 어떻게 썰어 실행할지는 이 스킬의 재량이다. 단 하나의 규칙: **~100줄을 넘기기 전에 컴파일 체크한다.** Slice 1의 버그는 Slice 2~5를 전부 오염시키므로, 얇게 썰고 자주 확인한다.
+- 현재 브랜치, `git status`, 기존 변경사항을 확인하고 관련 코드·테스트·설정·계약을 읽는다. 기존 사용자 변경은 보존한다.
+- 요청이 수정·구현인지, 읽기 전용 검토·진단인지 구분한다. 계획이나 요구사항 정리만 요청한 경우에는 구현하지 않는다.
+- 파일 여러 개를 수정할 때는 주요 변경 파일을 먼저 알린다. 모듈·계약·스키마 변경처럼 구현 순서와 위험을 정리할 필요가 있으면 `../plan/SKILL.md`를 활용한다.
+- 중요한 요구나 공개 계약의 미결정 사항만 확인한다. 기존 패턴으로 해결되는 구현 선택, 예상 파일 변경, 계획 문서 부재를 이유로 작업을 중단하지 않는다.
 
-```
-Task  = 커밋 단위 (승인된 계약 — 변경하려면 /plan 재개봉)
-Slice = 컴파일 체크 단위 (에이전트 재량 — 어떻게 썰든 자유)
-```
+## 필요한 참고 자료
 
-## 전제 (하드 게이트)
+해당 작업에 필요한 부분만 읽는다. 참고 자료의 과거 실행 순서나 검증 명령보다 사용자 요청, 공통 실행 계약, 현재 코드와 빌드 설정을 우선한다.
 
-`plan/{feature-name}.md`에 승인된 Tasks가 있어야 한다. 없으면 **정지**하고 `/define` → `/plan`을 안내한다. 시작 시 같은 문서의 `## Execution Mode` 섹션에서 mode·scope·stop-conditions를 읽는다 — 선언이 없으면 step-by-step이다.
+- [Java/Spring 패턴](references/languages/java-spring.md): Java와 Spring의 레이어·구현 패턴을 확인할 때 읽는다.
+- [프로젝트 패턴](references/languages/bottlenote-patterns.md): 포트 변경에 따른 Fake/InMemory 갱신, 이벤트, OpenAPI 관련 누락을 확인할 때 읽는다.
+- [Web API 패턴](references/types/web-api.md): API 표면을 구현할 때 읽고 실제 프로젝트 응답·인증 계약에 맞춘다.
+- [Batch 패턴](references/types/batch.md): Batch 작업일 때 읽고 현재 모듈 구성을 확인한다.
+- [테스트 규칙](../test/SKILL.md)과 [Java 테스트 패턴](../test/references/testing/java.md): 관련 테스트를 작성하거나 테스트 더블을 갱신할 때 읽는다. 요청 범위의 테스트 작성에는 별도 스킬 호출이나 승인이 필요하지 않다.
 
-유일한 예외: 자명한 단일 파일 수정(오타, 리네임, 한 줄 수정) — 이 경우 최소 slice + 약식 리뷰 + 컴파일 체크로 바로 처리한다. **다중 파일 작업은 승인된 plan 없이 절대 진행하지 않는다.**
+## 구현
 
-## Process
+기능이 동작하는 데 필요한 경로를 함께 수정한다. 파일 수나 줄 수로 작업을 끊지 않으며 같은 요청을 완료하기 위해 필요한 여러 파일의 변경을 허용한다.
 
-### Phase 0: 탐색
+- 도메인 레포지토리는 순수 포트로 두고 JPA·QueryDSL·Redis 구현을 분리한다. 타 도메인 Service나 Repository를 직접 참조하지 않고 Facade 인터페이스를 호출한다.
+- Facade 인터페이스는 `facade`, 별도 구현체는 `service` 패키지에 둔다. 트랜잭션, 도메인 VO 생성·검증, 도메인 간 조합은 Service가 소유한다.
+- Controller는 인터페이스에 의존하고 기존 인증, 입력 검증, `GlobalResponse`, 현재 `KeysetPageRequest`·`KeysetPageResponse` 등 대상 API의 페이징 계약을 따른다. 이벤트와 캐시 등 기존 부수효과도 보존한다.
+- 스키마에 영향을 주는 엔티티 변경에는 `git.environment-variables/storage/db/migration/`의 Flyway 마이그레이션을 함께 마련한다. `ddl-auto: validate`를 우회하지 않으며 Batch를 마이그레이션 주체로 만들지 않는다. 서브모듈의 Git 쓰기에도 별도 명시 권한이 필요하다.
+- 다중 인스턴스에서 공유되어야 하는 상태나 잠금은 JVM 로컬 상태로 구현하지 않는다.
 
-코드를 쓰기 전에 파악한다: 대상 모듈·패키지 위치, 재사용할 기존 Service/Repository/Facade, 이미 있는 것과 새로 만들 것의 구분. 그리고 영향을 보고한다 — cross-domain 결합(Facade 신설·수정 시 InMemory 테스트 더블 갱신 필요), 스키마 변경(엔티티를 바꾸면 Flyway 마이그레이션 필수 — `ddl-auto: validate`라 누락 시 기동 실패), 이벤트, 캐시.
+## 테스트와 최소 검사
 
-### Phase 1: 코어
+동작 변경을 입증할 테스트를 구현과 함께 추가·수정한다. 포트와 Facade의 Fake/InMemory 구현을 재사용하고 인터페이스 변경을 함께 반영한다. 공유 테스트 인프라와 픽스처는 `test-support`에 둔다.
 
-레이어 순서: 엔티티(신규 시) → 도메인 레포지토리(포트) → JPA 구현 → DTO(record) → 예외 → Service → cross-domain 필요 시 Facade 인터페이스+구현. 네이밍·어노테이션은 지침과 references가 정의하며 ArchUnit이 강제한다.
+필요한 통합 테스트는 `IntegrationTestSupport`, `MockMvcTester`, TestContainers, 기존 TestFactory 패턴을 따른다. API 계약을 바꾸면 실제 springdoc JSON의 경로·스키마·응답·보안 정책을 확인하는 OpenAPI 품질 테스트도 갱신한다. 테스트 작성과 테스트 실행 여부는 별도로 보고한다.
 
-### Phase 2: 표면
+구현 중에는 변경에 필요한 최소 범위의 컴파일·정적 검사 또는 관련 테스트를 선택한다. 실제 빌드 설정에서 대상 모듈과 테스트 선택 방법을 확인하고, 줄 수에 따른 기계적 컴파일이나 중복 검증을 하지 않는다. 이미 통과한 검사는 새 변경·실패·미해결 우려가 있을 때만 다시 실행한다. 로컬 전체 검증은 사용자가 명시적으로 요청한 경우에만 수행한다.
 
-Controller — 경로, 인증(`@SecurityPolicy`), 요청 검증(`@Valid`), 응답(`GlobalResponse`), 페이징(`PageResponse`/`CursorPageable`). Controller는 얇게 — 비즈니스 로직은 Service 소유다.
+종합 검증에는 [verify](../verify/SKILL.md)의 GitHub Actions 관찰 방식을 따른다. 변경 커밋의 정확한 SHA와 실행의 `headSha`를 대조하고, PR merge 커밋을 검사했다면 PR head와의 관계도 확인한다. 실행 누락·대기·진행 중·성공·실패·취소·건너뜀을 구분하고, 미커밋 변경이나 CI에 포함되지 않은 변경을 기존 실행 결과로 통과 처리하지 않는다. 워크플로 dispatch나 재실행은 관찰에 포함하지 않는다.
 
-### Phase 3: Task 사이클
+## 마무리
 
-Task 하나마다:
+`git diff`와 `git status`로 요청 범위와 의도하지 않은 변경 여부를 확인한다. 계획 문서를 사용했다면 진행 상태와 확인한 근거를 갱신하되 자동 이동이나 완료 도장을 필수로 만들지 않는다.
 
-1. Slice 구현 → 컴파일 체크 (`./gradlew compileJava -q` 수준) → 통과할 때까지 수정
-2. Task의 모든 Slice 완료 → 5축 약식 리뷰(정확성·가독성·아키텍처·보안·성능 — 전면 리뷰가 필요하면 `/self-review`를 별도 호출로 권고)
-3. 단위 테스트 실행 (Task 곁에 테스트 코드를 쓰는 것은 허용; `/test`의 풀 워크플로는 별도 경계)
-4. 커밋 — 제목은 Task, 본문 불릿은 Slice. 커밋 메시지는 한국어(프로젝트 관례)
-5. plan 문서 갱신: Status 체크, Progress Log에 한 단락 기록
-6. **모드 분기**:
-
-| Execution Mode | Task 완료 후 행동 |
-|---|---|
-| **step-by-step** | 정지. 완료 Task·검증 증거·변경 파일·다음 Task를 보고하고 턴을 끝낸다. 예외: 사용자가 연속 실행을 명시한 경우("Task 1~3", "결과까지")에만 계속. 범위 없는 재개 신호("계속", "고")는 **다음 Task 1개만** 허가로 간주한다 |
-| **delegated** (scope에 implement 포함) | 체크포인트 보고를 남기고 다음 Task로 계속한다 — Progress Log는 plan 문서에, 진행 요약은 대화에 즉시 출력해 사용자가 실시간 확인할 수 있게 한다 |
-
-**stop-conditions는 모드와 무관하게 우선한다** (지침의 GSL Execution Mode 참조): 가정을 깨는 발견 → 즉시 정지, 재개봉 프로토콜. verify 3회 실패 → `/debug` 보고 후 정지. scope 밖 행동 필요 → 직전 정지. 정지 시 보고 항목: 발동한 조건, 발견 내용, 깨진 가정(해당 시), 제안 조치. 이미 커밋된 Task는 되돌리지 않고 보고에 포함한다 — 재승인 결과에 따라 후속 Task로 수정한다.
-
-### Phase 4: 마감
-
-모든 Task 커밋 후 생명주기 꼬리는 이 순서다: **통합 테스트(`/test`, 필요 시) → `/verify full` → plan 문서 완료 스탬프·`plan/complete/` 이동 → push → PR**. 마감(스탬프·이동)은 verify PASS 뒤에 온다.
-
-- **step-by-step**: 여기서 정지하고 `Next: /test`(통합 테스트가 필요하면) 또는 `Next: /verify full`을 제안한다. `/test`·`/verify`의 풀 워크플로는 별도 호출 경계다 — 이 스킬 안에서 실행하지 않는다. 마감·푸시·PR은 verify PASS 후 사용자 지시로 진행한다.
-- **delegated**: scope에 선언된 단계를 위 순서대로 이어 실행한다 (위임 계약의 이행 — 지침의 격리 규칙 예외). scope의 `test`는 `/test`의 시나리오 승인 게이트를 체크포인트 보고로 대체해 수행하고, `verify`는 full까지 돌린다. 마감(스탬프·`plan/complete/` 이동)은 scope 항목이 아니라 verify PASS 후 항상 수행하는 생명주기 꼬리다. `push`/`pr`는 선언 시에만 — **PR 본문이 체인지로그를 겸한다** (변경 사항·배경·검증·제외 범위 구조). 미선언이면 해당 직전에서 정지하고, 남은 단계와 검증 상태(full 통과 여부)를 보고한다.
-
-## Common Rationalizations
-
-| 합리화 | 현실 |
-|--------|------|
-| "한 번에 다 만들고 마지막에 테스트" | 버그는 복리다. Slice마다 컴파일 체크해라. |
-| "Controller에 로직 조금 넣어도" | 표면은 얇게. 로직은 Service 소유다. 항상. |
-| "리팩토링도 겸사겸사" | 기능과 리팩토링을 섞으면 둘 다 리뷰·디버그가 어려워진다. 분리해라. |
-| "인터페이스만 바꾸고 Fake는 나중에" | 포트를 바꾸면 InMemory 구현도 같은 Task에서 갱신한다 (bottlenote-patterns.md 체크리스트). |
-
-## Red Flags
-
-- 100줄 넘게 쓰고 컴파일 체크 없음
-- 타 도메인 Service/Repository 직접 참조 (Facade 경유 위반 — ArchUnit이 잡지만 그 전에 스스로 잡아라)
-- 승인된 plan 없이 다중 파일 작업 시작
-- 엔티티 변경에 Flyway 마이그레이션 누락
-- step-by-step인데 명시 허가 없이 다음 Task 진행
-- delegated인데 stop-condition을 무시하고 계속 진행
-- Task 커밋 없이 여러 Task를 한 커밋에 뭉침
-
-## 종료
-
-지침의 **GSL Execution Mode** 규칙을 따른다. step-by-step이면 Task 보고 후 턴 종료, 다음은 `Next: /implement (Task N+1)`, 전 Task 완료 시에는 Phase 4의 순서(`/test` → `/verify full` → 마감)를 안내한다. delegated면 Phase 4를 scope대로 이어 실행한다.
+변경 결과와 주요 파일, 작성한 테스트, 실행한 최소 검사와 결과, CI 확인 범위, 남은 위험을 보고한다. 커밋·push·PR은 별도의 명시 권한이 있을 때만 수행하며 구현 완료 후 필수 생명주기로 연결하지 않는다.
