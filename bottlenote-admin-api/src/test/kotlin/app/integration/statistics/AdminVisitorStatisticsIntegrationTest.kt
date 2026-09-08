@@ -1,6 +1,7 @@
 package app.integration.statistics
 
 import app.IntegrationTestSupport
+import app.bottlenote.global.timeseries.TimeSeriesGranularity
 import app.bottlenote.statistics.fixture.VisitorTelemetryTestFactory
 import app.bottlenote.user.fixture.UserTestFactory
 import org.assertj.core.api.Assertions.assertThat
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.servlet.assertj.MvcTestResult
@@ -74,6 +77,60 @@ class AdminVisitorStatisticsIntegrationTest : IntegrationTestSupport() {
 		assertThat(result).bodyJson().extractingPath("$.data.points[0].values.returningVisitors").isEqualTo(1)
 		assertThat(result).bodyJson().extractingPath("$.data.points[0].values.retentionRate").isEqualTo(50.0)
 		assertThat(result).bodyJson().extractingPath("$.data.points[0].partial").isEqualTo(true)
+	}
+
+	@ParameterizedTest
+	@EnumSource(TimeSeriesGranularity::class, names = ["DAY", "WEEK", "MONTH"])
+	@DisplayName("현재와 직전 구간에 반복 방문할 때 방문자와 재방문자를 각각 한 번만 센다")
+	fun countRepeatedVisitsOnce(granularity: TimeSeriesGranularity) {
+		val current = granularity.previous(granularity.truncate(today.atStartOfDay()))
+		val previous = granularity.previous(current)
+		val older = granularity.previous(previous)
+		val member = userTestFactory.persistUser()
+		repeat(3) { offset ->
+			persist("RETURNING", previous.plusHours(offset.toLong()), ip = "203.0.113.10")
+			persist("PREVIOUS_ONLY", previous.plusHours(offset.toLong()), ip = "203.0.113.11")
+		}
+		repeat(4) { offset ->
+			persist("RETURNING", current.plusHours(offset.toLong()), userId = member.id, ip = "203.0.113.10")
+			persist("NEW", current.plusHours(offset.toLong()), ip = "203.0.113.12")
+			persist("GAP", current.plusHours(offset.toLong()), ip = "203.0.113.13")
+		}
+		persist("GAP", older.plusHours(1), ip = "203.0.113.13")
+
+		val result = get("/retention", current.toLocalDate(), current.toLocalDate(), granularity.name)
+
+		assertThat(result).hasStatusOk()
+		assertThat(result).bodyJson().extractingPath("$.data.points.length()").isEqualTo(1)
+		assertThat(result).bodyJson().extractingPath("$.data.points[0].values.visitors").isEqualTo(3)
+		assertThat(result).bodyJson().extractingPath("$.data.points[0].values.returningVisitors").isEqualTo(1)
+		assertThat(result).bodyJson().extractingPath("$.data.points[0].values.retentionRate").isEqualTo(33.3)
+		assertThat(result).bodyJson().extractingPath("$.data.points[0].partial").isEqualTo(false)
+	}
+
+	@Test
+	@DisplayName("방문 기록이 없는 날이 끼어 있을 때 7일 포인트를 유지하고 재방문으로 세지 않는다")
+	fun preserveEmptyDaysWithoutCountingNonConsecutiveVisits() {
+		val from = today.minusDays(7)
+		val to = yesterday
+		persist("GAP", from.atNoon(), ip = "203.0.113.10")
+		persist("GAP", from.plusDays(2).atNoon(), ip = "203.0.113.10")
+
+		val result = get("/retention", from, to, "DAY")
+
+		assertThat(result).hasStatusOk()
+		assertThat(result).bodyJson().extractingPath("$.data.points.length()").isEqualTo(7)
+		for (index in 0..6) {
+			val point = "$.data.points[$index]"
+			assertThat(result).bodyJson().extractingPath("$point.bucketAt")
+				.isEqualTo("${from.plusDays(index.toLong())}T00:00:00")
+			assertThat(result).bodyJson().extractingPath("$point.values.visitors")
+				.isEqualTo(if (index == 0 || index == 2) 1 else 0)
+			assertThat(result).bodyJson().extractingPath("$point.values.returningVisitors").isEqualTo(0)
+			assertThat(result).bodyJson().extractingPath("$point.values.retentionRate")
+				.isIn(0, 0.0)
+			assertThat(result).bodyJson().extractingPath("$point.partial").isEqualTo(false)
+		}
 	}
 
 	@Test

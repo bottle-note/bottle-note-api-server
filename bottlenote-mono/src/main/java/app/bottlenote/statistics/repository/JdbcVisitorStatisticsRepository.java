@@ -47,6 +47,7 @@ public class JdbcVisitorStatisticsRepository implements VisitorStatisticsReposit
   public List<ReturningVisitorBucket> countReturningVisitors(
       LocalDateTime from, LocalDateTime toExclusive, TimeSeriesGranularity granularity) {
     MapSqlParameterSource params = new MapSqlParameterSource();
+    // visited는 버킷·방문자별 유일하므로 직전 버킷 조인 후에도 DISTINCT가 필요 없다.
     String sql =
         """
         WITH visited AS (
@@ -56,8 +57,8 @@ public class JdbcVisitorStatisticsRepository implements VisitorStatisticsReposit
           %s
         )
         SELECT cur.bucket_at AS bucket_at,
-               COUNT(DISTINCT cur.visitor_id) AS visitors,
-               COUNT(DISTINCT prev.visitor_id) AS returning_visitors
+               COUNT(cur.visitor_id) AS visitors,
+               COUNT(prev.visitor_id) AS returning_visitors
         FROM visited cur
         LEFT JOIN visited prev
           ON prev.visitor_id = cur.visitor_id
