@@ -161,8 +161,7 @@ class AlcoholQueryServiceTest {
     when(reviewFacade.getReviewInfoList(alcoholId, guestId))
         .thenReturn(ReviewListResponse.of(List.of()));
 
-    AlcoholDetailResponse response =
-        alcoholQueryService.findAlcoholDetailById(alcoholId, guestId);
+    AlcoholDetailResponse response = alcoholQueryService.findAlcoholDetailById(alcoholId, guestId);
 
     assertThat(response.mfdsDeclarations()).containsExactly(mfds);
     assertThat(response.alcohols().getAlcoholId()).isEqualTo(alcoholId);
@@ -180,8 +179,7 @@ class AlcoholQueryServiceTest {
     when(reviewFacade.getReviewInfoList(alcoholId, guestId))
         .thenReturn(ReviewListResponse.of(List.of()));
 
-    AlcoholDetailResponse response =
-        alcoholQueryService.findAlcoholDetailById(alcoholId, guestId);
+    AlcoholDetailResponse response = alcoholQueryService.findAlcoholDetailById(alcoholId, guestId);
 
     assertThat(response.mfdsDeclarations()).isEmpty();
   }

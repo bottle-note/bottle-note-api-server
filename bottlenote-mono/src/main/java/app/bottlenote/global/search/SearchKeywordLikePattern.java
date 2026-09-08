@@ -7,11 +7,7 @@ public final class SearchKeywordLikePattern {
   private SearchKeywordLikePattern() {}
 
   public static String contains(String searchToken) {
-    String escaped =
-        searchToken
-            .replace("!", "!!")
-            .replace("%", "!%")
-            .replace("_", "!_");
+    String escaped = searchToken.replace("!", "!!").replace("%", "!%").replace("_", "!_");
     return "%" + escaped + "%";
   }
 }

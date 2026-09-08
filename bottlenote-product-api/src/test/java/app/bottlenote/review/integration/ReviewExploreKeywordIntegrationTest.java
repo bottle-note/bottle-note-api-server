@@ -75,13 +75,7 @@ class ReviewExploreKeywordIntegrationTest extends IntegrationTestSupport {
 
     MvcTestResult result = explore(wildcard);
 
-    result
-        .assertThat()
-        .hasStatusOk()
-        .bodyJson()
-        .extractingPath("$.data.items")
-        .asArray()
-        .isEmpty();
+    result.assertThat().hasStatusOk().bodyJson().extractingPath("$.data.items").asArray().isEmpty();
   }
 
   @Test

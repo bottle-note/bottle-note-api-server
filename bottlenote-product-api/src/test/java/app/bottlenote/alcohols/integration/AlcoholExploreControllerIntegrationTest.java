@@ -403,8 +403,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
 
       List<Integer> firstIds =
           com.jayway.jsonpath.JsonPath.read(
-              first.getMvcResult().getResponse().getContentAsString(),
-              "$.data.items[*].alcoholId");
+              first.getMvcResult().getResponse().getContentAsString(), "$.data.items[*].alcoholId");
       second
           .assertThat()
           .hasStatusOk()
@@ -521,8 +520,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
       for (int size : List.of(10, 20)) {
         List<Integer> popularIds =
             fetchAllIds(keyword, SearchSortType.POPULAR, SortOrder.DESC, size);
-        List<Integer> randomIds =
-            fetchAllIds(keyword, SearchSortType.RANDOM, SortOrder.DESC, size);
+        List<Integer> randomIds = fetchAllIds(keyword, SearchSortType.RANDOM, SortOrder.DESC, size);
 
         assertCompleteIdSet(popularIds, expectedIds);
         assertCompleteIdSet(randomIds, expectedIds);
@@ -543,28 +541,22 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           alcoholTestFactory.persistAlcoholWithName(keyword + " Positive", "Positive");
       LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now()).minusHours(1);
       alcoholTestFactory.persistPopularitySnapshot(
-          actualZero.getId(),
-          BucketGranularity.HOUR,
-          bucket,
-          BigDecimal.ZERO,
-          BigDecimal.ZERO);
+          actualZero.getId(), BucketGranularity.HOUR, bucket, BigDecimal.ZERO, BigDecimal.ZERO);
       alcoholTestFactory.persistPopularitySnapshot(
-          positive.getId(),
-          BucketGranularity.HOUR,
-          bucket,
-          BigDecimal.ZERO,
-          BigDecimal.ONE);
+          positive.getId(), BucketGranularity.HOUR, bucket, BigDecimal.ZERO, BigDecimal.ONE);
 
       List<Integer> ids = fetchAllIds(keyword, SearchSortType.POPULAR, sortOrder, 1);
 
       List<Integer> zeroTieIds =
           List.of(actualZero.getId().intValue(), withoutSnapshot.getId().intValue());
       if (sortOrder == SortOrder.ASC) {
-        assertThat(ids).containsExactlyElementsOf(
-            List.of(zeroTieIds.get(0), zeroTieIds.get(1), positive.getId().intValue()));
+        assertThat(ids)
+            .containsExactlyElementsOf(
+                List.of(zeroTieIds.get(0), zeroTieIds.get(1), positive.getId().intValue()));
       } else {
-        assertThat(ids).containsExactlyElementsOf(
-            List.of(positive.getId().intValue(), zeroTieIds.get(0), zeroTieIds.get(1)));
+        assertThat(ids)
+            .containsExactlyElementsOf(
+                List.of(positive.getId().intValue(), zeroTieIds.get(0), zeroTieIds.get(1)));
       }
     }
 
@@ -581,7 +573,8 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
                       .param("sortOrder", "DESC")
                       .param("size", "2"));
       String firstCursor = nextCursor(first);
-      assertThat(cursorCodec.verify(firstCursor, popularContext(keyword, SortOrder.DESC, 2)).extra())
+      assertThat(
+              cursorCodec.verify(firstCursor, popularContext(keyword, SortOrder.DESC, 2)).extra())
           .containsEntry("bucketAt", ExploreStandardCriteria.NO_POPULARITY_BUCKET);
 
       LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now());
@@ -629,27 +622,17 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           alcoholTestFactory.persistAlcoholWithName(keyword + " Included Snapshot", "Included A");
       Alcohol withoutSnapshot =
           alcoholTestFactory.persistAlcoholWithName(keyword + " Included Missing", "Included B");
-      Alcohol belowRange =
-          alcoholTestFactory.persistAlcoholWithName(keyword + " Below", "Below");
-      Alcohol deleted =
-          alcoholTestFactory.persistAlcoholWithName(keyword + " Deleted", "Deleted");
+      Alcohol belowRange = alcoholTestFactory.persistAlcoholWithName(keyword + " Below", "Below");
+      Alcohol deleted = alcoholTestFactory.persistAlcoholWithName(keyword + " Deleted", "Deleted");
       ratingTestFactory.persistRating(ratingUser, withSnapshot, 4);
       ratingTestFactory.persistRating(ratingUser, withoutSnapshot, 4);
       ratingTestFactory.persistRating(ratingUser, belowRange, 2);
       ratingTestFactory.persistRating(ratingUser, deleted, 5);
       LocalDateTime bucket = BucketGranularity.HOUR.startAt(LocalDateTime.now()).minusHours(1);
       alcoholTestFactory.persistPopularitySnapshot(
-          withSnapshot.getId(),
-          BucketGranularity.HOUR,
-          bucket,
-          BigDecimal.ZERO,
-          BigDecimal.ONE);
+          withSnapshot.getId(), BucketGranularity.HOUR, bucket, BigDecimal.ZERO, BigDecimal.ONE);
       alcoholTestFactory.persistPopularitySnapshot(
-          belowRange.getId(),
-          BucketGranularity.HOUR,
-          bucket,
-          BigDecimal.ZERO,
-          BigDecimal.TEN);
+          belowRange.getId(), BucketGranularity.HOUR, bucket, BigDecimal.ZERO, BigDecimal.TEN);
       deleted.delete();
       alcoholQueryRepository.save(deleted);
 
@@ -678,8 +661,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
       String context = popularContext(null, SortOrder.DESC, 1);
       Map<String, String> extra =
           "MISSING".equals(bucketAt) ? Map.of() : Map.of("bucketAt", bucketAt);
-      String cursor =
-          cursorCodec.encode(context, Map.of("id", "1", "sort", "0"), extra);
+      String cursor = cursorCodec.encode(context, Map.of("id", "1", "sort", "0"), extra);
 
       exchangeGet(
               b ->

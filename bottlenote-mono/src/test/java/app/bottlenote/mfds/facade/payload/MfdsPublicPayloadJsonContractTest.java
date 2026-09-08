@@ -214,7 +214,10 @@ class MfdsPublicPayloadJsonContractTest {
     assertThat(emptyNode.path("mfdsDeclarations")).isEmpty();
 
     JsonNode item =
-        MAPPER.readTree(MAPPER.writeValueAsString(withNullImporter)).path("mfdsDeclarations").get(0);
+        MAPPER
+            .readTree(MAPPER.writeValueAsString(withNullImporter))
+            .path("mfdsDeclarations")
+            .get(0);
     assertThat(item.has("importer")).isFalse();
     assertThat(fieldNames(item))
         .containsExactlyInAnyOrderElementsOf(
