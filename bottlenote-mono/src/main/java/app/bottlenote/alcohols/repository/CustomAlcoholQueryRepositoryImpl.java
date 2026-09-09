@@ -24,6 +24,7 @@ import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
+import app.bottlenote.global.rating.RatingDisplay;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -198,7 +199,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 getTastingTags()))
         .from(alcohol)
         .leftJoin(rating)
-        .on(rating.id.alcoholId.eq(alcohol.id))
+        .on(countedRating())
         .leftJoin(review)
         .on(review.alcoholId.eq(alcohol.id))
         .leftJoin(picks)
@@ -310,7 +311,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     getTastingTags()))
             .from(alcohol)
             .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(alcohol.id))
+            .on(countedRating())
             .leftJoin(review)
             .on(review.alcoholId.eq(alcohol.id))
             .leftJoin(picks)
@@ -395,7 +396,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 .join(distillery)
                 .on(alcohol.distillery.id.eq(distillery.id))
                 .leftJoin(rating)
-                .on(rating.id.alcoholId.eq(alcohol.id))
+                .on(countedRating())
                 .where(
                     supporter.searchTokensMatch(criteria.searchTokens()),
                     supporter.eqCategory(criteria.category()),
@@ -443,7 +444,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id));
     if (needsRatingJoin(sortType) || criteria.hasRatingRange()) {
-      query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
+      query = query.leftJoin(rating).on(countedRating());
     }
     if (needsReviewJoin(sortType)) {
       query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
@@ -497,7 +498,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                             app.bottlenote.alcohols.constant.BucketGranularity.HOUR))
                     .and(bucketCondition));
     if (criteria.hasRatingRange()) {
-      query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
+      query = query.leftJoin(rating).on(countedRating());
     }
 
     OrderSpecifier<BigDecimal> scoreOrder =
@@ -579,17 +580,14 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   private record ExploreSeekKey(Long id, String sortValue) {}
 
-  /** 목록 응답에 노출하는 집계 평점과 같은 반올림 값을 HAVING과 projection에서 공통 사용한다. */
+  /** 노출 집계에 포함할 별점만 남기는 조인 조건. 0점은 평가로 보지 않는다. */
+  private static BooleanExpression countedRating() {
+    return rating.id.alcoholId.eq(alcohol.id).and(rating.ratingPoint.rating.gt(0.0));
+  }
+
+  /** 목록 응답에 노출하는 집계 평점과 같은 정규화 값을 HAVING과 projection에서 공통 사용한다. */
   private static NumberExpression<Double> displayedRating() {
-    return rating
-        .ratingPoint
-        .rating
-        .avg()
-        .multiply(2)
-        .castToNum(Double.class)
-        .round()
-        .divide(2)
-        .coalesce(0.0);
+    return RatingDisplay.normalize(rating.ratingPoint.rating.avg()).coalesce(0.0);
   }
 
   private static BooleanExpression ratingInRange(BigDecimal from, BigDecimal to) {
@@ -684,15 +682,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     distillery.id,
                     distillery.korName,
                     distillery.engName,
-                    rating
-                        .ratingPoint
-                        .rating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0),
+                    displayedRating(),
                     rating.id.count(),
                     review.id.countDistinct(),
                     picks.id.countDistinct(),
@@ -700,7 +690,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     alcohol.lastModifyAt))
             .from(alcohol)
             .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(alcohol.id))
+            .on(countedRating())
             .leftJoin(review)
             .on(review.alcoholId.eq(alcohol.id))
             .leftJoin(picks)

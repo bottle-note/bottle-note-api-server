@@ -7,6 +7,7 @@ import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.global.rating.RatingDisplay;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
 import com.querydsl.core.types.Expression;
@@ -52,7 +53,7 @@ public class RatingQuerySupporter {
 
   public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
     return ExpressionUtils.as(
-        select(rating.ratingPoint.rating.avg().round())
+        select(RatingDisplay.normalize(rating.ratingPoint.rating.avg()).coalesce(0.0))
             .from(rating)
             .where(rating.id.alcoholId.eq(alocholId).and(rating.ratingPoint.rating.gt(0.0))),
         "averageRatingPoint");

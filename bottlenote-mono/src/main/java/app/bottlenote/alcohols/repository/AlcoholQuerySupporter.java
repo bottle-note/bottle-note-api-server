@@ -15,6 +15,7 @@ import static app.bottlenote.review.domain.QReview.review;
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
+import app.bottlenote.global.rating.RatingDisplay;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
@@ -98,17 +99,14 @@ public class AlcoholQuerySupporter {
   /** 사용자가 주류에 작성한 리뷰들의 평균 평점 계산 */
   public NumberExpression<Double> averageReviewRating(Long alcoholId, Long userId) {
     return Expressions.asNumber(
-            JPAExpressions.select(
-                    review
-                        .reviewRating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0))
+            JPAExpressions.select(RatingDisplay.normalize(review.reviewRating.avg()).coalesce(0.0))
                 .from(review)
-                .where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId))))
+                .where(
+                    review
+                        .alcoholId
+                        .eq(alcoholId)
+                        .and(review.userId.eq(userId))
+                        .and(review.reviewRating.gt(0.0))))
         .castToNum(Double.class)
         .as("myAvgRating");
   }
@@ -249,17 +247,14 @@ public class AlcoholQuerySupporter {
       return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
     }
     return Expressions.asNumber(
-            JPAExpressions.select(
-                    review
-                        .reviewRating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0))
+            JPAExpressions.select(RatingDisplay.normalize(review.reviewRating.avg()).coalesce(0.0))
                 .from(review)
-                .where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId))))
+                .where(
+                    review
+                        .alcoholId
+                        .eq(alcoholId)
+                        .and(review.userId.eq(userId))
+                        .and(review.reviewRating.gt(0.0))))
         .castToNum(Double.class)
         .as("myAvgRating");
   }

@@ -9,9 +9,11 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import app.bottlenote.alcohols.constant.BucketGranularity;
 import app.bottlenote.alcohols.domain.QAlcoholPopularitySnapshot;
 import app.bottlenote.alcohols.dto.response.PopularItem;
+import app.bottlenote.global.rating.RatingDisplay;
 import app.bottlenote.picks.constant.PicksStatus;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
@@ -60,7 +62,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         .join(alcoholsTastingTags)
         .on(alcoholsTastingTags.alcohol.id.eq(alcohol.id))
         .leftJoin(rating)
-        .on(rating.id.alcoholId.eq(alcohol.id))
+        .on(countedRating())
         .where(
             alcoholPopularitySnapshot.bucketGranularity.eq(BucketGranularity.WEEK),
             alcoholPopularitySnapshot.bucketAt.eq(
@@ -97,7 +99,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         .join(alcohol)
         .on(alcohol.id.eq(alcoholPopularitySnapshot.alcoholId))
         .leftJoin(rating)
-        .on(rating.id.alcoholId.eq(alcohol.id))
+        .on(countedRating())
         .where(
             alcoholPopularitySnapshot.bucketGranularity.eq(granularity),
             alcoholPopularitySnapshot.bucketAt.eq(
@@ -118,6 +120,11 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         .fetch();
   }
 
+  /** 노출 집계에 포함할 별점만 남기는 조인 조건. 0점은 평가로 보지 않는다. */
+  private static BooleanExpression countedRating() {
+    return rating.id.alcoholId.eq(alcohol.id).and(rating.ratingPoint.rating.gt(0.0));
+  }
+
   private com.querydsl.core.types.ConstructorExpression<PopularItem> popularItemProjection(
       Long userId, NumberExpression<BigDecimal> snapshotScore) {
     return Projections.constructor(
@@ -125,7 +132,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         alcohol.id,
         alcohol.korName,
         alcohol.engName,
-        rating.ratingPoint.rating.avg().coalesce(0.0),
+        RatingDisplay.normalize(rating.ratingPoint.rating.avg()).coalesce(0.0),
         rating.id.userId.countDistinct(),
         alcohol.korCategory,
         alcohol.engCategory,

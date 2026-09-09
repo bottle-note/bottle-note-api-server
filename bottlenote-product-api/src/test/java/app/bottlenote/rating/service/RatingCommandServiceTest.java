@@ -16,6 +16,7 @@ import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.exception.RatingException;
+import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.facade.UserFacade;
@@ -69,6 +70,19 @@ class RatingCommandServiceTest {
       // then
       assertNotNull(register);
       assertEquals(register.rating(), ratingPoint.toString());
+    }
+
+    @Test
+    @DisplayName("0점을 등록하면 0.5 이상을 요구하는 예외가 발생한다.")
+    void test_register_zero_rating() {
+      // given
+      RatingPoint zero = RatingPoint.of(0.0);
+      // when
+      RatingException exception =
+          assertThrows(
+              RatingException.class, () -> ratingCommandService.register(alcoholId, userId, zero));
+      // then
+      assertEquals(RatingExceptionCode.RATING_POINT_MUST_BE_POSITIVE, exception.getExceptionCode());
     }
 
     @Test
