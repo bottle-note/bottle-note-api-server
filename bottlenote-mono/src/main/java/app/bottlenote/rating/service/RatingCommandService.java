@@ -39,11 +39,6 @@ public class RatingCommandService {
     Objects.requireNonNull(userId, "유저 ID는 필수 값입니다.");
     Objects.requireNonNull(ratingPoint, "별점은 필수 값입니다.");
 
-    // 0점은 평가로 보지 않는다. 노출 집계에서도 제외되므로 등록 자체를 막는다.
-    if (ratingPoint.getRating() <= 0.0) {
-      throw new RatingException(RatingExceptionCode.RATING_POINT_MUST_BE_POSITIVE);
-    }
-
     if (FALSE.equals(alcoholFacade.existsByAlcoholId(alcoholId))) {
       throw new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND);
     }
