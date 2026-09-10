@@ -17,6 +17,7 @@ class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSup
       List.of(
           "id",
           "rcno",
+          "processedDate",
           "baseProductNameKo",
           "baseProductNameEn",
           "skuDisplayNameKo",

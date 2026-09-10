@@ -104,6 +104,21 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
+	@DisplayName("수입 신고 목록과 상세는 동일한 nullable processedDate를 문서화한다")
+	fun mfdsDeclarationListDocumentsProcessedDate() {
+		val spec = fetchSpec()
+		val listSchema = spec.at("/components/schemas/MfdsDeclarationListItem")
+		val detailSchema = spec.at("/components/schemas/MfdsDeclarationDetailResponse")
+
+		assertThat(propertyNamesOf(listSchema)).contains("processedDate")
+		assertThat(propertyNamesOf(detailSchema)).contains("processedDate")
+		assertThat(listSchema.at("/properties/processedDate"))
+			.isEqualTo(detailSchema.at("/properties/processedDate"))
+		assertThat(listSchema.path("required").map { it.asText() }).doesNotContain("processedDate")
+		assertThat(detailSchema.path("required").map { it.asText() }).doesNotContain("processedDate")
+	}
+
+	@Test
 	@DisplayName("공통 형식의 data는 이중으로 감싸지지 않는다")
 	fun globalEnvelopeIsNotNestedInData() {
 		val operations = operationsOf(fetchSpec()).filterNot { it.endpoint() in binaryDownloadOperations }

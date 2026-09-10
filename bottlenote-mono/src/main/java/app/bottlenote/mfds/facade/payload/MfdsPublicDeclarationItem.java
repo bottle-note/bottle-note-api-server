@@ -14,6 +14,7 @@ import org.springframework.lang.Nullable;
 public record MfdsPublicDeclarationItem(
     Long id,
     String rcno,
+    LocalDate processedDate,
     String baseProductNameKo,
     String baseProductNameEn,
     String skuDisplayNameKo,

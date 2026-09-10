@@ -130,6 +130,7 @@ class AlcoholQueryServiceTest {
         new MfdsPublicDeclarationItem(
             1L,
             "RCNO-001",
+            null,
             "글렌피딕",
             "Glenfiddich",
             null,

@@ -46,6 +46,10 @@ public class MfdsDeclaration {
   @Column(name = "source_item_id", nullable = false)
   private Long sourceItemId;
 
+  @Comment("연결된 원장 원본의 처리일자 사본")
+  @Column(name = "processed_date")
+  private LocalDate processedDate;
+
   @Comment("제품 기본 한글명")
   @Column(name = "base_product_name_ko", columnDefinition = "TEXT")
   private String baseProductNameKo;
