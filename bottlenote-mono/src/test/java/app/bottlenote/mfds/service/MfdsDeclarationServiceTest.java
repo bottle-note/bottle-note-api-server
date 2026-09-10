@@ -93,8 +93,8 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
-  @DisplayName("수입 신고 목록에 처리일자를 그대로 전달한다")
-  void 수입_신고_목록에_처리일자를_전달할_수_있다() {
+  @DisplayName("수입 신고 목록에 통관일자를 그대로 전달한다")
+  void 수입_신고_목록에_통관일자를_전달할_수_있다() {
     LocalDate processedDate = LocalDate.of(2026, 3, 15);
     MfdsDeclaration declaration =
         MfdsTestData.declaration(
@@ -116,8 +116,8 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
-  @DisplayName("수입 신고 목록 매핑에서 처리일자가 없으면 null을 유지한다")
-  void 수입_신고_목록에서_빈_처리일자를_null로_유지한다() {
+  @DisplayName("수입 신고 목록 매핑에서 통관일자가 없으면 null을 유지한다")
+  void 수입_신고_목록에서_빈_통관일자를_null로_유지한다() {
     MfdsDeclaration declaration =
         MfdsTestData.declaration(
             "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, null, null);
@@ -155,8 +155,8 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
-  @DisplayName("상세 조회할 때 처리일자를 그대로 전달한다")
-  void 상세에_처리일자를_전달할_수_있다() {
+  @DisplayName("상세 조회할 때 통관일자를 그대로 전달한다")
+  void 상세에_통관일자를_전달할_수_있다() {
     LocalDate processedDate = LocalDate.of(2026, 3, 15);
     MfdsDeclaration declaration =
         MfdsTestData.declaration(
@@ -176,8 +176,8 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
-  @DisplayName("상세 조회할 때 처리일자가 없으면 null을 유지한다")
-  void 상세에서_빈_처리일자를_null로_유지한다() {
+  @DisplayName("상세 조회할 때 통관일자가 없으면 null을 유지한다")
+  void 상세에서_빈_통관일자를_null로_유지한다() {
     MfdsDeclaration declaration =
         declarationRepository.save(
             MfdsTestData.declaration(

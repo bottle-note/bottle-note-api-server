@@ -229,8 +229,8 @@ class MfdsPublicPayloadJsonContractTest {
   }
 
   @Test
-  @DisplayName("처리일자가 없어도 processedDate 키는 null로 남긴다")
-  void 처리일자가_없어도_processedDate_키를_null로_남긴다() throws Exception {
+  @DisplayName("통관일자가 없어도 processedDate 키는 null로 남긴다")
+  void 통관일자가_없어도_processedDate_키를_null로_남긴다() throws Exception {
     MfdsPublicDeclarationItem withoutProcessedDate =
         new MfdsPublicDeclarationItem(
             3L,

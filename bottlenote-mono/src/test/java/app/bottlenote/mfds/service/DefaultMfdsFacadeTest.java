@@ -266,8 +266,8 @@ class DefaultMfdsFacadeTest {
   }
 
   @Test
-  @DisplayName("공개 payload에 처리일자를 그대로 전달한다")
-  void 공개_payload에_처리일자를_전달할_수_있다() {
+  @DisplayName("공개 payload에 통관일자를 그대로 전달한다")
+  void 공개_payload에_통관일자를_전달할_수_있다() {
     LocalDate processedDate = LocalDate.of(2026, 3, 15);
     declarationRepository.save(
         MfdsTestData.declaration(
@@ -287,8 +287,8 @@ class DefaultMfdsFacadeTest {
   }
 
   @Test
-  @DisplayName("공개 payload에서 처리일자가 없으면 null을 유지한다")
-  void 공개_payload에서_빈_처리일자를_null로_유지한다() {
+  @DisplayName("공개 payload에서 통관일자가 없으면 null을 유지한다")
+  void 공개_payload에서_빈_통관일자를_null로_유지한다() {
     declarationRepository.save(
         MfdsTestData.declaration(
             "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 42L, "MANUAL", null, null));

@@ -45,7 +45,7 @@ object AdminMfdsDeclarationApiDocs {
 
 			목록은 ID 내림차순이며 커서 방식으로 페이징합니다. 응답 meta의 nextCursor를 다음 요청의 cursor로 전달하면 다음 페이지를 받을 수 있습니다.
 
-			processedDate는 수집 사이트의 '처리일자'이며 YYYY-MM-DD 형식입니다. 원본에 처리일자가 없으면 null로 내려갑니다. 세관 통관 완료일과 동일하다고 가정하지 않습니다.
+			processedDate는 식약처 수입 원장에 기록된 통관일자이며 YYYY-MM-DD 형식입니다. 원본에 값이 없으면 null로 내려갑니다.
 			""",
 		responses = [
 			ApiResponse(
@@ -80,7 +80,7 @@ object AdminMfdsDeclarationApiDocs {
 
 			이 밖에 정규화 배치가 남긴 AUTO_SELECTED, NO_MATCH, REVIEW, AMBIGUOUS, CONFLICT_REVIEW 가 그대로 노출될 수 있습니다.
 
-			processedDate는 수집 사이트의 '처리일자'이며 YYYY-MM-DD 형식입니다. 원본에 처리일자가 없으면 null로 내려갑니다. 세관 통관 완료일과 동일하다고 가정하지 않습니다.
+			processedDate는 식약처 수입 원장에 기록된 통관일자이며 YYYY-MM-DD 형식입니다. 원본에 값이 없으면 null로 내려갑니다.
 			""",
 		responses = [
 			ApiResponse(

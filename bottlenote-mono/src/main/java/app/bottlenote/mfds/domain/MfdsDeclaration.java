@@ -46,7 +46,7 @@ public class MfdsDeclaration {
   @Column(name = "source_item_id", nullable = false)
   private Long sourceItemId;
 
-  @Comment("연결된 원장 원본의 처리일자 사본")
+  @Comment("연결된 원장 원본의 통관일자 사본")
   @Column(name = "processed_date")
   private LocalDate processedDate;
 

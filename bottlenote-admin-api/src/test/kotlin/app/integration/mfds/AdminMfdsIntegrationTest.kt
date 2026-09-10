@@ -257,7 +257,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("신고 목록에 처리일자를 포함한다")
+		@DisplayName("신고 목록에 통관일자를 포함한다")
 		fun searchIncludesProcessedDate() {
 			val declaration =
 				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
@@ -275,7 +275,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("처리일자가 없으면 신고 목록 JSON에 processedDate 키를 null로 포함한다")
+		@DisplayName("통관일자가 없으면 신고 목록 JSON에 processedDate 키를 null로 포함한다")
 		fun searchIncludesNullProcessedDate() {
 			mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
 
@@ -309,7 +309,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("신고 상세에 처리일자를 포함한다")
+		@DisplayName("신고 상세에 통관일자를 포함한다")
 		fun detailIncludesProcessedDate() {
 			val declaration =
 				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
@@ -327,7 +327,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("처리일자가 없으면 신고 상세 JSON에 processedDate 키를 null로 포함한다")
+		@DisplayName("통관일자가 없으면 신고 상세 JSON에 processedDate 키를 null로 포함한다")
 		fun detailIncludesNullProcessedDate() {
 			val declaration =
 				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
