@@ -12,6 +12,7 @@ import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsImporterRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -262,5 +263,39 @@ class DefaultMfdsFacadeTest {
     assertThat(result)
         .extracting(MfdsPublicDeclarationItem::id)
         .isSortedAccordingTo(Comparator.reverseOrder());
+  }
+
+  @Test
+  @DisplayName("공개 payload에 통관일자를 그대로 전달한다")
+  void 공개_payload에_통관일자를_전달할_수_있다() {
+    LocalDate processedDate = LocalDate.of(2026, 3, 15);
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-001",
+            MfdsNormalizationStatus.NORMALIZED,
+            null,
+            42L,
+            "MANUAL",
+            null,
+            null,
+            processedDate));
+
+    List<MfdsPublicDeclarationItem> result = facade.findVerifiedDeclarationsByAlcoholId(42L);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().processedDate()).isEqualTo(processedDate);
+  }
+
+  @Test
+  @DisplayName("공개 payload에서 통관일자가 없으면 null을 유지한다")
+  void 공개_payload에서_빈_통관일자를_null로_유지한다() {
+    declarationRepository.save(
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 42L, "MANUAL", null, null));
+
+    List<MfdsPublicDeclarationItem> result = facade.findVerifiedDeclarationsByAlcoholId(42L);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().processedDate()).isNull();
   }
 }

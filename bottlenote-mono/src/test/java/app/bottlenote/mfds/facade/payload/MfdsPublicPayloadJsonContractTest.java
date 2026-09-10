@@ -32,6 +32,7 @@ class MfdsPublicPayloadJsonContractTest {
       List.of(
           "id",
           "rcno",
+          "processedDate",
           "baseProductNameKo",
           "baseProductNameEn",
           "skuDisplayNameKo",
@@ -114,6 +115,7 @@ class MfdsPublicPayloadJsonContractTest {
         new MfdsPublicDeclarationItem(
             1L,
             "RCNO-001",
+            LocalDate.of(2026, 3, 15),
             "글렌피딕",
             "Glenfiddich",
             "12년",
@@ -155,6 +157,7 @@ class MfdsPublicPayloadJsonContractTest {
     JsonNode item = declarations.get(0);
     assertThat(fieldNames(item)).containsExactlyInAnyOrderElementsOf(DECLARATION_FIELDS);
     assertThat(fieldNames(item)).doesNotContainAnyElementsOf(FORBIDDEN_FIELDS);
+    assertThat(item.path("processedDate").asText()).isEqualTo("2026-03-15");
 
     JsonNode importerNode = item.path("importer");
     assertThat(importerNode.isObject()).isTrue();
@@ -169,6 +172,7 @@ class MfdsPublicPayloadJsonContractTest {
         new MfdsPublicDeclarationItem(
             2L,
             "RCNO-002",
+            null,
             null,
             null,
             null,
@@ -222,6 +226,56 @@ class MfdsPublicPayloadJsonContractTest {
     assertThat(fieldNames(item))
         .containsExactlyInAnyOrderElementsOf(
             DECLARATION_FIELDS.stream().filter(field -> !field.equals("importer")).toList());
+  }
+
+  @Test
+  @DisplayName("통관일자가 없어도 processedDate 키는 null로 남긴다")
+  void 통관일자가_없어도_processedDate_키를_null로_남긴다() throws Exception {
+    MfdsPublicDeclarationItem withoutProcessedDate =
+        new MfdsPublicDeclarationItem(
+            3L,
+            "RCNO-003",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    JsonNode item =
+        MAPPER
+            .readTree(
+                MAPPER.writeValueAsString(
+                    AlcoholDetailResponse.builder()
+                        .alcohols(AlcoholDetailItem.builder().alcoholId(1L).build())
+                        .friendsInfo(FriendsDetailResponse.of(0L, List.of()))
+                        .reviewInfo(ReviewListResponse.of(List.of()))
+                        .mfdsDeclarations(List.of(withoutProcessedDate))
+                        .build()))
+            .path("mfdsDeclarations")
+            .get(0);
+
+    assertThat(item.has("processedDate")).isTrue();
+    assertThat(item.get("processedDate").isNull()).isTrue();
   }
 
   private static List<String> fieldNames(JsonNode node) {

@@ -45,6 +45,7 @@ final class MfdsResponseMapper {
     return new MfdsDeclarationListItem(
         declaration.getId(),
         declaration.getRcno(),
+        declaration.getProcessedDate(),
         declaration.getBaseProductNameKo(),
         declaration.getBaseProductNameEn(),
         declaration.getSkuDisplayNameKo(),
@@ -66,6 +67,7 @@ final class MfdsResponseMapper {
     return new MfdsDeclarationDetailResponse(
         declaration.getId(),
         declaration.getRcno(),
+        declaration.getProcessedDate(),
         declaration.getBaseProductNameKo(),
         declaration.getBaseProductNameEn(),
         declaration.getSkuDisplayNameKo(),
@@ -157,6 +159,7 @@ final class MfdsResponseMapper {
     return new MfdsPublicDeclarationItem(
         declaration.getId(),
         declaration.getRcno(),
+        declaration.getProcessedDate(),
         declaration.getBaseProductNameKo(),
         declaration.getBaseProductNameEn(),
         declaration.getSkuDisplayNameKo(),

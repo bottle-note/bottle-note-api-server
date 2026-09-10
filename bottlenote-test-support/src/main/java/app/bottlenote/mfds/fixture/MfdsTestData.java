@@ -7,6 +7,7 @@ import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRcnoLink;
 import java.lang.reflect.Constructor;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -42,9 +43,30 @@ public final class MfdsTestData {
       String alcoholMatchDecision,
       String nameSearchKeyKo,
       String nameSearchKeyEn) {
+    return declaration(
+        rcno,
+        normalizationStatus,
+        importerId,
+        selectedAlcoholId,
+        alcoholMatchDecision,
+        nameSearchKeyKo,
+        nameSearchKeyEn,
+        null);
+  }
+
+  public static MfdsDeclaration declaration(
+      String rcno,
+      MfdsNormalizationStatus normalizationStatus,
+      Long importerId,
+      Long selectedAlcoholId,
+      String alcoholMatchDecision,
+      String nameSearchKeyKo,
+      String nameSearchKeyEn,
+      LocalDate processedDate) {
     MfdsDeclaration declaration = instantiate(MfdsDeclaration.class);
     set(declaration, "rcno", rcno);
     set(declaration, "sourceItemId", 1L);
+    set(declaration, "processedDate", processedDate);
     set(declaration, "normalizationStatus", normalizationStatus);
     set(declaration, "importerId", importerId);
     set(declaration, "selectedAlcoholId", selectedAlcoholId);
