@@ -81,16 +81,17 @@ git submodule update --init --recursive
 
 | 대상 | 워크플로 | 트리거 |
 |------|---------|--------|
-| product-api / admin-api (운영·Release PR) | `release_pr_pilot_create.yml` → `release_pr_pilot_merged.yml` → `deploy_release_applications.yml` | `releases/**` 대상 Release PR 생성·병합 후 검증 통과 (표준 경로) |
+| product-api / admin-api (운영·Release PR) | `release_pr_create.yml` → `release_pr_merged.yml` → `deploy_release_applications.yml` | `releases/**` 대상 Release PR 생성·병합 후 검증 통과 (표준 경로) |
+| product-api / admin-api (운영·핫픽스) | `release_pr_create.yml`(release_type=hotfix) → `hotfix_pr_merged.yml` → `deploy_release_applications.yml` | `hotfixes/**` 대상 핫픽스 PR 병합 후 검증 통과 |
 | product-api / admin-api (운영·기존 릴리스 경로) | `deploy_release_applications.yml` | `backend/vX.Y.Z` 릴리스 published (호환 경로, 표준 운영에서는 사용하지 않음) |
 | product-api / admin-api (개발) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
 | batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
 
 Release PR 경로는 검증된 `source_sha`, `release_key`, `deployment_mode`를 배포 워크플로에 전달한다. 병합 자체와 검증 통과를 구분하고, 배포 대상은 전달된 `source_sha`를 기준으로 확인한다.
 
-`releases/**` 브랜치는 수동으로 만들지 않고 `release_pr_pilot_create.yml`로만 생성한다. 생성된 PR의 실제 source 또는 동일 tree인 부모 SHA의 CI 성공을 병합 전에 확인한다. 일반 Release PR의 workflow 검증이 CI 성공까지 자동 보장하지는 않는다.
+`releases/**`와 `hotfixes/**` 브랜치는 수동으로 만들지 않고 `release_pr_create.yml`로만 생성한다. 핫픽스 브랜치는 main이 아니라 해당 배포 단위의 최신 `deployed/<단위>/<키>` 태그가 가리키는 커밋에서 잘린다. 생성된 PR의 실제 source 또는 동일 tree인 부모 SHA의 CI 성공을 병합 전에 확인한다. 일반 Release PR의 workflow 검증이 CI 성공까지 자동 보장하지는 않는다.
 
-이미지는 `immutable 태그 push → Cosign 서명 → 검증 → 채널 태그 승격 → digest·서명 재검증` 순서로 공개한다. 승격 전 실패하면 해당 채널의 기존 digest를 유지하지만, `both`의 Product/Admin은 독립적으로 승격하므로 전체 run 실패 시 부분 반영 여부를 확인한다. 서비스별 핫픽스 지원 범위, source와 action 출처, 실패 대응은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
+이미지는 `immutable 태그 push → Cosign 서명 → 검증 → 채널 태그 승격 → digest·서명 재검증` 순서로 공개한다. 배포에 성공하면 릴리즈 브랜치를 지우기 전에 배포 소스에 `deployed/<단위>/<YYYY-MM-DD>/<N>` annotated 태그를 찍는다. 이 태그가 배포 이력의 단일 기준이며 릴리즈 키 재사용의 최종 방어선이다. 근거는 [ADR](<adr/2026.09.10 배포 소스는 브랜치가 아니라 deployed 태그로 보관한다.md>)을 따른다. 승격 전 실패하면 해당 채널의 기존 digest를 유지하지만, `both`의 Product/Admin은 독립적으로 승격하므로 전체 run 실패 시 부분 반영 여부를 확인한다. 서비스별 핫픽스 지원 범위, source와 action 출처, 실패 대응은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
 
 ```bash
 # batch 배포 — version은 정확한 X.Y.Z, production은 main에서만 허용
