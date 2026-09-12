@@ -37,6 +37,8 @@ data class AdminAlcoholExcelRowResult(
 	val description: String?,
 	val volume: String?,
 	val tastingTags: String?,
+	@Schema(description = "엑셀 원문 이미지 파일명(확장자 포함). 비어 있으면 null")
+	val imageFileName: String? = null,
 	@Schema(description = "매칭된 지역 ID")
 	val regionId: Long? = null,
 	@Schema(description = "매칭된 증류소 ID")

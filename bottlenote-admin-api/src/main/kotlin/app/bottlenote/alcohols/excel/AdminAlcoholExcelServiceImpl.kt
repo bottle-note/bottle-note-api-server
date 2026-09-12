@@ -64,7 +64,12 @@ class AdminAlcoholExcelServiceImpl(
 	companion object {
 		private const val REFERENCE_PAGE_SIZE = 1_000
 		private const val DESCRIPTION_MARKER = "AlcoholImportDescriptionRow"
-		private const val DESCRIPTION_REFERENCE = "'알코올 데이터'!\$A\$2:\$M\$2"
+		private const val DESCRIPTION_REFERENCE = "'알코올 데이터'!\$A\$2:\$N\$2"
+		private val DESCRIPTION_REFERENCES =
+			setOf(
+				"'알코올 데이터'!\$A\$2:\$M\$2",
+				DESCRIPTION_REFERENCE
+			)
 		private const val MAX_ZIP_ENTRIES = 200
 		private const val MAX_TOTAL_UNCOMPRESSED_BYTES = 50L * 1024 * 1024
 
@@ -271,25 +276,35 @@ class AdminAlcoholExcelServiceImpl(
 			readRawCell(descriptionRow.getCell(it)) == AlcoholExcelSchema.DESCRIPTIONS[it]
 		} ||
 			isCompletelyBlank(descriptionRow)
-		if ((marker != null && marker.refersToFormula != DESCRIPTION_REFERENCE) ||
+		if ((marker != null && marker.refersToFormula !in DESCRIPTION_REFERENCES) ||
 			(marker == null && !recognizableLegacyDescription)
 		) {
 			throw AlcoholException(AlcoholExceptionCode.EXCEL_DESCRIPTION_MISMATCH)
 		}
 
-		val headers = AlcoholExcelSchema.HEADERS.indices.map { readRawCell(headerRow.getCell(it)) }
-		if (headers != AlcoholExcelSchema.HEADERS) {
-			if (headers.size != headers.distinct().size) throw AlcoholException(AlcoholExceptionCode.EXCEL_DUPLICATE_HEADER)
-			throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
+		val columnCount = acceptedColumnCount(headerRow)
+		for (row in dataSheet) {
+			if (row.rowNum < AlcoholExcelSchema.DATA_START_ROW_INDEX) continue
+			if (row.any { it.columnIndex >= columnCount && readRawCell(it).isNotBlank() }) {
+				throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
+			}
 		}
+	}
+
+	private fun acceptedColumnCount(headerRow: Row): Int {
+		val headers = AlcoholExcelSchema.HEADERS.indices.map { readRawCell(headerRow.getCell(it)) }
 		if (headerRow.any { it.columnIndex >= AlcoholExcelSchema.HEADERS.size && readRawCell(it).isNotBlank() }) {
 			throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
 		}
-		for (row in dataSheet) {
-			if (row.rowNum < AlcoholExcelSchema.DATA_START_ROW_INDEX) continue
-			if (row.any { it.columnIndex >= AlcoholExcelSchema.HEADERS.size && readRawCell(it).isNotBlank() }) {
-				throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
-			}
+		val presentHeaders = headers.filter { it.isNotBlank() }
+		if (presentHeaders.size != presentHeaders.distinct().size) {
+			throw AlcoholException(AlcoholExceptionCode.EXCEL_DUPLICATE_HEADER)
+		}
+		return when {
+			headers == AlcoholExcelSchema.HEADERS -> AlcoholExcelSchema.HEADERS.size
+			headers.dropLast(1) == AlcoholExcelSchema.LEGACY_HEADERS && headers.last().isBlank() ->
+				AlcoholExcelSchema.LEGACY_HEADERS.size
+			else -> throw AlcoholException(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
 		}
 	}
 
@@ -332,7 +347,8 @@ class AdminAlcoholExcelServiceImpl(
 			cask = cell(Column.CASK),
 			description = cell(Column.DESCRIPTION),
 			volume = cell(Column.VOLUME),
-			tastingTagIds = cell(Column.TASTING_TAG_IDS)
+			tastingTagIds = cell(Column.TASTING_TAG_IDS),
+			imageFileName = cell(Column.IMAGE_FILE_NAME)
 		)
 	}
 
@@ -406,6 +422,7 @@ class AdminAlcoholExcelServiceImpl(
 			description = normalized?.description() ?: adapter.request.description(),
 			volume = normalized?.volume() ?: adapter.parsed.volume.ifBlank { null },
 			tastingTags = adapter.parsed.tastingTagIds.ifBlank { null },
+			imageFileName = adapter.parsed.imageFileName.ifBlank { null },
 			regionId = normalized?.regionId() ?: adapter.request.regionId(),
 			distilleryId = normalized?.distilleryId() ?: adapter.request.distilleryId(),
 			tastingTagIds = normalized?.tastingTagIds() ?: adapter.request.tastingTagIds(),
@@ -542,10 +559,10 @@ class AdminAlcoholExcelServiceImpl(
 				"- 카테고리 ID는 그룹|한글|영문 형식입니다. 카테고리 그룹은 비워 두면 ID의 그룹을 자동 사용합니다.",
 				"- 지역/증류소/테이스팅 태그는 ID를 입력합니다. 참조 시트는 안내용이므로 삭제하거나 순서를 바꿔도 됩니다.",
 				"- 도수는 % 표기를, 용량은 ml·cl·L 표기를 허용합니다. 숫자 셀의 퍼센트 서식도 지원합니다.",
-				"- 숙성 연도, 캐스크, 설명은 선택입니다.",
+				"- 숙성 연도, 캐스크, 설명, 이미지 파일명은 선택입니다.",
 				"- 테이스팅 태그 ID는 여러 개일 때 | 로 구분합니다. 예: 1|3",
 				"- 파일 내부 중복과 기존 등록 후보는 경고(WARN)로 반환합니다.",
-				"- 이미지는 이 템플릿에 포함되지 않습니다.",
+				"- 이미지 파일명은 확장자를 포함한 원문입니다. 실제 이미지 업로드는 Admin 화면에서 합니다.",
 				"- 수식 셀과 외부 링크는 허용되지 않습니다.",
 				"",
 				"[예제 1행]"
@@ -810,7 +827,8 @@ class AdminAlcoholExcelServiceImpl(
 		val cask: String,
 		val description: String,
 		val volume: String,
-		val tastingTagIds: String
+		val tastingTagIds: String,
+		val imageFileName: String
 	)
 
 	private data class BulkAdapterRow(

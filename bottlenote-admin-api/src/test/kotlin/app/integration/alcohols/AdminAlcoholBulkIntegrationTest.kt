@@ -162,6 +162,43 @@ class AdminAlcoholBulkIntegrationTest : IntegrationTestSupport() {
 			assertThat(result).hasStatus(400)
 			assertThat(responseJson(result).path("success").asBoolean()).isFalse()
 		}
+
+		@Test
+		@DisplayName("14열 이미지 파일명을 검증 응답에 원문으로 보존하고 벌크 imageUrl은 비운다")
+		fun excelImageFileNameIsEchoedWithoutBecomingImageUrl() {
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val tag = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
+			alcoholTestFactory.persistAlcoholWithCategory("싱글 몰트", "Single Malt")
+			val fileName = "Glenfiddich 12.png"
+			val workbookBytes =
+				fillTemplate(
+					downloadTemplate(),
+					listOf(
+						"이미지 파일명 위스키",
+						"Image File Name Whisky",
+						"40.00",
+						"위스키",
+						"SINGLE_MALT|싱글 몰트|Single Malt",
+						"싱글몰트 위스키",
+						region.id.toString(),
+						distillery.id.toString(),
+						"12",
+						"American Oak",
+						"파일명 보존 설명",
+						"700.00",
+						tag.id.toString(),
+						fileName
+					)
+				)
+
+			val validateResult = validateExcel(workbookBytes)
+
+			assertThat(validateResult).hasStatusOk()
+			val row = responseData(validateResult).at("/rows/0")
+			assertThat(row.path("imageFileName").asText()).isEqualTo(fileName)
+			assertThat(row.at("/normalized/imageUrl").isNull).isTrue()
+		}
 	}
 
 	@Nested

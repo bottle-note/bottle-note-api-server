@@ -87,7 +87,7 @@ class AlcoholBulkOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 		val validation = referencedSchema(spec, operation.successSchema().at("/properties/data"))
 		assertThat(propertyNamesOf(validation)).contains("totalRows", "validRows", "invalidRows", "rows")
 		val row = referencedSchema(spec, validation.at("/properties/rows/items"))
-		assertThat(propertyNamesOf(row)).contains("clientRowId", "normalized", "errors", "warnings")
+		assertThat(propertyNamesOf(row)).contains("clientRowId", "normalized", "errors", "warnings", "imageFileName")
 	}
 
 	private fun bulkOperations(spec: JsonNode): List<SpecOperation> = operationsOf(spec).filter { it.endpoint() in BULK_ENDPOINTS }
