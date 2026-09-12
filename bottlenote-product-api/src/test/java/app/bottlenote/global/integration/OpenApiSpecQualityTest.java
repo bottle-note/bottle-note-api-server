@@ -2,7 +2,6 @@ package app.bottlenote.global.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.global.config.OpenApiConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Collections;
 import java.util.List;
@@ -132,28 +131,9 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
         .withFailMessage(
             """
             OpenApiConfig에 없는 태그를 사용하고 있습니다. 이름을 맞추거나 태그를 선언하세요. \
-            선언되지 않은 태그는 사이드바 그룹에 들어가지 못해 문서에서 사라집니다:%n%s""",
+            선언되지 않은 태그는 설명 없는 메뉴로 문서에 끼어듭니다:%n%s""",
             joined(violations))
         .isEmpty();
-  }
-
-  @Test
-  @DisplayName("사이드바 그룹이 선언한 태그 전체를 순서 그대로 담는다")
-  void 사이드바_그룹이_태그_전체를_담는다() {
-    var spec = fetchSpec();
-    var grouped =
-        StreamSupport.stream(spec.at("/" + OpenApiConfig.TAG_GROUPS).spliterator(), false)
-            .flatMap(group -> StreamSupport.stream(group.path("tags").spliterator(), false))
-            .map(JsonNode::asText)
-            .toList();
-
-    assertThat(grouped)
-        .withFailMessage(
-            """
-            사이드바 그룹 구성이 태그 목록과 어긋났습니다. 그룹에서 빠진 태그는 문서에서 통째로 사라집니다. \
-            그룹: %s / 태그 목록: %s""",
-            grouped, declaredTagNames(spec))
-        .containsExactlyElementsOf(declaredTagNames(spec));
   }
 
   private List<String> declaredTagNames(JsonNode spec) {

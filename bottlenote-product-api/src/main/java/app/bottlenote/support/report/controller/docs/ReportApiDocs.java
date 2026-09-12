@@ -19,7 +19,7 @@ public final class ReportApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "신고")
+  @Tag(name = "고객 지원")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

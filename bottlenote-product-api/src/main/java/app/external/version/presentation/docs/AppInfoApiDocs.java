@@ -17,7 +17,7 @@ public final class AppInfoApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "서버 정보")
+  @Tag(name = "공통")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -21,7 +21,7 @@ public final class HelpApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "문의")
+  @Tag(name = "고객 지원")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

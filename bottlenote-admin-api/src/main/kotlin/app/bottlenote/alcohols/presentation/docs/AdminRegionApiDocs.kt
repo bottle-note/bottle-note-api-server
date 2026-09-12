@@ -15,7 +15,7 @@ object AdminRegionApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "지역")
+	@Tag(name = "기준 정보")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

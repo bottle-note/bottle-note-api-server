@@ -20,7 +20,7 @@ public final class ReviewReplyApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "리뷰 댓글")
+  @Tag(name = "리뷰")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

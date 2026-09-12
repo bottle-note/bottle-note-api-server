@@ -18,7 +18,7 @@ public final class TastingTagApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "테이스팅 태그")
+  @Tag(name = "위스키")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

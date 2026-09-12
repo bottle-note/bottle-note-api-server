@@ -21,7 +21,7 @@ public final class FollowApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "팔로우")
+  @Tag(name = "회원")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -21,7 +21,7 @@ public final class RatingApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "별점")
+  @Tag(name = "마이페이지")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)
