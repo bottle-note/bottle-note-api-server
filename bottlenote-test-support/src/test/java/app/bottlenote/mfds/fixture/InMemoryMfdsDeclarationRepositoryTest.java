@@ -2,9 +2,13 @@ package app.bottlenote.mfds.fixture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
+import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -157,7 +161,109 @@ class InMemoryMfdsDeclarationRepositoryTest {
     assertThat(repository.countByCriteria(MfdsDeclarationSearchCriteria.of(4L, 2L))).isEqualTo(5L);
   }
 
+  @Test
+  @DisplayName("공개 주류 검색은 정규화 완료 행만 처리일자 내림차순으로 내리고 null 날짜는 마지막이다")
+  void 공개_주류_검색은_정규화_완료만_처리일자_내림차순이다() {
+    repository.save(publicDeclaration("RCNO-OLD", LocalDate.of(2026, 7, 1), "GB"));
+    repository.save(publicDeclaration("RCNO-NEW", LocalDate.of(2026, 8, 10), "GB"));
+    repository.save(publicDeclaration("RCNO-NULL", null, "GB"));
+    MfdsDeclaration pending = publicDeclaration("RCNO-PENDING", LocalDate.of(2026, 8, 20), "US");
+    MfdsTestData.set(pending, "normalizationStatus", MfdsNormalizationStatus.PENDING);
+    repository.save(pending);
+
+    List<MfdsDeclaration> result = repository.searchPublicAlcohols(publicCriteria(List.of(), null, null, 10));
+
+    assertThat(result)
+        .extracting(MfdsDeclaration::getRcno)
+        .containsExactly("RCNO-NEW", "RCNO-OLD", "RCNO-NULL");
+  }
+
+  @Test
+  @DisplayName("공개 주류 keyword는 연결된 수입사 공식명에도 맞는다")
+  void 공개_주류_keyword는_연결된_수입사명에도_맞는다() {
+    InMemoryMfdsImporterRepository importers = new InMemoryMfdsImporterRepository();
+    MfdsImporter importer =
+        importers.save(MfdsTestData.importer("BIZ-1", "공식상호", MfdsImporterAdminStatus.ACTIVE));
+    InMemoryMfdsDeclarationRepository linked =
+        new InMemoryMfdsDeclarationRepository(importers::findById);
+    MfdsDeclaration matched =
+        MfdsTestData.publicDeclaration(
+            "RCNO-1", importer.getId(), "신고표시명", "글렌피딕", LocalDate.of(2026, 8, 1), "GB", "영국");
+    linked.save(matched);
+    linked.save(publicDeclaration("RCNO-2", LocalDate.of(2026, 8, 2), "GB"));
+
+    List<MfdsDeclaration> result =
+        linked.searchPublicAlcohols(publicCriteria(List.of("공식상호"), null, null, 10));
+
+    assertThat(result).extracting(MfdsDeclaration::getRcno).containsExactly("RCNO-1");
+  }
+
+  @Test
+  @DisplayName("날짜가 있는 공개 커서는 같은 날짜의 더 작은 id와 null 날짜 행을 포함한다")
+  void 날짜_있는_공개_커서는_과거와_null_날짜를_포함한다() {
+    repository.save(publicDeclaration("RCNO-A", LocalDate.of(2026, 8, 10), "GB"));
+    MfdsDeclaration cursor = repository.save(publicDeclaration("RCNO-B", LocalDate.of(2026, 8, 10), "GB"));
+    repository.save(publicDeclaration("RCNO-C", LocalDate.of(2026, 8, 1), "GB"));
+    repository.save(publicDeclaration("RCNO-NULL", null, "GB"));
+
+    List<MfdsDeclaration> result =
+        repository.searchPublicAlcohols(
+            publicCriteria(List.of(), cursor.getProcessedDate(), cursor.getId(), 10));
+
+    assertThat(result)
+        .extracting(MfdsDeclaration::getRcno)
+        .containsExactly("RCNO-A", "RCNO-C", "RCNO-NULL");
+  }
+
+  @Test
+  @DisplayName("날짜가 없는 공개 커서는 null 날짜의 더 작은 id만 남긴다")
+  void 날짜_없는_공개_커서는_null_날짜의_더_작은_id만_남긴다() {
+    repository.save(publicDeclaration("RCNO-DATED", LocalDate.of(2026, 8, 10), "GB"));
+    repository.save(publicDeclaration("RCNO-NULL-1", null, "GB"));
+    MfdsDeclaration cursor = repository.save(publicDeclaration("RCNO-NULL-2", null, "GB"));
+
+    List<MfdsDeclaration> result =
+        repository.searchPublicAlcohols(publicCriteria(List.of(), null, cursor.getId(), 10));
+
+    assertThat(result).extracting(MfdsDeclaration::getRcno).containsExactly("RCNO-NULL-1");
+  }
+
+  @Test
+  @DisplayName("수출국 목록은 정규화 완료 행의 Alpha-2만 중복 없이 내린다")
+  void 수출국_목록은_정규화_완료_행만_내린다() {
+    repository.save(publicDeclaration("RCNO-GB-1", LocalDate.of(2026, 8, 1), "GB"));
+    repository.save(publicDeclaration("RCNO-GB-2", LocalDate.of(2026, 8, 2), "GB"));
+    MfdsDeclaration japan = publicDeclaration("RCNO-JP", LocalDate.of(2026, 8, 3), "JP");
+    MfdsTestData.set(japan, "exportCountryNameKo", "일본");
+    repository.save(japan);
+    MfdsDeclaration pending = publicDeclaration("RCNO-US", LocalDate.of(2026, 8, 4), "US");
+    MfdsTestData.set(pending, "normalizationStatus", MfdsNormalizationStatus.PENDING);
+    MfdsTestData.set(pending, "exportCountryNameKo", "미국");
+    repository.save(pending);
+
+    assertThat(repository.findExportCountries())
+        .extracting(item -> item.alpha2())
+        .containsExactly("GB", "JP");
+  }
+
   private MfdsDeclaration declaration(String rcno, MfdsNormalizationStatus status) {
     return MfdsTestData.declaration(rcno, status, null, null, null, null, null);
+  }
+
+  private MfdsDeclaration publicDeclaration(String rcno, LocalDate processedDate, String country) {
+    return MfdsTestData.publicDeclaration(
+        rcno,
+        null,
+        "보틀상사",
+        "글렌피딕",
+        processedDate,
+        country,
+        "GB".equals(country) ? "영국" : country);
+  }
+
+  private MfdsPublicAlcoholSearchCriteria publicCriteria(
+      List<String> tokens, LocalDate cursorDate, Long cursorId, int fetchLimit) {
+    return new MfdsPublicAlcoholSearchCriteria(
+        null, null, null, null, null, null, null, tokens, cursorDate, cursorId, fetchLimit);
   }
 }

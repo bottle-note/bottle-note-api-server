@@ -1,6 +1,6 @@
 package app.bottlenote.mfds.service;
 
-import static app.bottlenote.mfds.constant.MfdsImporterAdminStatus.ACTIVE;
+import static app.bottlenote.mfds.constant.MfdsNormalizationStatus.NORMALIZED;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_DECLARATION_NOT_FOUND;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_IMPORTER_NOT_FOUND;
 
@@ -9,8 +9,6 @@ import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
-import app.bottlenote.global.pagination.PaginationException;
-import app.bottlenote.global.pagination.PaginationExceptionCode;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.domain.MfdsImporter;
@@ -43,13 +41,12 @@ public class MfdsPublicQueryService {
   @Transactional(readOnly = true)
   public KeysetPageResponse<List<MfdsPublicAlcoholListItem>> searchAlcohols(
       MfdsPublicAlcoholSearchRequest request) {
-    MfdsPublicAlcoholSearchCriteria base = MfdsPublicAlcoholSearchCriteria.of(request, null, null);
-    String context = base.cursorContext();
+    String context = MfdsPublicAlcoholSearchCriteria.cursorContext(request);
     LocalDate cursorDate = null;
     Long cursorId = null;
     if (request.cursor() != null) {
       CursorClaims claims = cursorCodec.verify(request.cursor(), context);
-      cursorDate = parseDate(CursorKeys.optional(claims, "processedDate"));
+      cursorDate = CursorKeys.optionalDate(claims, "processedDate");
       cursorId = CursorKeys.requireLong(claims, "id");
     }
     MfdsPublicAlcoholSearchCriteria criteria =
@@ -68,6 +65,7 @@ public class MfdsPublicQueryService {
     MfdsDeclaration declaration =
         declarationRepository
             .findById(id)
+            .filter(item -> item.getNormalizationStatus() == NORMALIZED)
             .orElseThrow(() -> new MfdsException(MFDS_DECLARATION_NOT_FOUND));
     MfdsPublicImporterItem importer = publicImporterOf(declaration.getImporterId());
     return MfdsResponseMapper.toPublicAlcoholDetail(declaration, importer);
@@ -76,8 +74,7 @@ public class MfdsPublicQueryService {
   @Transactional(readOnly = true)
   public KeysetPageResponse<List<MfdsPublicImporterItem>> searchImporters(
       MfdsPublicImporterSearchRequest request) {
-    MfdsPublicImporterSearchCriteria base = MfdsPublicImporterSearchCriteria.of(request, null);
-    String context = base.cursorContext();
+    String context = MfdsPublicImporterSearchCriteria.cursorContext(request);
     Long cursorId = null;
     if (request.cursor() != null) {
       CursorClaims claims = cursorCodec.verify(request.cursor(), context);
@@ -98,8 +95,8 @@ public class MfdsPublicQueryService {
 
   @Transactional(readOnly = true)
   public MfdsPublicImporterItem getImporter(Long importerId) {
-    return importerRepository.findAllByIdInAndAdminStatus(List.of(importerId), ACTIVE).stream()
-        .findFirst()
+    return importerRepository
+        .findActiveById(importerId)
         .map(MfdsResponseMapper::toPublicImporterItem)
         .orElseThrow(() -> new MfdsException(MFDS_IMPORTER_NOT_FOUND));
   }
@@ -113,8 +110,8 @@ public class MfdsPublicQueryService {
     if (importerId == null) {
       return null;
     }
-    return importerRepository.findAllByIdInAndAdminStatus(List.of(importerId), ACTIVE).stream()
-        .findFirst()
+    return importerRepository
+        .findActiveById(importerId)
         .map(MfdsResponseMapper::toPublicImporterItem)
         .orElse(null);
   }
@@ -126,16 +123,5 @@ public class MfdsPublicQueryService {
       keys.put("processedDate", last.getProcessedDate().toString());
     }
     return cursorCodec.encode(context, keys);
-  }
-
-  private static LocalDate parseDate(String value) {
-    if (value == null) {
-      return null;
-    }
-    try {
-      return LocalDate.parse(value);
-    } catch (RuntimeException exception) {
-      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
-    }
   }
 }

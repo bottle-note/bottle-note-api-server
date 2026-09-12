@@ -7,6 +7,7 @@ import static app.bottlenote.mfds.domain.QMfdsImporter.mfdsImporter;
 
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.core.util.StringUtils;
 import java.time.LocalDate;
 import java.util.List;
@@ -130,7 +131,7 @@ public class MfdsDeclarationQuerySupporter {
                 .and(mfdsDeclaration.id.lt(cursorId)));
   }
 
-  private static BooleanExpression like(com.querydsl.core.types.dsl.StringPath path, String token) {
+  private static BooleanExpression like(StringPath path, String token) {
     return path.likeIgnoreCase(contains(token), ESCAPE);
   }
 }

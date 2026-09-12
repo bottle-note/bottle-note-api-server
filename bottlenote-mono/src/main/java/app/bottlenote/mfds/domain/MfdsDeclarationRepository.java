@@ -37,9 +37,9 @@ public interface MfdsDeclarationRepository {
   /** 해당 수입사에 연결된 신고 데이터 존재 여부를 확인한다. 수입사 삭제 가드에 쓴다. */
   boolean existsByImporterId(Long importerId);
 
-  /** Product 공개 수입 주류 목록. limit은 pageSize+1이다. */
+  /** Product 공개 수입 주류 목록. 정규화 완료 행만 내리며 limit은 pageSize+1이다. */
   List<MfdsDeclaration> searchPublicAlcohols(MfdsPublicAlcoholSearchCriteria criteria);
 
-  /** 원장에 등장한 수출국 ISO Alpha-2 목록. */
+  /** 정규화 완료 원장에 등장한 수출국 ISO Alpha-2 목록. */
   List<MfdsPublicCountryItem> findExportCountries();
 }

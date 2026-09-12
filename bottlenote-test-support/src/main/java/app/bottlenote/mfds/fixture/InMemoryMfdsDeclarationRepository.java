@@ -3,10 +3,13 @@ package app.bottlenote.mfds.fixture;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
+import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
+import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -14,6 +17,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /** 신고 정제 데이터 도메인 포트의 인메모리 구현체. unit 테스트에서 사용한다. */
@@ -21,6 +26,15 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
 
   private final AtomicLong idGenerator = new AtomicLong(1L);
   private final Map<Long, MfdsDeclaration> database = new ConcurrentHashMap<>();
+  private final Function<Long, Optional<MfdsImporter>> importerLookup;
+
+  public InMemoryMfdsDeclarationRepository() {
+    this(id -> Optional.empty());
+  }
+
+  public InMemoryMfdsDeclarationRepository(Function<Long, Optional<MfdsImporter>> importerLookup) {
+    this.importerLookup = Objects.requireNonNull(importerLookup);
+  }
 
   @Override
   public MfdsDeclaration save(MfdsDeclaration declaration) {
@@ -87,9 +101,10 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
   @Override
   public List<MfdsPublicCountryItem> findExportCountries() {
     return database.values().stream()
+        .filter(declaration -> declaration.getNormalizationStatus() == MfdsNormalizationStatus.NORMALIZED)
         .filter(declaration -> declaration.getExportCountryAlpha2() != null)
         .collect(
-            java.util.stream.Collectors.toMap(
+            Collectors.toMap(
                 MfdsDeclaration::getExportCountryAlpha2,
                 declaration ->
                     new MfdsPublicCountryItem(
@@ -97,7 +112,7 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
                         declaration.getExportCountryNameKo(),
                         declaration.getExportCountryNameEn()),
                 (left, right) -> left,
-                java.util.LinkedHashMap::new))
+                LinkedHashMap::new))
         .values()
         .stream()
         .sorted(
@@ -138,6 +153,9 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
 
   private boolean matchesPublic(
       MfdsDeclaration declaration, MfdsPublicAlcoholSearchCriteria criteria) {
+    if (declaration.getNormalizationStatus() != MfdsNormalizationStatus.NORMALIZED) {
+      return false;
+    }
     if (criteria.alcoholNameKo() != null
         && !Objects.equals(declaration.getAlcoholNameKo(), criteria.alcoholNameKo())) {
       return false;
@@ -192,15 +210,26 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
                     || containsIgnoreCase(declaration.getAlcoholCategoryKo(), token)
                     || containsIgnoreCase(declaration.getAlcoholCategoryEn(), token)
                     || containsIgnoreCase(declaration.getManufacturerName(), token)
-                    || containsIgnoreCase(declaration.getImporterBaseName(), token));
+                    || containsIgnoreCase(declaration.getImporterBaseName(), token)
+                    || containsIgnoreCase(linkedImporterBusinessName(declaration), token));
+  }
+
+  private String linkedImporterBusinessName(MfdsDeclaration declaration) {
+    if (declaration.getImporterId() == null) {
+      return null;
+    }
+    return importerLookup
+        .apply(declaration.getImporterId())
+        .map(MfdsImporter::getBusinessName)
+        .orElse(null);
   }
 
   private boolean isAfterPublicCursor(
-      MfdsDeclaration declaration, java.time.LocalDate cursorDate, Long cursorId) {
+      MfdsDeclaration declaration, LocalDate cursorDate, Long cursorId) {
     if (cursorId == null) {
       return true;
     }
-    java.time.LocalDate processedDate = declaration.getProcessedDate();
+    LocalDate processedDate = declaration.getProcessedDate();
     if (cursorDate == null) {
       return processedDate == null && declaration.getId() < cursorId;
     }

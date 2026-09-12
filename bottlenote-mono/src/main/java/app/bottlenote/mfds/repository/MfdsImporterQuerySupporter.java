@@ -6,6 +6,7 @@ import static app.bottlenote.mfds.domain.QMfdsImporter.mfdsImporter;
 
 import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.core.util.StringUtils;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -46,14 +47,16 @@ public class MfdsImporterQuerySupporter {
         continue;
       }
       BooleanExpression tokenMatch =
-          mfdsImporter
-              .businessName
-              .likeIgnoreCase(contains(token), ESCAPE)
-              .or(mfdsImporter.licenseNo.likeIgnoreCase(contains(token), ESCAPE))
-              .or(mfdsImporter.officialBusinessCode.likeIgnoreCase(contains(token), ESCAPE))
-              .or(mfdsImporter.representativeName.likeIgnoreCase(contains(token), ESCAPE));
+          like(mfdsImporter.businessName, token)
+              .or(like(mfdsImporter.licenseNo, token))
+              .or(like(mfdsImporter.officialBusinessCode, token))
+              .or(like(mfdsImporter.representativeName, token));
       combined = combined == null ? tokenMatch : combined.and(tokenMatch);
     }
     return combined;
+  }
+
+  private static BooleanExpression like(StringPath path, String token) {
+    return path.likeIgnoreCase(contains(token), ESCAPE);
   }
 }

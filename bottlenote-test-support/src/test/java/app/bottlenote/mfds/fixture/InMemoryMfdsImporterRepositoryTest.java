@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.dto.dsl.MfdsImporterSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicImporterSearchCriteria;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -110,5 +111,46 @@ class InMemoryMfdsImporterRepositoryTest {
     List<MfdsImporter> secondPage =
         repository.searchByCriteria(MfdsImporterSearchCriteria.of(3L, 2L));
     assertThat(secondPage).extracting(MfdsImporter::getId).containsExactly(2L, 1L);
+  }
+
+  @Test
+  @DisplayName("ACTIVE 수입사만 단건으로 조회한다")
+  void ACTIVE_수입사만_단건_조회한다() {
+    MfdsImporter active =
+        repository.save(MfdsTestData.importer("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE));
+    MfdsImporter inactive =
+        repository.save(MfdsTestData.importer("BIZ-002", "숨은상사", MfdsImporterAdminStatus.INACTIVE));
+
+    assertThat(repository.findActiveById(active.getId())).contains(active);
+    assertThat(repository.findActiveById(inactive.getId())).isEmpty();
+  }
+
+  @Test
+  @DisplayName("공개 수입사 검색은 ACTIVE만 토큰 AND와 id 내림차순으로 내린다")
+  void 공개_수입사_검색은_ACTIVE만_토큰과_커서를_지킨다() {
+    MfdsImporter first =
+        repository.save(MfdsTestData.importer("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE));
+    MfdsImporter second =
+        repository.save(MfdsTestData.importer("BIZ-002", "보틀무역", MfdsImporterAdminStatus.ACTIVE));
+    MfdsImporter inactive =
+        repository.save(MfdsTestData.importer("BIZ-003", "보틀숨은", MfdsImporterAdminStatus.INACTIVE));
+    MfdsTestData.set(first, "representativeName", "홍길동");
+    repository.save(MfdsTestData.importer("BIZ-004", "다른상사", MfdsImporterAdminStatus.ACTIVE));
+
+    List<MfdsImporter> byToken =
+        repository.searchPublicImporters(
+            new MfdsPublicImporterSearchCriteria(List.of("보틀"), null, 10));
+    assertThat(byToken).extracting(MfdsImporter::getBusinessName).containsExactly("보틀무역", "보틀상사");
+    assertThat(byToken).doesNotContain(inactive);
+
+    List<MfdsImporter> byRepresentative =
+        repository.searchPublicImporters(
+            new MfdsPublicImporterSearchCriteria(List.of("홍길동"), null, 10));
+    assertThat(byRepresentative).containsExactly(first);
+
+    List<MfdsImporter> paged =
+        repository.searchPublicImporters(
+            new MfdsPublicImporterSearchCriteria(List.of("보틀"), second.getId(), 10));
+    assertThat(paged).containsExactly(first);
   }
 }

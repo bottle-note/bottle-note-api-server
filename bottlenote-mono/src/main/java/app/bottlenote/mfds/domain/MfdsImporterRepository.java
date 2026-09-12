@@ -23,6 +23,13 @@ public interface MfdsImporterRepository {
   Optional<MfdsImporter> findById(Long id);
 
   /**
+   * 공개 노출 대상(ACTIVE) 수입사 단건 조회. 없거나 비노출이면 empty.
+   *
+   * <p>목록 조회 우회로 INACTIVE 수입사의 대표자명·주소·전화번호가 새지 않게 한다.
+   */
+  Optional<MfdsImporter> findActiveById(Long id);
+
+  /**
    * 식별자 목록과 관리 상태로 수입사를 일괄 조회한다. 빈 목록이면 빈 결과를 반환한다.
    *
    * <p>공개 노출 경로는 ACTIVE만 조회해 INACTIVE 수입사의 대표자명·주소·전화번호가 새지 않게 한다.

@@ -47,10 +47,4 @@ public class MfdsPublicAlcoholController {
   public ResponseEntity<GlobalResponse> getAlcohol(@PathVariable Long id) {
     return GlobalResponse.ok(mfdsPublicQueryService.getAlcohol(id));
   }
-
-  @MfdsPublicApiDocs.ListCountries
-  @GetMapping("/countries")
-  public ResponseEntity<GlobalResponse> getCountries() {
-    return GlobalResponse.ok(mfdsPublicQueryService.listCountries());
-  }
 }

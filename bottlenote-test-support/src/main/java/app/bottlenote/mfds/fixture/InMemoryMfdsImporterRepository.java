@@ -44,6 +44,12 @@ public class InMemoryMfdsImporterRepository implements MfdsImporterRepository {
   }
 
   @Override
+  public Optional<MfdsImporter> findActiveById(Long id) {
+    return findById(id)
+        .filter(importer -> importer.getAdminStatus() == MfdsImporterAdminStatus.ACTIVE);
+  }
+
+  @Override
   public List<MfdsImporter> findAllByIdInAndAdminStatus(
       Collection<Long> ids, MfdsImporterAdminStatus adminStatus) {
     if (ids == null || ids.isEmpty()) {
