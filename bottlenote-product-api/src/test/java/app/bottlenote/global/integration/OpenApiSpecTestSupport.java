@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.springframework.beans.factory.annotation.Value;
 
 /** 생성된 OpenAPI 스펙을 읽어 검사하는 테스트들의 공통 기반. */
@@ -58,6 +59,20 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
   /** 스키마 노드가 선언한 property 이름. */
   protected List<String> propertyNamesOf(JsonNode node) {
     return childNamesOf(node.path("properties")).toList();
+  }
+
+  /** `$ref`와 anyOf/oneOf 안의 `$ref`를 풀어 실제 스키마 노드를 반환한다. */
+  protected JsonNode resolve(JsonNode spec, JsonNode schema) {
+    JsonNode candidate =
+        List.of("anyOf", "oneOf").stream()
+            .map(schema::path)
+            .filter(JsonNode::isArray)
+            .flatMap(composition -> StreamSupport.stream(composition.spliterator(), false))
+            .filter(node -> node.has("$ref"))
+            .findFirst()
+            .orElse(schema);
+    String ref = candidate.path("$ref").asText();
+    return ref.startsWith("#/") ? spec.at(ref.substring(1)) : candidate;
   }
 
   /** 스펙에 실린 하나의 엔드포인트. */

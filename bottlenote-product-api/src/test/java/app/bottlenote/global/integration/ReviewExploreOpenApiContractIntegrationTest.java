@@ -42,9 +42,4 @@ class ReviewExploreOpenApiContractIntegrationTest extends OpenApiSpecTestSupport
             "latitude",
             "longitude");
   }
-
-  private JsonNode resolve(JsonNode spec, JsonNode schema) {
-    String ref = schema.path("$ref").asText();
-    return ref.startsWith("#/") ? spec.at(ref.substring(1)) : schema;
-  }
 }
