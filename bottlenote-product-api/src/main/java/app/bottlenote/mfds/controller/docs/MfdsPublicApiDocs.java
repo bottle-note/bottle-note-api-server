@@ -1,6 +1,6 @@
 package app.bottlenote.mfds.controller.docs;
 
-import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetail;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
@@ -64,7 +64,9 @@ public final class MfdsPublicApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "수입 주류 상세",
-              content = @Content(schema = @Schema(implementation = MfdsPublicAlcoholDetail.class))))
+              content =
+                  @Content(
+                      schema = @Schema(implementation = MfdsPublicAlcoholDetailResponse.class))))
   public @interface GetAlcohol {}
 
   @Target(ElementType.METHOD)

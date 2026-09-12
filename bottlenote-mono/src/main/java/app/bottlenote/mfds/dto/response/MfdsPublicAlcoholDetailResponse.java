@@ -3,7 +3,7 @@ package app.bottlenote.mfds.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record MfdsPublicAlcoholDetail(
+public record MfdsPublicAlcoholDetailResponse(
     Long id,
     String rcno,
     LocalDate processedDate,

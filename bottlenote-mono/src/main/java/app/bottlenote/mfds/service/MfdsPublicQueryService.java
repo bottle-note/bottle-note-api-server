@@ -19,7 +19,7 @@ import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicImporterSearchCriteria;
 import app.bottlenote.mfds.dto.request.MfdsPublicAlcoholSearchRequest;
 import app.bottlenote.mfds.dto.request.MfdsPublicImporterSearchRequest;
-import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetail;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
@@ -64,7 +64,7 @@ public class MfdsPublicQueryService {
   }
 
   @Transactional(readOnly = true)
-  public MfdsPublicAlcoholDetail getAlcohol(Long id) {
+  public MfdsPublicAlcoholDetailResponse getAlcohol(Long id) {
     MfdsDeclaration declaration =
         declarationRepository
             .findById(id)
