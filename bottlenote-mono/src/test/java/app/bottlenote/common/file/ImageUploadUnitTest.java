@@ -38,6 +38,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -63,7 +64,9 @@ class ImageUploadUnitTest {
 
   @Container
   static MinIOContainer minioContainer =
-      new MinIOContainer("minio/minio:latest")
+      new MinIOContainer(
+              DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z")
+                  .asCompatibleSubstituteFor("minio/minio"))
           .withUserName(MINIO_ACCESS_KEY)
           .withPassword(MINIO_SECRET_KEY);
 
