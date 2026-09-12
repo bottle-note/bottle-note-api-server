@@ -10,7 +10,8 @@ import lombok.Getter;
 @Getter
 public enum NotificationActionType {
   OPEN_REVIEW("리뷰 상세 열기"),
-  OPEN_HELP("문의 상세 열기");
+  OPEN_HELP("문의 상세 열기"),
+  OPEN_USER("사용자 프로필 열기");
 
   private final String description;
 

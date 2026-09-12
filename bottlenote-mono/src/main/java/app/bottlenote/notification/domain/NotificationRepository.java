@@ -12,6 +12,8 @@ public interface NotificationRepository {
 
   Notification save(Notification notification);
 
+  void saveIfAbsent(Notification notification);
+
   Optional<Notification> findById(Long id);
 
   Optional<Notification> findByIdAndUserId(Long id, Long userId);

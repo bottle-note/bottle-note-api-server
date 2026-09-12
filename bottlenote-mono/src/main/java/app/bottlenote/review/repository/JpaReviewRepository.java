@@ -5,9 +5,11 @@ import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,6 +20,11 @@ public interface JpaReviewRepository
         ReviewRepository,
         CustomReviewRepository,
         CustomReviewReplyRepository {
+
+  @Override
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select r from review r where r.id = :reviewId")
+  Optional<Review> findByIdForUpdate(@Param("reviewId") Long reviewId);
 
   @Override
   Optional<Review> findByIdAndUserId(Long reviewId, Long userId);

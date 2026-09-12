@@ -3,6 +3,8 @@ package app.bottlenote.review.fixture;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.exception.ReviewException;
+import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
@@ -108,6 +110,13 @@ public class FakeReviewFacade implements ReviewFacade {
   @Override
   public boolean isExistReview(Long reviewId) {
     return reviewId != null && reviewDatabase.containsKey(reviewId);
+  }
+
+  @Override
+  public void lockReviewForUpdate(Long reviewId) {
+    if (!isExistReview(reviewId)) {
+      throw new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND);
+    }
   }
 
   @Override

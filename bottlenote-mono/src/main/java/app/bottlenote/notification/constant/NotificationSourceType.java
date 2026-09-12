@@ -10,7 +10,9 @@ import lombok.Getter;
 @Getter
 public enum NotificationSourceType {
   REVIEW_REPLY("리뷰 댓글"),
-  HELP_ANSWER("문의 답변");
+  HELP_ANSWER("문의 답변"),
+  REVIEW_LIKE("리뷰 좋아요"),
+  FOLLOW("새 팔로워");
 
   private final String description;
 

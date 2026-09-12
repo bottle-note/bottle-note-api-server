@@ -10,12 +10,15 @@ import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.event.payload.FollowActivityEvent;
 import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.fixture.InMemoryFollowRepository;
 import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -28,9 +31,11 @@ class FollowServiceTest {
   InMemoryFollowRepository followRepository;
   InMemoryUserQueryRepository userRepository;
   FollowService followService;
+  List<Object> events;
 
   @BeforeEach
   void setUp() {
+    events = new ArrayList<>();
     followRepository = new InMemoryFollowRepository();
     userRepository = new InMemoryUserQueryRepository();
     var properties = new CursorProperties();
@@ -40,7 +45,8 @@ class FollowServiceTest {
         new FollowService(
             followRepository,
             userRepository,
-            new HmacCursorCodec(properties, java.time.Clock.systemUTC()));
+            new HmacCursorCodec(properties, java.time.Clock.systemUTC()),
+            events::add);
   }
 
   // ========== updateFollowStatus ==========
@@ -92,6 +98,7 @@ class FollowServiceTest {
     // then
     assertThat(response.getFollowUserId()).isEqualTo(targetUser.getId());
     assertThat(response.getMessage()).isEqualTo("성공적으로 팔로우 해제 처리했습니다.");
+    assertThat(events).isEmpty();
   }
 
   @Test
@@ -162,6 +169,41 @@ class FollowServiceTest {
     // then
     assertThat(response.getFollowUserId()).isEqualTo(targetUser.getId());
     assertThat(response.getMessage()).isEqualTo("성공적으로 팔로우 처리했습니다.");
+  }
+
+  @Test
+  @DisplayName("재활성화할 때 같은 관계 식별자로 발행하고 반복과 취소는 발행하지 않는다")
+  void updateFollowStatus_activationEventsOnly() {
+    User actor = userRepository.save(createUser("actor@example.com", "행위자"));
+    User target = userRepository.save(createUser("target@example.com", "대상"));
+    for (FollowStatus status :
+        List.of(
+            FollowStatus.FOLLOWING,
+            FollowStatus.FOLLOWING,
+            FollowStatus.UNFOLLOW,
+            FollowStatus.FOLLOWING)) {
+      followService.updateFollowStatus(
+          new FollowUpdateRequest(target.getId(), status), actor.getId());
+    }
+
+    Follow follow =
+        followRepository.findByUserIdAndFollowUserId(actor.getId(), target.getId()).orElseThrow();
+    assertThat(events)
+        .containsExactly(
+            new FollowActivityEvent(follow.getId(), actor.getId(), target.getId()),
+            new FollowActivityEvent(follow.getId(), actor.getId(), target.getId()));
+  }
+
+  @Test
+  @DisplayName("관계가 없는 사용자를 언팔로우할 때 알림 활동은 발행하지 않는다")
+  void updateFollowStatus_initialUnfollow_hasNoEvent() {
+    User actor = userRepository.save(createUser("actor@example.com", "행위자"));
+    User target = userRepository.save(createUser("target@example.com", "대상"));
+
+    followService.updateFollowStatus(
+        new FollowUpdateRequest(target.getId(), FollowStatus.UNFOLLOW), actor.getId());
+
+    assertThat(events).isEmpty();
   }
 
   // ========== Helper Methods ==========

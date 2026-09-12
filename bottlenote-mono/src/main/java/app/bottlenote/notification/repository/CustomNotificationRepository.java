@@ -7,6 +7,8 @@ import java.util.List;
 /** 알림함 커서 페이징 조회. */
 public interface CustomNotificationRepository {
 
+  void saveIfAbsent(Notification notification);
+
   List<Notification> findPageByUserId(NotificationListCriteria criteria);
 
   /**

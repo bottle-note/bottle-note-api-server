@@ -10,6 +10,8 @@ public interface ReviewFacade {
 
   boolean isExistReview(Long reviewId);
 
+  void lockReviewForUpdate(Long reviewId);
+
   void requestBlockReview(Long reviewId);
 
   ReviewInfo getReviewInfo(Long reviewId, Long userId);

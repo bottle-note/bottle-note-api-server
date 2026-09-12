@@ -21,6 +21,8 @@ public interface ReviewRepository {
 
   Optional<Review> findById(Long id);
 
+  Optional<Review> findByIdForUpdate(Long reviewId);
+
   List<Review> findAll();
 
   ReviewInfo getReview(Long reviewId, Long userId);
