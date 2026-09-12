@@ -9,6 +9,7 @@ import app.bottlenote.mfds.domain.MfdsImporterRcnoLink;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,39 @@ public class MfdsTestFactory {
     MfdsDeclaration declaration =
         MfdsTestData.declaration(
             rcno, normalizationStatus, importerId, selectedAlcoholId, alcoholMatchDecision, null, null);
+    if (importerId != null) {
+      MfdsTestData.set(declaration, "importerLinkSource", MfdsImporterLinkSource.PAGE_NAME);
+    }
+    em.persist(declaration);
+    em.flush();
+    return declaration;
+  }
+
+  /** Product 공개 조회 테스트용. 한글명·처리일자·수출국을 영속 전에 채운다. */
+  @Transactional
+  @NotNull
+  public MfdsDeclaration persistPublicDeclaration(
+      @NotNull String rcno,
+      @Nullable Long importerId,
+      @Nullable String importerBaseName,
+      @NotNull String alcoholNameKo,
+      @Nullable LocalDate processedDate,
+      @Nullable String exportCountryAlpha2,
+      @Nullable String exportCountryNameKo) {
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            rcno,
+            MfdsNormalizationStatus.NORMALIZED,
+            importerId,
+            null,
+            importerId == null ? null : "MANUAL",
+            alcoholNameKo,
+            null,
+            processedDate);
+    MfdsTestData.set(declaration, "alcoholNameKo", alcoholNameKo);
+    MfdsTestData.set(declaration, "importerBaseName", importerBaseName);
+    MfdsTestData.set(declaration, "exportCountryAlpha2", exportCountryAlpha2);
+    MfdsTestData.set(declaration, "exportCountryNameKo", exportCountryNameKo);
     if (importerId != null) {
       MfdsTestData.set(declaration, "importerLinkSource", MfdsImporterLinkSource.PAGE_NAME);
     }

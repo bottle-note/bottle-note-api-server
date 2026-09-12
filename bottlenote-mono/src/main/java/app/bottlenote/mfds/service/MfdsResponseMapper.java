@@ -7,6 +7,9 @@ import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse.MatchCandidate;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationListItem;
 import app.bottlenote.mfds.dto.response.MfdsImporterItem;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetail;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
+import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
 import app.bottlenote.mfds.dto.response.MfdsRcnoLinkItem;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -121,6 +124,78 @@ final class MfdsResponseMapper {
         declaration.getMatchedAt(),
         declaration.getCreatedAt(),
         declaration.getUpdatedAt());
+  }
+
+  static MfdsPublicImporterItem toPublicImporterItem(MfdsImporter importer) {
+    return new MfdsPublicImporterItem(
+        importer.getId(),
+        importer.getOfficialBusinessCode(),
+        importer.getLicenseNo(),
+        importer.getBusinessName(),
+        importer.getRepresentativeName(),
+        importer.getPermitDate(),
+        importer.getInstitutionName(),
+        importer.getPrimaryAddress(),
+        importer.getTelephoneNo(),
+        importer.getIndustryName(),
+        importer.getOperatingStatus(),
+        importer.getDescription());
+  }
+
+  static MfdsPublicAlcoholListItem toPublicAlcoholListItem(MfdsDeclaration declaration) {
+    return new MfdsPublicAlcoholListItem(
+        declaration.getId(),
+        declaration.getRcno(),
+        declaration.getProcessedDate(),
+        declaration.getSelectedAlcoholId(),
+        declaration.getAlcoholNameKo(),
+        declaration.getAlcoholNameEn(),
+        declaration.getBaseProductNameKo(),
+        declaration.getBaseProductNameEn(),
+        declaration.getSkuDisplayNameKo(),
+        declaration.getSkuDisplayNameEn(),
+        declaration.getAlcoholCategoryKo(),
+        declaration.getExportCountryAlpha2(),
+        declaration.getExportCountryNameKo(),
+        declaration.getVolumeMl(),
+        declaration.getAbvPercent(),
+        declaration.getImporterId(),
+        declaration.getImporterBaseName());
+  }
+
+  static MfdsPublicAlcoholDetail toPublicAlcoholDetail(
+      MfdsDeclaration declaration, MfdsPublicImporterItem importer) {
+    return new MfdsPublicAlcoholDetail(
+        declaration.getId(),
+        declaration.getRcno(),
+        declaration.getProcessedDate(),
+        declaration.getSelectedAlcoholId(),
+        declaration.getAlcoholNameKo(),
+        declaration.getAlcoholNameEn(),
+        declaration.getBaseProductNameKo(),
+        declaration.getBaseProductNameEn(),
+        declaration.getSkuDisplayNameKo(),
+        declaration.getSkuDisplayNameEn(),
+        declaration.getAlcoholCategoryKo(),
+        declaration.getAlcoholCategoryEn(),
+        declaration.getExportCountryAlpha2(),
+        declaration.getExportCountryNameKo(),
+        declaration.getVolumeMl(),
+        declaration.getAbvPercent(),
+        declaration.getImporterId(),
+        declaration.getImporterBaseName(),
+        declaration.getUnitVolumeMl(),
+        declaration.getPackageCount(),
+        declaration.getAgeYears(),
+        declaration.getVintageYear(),
+        declaration.getEditionName(),
+        declaration.getCaskNumber(),
+        declaration.getBatchNumber(),
+        declaration.getExpiryStart(),
+        declaration.getExpiryEnd(),
+        declaration.getManufacturerName(),
+        declaration.getManufactureCountryNameKo(),
+        importer);
   }
 
   static MfdsRcnoLinkItem toRcnoLinkItem(MfdsImporterRcnoLink link) {
