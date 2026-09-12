@@ -16,7 +16,7 @@ object AdminVisitorStatisticsApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "통계", description = "방문자 활동과 재방문율 시계열을 조회한다")
+	@Tag(name = "통계")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

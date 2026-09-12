@@ -20,7 +20,7 @@ public final class AlcoholReferenceApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "위스키 기준 정보", description = "지역과 종류 같은 선택 목록, 그리고 큐레이션을 조회한다")
+  @Tag(name = "위스키 기준 정보")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

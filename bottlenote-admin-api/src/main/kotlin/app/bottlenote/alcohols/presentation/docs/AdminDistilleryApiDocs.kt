@@ -14,7 +14,7 @@ object AdminDistilleryApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "증류소", description = "위스키 증류소 기준 정보를 등록·수정·삭제하고 정렬 순서를 관리한다")
+	@Tag(name = "증류소")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

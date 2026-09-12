@@ -19,7 +19,7 @@ public final class BannerApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "배너", description = "앱 화면에 노출할 배너를 조회한다")
+  @Tag(name = "배너")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

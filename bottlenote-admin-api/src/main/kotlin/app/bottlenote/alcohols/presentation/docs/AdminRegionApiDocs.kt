@@ -15,7 +15,7 @@ object AdminRegionApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "지역", description = "위스키 생산 지역 기준 정보를 등록·수정·삭제하고 정렬 순서를 관리한다")
+	@Tag(name = "지역")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

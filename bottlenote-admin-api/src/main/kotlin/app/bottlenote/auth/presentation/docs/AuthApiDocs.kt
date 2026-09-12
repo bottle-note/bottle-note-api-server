@@ -13,7 +13,7 @@ object AuthApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "인증", description = "관리자 로그인, 토큰 재발급, 관리자 계정 등록·탈퇴를 처리한다")
+	@Tag(name = "인증")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

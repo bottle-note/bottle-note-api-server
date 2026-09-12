@@ -15,7 +15,7 @@ import java.time.LocalDate
 object AdminAlcoholStatisticsApiDocs {
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "통계", description = "Admin 시계열 통계 API")
+	@Tag(name = "통계")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

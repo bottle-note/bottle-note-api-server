@@ -20,7 +20,7 @@ public final class AlcoholQueryApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "위스키 조회", description = "위스키를 검색하고 상세 정보를 확인한다")
+  @Tag(name = "위스키 조회")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -15,7 +15,7 @@ object AdminBannerApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "배너", description = "앱에 노출되는 배너를 등록·수정·삭제하고 노출 상태와 정렬 순서를 관리한다")
+	@Tag(name = "배너")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

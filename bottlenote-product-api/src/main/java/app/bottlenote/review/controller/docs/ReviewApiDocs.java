@@ -27,7 +27,7 @@ public final class ReviewApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "리뷰", description = "위스키에 대한 리뷰를 작성하고 조회하고 수정한다")
+  @Tag(name = "리뷰")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -20,7 +20,7 @@ public final class AlcoholPopularApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "인기 위스키", description = "기간과 기준별로 집계한 인기 위스키를 제공한다")
+  @Tag(name = "인기 위스키")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -15,7 +15,7 @@ object AdminTastingTagApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "테이스팅 태그", description = "위스키 맛·향 테이스팅 태그를 등록·수정·삭제하고 위스키와의 연결을 관리한다")
+	@Tag(name = "테이스팅 태그")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

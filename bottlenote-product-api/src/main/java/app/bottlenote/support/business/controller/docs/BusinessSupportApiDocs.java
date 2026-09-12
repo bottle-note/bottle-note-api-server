@@ -20,7 +20,7 @@ public final class BusinessSupportApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "비즈니스 문의", description = "제휴와 협업 문의를 등록하고 관리한다")
+  @Tag(name = "비즈니스 문의")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)
