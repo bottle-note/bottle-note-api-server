@@ -21,7 +21,6 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
 import app.bottlenote.user.repository.RootAdminRepository;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -264,15 +263,29 @@ public class AuthService {
   }
 
   private String generateNickname() {
-    List<String> a =
-        Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
-    List<String> b =
-        Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
-    List<String> c =
-        Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
-    String key = a.get(randomValue.nextInt(a.size()));
-    if (randomValue.nextInt() % 2 == 0) key += b.get(randomValue.nextInt(b.size()));
-    else key += c.get(randomValue.nextInt(c.size()));
-    return key + oauthRepository.getNextNicknameSequence();
+    List<String> adjectives =
+        List.of(
+            "부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한",
+            "은은한", "묵직한", "섬세한", "산뜻한", "우아한", "따뜻한", "몰티한", "진한", "화사한", "짙은향의",
+            "오일리한", "깔끔한", "왁시한", "향긋한", "달큰한", "드라이한", "클래식한", "매력적인", "감미로운", "쌉싸름한",
+            "상쾌한", "담백한", "다채로운", "균형잡힌", "개성있는", "펑키한", "낭만적인", "뚜따한", "플로럴한", "싱그러운",
+            "포근한", "짙은", "경쾌한", "생기있는", "높은도수의", "기분좋은", "향연가득한", "황이느껴지는", "훈제향의", "여운있는");
+    List<String> whiskyTerms =
+        List.of(
+            "몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크",
+            "보틀킬", "피트", "셰리", "하이볼", "니트", "배럴", "오크", "스피릿", "테이스팅", "글렌캐런",
+            "증류기", "시음회", "피니시", "몰트바", "BYOB");
+    List<String> brands =
+        List.of(
+            "글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스",
+            "아드벡", "라프로익", "보모어", "발베니", "글렌리벳", "글렌모렌지", "하이랜드파크", "스프링뱅크", "아란", "벤로막",
+            "와일드터키", "메이커스마크", "우드포드리저브", "스태그", "부커스");
+    String nickname = adjectives.get(randomValue.nextInt(adjectives.size()));
+    if (randomValue.nextInt() % 2 == 0) {
+      nickname += whiskyTerms.get(randomValue.nextInt(whiskyTerms.size()));
+    } else {
+      nickname += brands.get(randomValue.nextInt(brands.size()));
+    }
+    return nickname + oauthRepository.getNextNicknameSequence();
   }
 }
