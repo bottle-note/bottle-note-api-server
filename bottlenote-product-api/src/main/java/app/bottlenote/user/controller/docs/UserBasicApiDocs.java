@@ -21,7 +21,7 @@ public final class UserBasicApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "회원 정보")
+  @Tag(name = "회원")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -18,7 +18,7 @@ public final class AgreementApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "사용자 동의")
+  @Tag(name = "인증")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -18,7 +18,7 @@ public final class LikesApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "좋아요")
+  @Tag(name = "리뷰")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

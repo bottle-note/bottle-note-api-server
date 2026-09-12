@@ -20,7 +20,7 @@ public final class AlcoholPopularApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "인기 위스키")
+  @Tag(name = "위스키")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

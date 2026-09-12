@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 object AdminAlcoholBulkApiDocs {
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "알코올 벌크")
+	@Tag(name = "알코올")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

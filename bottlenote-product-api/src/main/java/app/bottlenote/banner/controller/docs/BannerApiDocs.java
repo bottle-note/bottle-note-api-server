@@ -19,7 +19,7 @@ public final class BannerApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "배너")
+  @Tag(name = "공통")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

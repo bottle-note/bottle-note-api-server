@@ -20,7 +20,7 @@ public final class CurationSpecApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "큐레이션 명세")
+  @Tag(name = "큐레이션")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

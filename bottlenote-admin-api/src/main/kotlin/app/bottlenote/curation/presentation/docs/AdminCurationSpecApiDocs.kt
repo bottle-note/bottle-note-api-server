@@ -14,7 +14,7 @@ object AdminCurationSpecApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "큐레이션 스펙")
+	@Tag(name = "큐레이션")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

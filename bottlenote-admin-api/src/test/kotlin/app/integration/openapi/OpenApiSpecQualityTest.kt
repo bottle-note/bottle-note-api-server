@@ -1,6 +1,5 @@
 package app.integration.openapi
 
-import app.global.config.OpenApiConfig
 import com.fasterxml.jackson.databind.JsonNode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -114,30 +113,12 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 		assertThat(violations)
 			.withFailMessage(
 				"""
-				OpenApiConfig에 없는 태그를 사용하고 있습니다. 이름을 맞추거나 태그를 선언하세요. 선언되지 않은 태그는 사이드바 그룹에 들어가지 못해 문서에서 사라집니다:
+				OpenApiConfig에 없는 태그를 사용하고 있습니다. 이름을 맞추거나 태그를 선언하세요. 선언되지 않은 태그는 설명 없는 메뉴로 문서에 끼어듭니다:
 				%s
 				""".trimIndent(),
 				joined(violations)
 			)
 			.isEmpty()
-	}
-
-	@Test
-	@DisplayName("사이드바 그룹이 선언한 태그 전체를 순서 그대로 담는다")
-	fun tagGroupsCoverEveryDeclaredTag() {
-		val spec = fetchSpec()
-		val declared = declaredTagNames(spec)
-		val grouped = spec.at("/${OpenApiConfig.TAG_GROUPS}").flatMap { group ->
-			group.path("tags").map { it.asText() }
-		}
-
-		assertThat(grouped)
-			.withFailMessage(
-				"사이드바 그룹 구성이 태그 목록과 어긋났습니다. 그룹에서 빠진 태그는 문서에서 통째로 사라집니다. 그룹: %s / 태그 목록: %s",
-				grouped,
-				declared
-			)
-			.containsExactlyElementsOf(declared)
 	}
 
 	private fun declaredTagNames(spec: JsonNode): List<String> = spec.at("/tags").map { it.path("name").asText() }

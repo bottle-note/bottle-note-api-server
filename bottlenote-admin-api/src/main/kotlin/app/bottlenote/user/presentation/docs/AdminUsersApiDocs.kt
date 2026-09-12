@@ -13,7 +13,7 @@ object AdminUsersApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "회원 관리")
+	@Tag(name = "운영 지원")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

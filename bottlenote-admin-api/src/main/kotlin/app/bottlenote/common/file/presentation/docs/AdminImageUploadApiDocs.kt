@@ -12,7 +12,7 @@ object AdminImageUploadApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "이미지 업로드")
+	@Tag(name = "운영 지원")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

@@ -18,7 +18,7 @@ public final class ImageUploadApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "이미지 업로드")
+  @Tag(name = "공통")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)
