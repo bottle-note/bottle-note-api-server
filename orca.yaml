@@ -1,0 +1,4 @@
+scripts:
+  setup: |
+    #!/usr/bin/env bash
+    bash ./orca.sh
