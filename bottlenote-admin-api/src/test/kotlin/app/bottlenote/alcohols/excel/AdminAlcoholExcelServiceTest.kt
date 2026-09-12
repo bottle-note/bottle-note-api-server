@@ -139,8 +139,8 @@ class AdminAlcoholExcelServiceTest {
 		}
 
 		@Test
-		@DisplayName("1페이지 사용 안내·ID 참조 시트·마지막 입력 시트와 헤더 스타일을 가진다")
-		fun template_hasFixedStructureWithoutImageColumn() {
+		@DisplayName("1페이지 사용 안내·ID 참조 시트·마지막 입력 시트와 선택 이미지 파일명 열을 가진다")
+		fun template_hasFixedStructureWithOptionalImageFileNameColumn() {
 			val bytes = service.createTemplateWorkbook()
 
 			WorkbookFactory.create(ByteArrayInputStream(bytes)).use { workbook ->
@@ -150,14 +150,19 @@ class AdminAlcoholExcelServiceTest {
 
 				val dataSheet = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
 				val headerRow = dataSheet.getRow(0)
-				assertThat(AlcoholExcelSchema.HEADERS).contains("지역 ID", "증류소 ID", "카테고리 ID", "테이스팅 태그 ID", "설명")
+				assertThat(AlcoholExcelSchema.HEADERS).contains("지역 ID", "증류소 ID", "카테고리 ID", "테이스팅 태그 ID", "설명", "이미지 파일명")
+				assertThat(AlcoholExcelSchema.HEADERS).hasSize(14)
 				AlcoholExcelSchema.HEADERS.forEachIndexed { index, expected ->
 					val headerCell = headerRow.getCell(index)
 					assertThat(headerCell.stringCellValue).isEqualTo(expected)
 					assertThat(headerCell.cellStyle.fillForegroundColor).isEqualTo(IndexedColors.DARK_BLUE.index)
 					assertThat(workbook.getFontAt(headerCell.cellStyle.fontIndexAsInt).bold).isTrue()
 				}
+				assertThat(dataSheet.getRow(1).getCell(AlcoholExcelSchema.Column.IMAGE_FILE_NAME.index).stringCellValue)
+					.isEqualTo(AlcoholExcelSchema.DESCRIPTIONS[AlcoholExcelSchema.Column.IMAGE_FILE_NAME.index])
 				assertThat(dataSheet.getRow(2)).isNull()
+				assertThat(workbook.getName("AlcoholImportDescriptionRow").refersToFormula)
+					.isEqualTo("'알코올 데이터'!\$A\$2:\$N\$2")
 
 				val regionSheet = workbook.getSheet(AlcoholExcelSchema.REGION_SHEET_NAME)
 				assertThat(regionSheet.getRow(0).getCell(0).stringCellValue).isEqualTo("ID")
@@ -175,6 +180,8 @@ class AdminAlcoholExcelServiceTest {
 				assertThat(guideText).contains("오류 코드")
 				assertThat(guideText).contains("DUPLICATE_CANDIDATE")
 				assertThat(guideText).contains("이미 등록된 알코올 후보입니다")
+				assertThat(guideText).contains("이미지 파일명")
+				assertThat(guideText).contains("glenfiddich-12.png")
 			}
 		}
 	}
@@ -220,7 +227,58 @@ class AdminAlcoholExcelServiceTest {
 			assertThat(row.description).isEqualTo("스페이사이드 대표 싱글몰트")
 			assertThat(row.korCategory).isEqualTo("싱글 몰트")
 			assertThat(row.engCategory).isEqualTo("Single Malt")
+			assertThat(row.imageFileName).isNull()
 			assertThat(row.normalized?.clientRowId()).isEqualTo("3")
+			assertThat(row.normalized?.imageUrl()).isNull()
+		}
+
+		@Test
+		@DisplayName("기존 13열 템플릿도 검증한다")
+		fun validate_whenLegacy13ColumnTemplate_acceptsWorkbook() {
+			val file =
+				workbookAsMultipart { workbook ->
+					stripToLegacy13Columns(workbook)
+					writeDataRow(workbook, validRowValues())
+				}
+
+			val result = service.validate(file)
+			assertThat(result.validRows).isEqualTo(1)
+			assertThat(result.rows.single().imageFileName).isNull()
+			assertThat(result.rows.single().normalized?.imageUrl()).isNull()
+		}
+
+		@Test
+		@DisplayName("14열 이미지 파일명을 원문 그대로 반환하고 imageUrl로 바꾸지 않는다")
+		fun validate_whenImageFileNamePresent_returnsOriginalFileName() {
+			val fileName = "Glenfiddich 12.png"
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(
+						workbook,
+						validRowValues() + fileName
+					)
+				}
+
+			val result = service.validate(file)
+			val row = result.rows.single()
+			assertThat(row.valid).isTrue()
+			assertThat(row.imageFileName).isEqualTo(fileName)
+			assertThat(row.normalized?.imageUrl()).isNull()
+			assertThat(bulkService.receivedRequests.single().rows().single().imageUrl()).isNull()
+		}
+
+		@Test
+		@DisplayName("이미지 파일명이 비어 있어도 기존 검증 흐름을 유지한다")
+		fun validate_whenImageFileNameBlank_keepsExistingFlow() {
+			val file =
+				workbookAsMultipart { workbook ->
+					writeDataRow(workbook, validRowValues() + "")
+				}
+
+			val result = service.validate(file)
+			assertThat(result.validRows).isEqualTo(1)
+			assertThat(result.rows.single().imageFileName).isNull()
+			assertThat(result.rows.single().normalized?.imageUrl()).isNull()
 		}
 
 		@Test
@@ -595,7 +653,7 @@ class AdminAlcoholExcelServiceTest {
 		}
 
 		@Test
-		@DisplayName("시트 순서와 참조 시트 변경은 허용하지만 데이터 열 추가는 거절한다")
+		@DisplayName("시트 순서와 참조 시트 변경은 허용하지만 15번째 데이터 열 추가는 거절한다")
 		fun validate_whenSheetOrderChanges_acceptsButExtraDataColumnRejects() {
 			val reordered =
 				workbookAsMultipart { workbook ->
@@ -612,10 +670,30 @@ class AdminAlcoholExcelServiceTest {
 					workbook
 						.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
 						.getRow(2)
-						.createCell(13)
+						.createCell(14)
 						.setCellValue("지원하지 않음")
 				}
 			assertThatThrownBy { service.validate(withExtraColumn) }
+				.isInstanceOf(AlcoholException::class.java)
+				.extracting("exceptionCode")
+				.isEqualTo(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
+		}
+
+		@Test
+		@DisplayName("기존 13열 파일의 14번째 데이터 셀은 EXCEL_HEADER_MISMATCH 로 거절한다")
+		fun validate_whenLegacy13ColumnHasFourteenthDataCell_rejectsWorkbook() {
+			val file =
+				workbookAsMultipart { workbook ->
+					stripToLegacy13Columns(workbook)
+					writeDataRow(workbook, validRowValues())
+					workbook
+						.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+						.getRow(AlcoholExcelSchema.DATA_START_ROW_INDEX)
+						.createCell(AlcoholExcelSchema.Column.IMAGE_FILE_NAME.index)
+						.setCellValue("legacy-extra.png")
+				}
+
+			assertThatThrownBy { service.validate(file) }
 				.isInstanceOf(AlcoholException::class.java)
 				.extracting("exceptionCode")
 				.isEqualTo(AlcoholExceptionCode.EXCEL_HEADER_MISMATCH)
@@ -820,6 +898,18 @@ class AdminAlcoholExcelServiceTest {
 			val cell = row.getCell(index) ?: row.createCell(index)
 			cell.setCellValue(value)
 		}
+	}
+
+	private fun stripToLegacy13Columns(workbook: XSSFWorkbook) {
+		val sheet = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+		val imageIndex = AlcoholExcelSchema.Column.IMAGE_FILE_NAME.index
+		sheet.getRow(AlcoholExcelSchema.HEADER_ROW_INDEX).getCell(imageIndex)?.let { cell ->
+			sheet.getRow(AlcoholExcelSchema.HEADER_ROW_INDEX).removeCell(cell)
+		}
+		sheet.getRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX).getCell(imageIndex)?.let { cell ->
+			sheet.getRow(AlcoholExcelSchema.DESCRIPTION_ROW_INDEX).removeCell(cell)
+		}
+		workbook.getName("AlcoholImportDescriptionRow")?.refersToFormula = "'알코올 데이터'!\$A\$2:\$M\$2"
 	}
 
 	private fun validRowValues(): List<String> = listOf(

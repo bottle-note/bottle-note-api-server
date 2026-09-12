@@ -928,7 +928,10 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(result.response.contentType).isEqualTo(AlcoholExcelSchema.XLSX_CONTENT_TYPE)
 			assertThat(result.response.getHeader("Content-Disposition")).contains(AlcoholExcelSchema.TEMPLATE_FILENAME)
 			WorkbookFactory.create(ByteArrayInputStream(result.response.contentAsByteArray)).use { workbook ->
-				assertThat(workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)).isNotNull()
+				val dataSheet = workbook.getSheet(AlcoholExcelSchema.DATA_SHEET_NAME)
+				assertThat(dataSheet).isNotNull()
+				assertThat(dataSheet.getRow(0).getCell(AlcoholExcelSchema.Column.IMAGE_FILE_NAME.index).stringCellValue)
+					.isEqualTo("이미지 파일명")
 			}
 		}
 

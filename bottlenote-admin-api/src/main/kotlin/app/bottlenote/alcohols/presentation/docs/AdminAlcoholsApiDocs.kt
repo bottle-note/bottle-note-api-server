@@ -110,7 +110,7 @@ object AdminAlcoholsApiDocs {
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "알코올 엑셀을 업로드해 검증한다",
-		description = "DB에 저장하지 않고 파싱·검증 결과만 반환한다. 이미지 업로드는 포함하지 않는다."
+		description = "DB에 저장하지 않고 파싱·검증 결과만 반환한다. 선택 열 이미지 파일명은 원문으로 반환하며, 이미지 업로드는 포함하지 않는다."
 	)
 	@ApiResponse(
 		responseCode = "200",

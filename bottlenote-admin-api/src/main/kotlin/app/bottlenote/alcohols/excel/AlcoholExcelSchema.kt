@@ -12,7 +12,7 @@ package app.bottlenote.alcohols.excel
  * 5. 카테고리
  * 6. 알코올 데이터 (실제 입력 시트)
  *
- * 검증할 때는 알코올 데이터 시트, 첫 행의 정확한 13개 헤더와 두 번째 설명 행이 필수다.
+ * 검증할 때는 알코올 데이터 시트, 첫 행의 기존 13개 헤더 또는 선택 열을 포함한 14개 헤더와 두 번째 설명 행이 필수다.
  * 안내·참조 시트의 순서와 추가 메모 시트는 허용한다.
  *
  * 매핑 규칙:
@@ -62,8 +62,12 @@ object AlcoholExcelSchema {
 			"캐스크",
 			"설명",
 			"용량",
-			"테이스팅 태그 ID"
+			"테이스팅 태그 ID",
+			"이미지 파일명"
 		)
+
+	/** 이미지 파일명 열이 없는 기존 13열 템플릿 헤더. */
+	val LEGACY_HEADERS = HEADERS.dropLast(1)
 
 	val DESCRIPTIONS =
 		listOf(
@@ -79,7 +83,8 @@ object AlcoholExcelSchema {
 			"선택: 캐스크 타입",
 			"선택: 제품 설명",
 			"숫자 또는 단위 표기 (예: 700ml, 70cl, 0.7L)",
-			"테이스팅 태그 시트의 ID. 여러 개는 | 로 구분 (예: 1|3)"
+			"테이스팅 태그 시트의 ID. 여러 개는 | 로 구분 (예: 1|3)",
+			"선택: 확장자를 포함한 이미지 파일명. 비워 두면 이미지 없이 등록합니다"
 		)
 
 	/** 사용 안내 시트 예제 1행 (실제 입력 시트에는 넣지 않음). */
@@ -97,7 +102,8 @@ object AlcoholExcelSchema {
 			"American Oak",
 			"스페이사이드 대표 싱글몰트 위스키",
 			"700.00",
-			"1|2"
+			"1|2",
+			"glenfiddich-12.png"
 		)
 
 	data class ErrorCatalogItem(
@@ -155,6 +161,7 @@ object AlcoholExcelSchema {
 		CASK(9, "캐스크"),
 		DESCRIPTION(10, "설명"),
 		VOLUME(11, "용량"),
-		TASTING_TAG_IDS(12, "테이스팅 태그 ID")
+		TASTING_TAG_IDS(12, "테이스팅 태그 ID"),
+		IMAGE_FILE_NAME(13, "이미지 파일명")
 	}
 }
