@@ -14,7 +14,7 @@ object AdminDistilleryApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "기준 정보")
+	@Tag(name = "생산지")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)
