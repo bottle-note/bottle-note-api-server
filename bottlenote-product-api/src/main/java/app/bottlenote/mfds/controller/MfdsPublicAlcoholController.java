@@ -50,7 +50,7 @@ public class MfdsPublicAlcoholController {
 
   @MfdsPublicApiDocs.ListCountries
   @GetMapping("/countries")
-  public ResponseEntity<GlobalResponse> listCountries() {
+  public ResponseEntity<GlobalResponse> getCountries() {
     return GlobalResponse.ok(mfdsPublicQueryService.listCountries());
   }
 }

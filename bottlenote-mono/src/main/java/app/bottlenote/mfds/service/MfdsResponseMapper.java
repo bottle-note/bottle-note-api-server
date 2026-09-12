@@ -7,7 +7,7 @@ import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse.MatchCandidate;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationListItem;
 import app.bottlenote.mfds.dto.response.MfdsImporterItem;
-import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetail;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
 import app.bottlenote.mfds.dto.response.MfdsRcnoLinkItem;
@@ -163,9 +163,9 @@ final class MfdsResponseMapper {
         declaration.getImporterBaseName());
   }
 
-  static MfdsPublicAlcoholDetail toPublicAlcoholDetail(
+  static MfdsPublicAlcoholDetailResponse toPublicAlcoholDetail(
       MfdsDeclaration declaration, MfdsPublicImporterItem importer) {
-    return new MfdsPublicAlcoholDetail(
+    return new MfdsPublicAlcoholDetailResponse(
         declaration.getId(),
         declaration.getRcno(),
         declaration.getProcessedDate(),
