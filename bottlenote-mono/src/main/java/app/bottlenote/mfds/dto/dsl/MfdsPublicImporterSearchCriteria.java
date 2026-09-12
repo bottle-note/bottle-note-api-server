@@ -18,6 +18,12 @@ public record MfdsPublicImporterSearchCriteria(
     return cursorId != null;
   }
 
+  /** 커서 컨텍스트. 커서는 포함하지 않으며 request에서 바로 계산할 수 있다. */
+  public static String cursorContext(MfdsPublicImporterSearchRequest request) {
+    return "mfds.public.importers:"
+        + String.join(" ", SearchKeywordTokenizer.tokenize(request.keyword()));
+  }
+
   public String cursorContext() {
     return "mfds.public.importers:" + String.join(" ", searchTokens);
   }

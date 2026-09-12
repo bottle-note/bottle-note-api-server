@@ -1,6 +1,7 @@
 package app.bottlenote.global.pagination;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** 커서 sortKeys/extra 값 접근 헬퍼. 키 누락과 파싱 실패를 모두 INVALID_CURSOR(400)로 변환한다. */
@@ -77,6 +78,19 @@ public final class CursorKeys {
       return null;
     }
     return parseTime(value);
+  }
+
+  /** 값이 없으면 null, 있으면 파싱 실패 시 INVALID_CURSOR. */
+  public static LocalDate optionalDate(CursorClaims claims, String key) {
+    String value = optional(claims, key);
+    if (value == null) {
+      return null;
+    }
+    try {
+      return LocalDate.parse(value);
+    } catch (RuntimeException exception) {
+      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+    }
   }
 
   /** extra 값이 없거나 숫자가 아니면 INVALID_CURSOR. RANDOM seed 복원에 쓴다. */

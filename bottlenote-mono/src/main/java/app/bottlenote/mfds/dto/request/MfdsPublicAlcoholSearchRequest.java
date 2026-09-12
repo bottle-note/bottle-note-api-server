@@ -11,7 +11,8 @@ public record MfdsPublicAlcoholSearchRequest(
     String alcoholNameKo,
     Long alcoholId,
     Long importerId,
-    @Pattern(regexp = "^[A-Za-z]{2}$") String exportCountry,
+    @Pattern(regexp = "^[A-Z]{2}$", message = "INVALID_EXPORT_COUNTRY_PATTERN")
+        String exportCountry,
     AlcoholType alcoholType,
     LocalDate processedDateFrom,
     LocalDate processedDateTo,

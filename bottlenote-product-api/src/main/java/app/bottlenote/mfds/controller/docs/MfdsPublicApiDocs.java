@@ -36,7 +36,7 @@ public final class MfdsPublicApiDocs {
           keyword는 공백 토큰 AND입니다. 제품명·SKU·주류명·카테고리·rcno·제조사명·수입사명을 부분 일치합니다.
           특정 술의 과거 수입은 alcoholNameKo 정확 일치로 묶고, 매칭된 행만 보려면 alcoholId를 씁니다.
           exportCountry는 ISO Alpha-2입니다. processedDate는 YYYY-MM-DD이며 없으면 null입니다.
-          다음 페이지는 meta.pagination.nextCursor입니다.
+          다음 페이지 정보는 meta.pagination, 조회 조건은 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(
@@ -78,6 +78,7 @@ public final class MfdsPublicApiDocs {
           노출 대상 수입사만 최신 id 순으로 내려줍니다.
 
           keyword는 공백 토큰 AND이며 상호·인허가 번호·업소 코드·대표자명을 부분 일치합니다.
+          다음 페이지 정보는 meta.pagination, 조회 조건은 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(

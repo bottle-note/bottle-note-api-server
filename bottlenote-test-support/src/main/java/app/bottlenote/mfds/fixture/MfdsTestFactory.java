@@ -69,22 +69,14 @@ public class MfdsTestFactory {
       @Nullable String exportCountryAlpha2,
       @Nullable String exportCountryNameKo) {
     MfdsDeclaration declaration =
-        MfdsTestData.declaration(
+        MfdsTestData.publicDeclaration(
             rcno,
-            MfdsNormalizationStatus.NORMALIZED,
             importerId,
-            null,
-            importerId == null ? null : "MANUAL",
+            importerBaseName,
             alcoholNameKo,
-            null,
-            processedDate);
-    MfdsTestData.set(declaration, "alcoholNameKo", alcoholNameKo);
-    MfdsTestData.set(declaration, "importerBaseName", importerBaseName);
-    MfdsTestData.set(declaration, "exportCountryAlpha2", exportCountryAlpha2);
-    MfdsTestData.set(declaration, "exportCountryNameKo", exportCountryNameKo);
-    if (importerId != null) {
-      MfdsTestData.set(declaration, "importerLinkSource", MfdsImporterLinkSource.PAGE_NAME);
-    }
+            processedDate,
+            exportCountryAlpha2,
+            exportCountryNameKo);
     em.persist(declaration);
     em.flush();
     return declaration;

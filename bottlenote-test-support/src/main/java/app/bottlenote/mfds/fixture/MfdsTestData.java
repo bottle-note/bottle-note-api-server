@@ -77,6 +77,35 @@ public final class MfdsTestData {
     return declaration;
   }
 
+  /** Product 공개 조회용 신고. 정규화 완료이며 매칭 결정 없이 검색 필드를 채운다. */
+  public static MfdsDeclaration publicDeclaration(
+      String rcno,
+      Long importerId,
+      String importerBaseName,
+      String alcoholNameKo,
+      LocalDate processedDate,
+      String exportCountryAlpha2,
+      String exportCountryNameKo) {
+    MfdsDeclaration declaration =
+        declaration(
+            rcno,
+            MfdsNormalizationStatus.NORMALIZED,
+            importerId,
+            null,
+            null,
+            alcoholNameKo,
+            null,
+            processedDate);
+    set(declaration, "alcoholNameKo", alcoholNameKo);
+    set(declaration, "importerBaseName", importerBaseName);
+    set(declaration, "exportCountryAlpha2", exportCountryAlpha2);
+    set(declaration, "exportCountryNameKo", exportCountryNameKo);
+    if (importerId != null) {
+      set(declaration, "importerLinkSource", MfdsImporterLinkSource.PAGE_NAME);
+    }
+    return declaration;
+  }
+
   public static MfdsImporterRcnoLink rcnoLink(
       String rcno, Long importerId, String sourceImporterName, MfdsImporterLinkSource linkSource) {
     MfdsImporterRcnoLink link = instantiate(MfdsImporterRcnoLink.class);

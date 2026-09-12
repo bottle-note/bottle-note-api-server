@@ -2,7 +2,7 @@ package app.bottlenote.mfds.service;
 
 import static app.bottlenote.mfds.constant.MfdsImporterAdminStatus.ACTIVE;
 import static app.bottlenote.mfds.constant.MfdsImporterAdminStatus.INACTIVE;
-import static app.bottlenote.mfds.constant.MfdsNormalizationStatus.NORMALIZED;
+import static app.bottlenote.mfds.constant.MfdsNormalizationStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -36,8 +36,8 @@ class MfdsPublicQueryServiceTest {
 
   @BeforeEach
   void setUp() {
-    declarationRepository = new InMemoryMfdsDeclarationRepository();
     importerRepository = new InMemoryMfdsImporterRepository();
+    declarationRepository = new InMemoryMfdsDeclarationRepository(importerRepository::findById);
     CursorProperties properties = new CursorProperties();
     properties.setCurrentKeyId("v1");
     properties.setCurrentSecret("test-pagination-cursor-secret");
@@ -136,6 +136,45 @@ class MfdsPublicQueryServiceTest {
   }
 
   @Test
+  @DisplayName("연결된 수입사 공식명으로도 keyword를 찾는다")
+  void 연결된_수입사_공식명으로_keyword를_찾는다() {
+    MfdsImporter importer = importerRepository.save(MfdsTestData.importer("BIZ-1", "공식상호", ACTIVE));
+    MfdsDeclaration declaration =
+        saveAlcohol("RCNO-1", "글렌피딕", "신고표시명", LocalDate.of(2026, 8, 1), "GB");
+    MfdsTestData.set(declaration, "importerId", importer.getId());
+
+    List<MfdsPublicAlcoholListItem> items =
+        service.searchAlcohols(request(null, null, null, null, null, "공식상호")).content();
+
+    assertThat(items).extracting(MfdsPublicAlcoholListItem::rcno).containsExactly("RCNO-1");
+  }
+
+  @Test
+  @DisplayName("정규화되지 않은 신고는 공개 목록과 상세에서 빠진다")
+  void 정규화되지_않은_신고는_공개에서_빠진다() {
+    saveAlcohol("RCNO-OK", "글렌피딕", "보틀상사", LocalDate.of(2026, 8, 1), "GB");
+    MfdsDeclaration pending =
+        saveAlcohol("RCNO-PENDING", "글렌피딕", "보틀상사", LocalDate.of(2026, 8, 2), "GB");
+    MfdsTestData.set(pending, "normalizationStatus", PENDING);
+
+    assertThat(service.searchAlcohols(request("글렌피딕", null, null, null, null, null)).content())
+        .extracting(MfdsPublicAlcoholListItem::rcno)
+        .containsExactly("RCNO-OK");
+    assertThatThrownBy(() -> service.getAlcohol(pending.getId())).isInstanceOf(MfdsException.class);
+  }
+
+  @Test
+  @DisplayName("정규화되지 않은 신고의 수출국은 국가 목록에서 빠진다")
+  void 정규화되지_않은_수출국은_목록에서_빠진다() {
+    MfdsDeclaration pending = saveAlcohol("RCNO-US", "버번", "보틀상사", LocalDate.of(2026, 8, 1), "US");
+    MfdsTestData.set(pending, "normalizationStatus", PENDING);
+    MfdsTestData.set(pending, "exportCountryNameKo", "미국");
+    saveAlcohol("RCNO-GB", "글렌피딕", "보틀상사", LocalDate.of(2026, 8, 2), "GB");
+
+    assertThat(service.listCountries()).extracting(item -> item.alpha2()).containsExactly("GB");
+  }
+
+  @Test
   @DisplayName("수입사 keyword는 대표자명에도 맞는다")
   void 수입사_keyword는_대표자명에도_맞는다() {
     MfdsImporter importer = importerRepository.save(MfdsTestData.importer("BIZ-1", "보틀상사", ACTIVE));
@@ -165,13 +204,14 @@ class MfdsPublicQueryServiceTest {
       String importerName,
       LocalDate processedDate,
       String country) {
-    MfdsDeclaration declaration =
-        MfdsTestData.declaration(
-            rcno, NORMALIZED, null, null, null, alcoholNameKo, null, processedDate);
-    MfdsTestData.set(declaration, "alcoholNameKo", alcoholNameKo);
-    MfdsTestData.set(declaration, "importerBaseName", importerName);
-    MfdsTestData.set(declaration, "exportCountryAlpha2", country);
-    MfdsTestData.set(declaration, "exportCountryNameKo", "GB".equals(country) ? "영국" : country);
-    return declarationRepository.save(declaration);
+    return declarationRepository.save(
+        MfdsTestData.publicDeclaration(
+            rcno,
+            null,
+            importerName,
+            alcoholNameKo,
+            processedDate,
+            country,
+            "GB".equals(country) ? "영국" : country));
   }
 }

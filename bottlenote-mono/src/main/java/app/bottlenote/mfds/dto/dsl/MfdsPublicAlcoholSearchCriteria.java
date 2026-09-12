@@ -40,7 +40,41 @@ public record MfdsPublicAlcoholSearchCriteria(
     return cursorId != null;
   }
 
+  /** 커서 컨텍스트. 커서는 포함하지 않으며 request에서 바로 계산할 수 있다. */
+  public static String cursorContext(MfdsPublicAlcoholSearchRequest request) {
+    String category = request.alcoholType() == null ? null : request.alcoholType().getKorCategory();
+    return buildCursorContext(
+        request.alcoholNameKo(),
+        request.alcoholId(),
+        request.importerId(),
+        request.exportCountry(),
+        category,
+        request.processedDateFrom(),
+        request.processedDateTo(),
+        SearchKeywordTokenizer.tokenize(request.keyword()));
+  }
+
   public String cursorContext() {
+    return buildCursorContext(
+        alcoholNameKo,
+        alcoholId,
+        importerId,
+        exportCountry,
+        alcoholCategoryKo,
+        processedDateFrom,
+        processedDateTo,
+        searchTokens);
+  }
+
+  private static String buildCursorContext(
+      String alcoholNameKo,
+      Long alcoholId,
+      Long importerId,
+      String exportCountry,
+      String alcoholCategoryKo,
+      LocalDate processedDateFrom,
+      LocalDate processedDateTo,
+      List<String> searchTokens) {
     return "mfds.public.alcohols:"
         + nullToEmpty(alcoholNameKo)
         + ":"
