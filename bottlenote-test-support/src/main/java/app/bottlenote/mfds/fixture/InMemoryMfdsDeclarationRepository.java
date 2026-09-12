@@ -4,6 +4,8 @@ import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -69,6 +71,41 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
         .anyMatch(declaration -> Objects.equals(declaration.getImporterId(), importerId));
   }
 
+  @Override
+  public List<MfdsDeclaration> searchPublicAlcohols(MfdsPublicAlcoholSearchCriteria criteria) {
+    return database.values().stream()
+        .filter(declaration -> matchesPublic(declaration, criteria))
+        .sorted(
+            Comparator.comparing(
+                    MfdsDeclaration::getProcessedDate,
+                    Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(MfdsDeclaration::getId, Comparator.reverseOrder()))
+        .limit(criteria.fetchLimit())
+        .toList();
+  }
+
+  @Override
+  public List<MfdsPublicCountryItem> findExportCountries() {
+    return database.values().stream()
+        .filter(declaration -> declaration.getExportCountryAlpha2() != null)
+        .collect(
+            java.util.stream.Collectors.toMap(
+                MfdsDeclaration::getExportCountryAlpha2,
+                declaration ->
+                    new MfdsPublicCountryItem(
+                        declaration.getExportCountryAlpha2(),
+                        declaration.getExportCountryNameKo(),
+                        declaration.getExportCountryNameEn()),
+                (left, right) -> left,
+                java.util.LinkedHashMap::new))
+        .values()
+        .stream()
+        .sorted(
+            Comparator.comparing(
+                item -> item.nameKo() == null ? "" : item.nameKo(), String.CASE_INSENSITIVE_ORDER))
+        .toList();
+  }
+
   private boolean matches(MfdsDeclaration declaration, MfdsDeclarationSearchCriteria criteria) {
     if (criteria.normalizationStatus() != null
         && declaration.getNormalizationStatus() != criteria.normalizationStatus()) {
@@ -97,5 +134,83 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
 
   private boolean containsIgnoreCase(String value, String lowerKeyword) {
     return value != null && value.toLowerCase(Locale.ROOT).contains(lowerKeyword);
+  }
+
+  private boolean matchesPublic(
+      MfdsDeclaration declaration, MfdsPublicAlcoholSearchCriteria criteria) {
+    if (criteria.alcoholNameKo() != null
+        && !Objects.equals(declaration.getAlcoholNameKo(), criteria.alcoholNameKo())) {
+      return false;
+    }
+    if (criteria.alcoholId() != null
+        && !Objects.equals(declaration.getSelectedAlcoholId(), criteria.alcoholId())) {
+      return false;
+    }
+    if (criteria.importerId() != null
+        && !Objects.equals(declaration.getImporterId(), criteria.importerId())) {
+      return false;
+    }
+    if (criteria.exportCountry() != null
+        && !Objects.equals(declaration.getExportCountryAlpha2(), criteria.exportCountry())) {
+      return false;
+    }
+    if (criteria.alcoholCategoryKo() != null
+        && !Objects.equals(declaration.getAlcoholCategoryKo(), criteria.alcoholCategoryKo())) {
+      return false;
+    }
+    if (criteria.processedDateFrom() != null
+        && (declaration.getProcessedDate() == null
+            || declaration.getProcessedDate().isBefore(criteria.processedDateFrom()))) {
+      return false;
+    }
+    if (criteria.processedDateTo() != null
+        && (declaration.getProcessedDate() == null
+            || declaration.getProcessedDate().isAfter(criteria.processedDateTo()))) {
+      return false;
+    }
+    if (!matchesPublicTokens(declaration, criteria.searchTokens())) {
+      return false;
+    }
+    return isAfterPublicCursor(
+        declaration, criteria.cursorProcessedDate(), criteria.cursorId());
+  }
+
+  private boolean matchesPublicTokens(MfdsDeclaration declaration, List<String> tokens) {
+    if (tokens == null || tokens.isEmpty()) {
+      return true;
+    }
+    return tokens.stream()
+        .allMatch(
+            token ->
+                containsIgnoreCase(declaration.getRcno(), token)
+                    || containsIgnoreCase(declaration.getBaseProductNameKo(), token)
+                    || containsIgnoreCase(declaration.getBaseProductNameEn(), token)
+                    || containsIgnoreCase(declaration.getSkuDisplayNameKo(), token)
+                    || containsIgnoreCase(declaration.getSkuDisplayNameEn(), token)
+                    || containsIgnoreCase(declaration.getAlcoholNameKo(), token)
+                    || containsIgnoreCase(declaration.getAlcoholNameEn(), token)
+                    || containsIgnoreCase(declaration.getAlcoholCategoryKo(), token)
+                    || containsIgnoreCase(declaration.getAlcoholCategoryEn(), token)
+                    || containsIgnoreCase(declaration.getManufacturerName(), token)
+                    || containsIgnoreCase(declaration.getImporterBaseName(), token));
+  }
+
+  private boolean isAfterPublicCursor(
+      MfdsDeclaration declaration, java.time.LocalDate cursorDate, Long cursorId) {
+    if (cursorId == null) {
+      return true;
+    }
+    java.time.LocalDate processedDate = declaration.getProcessedDate();
+    if (cursorDate == null) {
+      return processedDate == null && declaration.getId() < cursorId;
+    }
+    if (processedDate == null) {
+      return true;
+    }
+    int compared = processedDate.compareTo(cursorDate);
+    if (compared < 0) {
+      return true;
+    }
+    return compared == 0 && declaration.getId() < cursorId;
   }
 }

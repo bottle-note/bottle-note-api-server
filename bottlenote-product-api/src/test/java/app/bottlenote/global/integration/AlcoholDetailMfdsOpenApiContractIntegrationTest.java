@@ -33,7 +33,7 @@ class AlcoholDetailMfdsOpenApiContractIntegrationTest extends OpenApiSpecTestSup
         .contains("alcohols", "friendsInfo", "reviewInfo")
         .doesNotContain("mfdsDeclarations");
     assertThat(childNamesOf(spec.at("/components/schemas")).toList())
-        .doesNotContain("MfdsPublicDeclarationItem", "MfdsPublicImporterItem");
+        .doesNotContain("MfdsPublicDeclarationItem");
   }
 
   private JsonNode resolve(JsonNode spec, JsonNode schema) {

@@ -4,6 +4,7 @@ import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsImporterSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicImporterSearchCriteria;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -79,6 +80,17 @@ public class InMemoryMfdsImporterRepository implements MfdsImporterRepository {
     return database.values().stream().filter(importer -> matches(importer, criteria)).count();
   }
 
+  @Override
+  public List<MfdsImporter> searchPublicImporters(MfdsPublicImporterSearchCriteria criteria) {
+    return database.values().stream()
+        .filter(importer -> importer.getAdminStatus() == MfdsImporterAdminStatus.ACTIVE)
+        .filter(importer -> matchesPublicTokens(importer, criteria.searchTokens()))
+        .filter(importer -> !criteria.hasCursor() || importer.getId() < criteria.cursorId())
+        .sorted(Comparator.comparing(MfdsImporter::getId).reversed())
+        .limit(criteria.fetchLimit())
+        .toList();
+  }
+
   private boolean matches(MfdsImporter importer, MfdsImporterSearchCriteria criteria) {
     if (criteria.adminStatus() != null && importer.getAdminStatus() != criteria.adminStatus()) {
       return false;
@@ -94,5 +106,18 @@ public class InMemoryMfdsImporterRepository implements MfdsImporterRepository {
 
   private boolean containsIgnoreCase(String value, String lowerKeyword) {
     return value != null && value.toLowerCase(Locale.ROOT).contains(lowerKeyword);
+  }
+
+  private boolean matchesPublicTokens(MfdsImporter importer, List<String> tokens) {
+    if (tokens == null || tokens.isEmpty()) {
+      return true;
+    }
+    return tokens.stream()
+        .allMatch(
+            token ->
+                containsIgnoreCase(importer.getBusinessName(), token)
+                    || containsIgnoreCase(importer.getLicenseNo(), token)
+                    || containsIgnoreCase(importer.getOfficialBusinessCode(), token)
+                    || containsIgnoreCase(importer.getRepresentativeName(), token));
   }
 }

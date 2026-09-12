@@ -3,6 +3,7 @@ package app.bottlenote.mfds.domain;
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.dto.dsl.MfdsImporterSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicImporterSearchCriteria;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,9 @@ public interface MfdsImporterRepository {
 
   /** 검색 조건에 맞는 수입사를 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */
   List<MfdsImporter> searchByCriteria(MfdsImporterSearchCriteria criteria);
+
+  /** Product 공개 수입사 목록. ACTIVE만 내리고 limit은 pageSize+1이다. */
+  List<MfdsImporter> searchPublicImporters(MfdsPublicImporterSearchCriteria criteria);
 
   /** cursor를 제외한 목록 조회 조건의 전체 건수를 반환한다. */
   long countByCriteria(MfdsImporterSearchCriteria criteria);
