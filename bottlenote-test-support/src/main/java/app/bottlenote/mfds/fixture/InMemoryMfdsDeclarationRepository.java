@@ -49,18 +49,6 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
   }
 
   @Override
-  public List<MfdsDeclaration> findNormalizedBySelectedAlcoholId(Long alcoholId, int limit) {
-    return database.values().stream()
-        .filter(declaration -> Objects.equals(declaration.getSelectedAlcoholId(), alcoholId))
-        .filter(
-            declaration ->
-                declaration.getNormalizationStatus() == MfdsNormalizationStatus.NORMALIZED)
-        .sorted(Comparator.comparing(MfdsDeclaration::getId).reversed())
-        .limit(limit)
-        .toList();
-  }
-
-  @Override
   public List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria) {
     return database.values().stream()
         .filter(declaration -> matches(declaration, criteria))

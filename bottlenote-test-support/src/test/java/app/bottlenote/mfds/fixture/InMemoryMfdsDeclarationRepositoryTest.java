@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
-import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,83 +51,6 @@ class InMemoryMfdsDeclarationRepositoryTest {
 
     assertThat(result).extracting(MfdsDeclaration::getRcno).containsExactly("RCNO-003", "RCNO-002");
     assertThat(repository.countByCriteria(criteria)).isEqualTo(2L);
-  }
-
-  @Test
-  @DisplayName("selectedAlcoholId와 NORMALIZED 조건을 모두 만족하는 신고만 id 내림차순으로 반환한다")
-  void selectedAlcoholId와_NORMALIZED로_조회할_수_있다() {
-    MfdsDeclaration first =
-        MfdsTestData.declaration(
-            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 77L, "CANDIDATE", null, null);
-    MfdsDeclaration second =
-        MfdsTestData.declaration(
-            "RCNO-002", MfdsNormalizationStatus.NORMALIZED, null, 77L, "MANUAL", null, null);
-    repository.save(first);
-    repository.save(second);
-    repository.save(
-        MfdsTestData.declaration(
-            "RCNO-003", MfdsNormalizationStatus.NORMALIZED, null, 88L, "MANUAL", null, null));
-    repository.save(declaration("RCNO-004", MfdsNormalizationStatus.REVIEW_REQUIRED));
-    repository.save(
-        MfdsTestData.declaration(
-            "RCNO-005",
-            MfdsNormalizationStatus.REVIEW_REQUIRED,
-            null,
-            77L,
-            "REVIEW",
-            null,
-            null));
-    repository.save(
-        MfdsTestData.declaration(
-            "RCNO-006", MfdsNormalizationStatus.PARTIAL, null, 77L, "CANDIDATE", null, null));
-
-    List<MfdsDeclaration> result = repository.findNormalizedBySelectedAlcoholId(77L, 20);
-
-    assertThat(result).extracting(MfdsDeclaration::getRcno).containsExactly("RCNO-002", "RCNO-001");
-  }
-
-  @Test
-  @DisplayName("공개 조회 상한을 넘는 신고가 쌓여 있어도 id 내림차순 상위 limit건만 반환한다")
-  void 공개_조회는_상한까지만_반환한다() {
-    for (int index = 1; index <= 25; index++) {
-      repository.save(
-          MfdsTestData.declaration(
-              String.format("RCNO-%03d", index),
-              MfdsNormalizationStatus.NORMALIZED,
-              null,
-              77L,
-              "MANUAL",
-              null,
-              null));
-    }
-
-    List<MfdsDeclaration> result = repository.findNormalizedBySelectedAlcoholId(77L, 20);
-
-    assertThat(result).hasSize(20);
-    assertThat(result).extracting(MfdsDeclaration::getRcno).startsWith("RCNO-025", "RCNO-024");
-    assertThat(result).extracting(MfdsDeclaration::getRcno).endsWith("RCNO-006");
-    assertThat(result)
-        .extracting(MfdsDeclaration::getId)
-        .isSortedAccordingTo(Comparator.reverseOrder());
-  }
-
-  @Test
-  @DisplayName("selectedAlcoholId가 있어도 REVIEW_REQUIRED 상태면 공개 조회에서 제외한다")
-  void selectedAlcoholId가_있어도_REVIEW_REQUIRED면_제외한다() {
-    repository.save(
-        MfdsTestData.declaration(
-            "RCNO-REVIEW",
-            MfdsNormalizationStatus.REVIEW_REQUIRED,
-            null,
-            77L,
-            "REVIEW",
-            null,
-            null));
-    repository.save(
-        MfdsTestData.declaration(
-            "RCNO-STALE", MfdsNormalizationStatus.STALE, null, 77L, "MANUAL", null, null));
-
-    assertThat(repository.findNormalizedBySelectedAlcoholId(77L, 20)).isEmpty();
   }
 
   @Test
