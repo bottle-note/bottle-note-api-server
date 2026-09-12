@@ -25,7 +25,7 @@ public final class NotificationApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "알림함", description = "인증 사용자의 알림 목록을 조회하고 읽음 처리한다")
+  @Tag(name = "알림함")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

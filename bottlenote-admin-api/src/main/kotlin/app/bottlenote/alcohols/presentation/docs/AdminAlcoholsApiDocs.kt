@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 object AdminAlcoholsApiDocs {
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "알코올", description = "Admin 알코올 조회·등록·수정·삭제·엑셀 검증 API")
+	@Tag(name = "알코올")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

@@ -17,7 +17,7 @@ public final class AppInfoApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "서버 정보", description = "현재 배포된 서버의 버전과 환경 정보를 확인한다")
+  @Tag(name = "서버 정보")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

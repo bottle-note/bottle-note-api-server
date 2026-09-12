@@ -104,6 +104,13 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
       return tags.isArray() && !tags.isEmpty() ? tags.get(0).asText() : "";
     }
 
+    /** 문서에 선언된 태그 전체. */
+    List<String> tags() {
+      return StreamSupport.stream(definition.at("/tags").spliterator(), false)
+          .map(JsonNode::asText)
+          .toList();
+    }
+
     String summary() {
       return definition.path("summary").asText("");
     }

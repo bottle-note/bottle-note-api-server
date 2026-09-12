@@ -21,7 +21,7 @@ public final class RatingApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "별점", description = "위스키에 별점을 주고 조회한다")
+  @Tag(name = "별점")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

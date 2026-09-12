@@ -14,7 +14,7 @@ object AdminCurationSpecApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "큐레이션 스펙", description = "스펙 기반 큐레이션 작성에 쓰는 스펙(필드 정의)을 조회한다")
+	@Tag(name = "큐레이션 스펙")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

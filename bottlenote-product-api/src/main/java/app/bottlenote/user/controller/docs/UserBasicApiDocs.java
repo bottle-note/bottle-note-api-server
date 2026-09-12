@@ -21,7 +21,7 @@ public final class UserBasicApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "회원 정보", description = "닉네임과 프로필 이미지를 바꾸고 탈퇴를 처리한다")
+  @Tag(name = "회원 정보")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

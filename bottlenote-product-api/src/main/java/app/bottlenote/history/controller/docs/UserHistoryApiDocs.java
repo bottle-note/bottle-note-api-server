@@ -20,7 +20,7 @@ public final class UserHistoryApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "활동 기록", description = "사용자의 활동 내역과 최근 본 위스키를 조회한다")
+  @Tag(name = "활동 기록")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

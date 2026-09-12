@@ -2,7 +2,11 @@ package app.bottlenote.global.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.global.config.OpenApiConfig;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -91,6 +95,71 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
             description으로 옮기세요. 위반하면 Scalar 같은 문서 도구가 스펙을 거부합니다:%n%s""",
             COMPONENT_NAME_PATTERN.pattern(), joined(violations))
         .isEmpty();
+  }
+
+  @Test
+  @DisplayName("태그 목록에 같은 이름이 두 번 실리지 않는다")
+  void 태그_이름은_유일하다() {
+    var names = declaredTagNames(fetchSpec());
+    var duplicated =
+        names.stream().filter(name -> Collections.frequency(names, name) > 1).distinct().toList();
+
+    assertThat(duplicated)
+        .withFailMessage(
+            """
+            같은 태그 이름이 여러 번 실렸습니다. 태그는 OpenApiConfig에서만 선언하고 \
+            문서 어노테이션에는 이름만 남기세요:%n%s""",
+            joined(duplicated))
+        .isEmpty();
+  }
+
+  @Test
+  @DisplayName("엔드포인트가 사용하는 태그는 모두 태그 목록에 선언되어 있다")
+  void 사용하는_태그가_모두_선언되어_있다() {
+    var spec = fetchSpec();
+    var declared = Set.copyOf(declaredTagNames(spec));
+    var violations =
+        operationsOf(spec).stream()
+            .flatMap(
+                operation ->
+                    operation.tags().stream()
+                        .filter(tag -> !declared.contains(tag))
+                        .map(tag -> "%s - %s".formatted(operation.endpoint(), tag)))
+            .distinct()
+            .toList();
+
+    assertThat(violations)
+        .withFailMessage(
+            """
+            OpenApiConfig에 없는 태그를 사용하고 있습니다. 이름을 맞추거나 태그를 선언하세요. \
+            선언되지 않은 태그는 사이드바 그룹에 들어가지 못해 문서에서 사라집니다:%n%s""",
+            joined(violations))
+        .isEmpty();
+  }
+
+  @Test
+  @DisplayName("사이드바 그룹이 선언한 태그 전체를 순서 그대로 담는다")
+  void 사이드바_그룹이_태그_전체를_담는다() {
+    var spec = fetchSpec();
+    var grouped =
+        StreamSupport.stream(spec.at("/" + OpenApiConfig.TAG_GROUPS).spliterator(), false)
+            .flatMap(group -> StreamSupport.stream(group.path("tags").spliterator(), false))
+            .map(JsonNode::asText)
+            .toList();
+
+    assertThat(grouped)
+        .withFailMessage(
+            """
+            사이드바 그룹 구성이 태그 목록과 어긋났습니다. 그룹에서 빠진 태그는 문서에서 통째로 사라집니다. \
+            그룹: %s / 태그 목록: %s""",
+            grouped, declaredTagNames(spec))
+        .containsExactlyElementsOf(declaredTagNames(spec));
+  }
+
+  private List<String> declaredTagNames(JsonNode spec) {
+    return StreamSupport.stream(spec.at("/tags").spliterator(), false)
+        .map(tag -> tag.path("name").asText())
+        .toList();
   }
 
   private Stream<String> parameterViolations(String owner, JsonNode parameters) {

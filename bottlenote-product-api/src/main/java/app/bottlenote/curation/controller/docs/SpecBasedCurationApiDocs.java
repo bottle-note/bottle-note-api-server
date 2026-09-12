@@ -25,7 +25,7 @@ public final class SpecBasedCurationApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "큐레이션", description = "기획으로 엮은 위스키 모음과 피드를 조회한다")
+  @Tag(name = "큐레이션")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

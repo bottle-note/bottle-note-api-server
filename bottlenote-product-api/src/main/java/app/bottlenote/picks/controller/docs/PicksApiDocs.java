@@ -18,7 +18,7 @@ public final class PicksApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "찜하기", description = "관심 있는 위스키를 찜하거나 해제한다")
+  @Tag(name = "찜하기")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

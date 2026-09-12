@@ -18,7 +18,7 @@ public final class AgreementApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "사용자 동의", description = "인증 사용자의 약관 동의 상태를 조회하고 의사표시를 기록한다")
+  @Tag(name = "사용자 동의")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

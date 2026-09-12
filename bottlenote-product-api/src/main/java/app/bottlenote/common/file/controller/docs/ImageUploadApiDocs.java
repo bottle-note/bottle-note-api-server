@@ -18,7 +18,7 @@ public final class ImageUploadApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "이미지 업로드", description = "이미지를 직접 올릴 수 있는 임시 주소를 발급한다")
+  @Tag(name = "이미지 업로드")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

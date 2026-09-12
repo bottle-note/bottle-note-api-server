@@ -18,7 +18,7 @@ public final class TastingTagApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "테이스팅 태그", description = "리뷰 문장에서 맛과 향 표현을 뽑아낸다")
+  @Tag(name = "테이스팅 태그")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

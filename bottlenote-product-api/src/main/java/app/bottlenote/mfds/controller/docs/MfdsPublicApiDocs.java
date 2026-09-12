@@ -22,7 +22,7 @@ public final class MfdsPublicApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "수입 정보", description = "식약처 수입 주류와 수입사를 조회한다")
+  @Tag(name = "수입 정보")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)
