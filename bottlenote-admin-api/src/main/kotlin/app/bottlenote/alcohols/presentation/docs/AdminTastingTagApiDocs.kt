@@ -15,7 +15,7 @@ object AdminTastingTagApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "기준 정보")
+	@Tag(name = "테이스팅 태그")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

@@ -15,7 +15,7 @@ object AdminHelpApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "운영 지원")
+	@Tag(name = "문의")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)
