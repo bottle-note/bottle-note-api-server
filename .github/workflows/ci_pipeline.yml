@@ -48,6 +48,21 @@ jobs:
             echo "| 실행자 | \`${ACTOR}\` |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  release-pipeline-tests:
+    needs: prepare
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: test release pipeline scripts
+        run: |
+          python3 .github/scripts/test_seal_deployed_source.py
+          bash .github/scripts/verify_pipeline_blocks.sh
+
   unit-tests:
     needs: prepare
     timeout-minutes: 15
