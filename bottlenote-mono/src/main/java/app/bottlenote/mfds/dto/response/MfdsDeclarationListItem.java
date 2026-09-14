@@ -2,6 +2,7 @@ package app.bottlenote.mfds.dto.response;
 
 import app.bottlenote.mfds.constant.MfdsImporterLinkSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,7 +27,7 @@ public record MfdsDeclarationListItem(
     MfdsImporterLinkSource importerLinkSource,
     Long selectedAlcoholId,
     String alcoholMatchDecision,
-    boolean distilleryLinked,
-    boolean regionLinked,
+    @NotNull boolean distilleryLinked,
+    @NotNull boolean regionLinked,
     LocalDateTime matchedAt,
     LocalDateTime createdAt) {}

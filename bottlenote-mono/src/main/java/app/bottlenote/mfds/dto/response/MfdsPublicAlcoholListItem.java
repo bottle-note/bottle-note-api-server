@@ -1,5 +1,6 @@
 package app.bottlenote.mfds.dto.response;
 
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -17,8 +18,8 @@ public record MfdsPublicAlcoholListItem(
     String alcoholCategoryKo,
     String alcoholCategoryEn,
     Short ageYears,
-    boolean distilleryLinked,
-    boolean regionLinked,
+    @NotNull boolean distilleryLinked,
+    @NotNull boolean regionLinked,
     String exportCountryAlpha2,
     String exportCountryNameKo,
     Integer volumeMl,
