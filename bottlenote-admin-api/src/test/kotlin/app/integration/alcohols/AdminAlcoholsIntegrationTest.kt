@@ -71,7 +71,11 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			Arguments.of(AdminAlcoholSortType.ENG_NAME, SortOrder.ASC),
 			Arguments.of(AdminAlcoholSortType.ENG_NAME, SortOrder.DESC),
 			Arguments.of(AdminAlcoholSortType.KOR_CATEGORY, SortOrder.ASC),
-			Arguments.of(AdminAlcoholSortType.ENG_CATEGORY, SortOrder.DESC)
+			Arguments.of(AdminAlcoholSortType.ENG_CATEGORY, SortOrder.DESC),
+			Arguments.of(AdminAlcoholSortType.CREATED_AT, SortOrder.ASC),
+			Arguments.of(AdminAlcoholSortType.CREATED_AT, SortOrder.DESC),
+			Arguments.of(AdminAlcoholSortType.UPDATED_AT, SortOrder.ASC),
+			Arguments.of(AdminAlcoholSortType.UPDATED_AT, SortOrder.DESC)
 		)
 	}
 
