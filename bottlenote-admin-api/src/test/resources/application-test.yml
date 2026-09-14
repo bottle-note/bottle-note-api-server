@@ -1,4 +1,10 @@
 bottlenote:
+  statistics:
+    exclusion:
+      device-types: [봇, 도구]
+      # 운영 목록은 application.yml, 테스트는 검증에 필요한 최소 목록
+      ip-prefixes:
+        - 66.249.
   access-control:
     enabled: false
 

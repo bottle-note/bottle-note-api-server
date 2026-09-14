@@ -1,159 +1,55 @@
 ---
 name: self-review
 description: |
-  Pre-commit quality gate with 5-axis code review.
-  Trigger: "/self-review", or when the user says "리뷰해줘", "review this", "코드 리뷰", "self review".
-  상태 기반: 커밋 직전 스테이징된 변경이 있을 때, /implement Task 완료 직후.
-  Evaluates code across correctness, readability, architecture, security, and performance.
+  /self-review, 코드 리뷰 요청, 구현한 변경의 자체 검토에 사용한다.
+  정확성·가독성·아키텍처·보안·성능을 근거로 검토하고 실제 영향에 따라 지적 사항을 보고한다.
 argument-hint: "[files or scope]"
 ---
 
 # Self-Review
 
-## Overview
+변경이 요구사항을 충족하는지 검토하고 재현 가능한 문제와 남은 위험을 설명한다. 실행 범위와 승인, Git 작업, 검증은 저장소 지침의 `스킬 실행 원칙`을 따른다.
 
-Review your own changes before committing. This is a pre-commit quality gate that catches issues before they become technical debt. Every Task completion in `/implement` should invoke this skill before committing.
+## 범위와 수정 권한
 
-The goal is not perfection — it is continuous improvement. Approve a change when it clearly improves overall code health, even if it is not exactly how a staff engineer would have written it.
+- 리뷰 요청은 기본적으로 읽기 전용이다. 파일·테스트·포맷·Git 상태를 변경하지 않으며, 사소한 스타일 문제도 임의로 고치지 않는다.
+- 진행 중인 구현이나 사용자가 함께 요청한 수정 범위에서 발견한 결함은 이미 허가된 범위 안에서 고칠 수 있다. 별도 리뷰 요청만으로 수정 권한이 생기지는 않는다.
+- 사용자가 지정한 파일·레이어·비교 기준을 우선한다. 범위가 없으면 `git status`, `git diff`, `git diff --staged`로 변경 범위를 확인하고 관련 코드와 테스트를 읽는다. 사용자 변경과 자신의 변경을 구분한다.
+- 리뷰 완료가 Git 쓰기 권한을 부여하지 않는다. 커밋·푸시·PR을 자동으로 실행하지 않는다.
 
-## When to Use
+## 검토 기준
 
-- Before every commit (mandatory in `/implement` workflow)
-- After completing a Task in `/implement`
-- When refactoring existing code
-- When the user explicitly asks for a review
+요구사항, 관련 계약과 기존 패턴을 먼저 읽고 변경의 영향에 맞춰 다음 항목을 확인한다.
 
-## When NOT to Use
+- **정확성**: 수용 조건, 정상·경계·오류 경로, 인증·권한에 따른 동작, 이벤트와 부수효과가 일치하는지 확인한다. 테스트가 중요한 동작을 검증하는지 살피고 테스트 미실행과 실패를 구분한다.
+- **가독성**: 이름·DTO·불변성·주석이 프로젝트 관례에 맞고 제어 흐름이 이해되는지 확인한다. 개인 취향이나 줄 수·파일 수만으로 결함을 판정하지 않는다.
+- **아키텍처**: 레이어 표준 15를 기준으로 포트와 구현 분리, 타 도메인 Facade 경유, Controller의 인터페이스 의존, Service의 트랜잭션·VO 책임, global과 test-support 경계를 확인한다. 인터페이스 변경 시 Fake/InMemory 갱신도 확인한다.
+- **보안**: 경계 입력 검증, 인증·인가, 쿼리·외부 호출, 민감 정보 노출을 실제 실행 경로와 함께 확인한다. 시크릿 값을 보고에 재출력하지 않는다.
+- **성능**: 실제 쿼리와 반복 경로에서 N+1, 무제한 조회, 불필요한 작업을 확인한다. 다중 인스턴스에서 공유해야 할 상태가 JVM 로컬에 있지 않은지 살피고, 측정 없이 성능 저하나 개선 수치를 단정하지 않는다.
 
-- Debugging failures (use `/debug`)
-- Writing new code (use `/implement`)
-- Running tests (use `/verify`)
-- Reviewing code that has not been written yet
+영속성 변경은 Flyway 원본과 엔티티의 일치 여부를, API 변경은 런타임 OpenAPI의 응답·스키마·인증·공개 경로 계약을 함께 검토한다. 필요한 부분만 [Java/Spring 패턴](../implement/references/languages/java-spring.md), [Web API 패턴](../implement/references/types/web-api.md), [BottleNote 패턴](../implement/references/languages/bottlenote-patterns.md)을 참고한다. 현재 코드와 저장소 지침을 우선한다.
 
-## Process
+## 지적 사항
 
-### Step 1: Identify Scope
+실제 발생 조건과 영향에 따라 심각도를 정하고 높은 순서로 보고한다.
 
-Determine which files to review.
+- **Critical**: 확인된 경로에서 보안 취약점, 데이터 손상·유실, 핵심 기능 중단을 일으키는 문제다.
+- **Important**: 특정 조건에서 잘못된 동작을 하거나 계약·프로젝트 규칙을 위반하는 문제다. 검증 누락은 어떤 위험을 확인하지 못하는지 설명한다.
+- **Nit**: 동작에 영향을 주지 않는 명명·표현 등 선택적인 개선 사항이다.
 
-- If called from `/implement`: review the current Task's changed files
-- If standalone: use `git diff --staged` or `git diff` to identify changes
-- List every changed file with a one-line summary of the change
+각 지적에는 `[심각도] 파일:줄: 문제 / 발생 조건과 이유 / 수정안`을 담고 확인한 근거를 연결한다. 아직 확인하지 못한 의심은 검증 필요 항목으로 분리한다.
 
-### Step 2: Five-Axis Review
+지적 0건이나 Nit만 있는 결과도 정상이다. 지적 수를 맞추기 위해 결함이나 Critical을 만들어내지 않으며, 취향 차이를 버그로 보고하지 않는다.
 
-Evaluate every change across these dimensions. 구체 체크 항목은 `implement/references/languages/java-spring.md`와 `implement/references/types/web-api.md`를 참조한다.
+## 허가된 수정 후 확인
 
-#### Correctness
+구현 범위의 결함을 수정했다면 필요한 회귀 테스트를 보완하고 바뀐 부분을 다시 검토한다. 중요한 요구사항·공개 계약 변경은 공통 실행 계약에 따라 확인한다. 읽기 전용 리뷰에서는 수정안을 제시하는 데 그친다.
 
-Does the code do what it claims to do?
+리뷰 자체를 이유로 로컬 테스트나 전체 빌드를 자동 실행하지 않는다. 기존 증거와 대상 SHA의 GitHub Actions를 우선 확인하고, 허가된 구현 중 필요한 최소 검사 또는 사용자가 명시한 로컬 검증만 수행한다. 동일한 변경과 범위에 유효한 검사 결과는 재사용한다.
 
-- Does it match the spec or task acceptance criteria?
-- Are edge cases handled (null, empty, boundary values, error inputs)?
-- Are error paths handled (not just the happy path)?
-- Are domain events / side effects emitted where expected?
-- Do existing tests still pass?
+## 결과 보고
 
-#### Readability
-
-Can another engineer understand this without explanation?
-
-- Names follow the project's naming conventions
-- Test display names follow the project's convention (often the user's natural language describing behavior)
-- Comments are single-line and brief — no stating the obvious
-- Data structures use the language-idiomatic immutability primitives (record/dataclass/struct)
-- No deep nesting (3+ levels) — use guard clauses
-
-#### Architecture
-
-Does the change fit the system design?
-
-- **Module boundary**: 레이어 표준 15를 지키는가 (Controller 얇게, 레포지토리 2형 분리, 타 도메인은 Facade 경유)
-- **Cross-module access**: goes through the documented seam (Facade, port, public function), never bypasses
-- **Custom conventions**: 프로젝트 특화 어노테이션(@FacadeService, @JpaRepositoryImpl 등)을 지침 정의대로 사용했는가
-
-#### Security
-
-Does the change introduce vulnerabilities?
-
-- Authenticated endpoints / commands use the project's auth primitive (not ad-hoc)
-- Inputs validated at the system boundary (request DTOs, CLI args)
-- No raw SQL / shell string concatenation — parameterized queries / safe APIs
-- Sensitive data not logged (passwords, tokens, PII)
-- No secrets in source code
-
-#### Performance
-
-Does the change introduce performance problems?
-
-- No N+1 query patterns (use fetch joins / dataloader / batched APIs)
-- List endpoints / queries have pagination
-- Read-only operations marked as such (transaction modifiers, etc.) where the language supports it
-- Caching considered for frequently accessed, rarely changed data
-- No unbounded queries / collections (always limit)
-
-### Step 3: Report Findings
-
-Categorize every finding with a severity label:
-
-| Severity | Meaning | Action |
-|----------|---------|--------|
-| **Critical** | Blocks commit — security vulnerability, data loss, broken functionality | Must fix before commit |
-| **Important** | Should fix — missing test, wrong abstraction, poor error handling | Fix or explicitly justify deferral |
-| **Nit** | Optional — naming, style, minor optimization | Fix if easy, otherwise ignore |
-
-Format each finding as:
-```
-[Severity] (Axis) file:line — description
-```
-
-Example:
-```
-[Critical] (Architecture) service.py:42 — Directly imports another module's repository instead of going through its facade
-[Important] (Correctness) handler.go:28 — Missing nil check for optional userId
-[Nit] (Readability) service.java:15 — Variable name 'r' should be descriptive
-```
-
-### Step 4: Resolve or Recommend
-
-- **Critical**: stop and fix immediately. Do not proceed to commit.
-- **Important**: propose a fix, apply if straightforward, ask user if the fix changes behavior.
-- **Nit**: fix silently if it is a one-line change. Otherwise, note it and move on.
-
-After all Critical and Important issues are resolved, proceed to commit.
-
-## Common Rationalizations
-
-| Rationalization | Reality |
-|-----------------|---------|
-| "It's just a small change, no need to review" | Small changes introduce small bugs that compound. Review everything. |
-| "The tests pass, so it must be correct" | Tests check behavior, not architecture, security, or readability. All five axes matter. |
-| "I'll clean it up in the next commit" | Deferred cleanup rarely happens. Fix it now or file a task. |
-| "This is internal code, security doesn't matter" | Internal code gets compromised too. Validate at boundaries always. |
-| "The review slows me down" | A 2-minute review prevents a 2-hour debugging session tomorrow. |
-
-## Red Flags
-
-- Skipping review for "trivial" changes
-- **All findings are Nit** — you are not looking hard enough
-- No findings at all on a multi-file change (review more carefully)
-- Ignoring Critical findings to meet a deadline
-- Reviewing without understanding the feature's intent or acceptance criteria
-- Module boundaries violated (cross-module direct access)
-- Test doubles (InMemory/Fake) not updated when an interface they implement changed
-
-## Verification
-
-After completing the review:
-
-- [ ] All Critical issues are resolved
-- [ ] All Important issues are resolved or explicitly deferred with justification
-- [ ] Module boundaries respected
-- [ ] Security checks in place at boundaries
-- [ ] No new N+1 / unbounded patterns introduced
-- [ ] Code compiles / type-checks (see `/verify` quick)
-- [ ] Unit tests pass (see `/verify` standard)
-
-## 종료
-
-지침의 **GSL Execution Mode** 규칙을 따른다. 발견 사항(심각도별 건수)과 해소 여부를 보고한다. step-by-step이면 턴을 끝내고 커밋 여부를 사용자에게 넘긴다. delegated면 Critical 0건 확인 후 커밋으로 계속한다.
+- 지적 사항을 심각도순으로 제시하고, 0건이면 그 사실과 검토 범위를 명시한다. 별문제를 찾지 못한 주요 영역도 짧게 설명한다.
+- 허가된 수정이 있었다면 변경 내용, 해소 여부와 남은 지적을 구분한다.
+- 실제 실행한 검사와 관찰한 Actions 결과를 구분한다. Actions의 정확한 대상 SHA·실행 상태·결론을 확인하고 실행 누락, 대기·진행 중, 실패, 조회 불가를 구분한다.
+- 테스트나 런타임을 확인하지 않았다면 미검증으로 보고한다. 이전 커밋의 성공을 미커밋 변경의 통과 근거로 쓰지 않는다.

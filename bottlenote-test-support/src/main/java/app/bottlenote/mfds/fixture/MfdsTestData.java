@@ -7,6 +7,7 @@ import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRcnoLink;
 import java.lang.reflect.Constructor;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -42,9 +43,30 @@ public final class MfdsTestData {
       String alcoholMatchDecision,
       String nameSearchKeyKo,
       String nameSearchKeyEn) {
+    return declaration(
+        rcno,
+        normalizationStatus,
+        importerId,
+        selectedAlcoholId,
+        alcoholMatchDecision,
+        nameSearchKeyKo,
+        nameSearchKeyEn,
+        null);
+  }
+
+  public static MfdsDeclaration declaration(
+      String rcno,
+      MfdsNormalizationStatus normalizationStatus,
+      Long importerId,
+      Long selectedAlcoholId,
+      String alcoholMatchDecision,
+      String nameSearchKeyKo,
+      String nameSearchKeyEn,
+      LocalDate processedDate) {
     MfdsDeclaration declaration = instantiate(MfdsDeclaration.class);
     set(declaration, "rcno", rcno);
     set(declaration, "sourceItemId", 1L);
+    set(declaration, "processedDate", processedDate);
     set(declaration, "normalizationStatus", normalizationStatus);
     set(declaration, "importerId", importerId);
     set(declaration, "selectedAlcoholId", selectedAlcoholId);
@@ -52,6 +74,35 @@ public final class MfdsTestData {
     set(declaration, "nameSearchKeyKo", nameSearchKeyKo);
     set(declaration, "nameSearchKeyEn", nameSearchKeyEn);
     set(declaration, "reviewStatus", "PENDING");
+    return declaration;
+  }
+
+  /** Product 공개 조회용 신고. 정규화 완료이며 매칭 결정 없이 검색 필드를 채운다. */
+  public static MfdsDeclaration publicDeclaration(
+      String rcno,
+      Long importerId,
+      String importerBaseName,
+      String alcoholNameKo,
+      LocalDate processedDate,
+      String exportCountryAlpha2,
+      String exportCountryNameKo) {
+    MfdsDeclaration declaration =
+        declaration(
+            rcno,
+            MfdsNormalizationStatus.NORMALIZED,
+            importerId,
+            null,
+            null,
+            alcoholNameKo,
+            null,
+            processedDate);
+    set(declaration, "alcoholNameKo", alcoholNameKo);
+    set(declaration, "importerBaseName", importerBaseName);
+    set(declaration, "exportCountryAlpha2", exportCountryAlpha2);
+    set(declaration, "exportCountryNameKo", exportCountryNameKo);
+    if (importerId != null) {
+      set(declaration, "importerLinkSource", MfdsImporterLinkSource.PAGE_NAME);
+    }
     return declaration;
   }
 

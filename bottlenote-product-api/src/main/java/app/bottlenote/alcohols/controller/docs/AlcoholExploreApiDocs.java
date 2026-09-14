@@ -20,7 +20,7 @@ public final class AlcoholExploreApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "둘러보기", description = "원하는 기준으로 콘텐츠를 둘러본다")
+  @Tag(name = "둘러보기")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)
@@ -30,8 +30,12 @@ public final class AlcoholExploreApiDocs {
       description =
           """
           인기순, 별점순, 리뷰순, 찜순, 무작위 중 원하는 기준으로 위스키를 둘러봅니다.
+          동일한 검색 조건에서는 정렬 방식과 관계없이 검색 대상이 같습니다.
+          인기 점수가 없는 위스키도 포함하며, 정렬할 때는 0점으로 취급합니다.
+          인기순의 점수 기준은 첫 페이지에서 고정되며, 점수가 같으면 ID 오름차순으로 정렬합니다.
 
-          ratingFrom/ratingTo는 목록에 표시되는 0.5 단위 반올림 집계 평점의 포함 하한/상한입니다.
+          ratingFrom/ratingTo는 목록에 표시되는 집계 평점의 포함 하한/상한입니다.
+          표시 평점은 0.5 단위 양자화 없이 소수점 첫째 자리로 정규화하며, 0점 별점은 집계에서 제외합니다.
           한쪽 경계만 보내면 이상/이하로 조회하며, 둘 다 생략하면 별점 조건을 적용하지 않습니다.
           무작위 정렬의 시드는 HMAC 커서 extra에 담기며, 다음 페이지는 meta.pagination.nextCursor를 그대로 보내면 됩니다.
           탐색 조건은 meta.searchParameters에 담깁니다.

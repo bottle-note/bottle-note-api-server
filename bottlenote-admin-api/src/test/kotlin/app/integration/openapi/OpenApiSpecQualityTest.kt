@@ -82,6 +82,47 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 			.isEmpty()
 	}
 
+	@Test
+	@DisplayName("태그 목록에 같은 이름이 두 번 실리지 않는다")
+	fun declaredTagNamesAreUnique() {
+		val names = declaredTagNames(fetchSpec())
+		val duplicated = names.filter { name -> names.count { it == name } > 1 }.distinct()
+
+		assertThat(duplicated)
+			.withFailMessage(
+				"""
+				같은 태그 이름이 여러 번 실렸습니다. 태그는 OpenApiConfig에서만 선언하고 문서 어노테이션에는 이름만 남기세요:
+				%s
+				""".trimIndent(),
+				joined(duplicated)
+			)
+			.isEmpty()
+	}
+
+	@Test
+	@DisplayName("엔드포인트가 사용하는 태그는 모두 태그 목록에 선언되어 있다")
+	fun everyUsedTagIsDeclared() {
+		val spec = fetchSpec()
+		val declared = declaredTagNames(spec).toSet()
+		val violations = operationsOf(spec)
+			.flatMap { operation ->
+				operation.tags().filterNot { it in declared }.map { "${operation.endpoint()} - $it" }
+			}
+			.distinct()
+
+		assertThat(violations)
+			.withFailMessage(
+				"""
+				OpenApiConfig에 없는 태그를 사용하고 있습니다. 이름을 맞추거나 태그를 선언하세요. 선언되지 않은 태그는 설명 없는 메뉴로 문서에 끼어듭니다:
+				%s
+				""".trimIndent(),
+				joined(violations)
+			)
+			.isEmpty()
+	}
+
+	private fun declaredTagNames(spec: JsonNode): List<String> = spec.at("/tags").map { it.path("name").asText() }
+
 	private fun parameterViolations(owner: String, parameters: JsonNode): List<String> = parameters
 		.filter { parameter -> !hasParameterSchema(parameter) }
 		.map { parameter -> "$owner - ${parameter.path("name").asText("<unnamed>")}" }

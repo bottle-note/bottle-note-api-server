@@ -59,6 +59,9 @@ abstract class OpenApiSpecTestSupport : IntegrationTestSupport() {
 			return if (tags.isArray && !tags.isEmpty) tags.get(0).asText() else ""
 		}
 
+		/** 문서에 선언된 태그 전체. */
+		fun tags(): List<String> = definition.at("/tags").map { it.asText() }
+
 		fun summary(): String = definition.path("summary").asText("")
 
 		fun operationId(): String = definition.path("operationId").asText("")

@@ -1,0 +1,7 @@
+# 릴리즈 파이프라인 공통 블록의 기대 해시. 세 서비스 레포에서 같은 값이어야 한다.
+# 형식: <sha256> <블록 이름>
+# 블록을 고치면 세 레포를 모두 고치고 이 파일의 해시도 함께 갱신한다.
+21bc8c57c4805ad2f3279c4745a9702bb4a91d4a0071935f31de442c85de3509 deployed tag lookup
+349352796602c3e9f1493621aa3a252abfcf14e781965e73b5796a4b4c81c5a6 deployed tag creation
+ef77e0a82eed20255d49e93d0c5fa0ccafb51a72d4b5668081570898f934601f candidate CI verification
+ff8c2e848066b98d60d283902730cfbea974c294a1c23a59a8868e45a70c67ff PR metadata verification

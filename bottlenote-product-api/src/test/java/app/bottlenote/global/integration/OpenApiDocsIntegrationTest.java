@@ -106,7 +106,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
     assertThat(loginOperations)
         .allSatisfy(
             operation -> {
-              JsonNode responseSchema = resolveSchema(spec, operation.successSchema());
+              JsonNode responseSchema = resolve(spec, operation.successSchema());
               assertThat(propertyNamesOf(responseSchema))
                   .containsExactlyInAnyOrder(
                       "accessToken", "isFirstLogin", "nickname", "agreementRequired");
@@ -137,12 +137,12 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
         .allSatisfy(
             operation -> {
               JsonNode statusSchema =
-                  resolveSchema(spec, operation.successSchema().path("properties").path("data"));
+                  resolve(spec, operation.successSchema().path("properties").path("data"));
               assertThat(propertyNamesOf(statusSchema))
                   .containsExactlyInAnyOrder("eligible", "items");
 
               JsonNode itemSchema =
-                  resolveSchema(spec, statusSchema.path("properties").path("items").path("items"));
+                  resolve(spec, statusSchema.path("properties").path("items").path("items"));
               assertThat(propertyNamesOf(itemSchema))
                   .containsExactlyInAnyOrder("type", "required", "agreed", "recordedAt");
             });
@@ -153,12 +153,12 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
             .findFirst()
             .orElseThrow();
     JsonNode requestSchema =
-        resolveSchema(
+        resolve(
             spec, submitOperation.definition().at("/requestBody/content/application~1json/schema"));
     assertThat(propertyNamesOf(requestSchema)).containsExactly("agreements");
     assertThat(textValuesOf(requestSchema.path("required"))).containsExactly("agreements");
     JsonNode requestItemSchema =
-        resolveSchema(spec, requestSchema.path("properties").path("agreements").path("items"));
+        resolve(spec, requestSchema.path("properties").path("agreements").path("items"));
     assertThat(propertyNamesOf(requestItemSchema))
         .containsExactlyInAnyOrder("type", "action", "content", "inputContext");
     assertThat(textValuesOf(requestItemSchema.path("required")))
@@ -167,11 +167,6 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
         .containsExactly("TERMS_OF_SERVICE", "PRIVACY_COLLECTION_USE", "MARKETING");
     assertThat(textValuesOf(requestItemSchema.path("properties").path("action").path("enum")))
         .containsExactly("AGREE", "REVOKE");
-  }
-
-  private JsonNode resolveSchema(JsonNode spec, JsonNode schema) {
-    String ref = schema.path("$ref").asText();
-    return ref.startsWith("#/") ? spec.at(ref.substring(1)) : schema;
   }
 
   private List<String> textValuesOf(JsonNode array) {

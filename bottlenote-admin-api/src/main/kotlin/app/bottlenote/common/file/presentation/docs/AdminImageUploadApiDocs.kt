@@ -12,7 +12,7 @@ object AdminImageUploadApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "이미지 업로드", description = "S3에 직접 업로드할 수 있는 presigned URL을 발급한다")
+	@Tag(name = "이미지 업로드")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

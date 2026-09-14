@@ -15,7 +15,7 @@ object AdminCurationApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "큐레이션", description = "위스키를 묶어 노출하는 큐레이션을 등록·수정·삭제하고 정렬 순서와 포함 위스키를 관리한다")
+	@Tag(name = "큐레이션")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

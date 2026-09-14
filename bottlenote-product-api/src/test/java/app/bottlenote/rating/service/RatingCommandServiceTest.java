@@ -72,6 +72,23 @@ class RatingCommandServiceTest {
     }
 
     @Test
+    @DisplayName("0점은 별점 없음을 뜻하므로 등록과 되돌리기가 모두 가능하다.")
+    void test_register_zero_rating() {
+      // given
+      fakeRatingRepository.save(
+          Rating.builder()
+              .id(RatingId.is(userId, alcoholId))
+              .ratingPoint(RatingPoint.of(5))
+              .build());
+      // when
+      RatingRegisterResponse register =
+          ratingCommandService.register(alcoholId, userId, RatingPoint.of(0.0));
+      // then
+      assertNotNull(register);
+      assertEquals("0.0", register.rating());
+    }
+
+    @Test
     @DisplayName("기존 별점을 수정 할 수 있다.")
     void test_2() {
       // given

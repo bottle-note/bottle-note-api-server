@@ -2,8 +2,10 @@ package app.bottlenote.mfds.repository;
 
 import static app.bottlenote.mfds.domain.QMfdsImporter.mfdsImporter;
 
+import app.bottlenote.mfds.constant.MfdsImporterAdminStatus;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.dto.dsl.MfdsImporterSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicImporterSearchCriteria;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -39,5 +41,18 @@ public class CustomMfdsImporterRepositoryImpl implements CustomMfdsImporterRepos
                 supporter.keywordContains(criteria.keyword()))
             .fetchOne();
     return total != null ? total : 0L;
+  }
+
+  @Override
+  public List<MfdsImporter> searchPublicImporters(MfdsPublicImporterSearchCriteria criteria) {
+    return queryFactory
+        .selectFrom(mfdsImporter)
+        .where(
+            supporter.eqAdminStatus(MfdsImporterAdminStatus.ACTIVE),
+            supporter.publicSearchTokensMatch(criteria.searchTokens()),
+            supporter.ltCursor(criteria.hasCursor(), criteria.cursorId()))
+        .orderBy(mfdsImporter.id.desc())
+        .limit(criteria.fetchLimit())
+        .fetch();
   }
 }

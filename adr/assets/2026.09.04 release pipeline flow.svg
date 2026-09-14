@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="release-pipeline-flow-title release-pipeline-flow-desc">
+      <title id="release-pipeline-flow-title">릴리즈 배포 파이프라인</title>
+      <desc id="release-pipeline-flow-desc">릴리즈 PR 병합부터 운영 반영까지의 순서도. 배포 워크플로가 immutable 태그와 latest 태그를 한 번의 push로 함께 올린 뒤 캐시 단계에서 실패해 서명과 handoff가 실행되지 않았는데도, Argo Image Updater가 이미 갱신된 latest 태그를 감지해 운영에 반영한 경로를 보여준다.</desc>
+      <defs>
+        <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;display=swap');</style>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ============ LIFELINES ============ -->
+      <line x1="124" y1="112" x2="124" y2="528" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="312" y1="112" x2="312" y2="528" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="500" y1="112" x2="500" y2="528" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="688" y1="112" x2="688" y2="528" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="876" y1="112" x2="876" y2="528" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+
+      <!-- ============ MESSAGES (drawn before boxes) ============ -->
+
+      <!-- M1: 릴리즈 PR -> 배포 워크플로 -->
+      <line x1="124" y1="200" x2="308" y2="200" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <rect x="188" y="180" width="56" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="216" y="189" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PR MERGED</text>
+
+      <!-- M2: 배포 워크플로 -> 레지스트리 (coral #1) -->
+      <line x1="316" y1="248" x2="496" y2="248" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="376" y="228" width="60" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="406" y="237" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PUSH 2 TAGS</text>
+      <rect x="336" y="256" width="140" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="406" y="265" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">immutable + *_latest_production</text>
+
+      <!-- M3: 자기 호출 - 캐시 export -->
+      <path d="M 316 288 L 356 288 L 356 320 L 320 320" fill="none" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+      <rect x="364" y="298" width="76" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="368" y="307" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">CACHE EXPORT</text>
+
+      <!-- M4: 레지스트리 -> Image Updater (비동기 폴링) -->
+      <line x1="504" y1="448" x2="684" y2="448" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow-open)"/>
+      <rect x="562" y="428" width="64" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="594" y="437" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">POLL LATEST</text>
+
+      <!-- M5: Image Updater -> 운영 (coral #2) -->
+      <line x1="692" y1="496" x2="872" y2="496" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="748" y="476" width="64" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="780" y="485" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">WRITE-BACK</text>
+      <rect x="696" y="504" width="88" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="740" y="513" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">08:51:49 · deployed</text>
+
+      <!-- ============ ACTIVATION BAR ============ -->
+      <rect x="308" y="200" width="8" height="140" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+
+      <!-- ============ FAILURE MARKER ============ -->
+      <line x1="304" y1="332" x2="320" y2="348" stroke="#2d3142" stroke-width="2"/>
+      <line x1="320" y1="332" x2="304" y2="348" stroke="#2d3142" stroke-width="2"/>
+      <rect x="328" y="334" width="108" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="332" y="343" fill="#2d3142" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">FAILED · 08:51:31</text>
+
+      <!-- ============ NOTE A: 한 번의 병합에서 두 개의 run ============ -->
+      <rect x="32" y="124" width="216" height="44" rx="6" fill="#f5f5f5"/>
+      <rect x="32" y="124" width="216" height="44" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="40" y="140" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">33374743149  pull_request      ✗ gate</text>
+      <text x="40" y="156" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.06em">33374742687  pull_request_target  → build</text>
+
+      <!-- ============ NOTE B: 실행되지 않은 단계 ============ -->
+      <rect x="212" y="364" width="200" height="44" rx="6" fill="#f5f5f5"/>
+      <rect x="212" y="364" width="200" height="44" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="312" y="382" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">cosign 서명 · 검증 미실행</text>
+      <text x="312" y="400" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">handoff / gitops job — skipped</text>
+
+      <!-- ============ ACTORS ============ -->
+      <!-- 1. 릴리즈 PR -->
+      <rect x="44" y="64" width="160" height="48" rx="6" fill="#f5f5f5"/>
+      <rect x="44" y="64" width="160" height="48" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <rect x="52" y="70" width="26" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.50)" stroke-width="0.8"/>
+      <text x="65" y="79" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PR</text>
+      <text x="124" y="102" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">릴리즈 PR 병합</text>
+
+      <!-- 2. 배포 워크플로 (focal 아님 - 흰색) -->
+      <rect x="232" y="64" width="160" height="48" rx="6" fill="#f5f5f5"/>
+      <rect x="232" y="64" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="240" y="70" width="26" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="253" y="79" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CI</text>
+      <text x="312" y="102" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">배포 워크플로</text>
+
+      <!-- 3. 레지스트리 -->
+      <rect x="420" y="64" width="160" height="48" rx="6" fill="#f5f5f5"/>
+      <rect x="420" y="64" width="160" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="428" y="70" width="26" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="441" y="79" fill="rgba(79,93,117,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">REG</text>
+      <text x="500" y="102" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">레지스트리</text>
+
+      <!-- 4. Image Updater -->
+      <rect x="608" y="64" width="160" height="48" rx="6" fill="#f5f5f5"/>
+      <rect x="608" y="64" width="160" height="48" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+      <rect x="616" y="70" width="38" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+      <text x="635" y="79" fill="rgba(45,49,66,0.70)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GITOPS</text>
+      <text x="688" y="102" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Image Updater</text>
+
+      <!-- 5. 운영 클러스터 -->
+      <rect x="796" y="64" width="160" height="48" rx="6" fill="#f5f5f5"/>
+      <rect x="796" y="64" width="160" height="48" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="804" y="70" width="30" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="819" y="79" fill="rgba(79,93,117,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PROD</text>
+      <text x="876" y="102" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">운영 클러스터</text>
+
+      <!-- ============ ANNOTATION CALLOUT ============ -->
+      <text x="968" y="576" fill="#eb6c36" font-size="14" font-style="italic" font-family="'Instrument Serif', 'Noto Serif KR', serif" text-anchor="end">워크플로는 실패했는데 18초 뒤 운영에 반영됐다</text>
+      <path d="M 904 584 Q 884 544 844 500" fill="none" stroke="rgba(235,108,54,0.50)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="844" cy="500" r="2" fill="#eb6c36"/>
+
+      <!-- ============ LEGEND ============ -->
+      <line x1="32" y1="624" x2="968" y2="624" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="32" y="648" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+      <line x1="132" y1="644" x2="156" y2="644" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="164" y="648" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">원자성 붕괴 지점</text>
+
+      <line x1="348" y1="644" x2="372" y2="644" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4"/>
+      <text x="380" y="648" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">비동기 폴링</text>
+
+      <rect x="548" y="638" width="24" height="12" rx="2" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="580" y="648" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">미실행 단계</text>
+
+      <line x1="756" y1="638" x2="768" y2="650" stroke="#2d3142" stroke-width="2"/>
+      <line x1="768" y1="638" x2="756" y2="650" stroke="#2d3142" stroke-width="2"/>
+      <text x="780" y="648" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">워크플로 실패</text>
+    </svg>

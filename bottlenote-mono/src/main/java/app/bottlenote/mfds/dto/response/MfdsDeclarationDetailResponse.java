@@ -11,6 +11,7 @@ import java.util.List;
 public record MfdsDeclarationDetailResponse(
     Long id,
     String rcno,
+    LocalDate processedDate,
     String baseProductNameKo,
     String baseProductNameEn,
     String skuDisplayNameKo,

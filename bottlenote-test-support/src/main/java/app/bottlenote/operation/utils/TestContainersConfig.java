@@ -71,7 +71,10 @@ public class TestContainersConfig {
     return new FakeWebhookRestTemplate();
   }
 
-  private static final String MINIO_IMAGE = "minio/minio:latest";
+  // Docker Hub minio/minio 배포 중단. quay 고정 태그 사용.
+  private static final DockerImageName MINIO_IMAGE =
+      DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z")
+          .asCompatibleSubstituteFor("minio/minio");
   private static final String MINIO_ACCESS_KEY = "minioadmin";
   private static final String MINIO_SECRET_KEY = "minioadmin";
   private static final String TEST_BUCKET = "test-bucket";

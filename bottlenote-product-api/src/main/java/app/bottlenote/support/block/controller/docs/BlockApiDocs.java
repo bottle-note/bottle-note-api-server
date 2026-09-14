@@ -19,7 +19,7 @@ public final class BlockApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "차단", description = "다른 사용자를 차단하고 차단 관계를 조회한다")
+  @Tag(name = "차단")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

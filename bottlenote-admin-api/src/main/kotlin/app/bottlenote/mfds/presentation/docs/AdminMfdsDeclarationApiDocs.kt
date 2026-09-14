@@ -17,10 +17,7 @@ object AdminMfdsDeclarationApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(
-		name = "수입 정보",
-		description = "식약처 수입 원장에서 수집한 수입사와 수입 신고 데이터를 조회하고, 수입사 연결 근거와 BottleNote 위스키 매칭을 관리한다"
-	)
+	@Tag(name = "수입 정보")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)
@@ -44,6 +41,8 @@ object AdminMfdsDeclarationApiDocs {
 			- REVIEW / AMBIGUOUS / CONFLICT_REVIEW: 사람이 판단해야 하는 상태다
 
 			목록은 ID 내림차순이며 커서 방식으로 페이징합니다. 응답 meta의 nextCursor를 다음 요청의 cursor로 전달하면 다음 페이지를 받을 수 있습니다.
+
+			processedDate는 식약처 수입 원장에 기록된 통관일자이며 YYYY-MM-DD 형식입니다. 원본에 값이 없으면 null로 내려갑니다.
 			""",
 		responses = [
 			ApiResponse(
@@ -77,6 +76,8 @@ object AdminMfdsDeclarationApiDocs {
 			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
 
 			이 밖에 정규화 배치가 남긴 AUTO_SELECTED, NO_MATCH, REVIEW, AMBIGUOUS, CONFLICT_REVIEW 가 그대로 노출될 수 있습니다.
+
+			processedDate는 식약처 수입 원장에 기록된 통관일자이며 YYYY-MM-DD 형식입니다. 원본에 값이 없으면 null로 내려갑니다.
 			""",
 		responses = [
 			ApiResponse(

@@ -19,7 +19,7 @@ public final class AuthApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "인증", description = "소셜 로그인과 토큰 발급·검증을 처리한다")
+  @Tag(name = "인증")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

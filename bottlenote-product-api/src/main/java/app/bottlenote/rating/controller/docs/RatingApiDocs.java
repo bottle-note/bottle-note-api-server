@@ -21,7 +21,7 @@ public final class RatingApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "별점", description = "위스키에 별점을 주고 조회한다")
+  @Tag(name = "마이페이지")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)
@@ -30,7 +30,7 @@ public final class RatingApiDocs {
       summary = "위스키에 별점을 준다",
       description =
           """
-          위스키에 0.5 단위의 별점을 남깁니다.
+          위스키에 0.5 단위의 별점을 남깁니다. 0점은 별점 없음을 뜻하며 노출 집계에서 제외됩니다.
 
           이미 별점을 준 위스키에 다시 요청하면 기존 별점을 덮어씁니다. 별점은 리뷰와 별개로 관리되므로 리뷰 없이도 줄 수 있습니다.
           """,

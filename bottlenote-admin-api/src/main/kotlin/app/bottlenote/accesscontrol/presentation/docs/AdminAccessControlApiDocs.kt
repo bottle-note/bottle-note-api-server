@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 object AdminAccessControlApiDocs {
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "IP 접근 제어", description = "IP 차단 상태, 감사 이력, 보안 signal 판정을 관리한다")
+	@Tag(name = "IP 접근 제어")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

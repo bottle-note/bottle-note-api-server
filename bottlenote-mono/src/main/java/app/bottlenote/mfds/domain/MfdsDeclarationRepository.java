@@ -2,6 +2,8 @@ package app.bottlenote.mfds.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,16 +28,6 @@ public interface MfdsDeclarationRepository {
 
   Optional<MfdsDeclaration> findByRcno(String rcno);
 
-  /**
-   * Product 공개용 검증 완료 신고를 id 내림차순으로 최대 {@code limit}건 조회한다.
-   *
-   * <p>조건: selectedAlcoholId 일치 AND normalizationStatus=NORMALIZED. selectedAlcoholId만 있고
-   * REVIEW_REQUIRED 등으로 강등된 행은 제외한다.
-   *
-   * <p>한 주류에 신고가 누적되어도 응답 크기와 엔티티 hydration 비용이 늘지 않도록 조회 단계에서 상한을 적용한다. limit은 1 이상이어야 한다.
-   */
-  List<MfdsDeclaration> findNormalizedBySelectedAlcoholId(Long alcoholId, int limit);
-
   /** 검색 조건에 맞는 신고 데이터를 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */
   List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria);
 
@@ -44,4 +36,10 @@ public interface MfdsDeclarationRepository {
 
   /** 해당 수입사에 연결된 신고 데이터 존재 여부를 확인한다. 수입사 삭제 가드에 쓴다. */
   boolean existsByImporterId(Long importerId);
+
+  /** Product 공개 수입 주류 목록. 정규화 완료 행만 내리며 limit은 pageSize+1이다. */
+  List<MfdsDeclaration> searchPublicAlcohols(MfdsPublicAlcoholSearchCriteria criteria);
+
+  /** 정규화 완료 원장에 등장한 수출국 ISO Alpha-2 목록. */
+  List<MfdsPublicCountryItem> findExportCountries();
 }

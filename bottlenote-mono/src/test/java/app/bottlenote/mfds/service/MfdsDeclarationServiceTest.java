@@ -20,6 +20,7 @@ import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsImporterRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -92,6 +93,41 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
+  @DisplayName("수입 신고 목록에 통관일자를 그대로 전달한다")
+  void 수입_신고_목록에_통관일자를_전달할_수_있다() {
+    LocalDate processedDate = LocalDate.of(2026, 3, 15);
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001",
+            MfdsNormalizationStatus.NORMALIZED,
+            null,
+            null,
+            null,
+            null,
+            null,
+            processedDate);
+    declarationRepository.save(declaration);
+
+    GlobalResponse response =
+        service.search(new MfdsDeclarationSearchRequest(null, null, null, null, null, null, 20L));
+
+    MfdsDeclarationListItem item = (MfdsDeclarationListItem) ((List<?>) response.getData()).get(0);
+    assertThat(item.processedDate()).isEqualTo(processedDate);
+  }
+
+  @Test
+  @DisplayName("수입 신고 목록 매핑에서 통관일자가 없으면 null을 유지한다")
+  void 수입_신고_목록에서_빈_통관일자를_null로_유지한다() {
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, null, null);
+
+    MfdsDeclarationListItem item = MfdsResponseMapper.toDeclarationListItem(declaration);
+
+    assertThat(item.processedDate()).isNull();
+  }
+
+  @Test
   @DisplayName("상세 조회할 때 연결된 수입사 정보와 매칭 후보를 포함한다")
   void 상세를_조회할_수_있다() {
     MfdsImporter importer =
@@ -116,6 +152,40 @@ class MfdsDeclarationServiceTest {
     assertThat(detail.importer().businessName()).isEqualTo("보틀상사");
     assertThat(detail.alcoholCandidates()).hasSize(2);
     assertThat(detail.alcoholCandidates().get(0).candidateId()).isEqualTo(77L);
+  }
+
+  @Test
+  @DisplayName("상세 조회할 때 통관일자를 그대로 전달한다")
+  void 상세에_통관일자를_전달할_수_있다() {
+    LocalDate processedDate = LocalDate.of(2026, 3, 15);
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001",
+            MfdsNormalizationStatus.NORMALIZED,
+            null,
+            null,
+            null,
+            null,
+            null,
+            processedDate);
+    declarationRepository.save(declaration);
+
+    MfdsDeclarationDetailResponse detail = service.getDetail(declaration.getId());
+
+    assertThat(detail.processedDate()).isEqualTo(processedDate);
+  }
+
+  @Test
+  @DisplayName("상세 조회할 때 통관일자가 없으면 null을 유지한다")
+  void 상세에서_빈_통관일자를_null로_유지한다() {
+    MfdsDeclaration declaration =
+        declarationRepository.save(
+            MfdsTestData.declaration(
+                "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, null, null));
+
+    MfdsDeclarationDetailResponse detail = service.getDetail(declaration.getId());
+
+    assertThat(detail.processedDate()).isNull();
   }
 
   @Test

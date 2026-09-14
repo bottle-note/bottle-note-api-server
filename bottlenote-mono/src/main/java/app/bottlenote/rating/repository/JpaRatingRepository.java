@@ -36,7 +36,7 @@ public interface JpaRatingRepository
 
   @Override
   @Query(
-      "select coalesce(avg(r.ratingPoint.rating), 0.0) from rating r where r.id.alcoholId = :alcoholId and r.ratingPoint.rating > 0.0")
+      "select cast(round(coalesce(avg(r.ratingPoint.rating), 0.0) + 0.000000001D, 1) as double) from rating r where r.id.alcoholId = :alcoholId and r.ratingPoint.rating > 0.0")
   Double findAverageRatingByAlcoholId(@Param("alcoholId") Long alcoholId);
 
   @Override
@@ -49,7 +49,7 @@ public interface JpaRatingRepository
       """
       select new app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse(
         r.id.alcoholId,
-        coalesce(avg(r.ratingPoint.rating), 0.0),
+        cast(round(coalesce(avg(r.ratingPoint.rating), 0.0) + 0.000000001D, 1) as double),
         count(r)
       )
       from rating r

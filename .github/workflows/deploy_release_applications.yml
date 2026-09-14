@@ -18,6 +18,21 @@ on:
         description: Applications to deploy
         required: true
         type: string
+      release_type:
+        description: Release PR type (standard or hotfix)
+        required: false
+        default: standard
+        type: string
+      candidate_sha:
+        description: Reviewed PR head SHA
+        required: false
+        default: ''
+        type: string
+      base_source_sha:
+        description: Previously deployed Release PR source for a hotfix
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -61,6 +76,9 @@ jobs:
           SOURCE_SHA_INPUT: ${{ inputs.source_sha }}
           RELEASE_KEY_INPUT: ${{ inputs.release_key }}
           DEPLOYMENT_MODE_INPUT: ${{ inputs.deployment_mode }}
+          RELEASE_TYPE_INPUT: ${{ inputs.release_type }}
+          CANDIDATE_SHA_INPUT: ${{ inputs.candidate_sha }}
+          BASE_SOURCE_SHA_INPUT: ${{ inputs.base_source_sha }}
         run: |
           set -euo pipefail
           git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
@@ -121,10 +139,42 @@ jobs:
             source_sha="$SOURCE_SHA_INPUT"
             release_key="$RELEASE_KEY_INPUT"
             deployment_mode="$DEPLOYMENT_MODE_INPUT"
+            release_type="${RELEASE_TYPE_INPUT:-standard}"
             deployment_source="release-pr"
-            source_ref="main"
             git cat-file -e "${source_sha}^{commit}" || { echo "::error::source_sha is not available as a commit"; exit 1; }
-            git merge-base --is-ancestor "$source_sha" origin/main || { echo "::error::source_sha is not contained in origin/main: $source_sha"; exit 1; }
+
+            case "$release_type" in
+              standard)
+                [[ -z "$BASE_SOURCE_SHA_INPUT" ]] || {
+                  echo "::error::standard release must not provide base_source_sha"
+                  exit 1
+                }
+                git merge-base --is-ancestor "$source_sha" origin/main || {
+                  echo "::error::standard source_sha is not contained in origin/main: $source_sha"
+                  exit 1
+                }
+                source_ref="main"
+                ;;
+              hotfix)
+                [[ "$CANDIDATE_SHA_INPUT" =~ ^[0-9a-f]{40}$ && "$BASE_SOURCE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]] || {
+                  echo "::error::hotfix release requires candidate_sha and base_source_sha"
+                  exit 1
+                }
+                git cat-file -e "${CANDIDATE_SHA_INPUT}^{commit}"
+                git cat-file -e "${BASE_SOURCE_SHA_INPUT}^{commit}"
+                read -r merge_sha first_parent second_parent extra_parent <<< "$(git rev-list --parents -n 1 "$source_sha")"
+                [[ "$merge_sha" == "$source_sha" && "$first_parent" == "$BASE_SOURCE_SHA_INPUT" && \
+                   "$second_parent" == "$CANDIDATE_SHA_INPUT" && -z "${extra_parent:-}" ]] || {
+                  echo "::error::hotfix deployment source is not the verified base-plus-candidate merge"
+                  exit 1
+                }
+                source_ref="hotfixes/${release_key}"
+                ;;
+              *)
+                echo "::error::release_type must be standard or hotfix"
+                exit 1
+                ;;
+            esac
 
             image_version="${release_date//-/.}.${sequence}"
             product_image_tag="product_${image_version}"
@@ -152,6 +202,7 @@ jobs:
             echo "- Release key: \`${release_key}\`"
             echo "- Deployment mode: \`${deployment_mode}\`"
             echo "- Deployment source: \`${deployment_source}\`"
+            [[ "$deployment_source" != "release-pr" ]] || echo "- Release type: \`${release_type}\`"
             echo "- Version: \`${version}\`"
             echo "- Product image tag: \`${product_image_tag}\`"
             echo "- Admin image tag: \`${admin_image_tag}\`"

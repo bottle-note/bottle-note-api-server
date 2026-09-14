@@ -19,7 +19,7 @@ public final class UserMyPageApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "마이페이지", description = "사용자가 남긴 리뷰·별점·찜 기록을 모아 보여준다")
+  @Tag(name = "마이페이지")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

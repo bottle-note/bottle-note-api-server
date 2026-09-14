@@ -1,255 +1,35 @@
-# Type: web-api
+# BottleNote HTTP API
 
-Language-independent patterns for HTTP-based API servers (REST primarily; GraphQL notes at the end). Pair with `languages/java-spring.md` for concrete code.
+Product Java와 Admin Kotlin의 HTTP 계약을 변경할 때 읽는다. 프로젝트 지침의 `스킬 실행 원칙`과 [Java·Kotlin 패턴](../languages/java-spring.md)을 따른다.
 
-## Layer Breakdown (universal)
+## 구현 경계
 
-```
-HTTP request
-    ↓
-[Surface]          controller / route / handler        — thin, parses request, calls service
-    ↓
-[Service]          service / use case / interactor     — business logic, orchestration
-    ↓
-[Repository]       data access                          — persistence boundary
-    ↓
-[Domain model]     entities / value objects             — core types
-```
+Product Controller는 `bottlenote-product-api/src/main/java/app/bottlenote/`, Admin Controller·Docs는 `bottlenote-admin-api/src/main/kotlin/app/bottlenote/{domain}/presentation/`와 `presentation/docs/`에서 찾는다. 기존 경로·버전·메서드·상태 코드를 먼저 확인하고 주변 패턴을 유지한다.
 
-Rules:
-- **Surface is thin** — parse / validate inputs, call service, format response. No business logic.
-- **Cross-module access** goes through a `Facade` / port / public function — never direct repository injection from another domain.
-- **Domain model knows nothing about HTTP** — it should be unit-testable without any framework.
+Controller는 인증 주체와 요청 DTO를 해석하여 인터페이스를 호출한다. 도메인 VO 생성, 트랜잭션, 타 도메인 Facade 조합은 Service가 담당한다. 현재 보안 정책 어노테이션·필터를 확인하고 사용자별 소유권 검증을 보존한다. 선택 인증과 필수 인증을 혼동하지 않는다.
 
-## DTO Conventions
+응답은 실제 `GlobalResponse`의 success·code·data·errors·meta 계약과 전역 예외 처리를 따른다. 다른 프레임워크의 error JSON이나 새 상태 코드 규칙을 끼워 넣지 않는다. Entity를 응답 DTO에 직접 노출하지 않는다. 공개 필드·타입·인증·정렬 의미가 바뀌면 호환성 영향과 사용자 결정을 확인한다.
 
-### Request DTO
+## 페이징
 
-- Immutable (record / dataclass / struct with no setters)
-- Validation at the boundary (Bean Validation / Pydantic / `validator` tags)
-- Reject extra fields if the framework supports it (Pydantic v2 `model_config = ConfigDict(extra="forbid")`, Java `@JsonIgnoreProperties(ignoreUnknown = false)`)
-- Defaults at the DTO level (pagination size, sort), not in service
+현재 공통 구현은 mono의 `app/bottlenote/global/pagination/`에 있다. `KeysetPageRequest`, `KeysetPageResponse`, `KeysetPagination.fromOverflow`, `HmacCursorCodec`와 대상 Repository를 함께 읽는다. Product·Admin 모두 endpoint마다 계약이 다를 수 있으므로 “Admin은 항상 offset”이라고 가정하지 않는다.
 
-### Response DTO
+- `pageSize + 1`개로 다음 페이지 여부를 판단하고 반환할 항목은 pageSize까지만 남긴다.
+- nextCursor는 **반환하는 마지막 item**에서 만든다. 버리는 초과 item을 쓰면 다음 페이지 첫 항목이 누락될 수 있다.
+- 현재 `KeysetPagination`은 다음 페이지가 없으면 nextCursor를 null로 반환한다.
+- 정렬 값이 같을 때의 ID tie-breaker, ASC/DESC와 seek 조건, null 정렬, 검색 조건·사용자 범위에 묶인 cursor 검증을 보존한다.
+- 빈 결과, 정확히 pageSize개, pageSize+1개, 연속 두 페이지의 누락·중복, 잘못되거나 다른 조건의 cursor를 테스트한다.
 
-- Separate type from Domain model — DTO must NOT reference Entity directly
-- Conversion via factory (`of(...)` / `from_domain(...)`) in service layer
-- Stable shape across releases (additive only) — see Versioning below
+Offset API는 현재 endpoint의 page·size·total 계약을 유지하되 Spring Data 타입을 도메인 포트에 새로 노출하지 않는다. 새 코드는 실제 공통 타입과 해당 endpoint의 계약을 확인하여 작성한다.
 
-## Endpoint Design
+## OpenAPI와 오류
 
-### HTTP Method × URL Pattern
+Product는 `/api/v1/openapi.product.json`, Admin은 `/admin/api/v1/openapi.admin.json`을 제공한다. Docs 인터페이스·Controller의 어노테이션과 실제 GlobalResponse data 스키마, 오류 응답, 인증 정책을 함께 갱신한다.
 
-| Method | Purpose | URL Pattern | Body | Idempotent |
-|--------|---------|-------------|------|------------|
-| GET | List | `/{resources}` | none | yes |
-| GET | Detail | `/{resources}/{id}` | none | yes |
-| POST | Create | `/{resources}` | request DTO | no |
-| PUT | Full update / replace | `/{resources}/{id}` | full DTO | yes |
-| PATCH | Partial update | `/{resources}/{id}` | partial DTO | yes |
-| DELETE | Delete | `/{resources}/{id}` | none | yes |
+품질 테스트는 실제 application context의 springdoc JSON을 읽어야 한다. 경로·operation·파라미터·명시적 응답 타입·bearer 요구사항과 공개 문서 정책을 확인한다. 상세 위치는 [테스트 참조](../../../test/references/testing/java.md)에 있다. 입력 실패와 비즈니스 예외가 구분되는지, 민감한 내부 정보가 오류나 로그에 노출되지 않는지도 확인한다.
 
-Sub-resources:
+## 부수효과와 다중 인스턴스
 
-| Method | URL Pattern | Example |
-|--------|-------------|---------|
-| POST | `/{resources}/{id}/{sub}` | `POST /curations/1/items` |
-| DELETE | `/{resources}/{id}/{sub}/{subId}` | `DELETE /curations/1/items/5` |
-| PATCH | `/{resources}/{id}/{field}` | `PATCH /curations/1/status` |
+트랜잭션 안에서 publishEvent를 호출하고, 커밋 후 실행할 부수효과는 AFTER_COMMIT listener로 연결한다. 발행 호출을 “post-commit” 위치로 옮기지 않는다. 비동기 처리와 새 트랜잭션은 각각 `@Async`와 `REQUIRES_NEW`의 책임이다.
 
-### Status Code Conventions
-
-| Code | Use |
-|------|-----|
-| 200 | Successful GET / PUT / PATCH / DELETE with body |
-| 201 | Successful POST creating a new resource |
-| 204 | Successful operation with no body (rare for APIs) |
-| 400 | Client-side validation failure |
-| 401 | Missing / invalid authentication |
-| 403 | Authenticated but not authorized for this resource |
-| 404 | Resource not found |
-| 409 | Conflict (duplicate, version mismatch) |
-| 422 | Request structurally valid but semantically wrong (some teams use 400 instead) |
-| 429 | Rate limit |
-| 5xx | Server-side failure (never leak internals in body) |
-
-Pick a project convention for 400 vs 422 and stick to it (이 저장소: 지침의 예외 처리 규칙 참조).
-
-## Error Model
-
-### Shape
-
-```json
-{
-  "success": false,
-  "code": "RATING_NOT_FOUND",
-  "message": "rating not found",
-  "errors": [
-    { "field": "rating", "reason": "must be between 0 and 5" }
-  ],
-  "meta": { "requestId": "...", "timestamp": "..." }
-}
-```
-
-- `code`: enum-like stable string (machine-readable)
-- `message`: human-readable, may localize but keep `code` stable
-- `errors`: field-level details for 400 / 422
-- `meta`: tracing aids
-
-### Implementation
-
-- Domain-specific exception classes (`{Domain}Exception` + `{Domain}ExceptionCode` enum)
-- Global handler at the framework boundary (Spring `@RestControllerAdvice`, FastAPI `exception_handler`, Go middleware)
-- Never leak stack traces or framework internals to the client
-- Log internally with correlation ID, return the same correlation ID to the client (`requestId` in `meta`)
-
-## Auth Integration
-
-### Where auth enters
-
-```
-HTTP request
-    ↓
-[Auth middleware / filter]                              — verifies token, populates principal
-    ↓
-[Surface]    SecurityContextUtil.getUserId() / request.user / ctx.Value()
-    ↓
-[Service]    receives userId / userRole as a parameter — NOT from a static context
-```
-
-**Rule**: services receive auth principal as an explicit parameter. They should not pull from a thread-local / request-scoped global — that makes services untestable in pure unit tests.
-
-### Surface-layer extraction
-
-| Framework | Auth principal extraction |
-|-----------|---------------------------|
-| Spring | `SecurityContextUtil.getUserIdByContext().orElseThrow(...)` |
-| FastAPI | `user: User = Depends(get_current_user)` |
-| Go | `user := middleware.UserFromContext(r.Context())` |
-
-### Optional auth (public-readable endpoints)
-
-Distinguish "auth optional" (returns -1L / None / empty principal when missing) from "auth required" (rejects 401). Document both clearly.
-
-## Pagination
-
-### Cursor (preferred for public APIs)
-
-Stable under concurrent inserts, infinite scroll friendly:
-
-```
-Request:  cursor=<last_id>, pageSize=20
-Response: items[20], nextCursor=<new_last_id>, hasNext=true
-```
-
-Implementation tip: query `limit = pageSize + 1`, drop the extra item, use its ID as next cursor.
-
-### Offset (preferred for admin UIs)
-
-Page-jump UX requires it:
-
-```
-Request:  page=3, size=20
-Response: items[20], totalElements, totalPages, page, size
-```
-
-Tradeoff: offset becomes inconsistent under concurrent inserts (skip / duplicate rows). Acceptable for admin scenarios where consistency is less critical than UI capability.
-
-### Mixed-mode policy
-
-If the project has both public and admin surfaces:
-- Public: cursor, returns `pageable: { cursor, hasNext, pageSize }` in `meta`
-- Admin: offset, returns `pageable: { page, size, totalElements, totalPages }` or `GlobalResponse.fromPage(page)` equivalent
-
-## Async / Events
-
-### Domain events
-
-- Publish from the service that owns the aggregate (`publisher.publishEvent(...)`)
-- Subscribe with framework-specific listener annotation (`@TransactionalEventListener` + `@Async` in Spring, FastAPI background tasks, Go channel + worker)
-- Listener runs in **separate transaction** (`REQUIRES_NEW` or equivalent) so its failure does NOT roll back the main transaction
-
-### When to publish
-
-- After persistence success (post-commit), not in the middle of a multi-step transaction
-- Idempotently — listeners may re-run on retry
-
-### Cross-service events
-
-- Internal monolith: in-process event bus
-- Cross-service: message queue (Kafka, SQS, RabbitMQ) — but that's deployment-level, beyond a single web-api project
-
-## Versioning
-
-### URL versioning (recommended for major changes)
-
-```
-/api/v1/ratings
-/api/v2/ratings   ← breaking change in shape
-```
-
-### Header versioning (alternative)
-
-```
-Accept: application/vnd.bottlenote.v1+json
-```
-
-### Backward-compatible changes (no version bump)
-
-- Add new optional fields to request — clients ignore
-- Add new fields to response — clients ignore (only if clients use additive parsers)
-- Add new endpoints
-
-### Breaking changes (new major version)
-
-- Remove field
-- Rename field
-- Change type of existing field
-- Change semantics of existing endpoint
-
-## Idempotency
-
-- GET, PUT, DELETE: naturally idempotent
-- POST: optionally accept `Idempotency-Key` header — first request executes, subsequent same-key requests return the same response (for payment / critical flows)
-- PATCH: should be idempotent in practice but framework doesn't enforce
-
-## Folder Layout per Phase (cross-language template)
-
-```
-src/{root}/{domain}/
-├── domain/          # entities, domain repository interfaces (Phase 1 mono)
-├── dto/
-│   ├── request/     # request DTOs                     (Phase 1)
-│   └── response/    # response DTOs                    (Phase 1)
-├── exception/       # domain exceptions                (Phase 1)
-├── repository/      # repository implementations       (Phase 1)
-├── service/         # service / use case               (Phase 1)
-├── facade/          # cross-aggregate seam             (Phase 1, when needed)
-└── (controller / route / handler)                      (Phase 2 — surface)
-```
-
-The `controller / route / handler` location is language-specific:
-- Java/Spring: same `{domain}/controller/` package
-- Python/FastAPI: `{domain}/router.py`
-- Go: `internal/{domain}/handler/`
-
-## Common Anti-patterns
-
-- Business logic in the surface layer (route/controller has `if`s about domain state — push down to service)
-- Service depends on framework-specific request object (depend on plain types: `userId: long`, not `HttpServletRequest`)
-- DTO references Entity (couples API shape to persistence — versioning becomes impossible)
-- Status code overloading (`200 { success: false }`) — use proper HTTP codes
-- Leaking persistence errors as HTTP responses ("duplicate key value violates unique constraint" → never)
-- Unbounded list endpoints (no pagination, returns all rows)
-- N+1 in list endpoints (lazy-loading associations per row — use fetch joins or projection)
-- Auth principal extracted from a global thread-local inside service (untestable)
-- Versioned URLs without a stated breakage policy
-- Generic 500 for all errors (forces clients to parse messages)
-
-## GraphQL Notes (when used)
-
-- Schema-first or code-first — pick one and stick to it
-- Single endpoint (`POST /graphql`), so versioning happens at the schema field level (additive only)
-- N+1 is the default failure mode — use DataLoader pattern
-- Auth integration via context (resolver `info.context`)
-- Tooling: same project conventions for naming + error shape as REST
+중복 요청 억제·카운트·분산 잠금은 공유 저장소의 원자성을 사용한다. JVM 로컬 값으로 인스턴스 전체의 동작을 보장한다고 가정하지 않는다. 목록 쿼리의 N+1·무제한 조회와 동일 요청의 중복 부수효과를 변경 범위에서 점검한다.

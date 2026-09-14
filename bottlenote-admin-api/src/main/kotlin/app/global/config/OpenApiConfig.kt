@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
+import io.swagger.v3.oas.models.tags.Tag
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -11,7 +12,10 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class OpenApiConfig {
 	@Bean
-	fun adminOpenApi(): OpenAPI = OpenAPI().info(adminApiInfo()).components(securityComponents())
+	fun adminOpenApi(): OpenAPI = OpenAPI()
+		.info(adminApiInfo())
+		.tags(MENU)
+		.components(securityComponents())
 
 	private fun adminApiInfo(): Info = Info()
 		.title("보틀노트 Admin API")
@@ -37,7 +41,30 @@ class OpenApiConfig {
 		)
 
 	companion object {
-		// components 하위 키는 OpenAPI 규칙상 영문 식별자여야 한다.
+		// components 하위 이름은 OpenAPI 규칙상 영문 식별자여야 한다.
 		const val BEARER_AUTH = "bearerAuth"
+
+		private fun tag(name: String, description: String): Tag = Tag().name(name).description(description)
+
+		// 사이드바에 나올 메뉴 전체. 선언 순서가 그대로 화면 순서가 된다.
+		// 태그의 이름과 설명은 여기에만 적는다. 문서 어노테이션에 설명을 함께 적으면 springdoc이 태그 목록을 다시 정렬해서
+		// 이 순서가 깨지고, 같은 이름을 설명만 다르게 선언하면 스펙에 태그가 중복으로 실린다.
+		private val MENU = listOf(
+			tag("인증", "관리자 로그인, 토큰 재발급, 관리자 계정 등록·탈퇴를 처리한다"),
+			tag("회원과 리뷰", "가입한 회원과 작성된 리뷰 목록을 검색하고 조회한다"),
+			tag("문의", "사용자가 남긴 문의를 조회하고 답변을 등록한다"),
+			tag("IP 접근 제어", "IP 차단 상태, 감사 이력, 보안 signal 판정을 관리한다"),
+			tag("알코올", "위스키를 조회·등록·수정·삭제하고 엑셀과 JSON으로 일괄 검증·등록한다"),
+			tag("생산지", "위스키를 만드는 증류소와 생산 지역을 등록·수정·삭제하고 정렬 순서를 관리한다"),
+			tag("테이스팅 태그", "위스키 맛·향 테이스팅 태그를 등록·수정·삭제하고 위스키와의 연결을 관리한다"),
+			tag(
+				"수입 정보",
+				"식약처 수입 원장에서 수집한 수입사와 수입 신고 데이터를 조회하고, 수입사 연결 근거와 BottleNote 위스키 매칭을 관리한다"
+			),
+			tag("큐레이션", "큐레이션과 큐레이션 스펙을 등록·수정·삭제하고 목록·피드·상세를 조회한다"),
+			tag("배너", "앱에 노출되는 배너를 등록·수정·삭제하고 노출 상태와 정렬 순서를 관리한다"),
+			tag("통계", "방문자 활동과 위스키 지표 시계열을 조회한다"),
+			tag("이미지 업로드", "S3에 직접 업로드할 수 있는 presigned URL을 발급한다")
+		)
 	}
 }

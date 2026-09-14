@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="release-pipeline-target-title release-pipeline-target-desc">
+      <title id="release-pipeline-target-title">수정 후 릴리즈 파이프라인</title>
+      <desc id="release-pipeline-target-desc">표준 릴리즈와 핫픽스가 각자 전용 워크플로 파일과 브랜치 네임스페이스를 갖고, 과거 릴리즈 브랜치에 남은 구 워크플로 스냅샷은 브랜치 필터에서 탈락해 실행되지 않는다. 두 경로 모두 공유 배포 워크플로로 합류하며, 빌드는 immutable 태그만 push하고 서명과 검증을 통과한 digest만 운영 채널 태그로 승격된다.</desc>
+      <defs>
+        <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;display=swap');</style>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ============ ZONES (bg → zones → arrows → nodes) ============ -->
+      <!-- Zone 1: 진입 -->
+      <rect x="20" y="56" width="964" height="136" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="32" y="60" width="164" height="16" rx="2" fill="#f5f5f5"/>
+      <text x="40" y="72" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">진입 · 트리거 분리</text>
+
+      <!-- Zone 2: 운영 반영 구간 (신뢰 경계) -->
+      <rect x="508" y="360" width="476" height="136" rx="8" fill="rgba(235,108,54,0.05)" stroke="rgba(235,108,54,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+      <rect x="520" y="364" width="148" height="16" rx="2" fill="#f5f5f5"/>
+      <text x="528" y="376" fill="#eb6c36" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">운영 반영 구간</text>
+
+      <!-- ============ ARROWS (before boxes) ============ -->
+
+      <!-- N1 표준 → N4 -->
+      <path d="M 168,180 V 208 Q 168,216 176,216 H 444 Q 452,216 452,224 V 248" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- N2 핫픽스 → N4 -->
+      <path d="M 500,180 V 208 Q 500,216 508,216 H 540 Q 548,216 548,224 V 248" fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+
+      <!-- N3 구 스냅샷 → 차단 (stop symbol, 연결되지 않음) -->
+      <line x1="832" y1="180" x2="832" y2="208" stroke="rgba(45,49,66,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="808" y1="212" x2="856" y2="212" stroke="#2d3142" stroke-width="2.5"/>
+      <rect x="748" y="222" width="168" height="16" rx="2" fill="#f5f5f5"/>
+      <text x="832" y="234" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">필터 미일치 · 실행 안 됨</text>
+
+      <!-- N4 → 체인 시작 (drop and return) -->
+      <path d="M 500,320 V 348 Q 500,356 492,356 H 136 Q 128,356 128,364 V 400" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="288" y="336" width="52" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="314" y="345" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">WORKFLOW_CALL</text>
+
+      <!-- 체인 -->
+      <line x1="224" y1="442" x2="280" y2="442" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="234" y="422" width="36" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="252" y="431" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DIGEST</text>
+
+      <line x1="472" y1="442" x2="528" y2="442" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="476" y="422" width="48" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="500" y="431" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">VERIFIED</text>
+
+      <line x1="720" y1="442" x2="776" y2="442" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="724" y="422" width="48" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="748" y="431" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PROMOTED</text>
+
+      <!-- ============ NODES ============ -->
+
+      <!-- N1 표준 릴리즈 -->
+      <rect x="32" y="96" width="272" height="84" rx="6" fill="#f5f5f5"/>
+      <rect x="32" y="96" width="272" height="84" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="40" y="102" width="26" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="53" y="111" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">WF</text>
+      <text x="168" y="138" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">표준 릴리즈</text>
+      <text x="168" y="156" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">release_pr_merged.yml</text>
+      <text x="168" y="172" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">releases/** · changed=0 · head=main</text>
+
+      <!-- N2 핫픽스 릴리즈 (coral #1 — 신규) -->
+      <rect x="364" y="96" width="272" height="84" rx="6" fill="#f5f5f5"/>
+      <rect x="364" y="96" width="272" height="84" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <rect x="372" y="102" width="30" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="387" y="111" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">NEW</text>
+      <text x="500" y="138" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">핫픽스 릴리즈</text>
+      <text x="500" y="156" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">hotfix_pr_merged.yml</text>
+      <text x="500" y="172" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">hotfixes/** · changed&gt;0 · head=hotfix/**</text>
+
+      <!-- N3 구 스냅샷 (차단) -->
+      <rect x="696" y="96" width="272" height="84" rx="6" fill="#f5f5f5"/>
+      <rect x="696" y="96" width="272" height="84" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <rect x="704" y="102" width="34" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.25)" stroke-width="0.8"/>
+      <text x="721" y="111" fill="rgba(45,49,66,0.55)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STALE</text>
+      <text x="832" y="138" fill="#4f5d75" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">구 워크플로 스냅샷</text>
+      <text x="832" y="156" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">on: pull_request · releases/**</text>
+      <text x="832" y="172" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">과거 릴리즈 브랜치에 남은 사본</text>
+
+      <!-- N4 공유 배포 워크플로 -->
+      <rect x="360" y="248" width="280" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="360" y="248" width="280" height="72" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="368" y="254" width="30" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="383" y="263" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CALL</text>
+      <text x="500" y="288" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">공유 배포 워크플로</text>
+      <text x="500" y="308" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">deploy_release_applications.yml</text>
+
+      <!-- N5 빌드 · 푸시 -->
+      <rect x="32" y="400" width="192" height="84" rx="6" fill="#f5f5f5"/>
+      <rect x="32" y="400" width="192" height="84" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="40" y="406" width="26" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="53" y="415" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">1</text>
+      <text x="128" y="442" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">빌드 · 푸시</text>
+      <text x="128" y="460" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">1 immutable tag only</text>
+      <text x="128" y="476" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">no cache-to</text>
+
+      <!-- N6 서명 · 검증 -->
+      <rect x="280" y="400" width="192" height="84" rx="6" fill="#f5f5f5"/>
+      <rect x="280" y="400" width="192" height="84" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="288" y="406" width="26" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="301" y="415" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">2</text>
+      <text x="376" y="442" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">서명 · 검증</text>
+      <text x="376" y="460" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">cosign sign</text>
+      <text x="376" y="476" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">cosign verify</text>
+
+      <!-- N7 채널 승격 (coral #2) -->
+      <rect x="528" y="400" width="192" height="84" rx="6" fill="#f5f5f5"/>
+      <rect x="528" y="400" width="192" height="84" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <rect x="536" y="406" width="26" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="549" y="415" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">3</text>
+      <text x="624" y="442" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">채널 승격</text>
+      <text x="624" y="460" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">imagetools create</text>
+      <text x="624" y="476" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">*_latest_production</text>
+
+      <!-- N8 운영 반영 -->
+      <rect x="776" y="400" width="192" height="84" rx="6" fill="#f5f5f5"/>
+      <rect x="776" y="400" width="192" height="84" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="784" y="406" width="34" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="801" y="415" fill="rgba(79,93,117,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PROD</text>
+      <text x="872" y="442" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" text-anchor="middle">운영 반영</text>
+      <text x="872" y="460" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Argo Image Updater</text>
+      <text x="872" y="476" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">digest write-back</text>
+
+      <!-- ============ ANNOTATION CALLOUT ============ -->
+      <text x="32" y="548" fill="#eb6c36" font-size="14" font-style="italic" font-family="'Instrument Serif', 'Noto Serif KR', serif">경계 앞에서 실패하면 운영은 그대로다</text>
+      <path d="M 300,540 Q 420,536 512,486" fill="none" stroke="rgba(235,108,54,0.50)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="512" cy="486" r="2" fill="#eb6c36"/>
+
+      <!-- ============ LEGEND ============ -->
+      <line x1="32" y1="580" x2="968" y2="580" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="32" y="604" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+      <rect x="140" y="594" width="24" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="172" y="604" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">이번에 새로 만드는 것</text>
+
+      <rect x="420" y="594" width="24" height="12" rx="2" fill="rgba(235,108,54,0.05)" stroke="rgba(235,108,54,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="452" y="604" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">운영 반영 구간</text>
+
+      <line x1="700" y1="600" x2="724" y2="600" stroke="#2d3142" stroke-width="2.5"/>
+      <text x="732" y="604" fill="#4f5d75" font-size="12" font-weight="500" font-family="'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">필터에서 탈락</text>
+    </svg>

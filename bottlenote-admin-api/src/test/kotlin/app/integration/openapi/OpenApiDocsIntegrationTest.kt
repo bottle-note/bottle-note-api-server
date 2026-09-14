@@ -11,10 +11,10 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	private val envelopeFields = listOf("success", "code", "data", "errors", "meta")
 
-	// Admin의 84 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
+	// Admin의 90 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
 	// 템플릿 다운로드(GET /v1/alcohols/excel/template)는 XLSX binary 응답이라 예외다.
-	// 기존 82 + excel template/validate 2 = 84
-	private val expectedOperationCount = 84
+	// 기존 86 + 방문자 통계 active/retention 2 + 주류 인기도 시계열 2 = 90
+	private val expectedOperationCount = 90
 	private val binaryDownloadOperations = setOf("GET /v1/alcohols/excel/template")
 
 	@Test
@@ -47,8 +47,8 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 84개 operation이 누락 없이 포함된다")
-	fun openApiSpecContains84Operations() {
+	@DisplayName("문서에는 90개 operation이 누락 없이 포함된다")
+	fun openApiSpecContains90Operations() {
 		val operations = operationsOf(fetchSpec())
 
 		assertThat(operations)
@@ -101,6 +101,21 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 			.isEqualTo(detailSchema.at("/properties/skuDisplayNameEn"))
 		assertThat(listSchema.path("required").map { it.asText() })
 			.doesNotContain("skuDisplayNameKo", "skuDisplayNameEn")
+	}
+
+	@Test
+	@DisplayName("수입 신고 목록과 상세는 동일한 nullable processedDate를 문서화한다")
+	fun mfdsDeclarationListDocumentsProcessedDate() {
+		val spec = fetchSpec()
+		val listSchema = spec.at("/components/schemas/MfdsDeclarationListItem")
+		val detailSchema = spec.at("/components/schemas/MfdsDeclarationDetailResponse")
+
+		assertThat(propertyNamesOf(listSchema)).contains("processedDate")
+		assertThat(propertyNamesOf(detailSchema)).contains("processedDate")
+		assertThat(listSchema.at("/properties/processedDate"))
+			.isEqualTo(detailSchema.at("/properties/processedDate"))
+		assertThat(listSchema.path("required").map { it.asText() }).doesNotContain("processedDate")
+		assertThat(detailSchema.path("required").map { it.asText() }).doesNotContain("processedDate")
 	}
 
 	@Test

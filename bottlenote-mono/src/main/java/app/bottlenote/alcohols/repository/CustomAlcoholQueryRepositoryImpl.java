@@ -24,12 +24,14 @@ import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.KeysetPagination;
+import app.bottlenote.global.rating.RatingDisplay;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.math.BigDecimal;
@@ -197,7 +199,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 getTastingTags()))
         .from(alcohol)
         .leftJoin(rating)
-        .on(rating.id.alcoholId.eq(alcohol.id))
+        .on(countedRating())
         .leftJoin(review)
         .on(review.alcoholId.eq(alcohol.id))
         .leftJoin(picks)
@@ -309,7 +311,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     getTastingTags()))
             .from(alcohol)
             .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(alcohol.id))
+            .on(countedRating())
             .leftJoin(review)
             .on(review.alcoholId.eq(alcohol.id))
             .leftJoin(picks)
@@ -354,7 +356,12 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
               Map<String, String> extra =
                   switch (criteria.sortType()) {
                     case RANDOM -> Map.of("seed", String.valueOf(criteria.seed()));
-                    case POPULAR -> Map.of("bucketAt", criteria.popularityBucketAt().toString());
+                    case POPULAR ->
+                        Map.of(
+                            "bucketAt",
+                            criteria.popularityBucketAt() == null
+                                ? ExploreStandardCriteria.NO_POPULARITY_BUCKET
+                                : criteria.popularityBucketAt().toString());
                     default -> Map.of();
                   };
               return cursorCodec.encode(context, keys, extra);
@@ -389,7 +396,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 .join(distillery)
                 .on(alcohol.distillery.id.eq(distillery.id))
                 .leftJoin(rating)
-                .on(rating.id.alcoholId.eq(alcohol.id))
+                .on(countedRating())
                 .where(
                     supporter.searchTokensMatch(criteria.searchTokens()),
                     supporter.eqCategory(criteria.category()),
@@ -437,7 +444,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id));
     if (needsRatingJoin(sortType) || criteria.hasRatingRange()) {
-      query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
+      query = query.leftJoin(rating).on(countedRating());
     }
     if (needsReviewJoin(sortType)) {
       query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
@@ -466,11 +473,13 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   private List<ExploreSeekKey> fetchPopularityCandidates(
       ExploreStandardCriteria criteria, CursorClaims claims, int fetchSize) {
-    if (criteria.popularityBucketAt() == null) {
-      return List.of();
-    }
-
-    NumberExpression<BigDecimal> score = alcoholPopularitySnapshot.popularityScore;
+    NumberExpression<BigDecimal> score =
+        alcoholPopularitySnapshot.popularityScore.coalesce(BigDecimal.ZERO);
+    // 첫 페이지에서 스냅샷이 없었다면 이후에도 점수 조인을 차단한다.
+    BooleanExpression bucketCondition =
+        criteria.popularityBucketAt() == null
+            ? Expressions.FALSE
+            : alcoholPopularitySnapshot.bucketAt.eq(criteria.popularityBucketAt());
     var query =
         queryFactory
             .select(alcohol.id, score)
@@ -479,7 +488,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id))
-            .join(alcoholPopularitySnapshot)
+            .leftJoin(alcoholPopularitySnapshot)
             .on(
                 alcoholPopularitySnapshot
                     .alcoholId
@@ -487,9 +496,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     .and(
                         alcoholPopularitySnapshot.bucketGranularity.eq(
                             app.bottlenote.alcohols.constant.BucketGranularity.HOUR))
-                    .and(alcoholPopularitySnapshot.bucketAt.eq(criteria.popularityBucketAt())));
+                    .and(bucketCondition));
     if (criteria.hasRatingRange()) {
-      query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
+      query = query.leftJoin(rating).on(countedRating());
     }
 
     OrderSpecifier<BigDecimal> scoreOrder =
@@ -504,7 +513,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 supporter.eqCurationId(criteria.curationId()),
                 supporter.isNotDeleted(),
                 popularitySeek(claims, criteria.sortOrder(), score))
-            .groupBy(alcohol.id, score)
+            .groupBy(alcohol.id, alcoholPopularitySnapshot.popularityScore)
             .having(ratingInRange(criteria.ratingFrom(), criteria.ratingTo()))
             .orderBy(scoreOrder, alcohol.id.asc())
             .limit(fetchSize)
@@ -571,17 +580,14 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   private record ExploreSeekKey(Long id, String sortValue) {}
 
-  /** 목록 응답에 노출하는 집계 평점과 같은 반올림 값을 HAVING과 projection에서 공통 사용한다. */
+  /** 노출 집계에 포함할 별점만 남기는 조인 조건. 0점은 평가로 보지 않는다. */
+  private static BooleanExpression countedRating() {
+    return rating.id.alcoholId.eq(alcohol.id).and(rating.ratingPoint.rating.gt(0.0));
+  }
+
+  /** 목록 응답에 노출하는 집계 평점과 같은 정규화 값을 HAVING과 projection에서 공통 사용한다. */
   private static NumberExpression<Double> displayedRating() {
-    return rating
-        .ratingPoint
-        .rating
-        .avg()
-        .multiply(2)
-        .castToNum(Double.class)
-        .round()
-        .divide(2)
-        .coalesce(0.0);
+    return RatingDisplay.normalize(rating.ratingPoint.rating.avg()).coalesce(0.0);
   }
 
   private static BooleanExpression ratingInRange(BigDecimal from, BigDecimal to) {
@@ -676,15 +682,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     distillery.id,
                     distillery.korName,
                     distillery.engName,
-                    rating
-                        .ratingPoint
-                        .rating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0),
+                    displayedRating(),
                     rating.id.count(),
                     review.id.countDistinct(),
                     picks.id.countDistinct(),
@@ -692,7 +690,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     alcohol.lastModifyAt))
             .from(alcohol)
             .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(alcohol.id))
+            .on(countedRating())
             .leftJoin(review)
             .on(review.alcoholId.eq(alcohol.id))
             .leftJoin(picks)

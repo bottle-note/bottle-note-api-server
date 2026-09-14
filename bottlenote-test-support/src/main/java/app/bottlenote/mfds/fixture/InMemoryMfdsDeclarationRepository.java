@@ -3,8 +3,13 @@ package app.bottlenote.mfds.fixture;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
+import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
+import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
+import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -12,6 +17,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /** 신고 정제 데이터 도메인 포트의 인메모리 구현체. unit 테스트에서 사용한다. */
@@ -19,6 +26,15 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
 
   private final AtomicLong idGenerator = new AtomicLong(1L);
   private final Map<Long, MfdsDeclaration> database = new ConcurrentHashMap<>();
+  private final Function<Long, Optional<MfdsImporter>> importerLookup;
+
+  public InMemoryMfdsDeclarationRepository() {
+    this(id -> Optional.empty());
+  }
+
+  public InMemoryMfdsDeclarationRepository(Function<Long, Optional<MfdsImporter>> importerLookup) {
+    this.importerLookup = Objects.requireNonNull(importerLookup);
+  }
 
   @Override
   public MfdsDeclaration save(MfdsDeclaration declaration) {
@@ -49,18 +65,6 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
   }
 
   @Override
-  public List<MfdsDeclaration> findNormalizedBySelectedAlcoholId(Long alcoholId, int limit) {
-    return database.values().stream()
-        .filter(declaration -> Objects.equals(declaration.getSelectedAlcoholId(), alcoholId))
-        .filter(
-            declaration ->
-                declaration.getNormalizationStatus() == MfdsNormalizationStatus.NORMALIZED)
-        .sorted(Comparator.comparing(MfdsDeclaration::getId).reversed())
-        .limit(limit)
-        .toList();
-  }
-
-  @Override
   public List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria) {
     return database.values().stream()
         .filter(declaration -> matches(declaration, criteria))
@@ -79,6 +83,42 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
   public boolean existsByImporterId(Long importerId) {
     return database.values().stream()
         .anyMatch(declaration -> Objects.equals(declaration.getImporterId(), importerId));
+  }
+
+  @Override
+  public List<MfdsDeclaration> searchPublicAlcohols(MfdsPublicAlcoholSearchCriteria criteria) {
+    return database.values().stream()
+        .filter(declaration -> matchesPublic(declaration, criteria))
+        .sorted(
+            Comparator.comparing(
+                    MfdsDeclaration::getProcessedDate,
+                    Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(MfdsDeclaration::getId, Comparator.reverseOrder()))
+        .limit(criteria.fetchLimit())
+        .toList();
+  }
+
+  @Override
+  public List<MfdsPublicCountryItem> findExportCountries() {
+    return database.values().stream()
+        .filter(declaration -> declaration.getNormalizationStatus() == MfdsNormalizationStatus.NORMALIZED)
+        .filter(declaration -> declaration.getExportCountryAlpha2() != null)
+        .collect(
+            Collectors.toMap(
+                MfdsDeclaration::getExportCountryAlpha2,
+                declaration ->
+                    new MfdsPublicCountryItem(
+                        declaration.getExportCountryAlpha2(),
+                        declaration.getExportCountryNameKo(),
+                        declaration.getExportCountryNameEn()),
+                (left, right) -> left,
+                LinkedHashMap::new))
+        .values()
+        .stream()
+        .sorted(
+            Comparator.comparing(
+                item -> item.nameKo() == null ? "" : item.nameKo(), String.CASE_INSENSITIVE_ORDER))
+        .toList();
   }
 
   private boolean matches(MfdsDeclaration declaration, MfdsDeclarationSearchCriteria criteria) {
@@ -109,5 +149,97 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
 
   private boolean containsIgnoreCase(String value, String lowerKeyword) {
     return value != null && value.toLowerCase(Locale.ROOT).contains(lowerKeyword);
+  }
+
+  private boolean matchesPublic(
+      MfdsDeclaration declaration, MfdsPublicAlcoholSearchCriteria criteria) {
+    if (declaration.getNormalizationStatus() != MfdsNormalizationStatus.NORMALIZED) {
+      return false;
+    }
+    if (criteria.alcoholNameKo() != null
+        && !Objects.equals(declaration.getAlcoholNameKo(), criteria.alcoholNameKo())) {
+      return false;
+    }
+    if (criteria.alcoholId() != null
+        && !Objects.equals(declaration.getSelectedAlcoholId(), criteria.alcoholId())) {
+      return false;
+    }
+    if (criteria.importerId() != null
+        && !Objects.equals(declaration.getImporterId(), criteria.importerId())) {
+      return false;
+    }
+    if (criteria.exportCountry() != null
+        && !Objects.equals(declaration.getExportCountryAlpha2(), criteria.exportCountry())) {
+      return false;
+    }
+    if (criteria.alcoholCategoryKo() != null
+        && !Objects.equals(declaration.getAlcoholCategoryKo(), criteria.alcoholCategoryKo())) {
+      return false;
+    }
+    if (criteria.processedDateFrom() != null
+        && (declaration.getProcessedDate() == null
+            || declaration.getProcessedDate().isBefore(criteria.processedDateFrom()))) {
+      return false;
+    }
+    if (criteria.processedDateTo() != null
+        && (declaration.getProcessedDate() == null
+            || declaration.getProcessedDate().isAfter(criteria.processedDateTo()))) {
+      return false;
+    }
+    if (!matchesPublicTokens(declaration, criteria.searchTokens())) {
+      return false;
+    }
+    return isAfterPublicCursor(
+        declaration, criteria.cursorProcessedDate(), criteria.cursorId());
+  }
+
+  private boolean matchesPublicTokens(MfdsDeclaration declaration, List<String> tokens) {
+    if (tokens == null || tokens.isEmpty()) {
+      return true;
+    }
+    return tokens.stream()
+        .allMatch(
+            token ->
+                containsIgnoreCase(declaration.getRcno(), token)
+                    || containsIgnoreCase(declaration.getBaseProductNameKo(), token)
+                    || containsIgnoreCase(declaration.getBaseProductNameEn(), token)
+                    || containsIgnoreCase(declaration.getSkuDisplayNameKo(), token)
+                    || containsIgnoreCase(declaration.getSkuDisplayNameEn(), token)
+                    || containsIgnoreCase(declaration.getAlcoholNameKo(), token)
+                    || containsIgnoreCase(declaration.getAlcoholNameEn(), token)
+                    || containsIgnoreCase(declaration.getAlcoholCategoryKo(), token)
+                    || containsIgnoreCase(declaration.getAlcoholCategoryEn(), token)
+                    || containsIgnoreCase(declaration.getManufacturerName(), token)
+                    || containsIgnoreCase(declaration.getImporterBaseName(), token)
+                    || containsIgnoreCase(linkedImporterBusinessName(declaration), token));
+  }
+
+  private String linkedImporterBusinessName(MfdsDeclaration declaration) {
+    if (declaration.getImporterId() == null) {
+      return null;
+    }
+    return importerLookup
+        .apply(declaration.getImporterId())
+        .map(MfdsImporter::getBusinessName)
+        .orElse(null);
+  }
+
+  private boolean isAfterPublicCursor(
+      MfdsDeclaration declaration, LocalDate cursorDate, Long cursorId) {
+    if (cursorId == null) {
+      return true;
+    }
+    LocalDate processedDate = declaration.getProcessedDate();
+    if (cursorDate == null) {
+      return processedDate == null && declaration.getId() < cursorId;
+    }
+    if (processedDate == null) {
+      return true;
+    }
+    int compared = processedDate.compareTo(cursorDate);
+    if (compared < 0) {
+      return true;
+    }
+    return compared == 0 && declaration.getId() < cursorId;
   }
 }

@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import java.time.LocalDate
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin MFDS API 통합 테스트")
@@ -256,6 +257,41 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("신고 목록에 통관일자를 포함한다")
+		fun searchIncludesProcessedDate() {
+			val declaration =
+				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+			MfdsTestData.set(declaration, "processedDate", LocalDate.of(2026, 3, 15))
+			declarationRepository.save(declaration)
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/mfds/declarations")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data[0].processedDate").isEqualTo("2026-03-15")
+		}
+
+		@Test
+		@DisplayName("통관일자가 없으면 신고 목록 JSON에 processedDate 키를 null로 포함한다")
+		fun searchIncludesNullProcessedDate() {
+			mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v1/mfds/declarations")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			val item = mapper.readTree(result.response.contentAsString).path("data").path(0)
+			assertThat(item.has("processedDate")).isTrue()
+			assertThat(item.path("processedDate").isNull).isTrue()
+		}
+
+		@Test
 		@DisplayName("신고 상세에 연결 수입사 정보를 포함한다")
 		fun detailWithImporter() {
 			val importer = mfdsTestFactory.persistImporter("BIZ-001", "보틀상사", MfdsImporterAdminStatus.ACTIVE)
@@ -270,6 +306,42 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 			).hasStatusOk()
 				.bodyJson()
 				.extractingPath("$.data.importer.businessName").isEqualTo("보틀상사")
+		}
+
+		@Test
+		@DisplayName("신고 상세에 통관일자를 포함한다")
+		fun detailIncludesProcessedDate() {
+			val declaration =
+				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+			MfdsTestData.set(declaration, "processedDate", LocalDate.of(2026, 3, 15))
+			declarationRepository.save(declaration)
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/mfds/declarations/${declaration.id}")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.processedDate").isEqualTo("2026-03-15")
+		}
+
+		@Test
+		@DisplayName("통관일자가 없으면 신고 상세 JSON에 processedDate 키를 null로 포함한다")
+		fun detailIncludesNullProcessedDate() {
+			val declaration =
+				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v1/mfds/declarations/${declaration.id}")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			val item = mapper.readTree(result.response.contentAsString).path("data")
+			assertThat(item.has("processedDate")).isTrue()
+			assertThat(item.path("processedDate").isNull).isTrue()
 		}
 
 		@Test

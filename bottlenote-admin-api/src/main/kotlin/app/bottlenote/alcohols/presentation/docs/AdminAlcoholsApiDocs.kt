@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 object AdminAlcoholsApiDocs {
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "알코올", description = "Admin 알코올 조회·등록·수정·삭제·엑셀 검증 API")
+	@Tag(name = "알코올")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)
@@ -110,12 +110,12 @@ object AdminAlcoholsApiDocs {
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "알코올 엑셀을 업로드해 검증한다",
-		description = "DB에 저장하지 않고 파싱·검증 결과만 반환한다. 이미지 업로드는 포함하지 않는다."
+		description = "DB에 저장하지 않고 파싱·검증 결과만 반환한다. 선택 열 이미지 파일명은 원문으로 반환하며, 이미지 업로드는 포함하지 않는다."
 	)
 	@ApiResponse(
 		responseCode = "200",
 		description = "검증 결과",
-		content = [Content(schema = Schema(implementation = AlcoholExcelValidateEnvelope::class))]
+		content = [Content(schema = Schema(implementation = AdminAlcoholExcelValidateResponse::class))]
 	)
 	annotation class ValidateAlcoholExcel
 
@@ -160,15 +160,6 @@ object AdminAlcoholsApiDocs {
 		val success: Boolean,
 		val code: Int,
 		val data: AdminResultResponse,
-		val errors: List<Any> = emptyList(),
-		val meta: Map<String, Any?> = emptyMap()
-	)
-
-	@Schema(name = "AlcoholExcelValidateEnvelope")
-	data class AlcoholExcelValidateEnvelope(
-		val success: Boolean,
-		val code: Int,
-		val data: AdminAlcoholExcelValidateResponse,
 		val errors: List<Any> = emptyList(),
 		val meta: Map<String, Any?> = emptyMap()
 	)

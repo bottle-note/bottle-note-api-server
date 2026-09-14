@@ -17,9 +17,9 @@ public record AdminAlcoholUpsertRequest(
     @NotNull(message = "카테고리 그룹은 필수입니다.") AlcoholCategoryGroup categoryGroup,
     @NotNull(message = "지역 ID는 필수입니다.") Long regionId,
     @NotNull(message = "증류소 ID는 필수입니다.") Long distilleryId,
-    @NotBlank(message = "숙성년도는 필수입니다.") String age,
-    @NotBlank(message = "캐스크 타입은 필수입니다.") String cask,
+    @Nullable String age,
+    @Nullable String cask,
     @Nullable String imageUrl,
-    @NotBlank(message = "설명은 필수입니다.") String description,
+    @Nullable String description,
     @NotBlank(message = "용량은 필수입니다.") String volume,
     List<Long> tastingTagIds) {}
