@@ -119,6 +119,35 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
+	@DisplayName("수입 신고 목록은 숙성연도·카테고리 후보와 증류소/지역 연결 boolean을 문서화한다")
+	fun mfdsDeclarationListDocumentsAgeCategoryAndLinkFlags() {
+		val spec = fetchSpec()
+		val listSchema = spec.at("/components/schemas/MfdsDeclarationListItem")
+		val detailSchema = spec.at("/components/schemas/MfdsDeclarationDetailResponse")
+		val required = listSchema.path("required").map { it.asText() }
+
+		assertThat(propertyNamesOf(listSchema))
+			.contains(
+				"ageYears",
+				"alcoholCategoryKo",
+				"alcoholCategoryEn",
+				"distilleryLinked",
+				"regionLinked",
+			)
+		assertThat(listSchema.at("/properties/ageYears"))
+			.isEqualTo(detailSchema.at("/properties/ageYears"))
+		assertThat(listSchema.at("/properties/alcoholCategoryKo"))
+			.isEqualTo(detailSchema.at("/properties/alcoholCategoryKo"))
+		assertThat(listSchema.at("/properties/alcoholCategoryEn"))
+			.isEqualTo(detailSchema.at("/properties/alcoholCategoryEn"))
+		assertThat(listSchema.at("/properties/distilleryLinked/type").asText()).isEqualTo("boolean")
+		assertThat(listSchema.at("/properties/regionLinked/type").asText()).isEqualTo("boolean")
+		assertThat(required)
+			.doesNotContain("ageYears", "alcoholCategoryKo", "alcoholCategoryEn")
+			.contains("distilleryLinked", "regionLinked")
+	}
+
+	@Test
 	@DisplayName("공통 형식의 data는 이중으로 감싸지지 않는다")
 	fun globalEnvelopeIsNotNestedInData() {
 		val operations = operationsOf(fetchSpec()).filterNot { it.endpoint() in binaryDownloadOperations }
