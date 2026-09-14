@@ -3,6 +3,7 @@ package app.bottlenote.user.service;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.TimeIdCursor;
+import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.domain.User;
@@ -13,6 +14,7 @@ import app.bottlenote.user.dto.request.FollowUpdateRequest;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
+import app.bottlenote.user.event.payload.FollowActivityEvent;
 import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.exception.UserException;
@@ -22,6 +24,7 @@ import app.bottlenote.user.facade.payload.FriendItem;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +37,7 @@ public class FollowService implements FollowFacade {
   private final FollowRepository followRepository;
   private final UserRepository userRepository;
   private final HmacCursorCodec cursorCodec;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long currentUserId) {
@@ -63,8 +67,15 @@ public class FollowService implements FollowFacade {
             .findById(followUserId)
             .orElseThrow(() -> new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
 
+    boolean activated =
+        request.status() == FollowStatus.FOLLOWING
+            && (follow.getId() == null || follow.getStatus() != FollowStatus.FOLLOWING);
     follow.updateStatus(request.status());
     followRepository.save(follow);
+    if (activated) {
+      eventPublisher.publishEvent(
+          new FollowActivityEvent(follow.getId(), currentUserId, followUserId));
+    }
 
     return FollowUpdateResponse.builder()
         .status(follow.getStatus())

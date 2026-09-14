@@ -40,7 +40,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * SC1: 댓글 등록 트랜잭션 commit 후 {@code ReviewReplyNotificationEvent}가 AFTER_COMMIT 비동기 listener를 거쳐
+ * SC1: 댓글 등록 트랜잭션 commit 후 {@code ReviewReplyActivityEvent}가 AFTER_COMMIT 비동기 listener를 거쳐
  * notifications 행으로 저장되는지 검증한다. Mockito/no-op publisher 없이 실제 Spring 이벤트 경로를 탄다.
  */
 @Tag("integration")

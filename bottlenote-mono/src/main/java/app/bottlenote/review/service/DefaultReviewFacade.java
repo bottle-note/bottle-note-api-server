@@ -13,6 +13,7 @@ import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -43,6 +44,14 @@ public class DefaultReviewFacade implements ReviewFacade {
   @Transactional(readOnly = true)
   public boolean isExistReview(Long reviewId) {
     return reviewRepository.existsById(reviewId);
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.MANDATORY)
+  public void lockReviewForUpdate(Long reviewId) {
+    reviewRepository
+        .findByIdForUpdate(reviewId)
+        .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
   }
 
   @Override

@@ -11,7 +11,9 @@ public enum AdminAlcoholSortType {
   KOR_NAME("한글 이름"),
   ENG_NAME("영어 이름"),
   KOR_CATEGORY("카테고리 한글"),
-  ENG_CATEGORY("카테고리 영어");
+  ENG_CATEGORY("카테고리 영어"),
+  CREATED_AT("생성일"),
+  UPDATED_AT("수정일");
 
   private final String description;
 

@@ -23,7 +23,9 @@ public record NotificationAction(
     if (targetId == null || targetId <= 0) {
       throw new IllegalArgumentException("Action 대상 식별자는 양수여야 합니다.");
     }
-    if (version == null || version != CURRENT_VERSION) {
+    if (version == null
+        || (version != CURRENT_VERSION
+            && !(type == NotificationActionType.OPEN_REVIEW && version == 2))) {
       throw new IllegalArgumentException("지원하지 않는 알림 Action 버전입니다.");
     }
     if (payload == null) {
@@ -32,8 +34,15 @@ public record NotificationAction(
     payload = payload.deepCopy();
     validatePayloadSize(payload);
     switch (type) {
-      case OPEN_REVIEW -> OpenReviewActionPayload.from(payload);
+      case OPEN_REVIEW -> {
+        if (version == 1) {
+          OpenReviewActionPayload.from(payload);
+        } else {
+          OpenReviewDetailActionPayload.from(payload);
+        }
+      }
       case OPEN_HELP -> OpenHelpActionPayload.from(payload);
+      case OPEN_USER -> OpenUserActionPayload.from(payload);
     }
   }
 
@@ -91,8 +100,12 @@ public record NotificationAction(
    */
   public ActionPayload actionPayload() {
     return switch (type) {
-      case OPEN_REVIEW -> OpenReviewActionPayload.from(payload);
+      case OPEN_REVIEW ->
+          version == 1
+              ? OpenReviewActionPayload.from(payload)
+              : OpenReviewDetailActionPayload.from(payload);
       case OPEN_HELP -> OpenHelpActionPayload.from(payload);
+      case OPEN_USER -> OpenUserActionPayload.from(payload);
     };
   }
 
@@ -107,7 +120,11 @@ public record NotificationAction(
    *
    * <p>구현 타입은 이 Action 내부에 두어 버전별 검증 책임을 한곳에 모은다.
    */
-  public sealed interface ActionPayload permits OpenReviewActionPayload, OpenHelpActionPayload {}
+  public sealed interface ActionPayload
+      permits OpenReviewActionPayload,
+          OpenHelpActionPayload,
+          OpenReviewDetailActionPayload,
+          OpenUserActionPayload {}
 
   /**
    * {@code OPEN_REVIEW} Action이 사용하는 댓글 위치 정보다.
@@ -147,6 +164,37 @@ public record NotificationAction(
         throw new IllegalArgumentException("OPEN_HELP payload 형식이 올바르지 않습니다.");
       }
       return new OpenHelpActionPayload();
+    }
+  }
+
+  public static NotificationAction openReview(Long reviewId) {
+    return new NotificationAction(
+        NotificationActionType.OPEN_REVIEW, reviewId, JsonNodeFactory.instance.objectNode(), 2);
+  }
+
+  public static NotificationAction openUser(Long userId) {
+    return new NotificationAction(
+        NotificationActionType.OPEN_USER,
+        userId,
+        JsonNodeFactory.instance.objectNode(),
+        CURRENT_VERSION);
+  }
+
+  public record OpenReviewDetailActionPayload() implements ActionPayload {
+    private static OpenReviewDetailActionPayload from(JsonNode payload) {
+      if (!payload.isObject() || !payload.isEmpty()) {
+        throw new IllegalArgumentException("OPEN_REVIEW v2 payload 형식이 올바르지 않습니다.");
+      }
+      return new OpenReviewDetailActionPayload();
+    }
+  }
+
+  public record OpenUserActionPayload() implements ActionPayload {
+    private static OpenUserActionPayload from(JsonNode payload) {
+      if (!payload.isObject() || !payload.isEmpty()) {
+        throw new IllegalArgumentException("OPEN_USER payload 형식이 올바르지 않습니다.");
+      }
+      return new OpenUserActionPayload();
     }
   }
 }

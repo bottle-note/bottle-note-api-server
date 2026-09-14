@@ -6,7 +6,6 @@ import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.pagination.KeysetPageResponse;
-import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.review.constant.ReviewReplyStatus;
 import app.bottlenote.review.domain.Review;
@@ -17,8 +16,7 @@ import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
-import app.bottlenote.review.event.payload.ReviewRegistryEvent;
-import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
+import app.bottlenote.review.event.payload.ReviewReplyActivityEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
@@ -40,7 +38,6 @@ public class ReviewReplyService {
   private final ReviewRepository reviewRepository;
   private final ProfanityClient profanityClient;
   private final UserFacade userFacade;
-  private final HistoryEventPublisher reviewReplyEventPublisher;
   private final ApplicationEventPublisher eventPublisher;
   private final TracingService tracingService;
 
@@ -92,20 +89,14 @@ public class ReviewReplyService {
 
     final Long alcoholId = review.getAlcoholId();
 
-    // 활동 부수효과는 현재 이중 발행한다. (bottle-note/workspace#373 에서 단일 파이프라인으로 통합 예정)
-    // 1) History: ReviewRegistryEvent → HistoryEventPublisher → user_histories
-    // 2) Notification: ReviewReplyNotificationEvent → listener → notifications
-    ReviewRegistryEvent historyEvent =
-        ReviewRegistryEvent.of(
-            reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
-    reviewReplyEventPublisher.publishReplyHistoryEvent(historyEvent);
-
     eventPublisher.publishEvent(
-        ReviewReplyNotificationEvent.of(
+        new ReviewReplyActivityEvent(
             reply.getReviewId(),
+            alcoholId,
             review.getUserId(),
             reply.getUserId(),
             reply.getId(),
+            parentReply.map(ReviewReply::getUserId).orElse(null),
             reply.getContent()));
 
     log.info(
