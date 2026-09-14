@@ -7,7 +7,8 @@ public enum NotificationCategory {
   REVIEW("리뷰"),
   NOTICE("공지사항"),
   QUESTION("문의"),
-  ANSWER("답변");
+  ANSWER("답변"),
+  FOLLOW("팔로우");
 
   private final String description;
 

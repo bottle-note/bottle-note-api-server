@@ -1,14 +1,17 @@
 package app.bottlenote.like.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.like.constant.LikeStatus;
+import app.bottlenote.like.event.payload.ReviewLikeActivityEvent;
 import app.bottlenote.like.fixture.InMemoryLikesRepository;
 import app.bottlenote.review.fixture.FakeReviewFacade;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -25,6 +28,7 @@ class LikesCommandServiceTest {
   private FakeReviewFacade reviewFacade;
   private LikesCommandService likesCommandService;
   private InMemoryLikesRepository likesRepository;
+  private List<Object> events;
 
   @BeforeEach
   void setUp() {
@@ -35,9 +39,9 @@ class LikesCommandServiceTest {
             UserProfileItem.create(3L, "user3", ""));
     reviewFacade = new FakeReviewFacade();
     likesRepository = new InMemoryLikesRepository();
-    FakeHistoryEventPublisher likesEventPublisher = new FakeHistoryEventPublisher();
+    events = new ArrayList<>();
     likesCommandService =
-        new LikesCommandService(userFacade, reviewFacade, likesRepository, likesEventPublisher);
+        new LikesCommandService(userFacade, reviewFacade, likesRepository, events::add);
   }
 
   @Test
@@ -102,5 +106,34 @@ class LikesCommandServiceTest {
     assertEquals(reviewId, response.reviewId());
     assertEquals(userId, response.userId());
     assertEquals(LikeStatus.DISLIKE, response.status());
+  }
+
+  @Test
+  @DisplayName("좋아요 상태 요청마다 활동 한 건을 발행하고 활성 전이만 구분한다")
+  void updateLikes_publishesOneActivityPerRequest() {
+    for (LikeStatus status :
+        List.of(LikeStatus.LIKE, LikeStatus.LIKE, LikeStatus.DISLIKE, LikeStatus.LIKE)) {
+      likesCommandService.updateLikes(1L, 1L, status);
+    }
+
+    assertThat(events).hasSize(4).allMatch(ReviewLikeActivityEvent.class::isInstance);
+    List<ReviewLikeActivityEvent> activities =
+        events.stream().map(ReviewLikeActivityEvent.class::cast).toList();
+    assertThat(activities)
+        .extracting(ReviewLikeActivityEvent::activated)
+        .containsExactly(true, false, false, true);
+    assertThat(activities).extracting(ReviewLikeActivityEvent::likeId).containsOnly(1L);
+    assertThat(activities)
+        .extracting(ReviewLikeActivityEvent::content)
+        .containsOnly(reviewFacade.getReview(1L).reviewContent());
+  }
+
+  @Test
+  @DisplayName("최초 요청이 취소일 때 History용 활동만 발행한다")
+  void updateLikes_initialDislike_isNotActivation() {
+    likesCommandService.updateLikes(1L, 1L, LikeStatus.DISLIKE);
+
+    assertThat(events).hasSize(1);
+    assertThat(((ReviewLikeActivityEvent) events.getFirst()).activated()).isFalse();
   }
 }

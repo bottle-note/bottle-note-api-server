@@ -25,6 +25,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -37,7 +38,7 @@ public class UserNotificationService implements NotificationService {
   private final NotificationRepository notificationRepository;
   private final HmacCursorCodec cursorCodec;
 
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Override
   public void sendNotification(NotificationMessage message) {
     log.info(
@@ -52,17 +53,6 @@ public class UserNotificationService implements NotificationService {
       throw new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND);
     }
 
-    if (message.sourceType() != null
-        && notificationRepository.existsBySourceTypeAndSourceIdAndUserId(
-            message.sourceType().name(), message.sourceId(), message.userId())) {
-      log.info(
-          "중복 알림 저장 생략 - userId: {}, sourceType: {}, sourceId: {}",
-          message.userId(),
-          message.sourceType(),
-          message.sourceId());
-      return;
-    }
-
     Notification notification =
         Notification.builder()
             .userId(message.userId())
@@ -75,7 +65,7 @@ public class UserNotificationService implements NotificationService {
             .action(message.action())
             .build();
 
-    notificationRepository.save(notification);
+    notificationRepository.saveIfAbsent(notification);
   }
 
   @Transactional(readOnly = true)
