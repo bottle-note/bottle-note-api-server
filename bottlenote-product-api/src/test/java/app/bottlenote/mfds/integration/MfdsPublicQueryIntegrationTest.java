@@ -47,6 +47,12 @@ class MfdsPublicQueryIntegrationTest extends IntegrationTestSupport {
     assertThat(items.isArray()).isTrue();
     assertThat(items.get(0).path("rcno").asText()).isEqualTo("RCNO-PUB-1");
     assertThat(items.get(0).path("processedDate").asText()).isEqualTo("2026-08-20");
+    assertThat(items.get(0).has("alcoholCategoryEn")).isTrue();
+    assertThat(items.get(0).has("ageYears")).isTrue();
+    assertThat(items.get(0).has("distilleryLinked")).isTrue();
+    assertThat(items.get(0).has("regionLinked")).isTrue();
+    assertThat(items.get(0).path("distilleryLinked").asBoolean()).isFalse();
+    assertThat(items.get(0).path("regionLinked").asBoolean()).isFalse();
 
     var detail =
         mockMvcTester

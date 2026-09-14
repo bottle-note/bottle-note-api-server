@@ -187,6 +187,44 @@ class MfdsPublicQueryServiceTest {
         .containsExactly("보틀상사");
   }
 
+  @Test
+  @DisplayName("공개 목록에 카테고리 영문·숙성연도·증류소/지역 연결 여부를 전달한다")
+  void 공개_목록에_카테고리_숙성_연결상태를_전달할_수_있다() {
+    MfdsDeclaration declaration =
+        saveAlcohol("RCNO-1", "글렌피딕 15년", "보틀상사", LocalDate.of(2026, 8, 1), "GB");
+    MfdsTestData.set(declaration, "alcoholCategoryKo", "위스키");
+    MfdsTestData.set(declaration, "alcoholCategoryEn", "Whisky");
+    MfdsTestData.set(declaration, "ageYears", (short) 15);
+    MfdsTestData.set(declaration, "selectedDistilleryId", 11L);
+    MfdsTestData.set(declaration, "selectedRegionId", null);
+
+    List<MfdsPublicAlcoholListItem> items =
+        service.searchAlcohols(request("글렌피딕 15년", null, null, null, null, null)).content();
+
+    assertThat(items).hasSize(1);
+    MfdsPublicAlcoholListItem item = items.get(0);
+    assertThat(item.alcoholCategoryKo()).isEqualTo("위스키");
+    assertThat(item.alcoholCategoryEn()).isEqualTo("Whisky");
+    assertThat(item.ageYears()).isEqualTo((short) 15);
+    assertThat(item.distilleryLinked()).isTrue();
+    assertThat(item.regionLinked()).isFalse();
+  }
+
+  @Test
+  @DisplayName("공개 목록 매핑에서 카테고리 영문·숙성 null과 미연결 false를 유지한다")
+  void 공개_목록에서_빈_카테고리_숙성과_미연결을_유지한다() {
+    MfdsDeclaration declaration =
+        MfdsTestData.publicDeclaration(
+            "RCNO-1", null, "보틀상사", "글렌피딕", LocalDate.of(2026, 8, 1), "GB", "영국");
+
+    MfdsPublicAlcoholListItem item = MfdsResponseMapper.toPublicAlcoholListItem(declaration);
+
+    assertThat(item.alcoholCategoryEn()).isNull();
+    assertThat(item.ageYears()).isNull();
+    assertThat(item.distilleryLinked()).isFalse();
+    assertThat(item.regionLinked()).isFalse();
+  }
+
   private MfdsPublicAlcoholSearchRequest request(
       String alcoholNameKo,
       Long alcoholId,

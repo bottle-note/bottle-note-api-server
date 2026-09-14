@@ -275,6 +275,60 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("신고 목록에 숙성연도·카테고리 후보·증류소/지역 연결 여부를 포함한다")
+		fun searchIncludesAgeCategoryAndLinkFlags() {
+			val declaration =
+				mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 101L, "AUTO_ACCEPT")
+			MfdsTestData.set(declaration, "ageYears", 12.toShort())
+			MfdsTestData.set(declaration, "alcoholCategoryKo", "위스키")
+			MfdsTestData.set(declaration, "alcoholCategoryEn", "Whisky")
+			MfdsTestData.set(declaration, "selectedDistilleryId", 11L)
+			MfdsTestData.set(declaration, "selectedRegionId", 21L)
+			declarationRepository.save(declaration)
+
+			val result =
+				mockMvcTester
+					.get()
+					.uri("/v1/mfds/declarations")
+					.header("Authorization", "Bearer $accessToken")
+					.exchange()
+
+			assertThat(result).hasStatusOk()
+			val item = mapper.readTree(result.response.contentAsString).path("data").path(0)
+			assertThat(item.path("ageYears").asInt()).isEqualTo(12)
+			assertThat(item.path("alcoholCategoryKo").asText()).isEqualTo("위스키")
+			assertThat(item.path("alcoholCategoryEn").asText()).isEqualTo("Whisky")
+			assertThat(item.path("distilleryLinked").asBoolean()).isTrue()
+			assertThat(item.path("regionLinked").asBoolean()).isTrue()
+			assertThat(item.path("selectedAlcoholId").asLong()).isEqualTo(101L)
+			assertThat(item.path("alcoholMatchDecision").asText()).isEqualTo("AUTO_ACCEPT")
+		}
+
+		@Test
+		@DisplayName("숙성·카테고리가 없으면 null 키를 유지하고 미연결은 false로 응답한다")
+		fun searchIncludesNullAgeCategoryAndUnlinkedFlags() {
+			mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+
+			val result =
+				mockMvcTester
+					.get()
+					.uri("/v1/mfds/declarations")
+					.header("Authorization", "Bearer $accessToken")
+					.exchange()
+
+			assertThat(result).hasStatusOk()
+			val item = mapper.readTree(result.response.contentAsString).path("data").path(0)
+			assertThat(item.has("ageYears")).isTrue()
+			assertThat(item.path("ageYears").isNull).isTrue()
+			assertThat(item.has("alcoholCategoryKo")).isTrue()
+			assertThat(item.path("alcoholCategoryKo").isNull).isTrue()
+			assertThat(item.has("alcoholCategoryEn")).isTrue()
+			assertThat(item.path("alcoholCategoryEn").isNull).isTrue()
+			assertThat(item.path("distilleryLinked").asBoolean()).isFalse()
+			assertThat(item.path("regionLinked").asBoolean()).isFalse()
+		}
+
+		@Test
 		@DisplayName("통관일자가 없으면 신고 목록 JSON에 processedDate 키를 null로 포함한다")
 		fun searchIncludesNullProcessedDate() {
 			mfdsTestFactory.persistDeclaration("RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null)

@@ -128,6 +128,48 @@ class MfdsDeclarationServiceTest {
   }
 
   @Test
+  @DisplayName("수입 신고 목록에 숙성연도·카테고리 후보·증류소/지역 연결 여부를 전달한다")
+  void 수입_신고_목록에_숙성_카테고리_연결상태를_전달할_수_있다() {
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, 101L, "AUTO_ACCEPT", null, null);
+    MfdsTestData.set(declaration, "ageYears", (short) 12);
+    MfdsTestData.set(declaration, "alcoholCategoryKo", "위스키");
+    MfdsTestData.set(declaration, "alcoholCategoryEn", "Whisky");
+    MfdsTestData.set(declaration, "selectedDistilleryId", 11L);
+    MfdsTestData.set(declaration, "selectedRegionId", 21L);
+    declarationRepository.save(declaration);
+
+    GlobalResponse response =
+        service.search(new MfdsDeclarationSearchRequest(null, null, null, null, null, null, 20L));
+
+    MfdsDeclarationListItem item = (MfdsDeclarationListItem) ((List<?>) response.getData()).get(0);
+    assertThat(item.ageYears()).isEqualTo((short) 12);
+    assertThat(item.alcoholCategoryKo()).isEqualTo("위스키");
+    assertThat(item.alcoholCategoryEn()).isEqualTo("Whisky");
+    assertThat(item.distilleryLinked()).isTrue();
+    assertThat(item.regionLinked()).isTrue();
+    assertThat(item.selectedAlcoholId()).isEqualTo(101L);
+    assertThat(item.alcoholMatchDecision()).isEqualTo("AUTO_ACCEPT");
+  }
+
+  @Test
+  @DisplayName("수입 신고 목록 매핑에서 숙성·카테고리 null과 미연결 boolean false를 유지한다")
+  void 수입_신고_목록에서_빈_숙성_카테고리와_미연결을_유지한다() {
+    MfdsDeclaration declaration =
+        MfdsTestData.declaration(
+            "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, null, null);
+
+    MfdsDeclarationListItem item = MfdsResponseMapper.toDeclarationListItem(declaration);
+
+    assertThat(item.ageYears()).isNull();
+    assertThat(item.alcoholCategoryKo()).isNull();
+    assertThat(item.alcoholCategoryEn()).isNull();
+    assertThat(item.distilleryLinked()).isFalse();
+    assertThat(item.regionLinked()).isFalse();
+  }
+
+  @Test
   @DisplayName("상세 조회할 때 연결된 수입사 정보와 매칭 후보를 포함한다")
   void 상세를_조회할_수_있다() {
     MfdsImporter importer =
