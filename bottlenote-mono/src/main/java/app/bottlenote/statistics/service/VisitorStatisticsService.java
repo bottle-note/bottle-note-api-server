@@ -7,10 +7,12 @@ import app.bottlenote.global.timeseries.TimeSeriesFill;
 import app.bottlenote.global.timeseries.TimeSeriesGranularity;
 import app.bottlenote.global.timeseries.TimeSeriesRange;
 import app.bottlenote.global.timeseries.TimeSeriesUnit;
+import app.bottlenote.statistics.config.StatisticsProperties;
 import app.bottlenote.statistics.domain.ActiveVisitorBucket;
 import app.bottlenote.statistics.domain.ReturningVisitorBucket;
 import app.bottlenote.statistics.domain.VisitorStatisticsRepository;
 import app.bottlenote.statistics.dto.request.VisitorStatisticsRequest;
+import app.bottlenote.statistics.facade.payload.VisitorExclusionItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -36,6 +38,19 @@ public class VisitorStatisticsService {
   private static final ZoneId ZONE = ZoneId.of(TimeSeries.TIMEZONE);
 
   private final VisitorStatisticsRepository visitorStatisticsRepository;
+  private final StatisticsProperties statisticsProperties;
+
+  @Transactional(readOnly = true)
+  public long countActiveMembers(LocalDateTime from, LocalDateTime toExclusive) {
+    return visitorStatisticsRepository.countActiveMembers(from, toExclusive);
+  }
+
+  @Transactional(readOnly = true)
+  public VisitorExclusionItem getExclusion() {
+    StatisticsProperties.Exclusion exclusion = statisticsProperties.getExclusion();
+    return new VisitorExclusionItem(
+        List.copyOf(exclusion.getDeviceTypes()), List.copyOf(exclusion.getIpPrefixes()));
+  }
 
   @Transactional(readOnly = true)
   public TimeSeries findActiveVisitors(VisitorStatisticsRequest request) {

@@ -70,6 +70,56 @@ class VisitorTelemetryFilterTest {
   }
 
   @Test
+  @DisplayName("쿠키가 없는 요청은 핸들러 실행 전에 발급할 쿠키와 같은 방문자 해시를 요청 속성에 싣는다")
+  void 쿠키가_없는_요청은_발급할_방문자_해시를_처리_전에_싣는다() throws Exception {
+    CapturingPublisher publisher = new CapturingPublisher();
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(
+            publisher, () -> null, request -> "203.0.113.10", FIXED_CLOCK);
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("POST", "/api/v1/campaign-contents/mbti/events");
+    request.addHeader(
+        HttpHeaders.USER_AGENT,
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 "
+            + "(KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    List<Object> seenByHandler = new ArrayList<>();
+    FilterChain chain =
+        (servletRequest, servletResponse) -> {
+          seenByHandler.add(
+              servletRequest.getAttribute(VisitorTelemetryFilter.VISITOR_ID_ATTRIBUTE));
+          seenByHandler.add(
+              servletRequest.getAttribute(VisitorTelemetryFilter.CLIENT_IP_ATTRIBUTE));
+          seenByHandler.add(
+              servletRequest.getAttribute(VisitorTelemetryFilter.DEVICE_TYPE_ATTRIBUTE));
+          ((HttpServletResponse) servletResponse).setStatus(200);
+        };
+
+    filter.doFilter(request, response, chain);
+
+    String issuedVisitorId = extractCookieValue(response.getHeader(HttpHeaders.SET_COOKIE));
+    assertThat(seenByHandler).containsExactly(sha256(issuedVisitorId), "203.0.113.10", "모바일");
+    assertThat(publisher.single().visitorId()).isEqualTo(sha256(issuedVisitorId));
+  }
+
+  @Test
+  @DisplayName("유효한 쿠키가 있는 요청은 기존 쿠키의 방문자 해시를 요청 속성에 싣고 쿠키를 다시 발급하지 않는다")
+  void 기존_쿠키의_방문자_해시를_요청_속성에_싣는다() throws Exception {
+    CapturingPublisher publisher = new CapturingPublisher();
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+    MockHttpServletRequest request = request("POST", "/api/v1/campaign-contents/mbti/events");
+    request.setCookies(new Cookie(VisitorTelemetryFilter.VISITOR_COOKIE_NAME, VISITOR_ID));
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    filter.doFilter(request, response, successfulChain());
+
+    assertThat(request.getAttribute(VisitorTelemetryFilter.VISITOR_ID_ATTRIBUTE))
+        .isEqualTo(sha256(VISITOR_ID));
+    assertThat(response.getHeader(HttpHeaders.SET_COOKIE)).isNull();
+  }
+
+  @Test
   @DisplayName("기존 쿠키와 라우트 패턴을 재사용하고 민감 쿼리 값만 치환한다")
   void 기존_쿠키와_정규화_경로를_발행한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();

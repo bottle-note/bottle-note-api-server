@@ -13,4 +13,6 @@ public interface VisitorStatisticsRepository {
 
   List<ReturningVisitorBucket> countReturningVisitors(
       LocalDateTime from, LocalDateTime toExclusive, TimeSeriesGranularity granularity);
+
+  long countActiveMembers(LocalDateTime from, LocalDateTime toExclusive);
 }

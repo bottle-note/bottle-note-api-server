@@ -42,6 +42,18 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
   public static final String CALLER_HEADER_NAME = "X-Bottlenote-Caller";
   public static final String SSR_CALLER = "ssr";
 
+  /** 처리 전에 확정한 방문자 식별값의 SHA-256 해시. 원본 쿠키 값은 요청에 싣지 않는다. */
+  public static final String VISITOR_ID_ATTRIBUTE =
+      VisitorTelemetryFilter.class.getName() + ".visitorId";
+
+  /** 텔레메트리와 같은 방식으로 정규화한 클라이언트 IP. */
+  public static final String CLIENT_IP_ATTRIBUTE =
+      VisitorTelemetryFilter.class.getName() + ".clientIp";
+
+  /** 텔레메트리와 같은 방식으로 분류한 기기 유형. */
+  public static final String DEVICE_TYPE_ATTRIBUTE =
+      VisitorTelemetryFilter.class.getName() + ".deviceType";
+
   private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
   private static final Duration VISITOR_COOKIE_MAX_AGE = Duration.ofDays(365);
   private static final Set<String> TELEMETRY_METHODS =
@@ -91,14 +103,28 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
     ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
     boolean completed = false;
 
+    // 쿠키가 없는 첫 요청에서도 핸들러가 같은 방문자로 기록하도록 처리 전에 식별값을 확정한다.
+    Optional<String> existingVisitorId = findVisitorId(request);
+    String visitorId = existingVisitorId.orElseGet(() -> UUID.randomUUID().toString());
+    String hashedVisitorId = digest(visitorId);
+    String clientIp = clientIpResolver.apply(request);
+    ClientInfo clientInfo = parseClientInfo(request.getHeader(HttpHeaders.USER_AGENT));
+    request.setAttribute(VISITOR_ID_ATTRIBUTE, hashedVisitorId);
+    request.setAttribute(CLIENT_IP_ATTRIBUTE, clientIp);
+    request.setAttribute(DEVICE_TYPE_ATTRIBUTE, clientInfo.deviceType());
+
     try {
       filterChain.doFilter(request, responseWrapper);
       completed = true;
     } finally {
       long durationMs = System.currentTimeMillis() - startedAt;
       if (completed && isSuccessful(responseWrapper)) {
-        String visitorId = findVisitorId(request).orElseGet(() -> issueVisitorCookie(responseWrapper));
-        VisitorTelemetry telemetry = createTelemetry(request, responseWrapper, durationMs, visitorId);
+        if (existingVisitorId.isEmpty()) {
+          issueVisitorCookie(responseWrapper, visitorId);
+        }
+        VisitorTelemetry telemetry =
+            createTelemetry(
+                request, responseWrapper, durationMs, hashedVisitorId, clientIp, clientInfo);
         logTelemetry(telemetry);
         publishTelemetry(telemetry);
       }
@@ -131,8 +157,7 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
     }
   }
 
-  private String issueVisitorCookie(HttpServletResponse response) {
-    String visitorId = UUID.randomUUID().toString();
+  private void issueVisitorCookie(HttpServletResponse response, String visitorId) {
     ResponseCookie cookie =
         ResponseCookie.from(VISITOR_COOKIE_NAME, visitorId)
             .httpOnly(true)
@@ -142,12 +167,15 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
             .maxAge(VISITOR_COOKIE_MAX_AGE)
             .build();
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    return visitorId;
   }
 
   private VisitorTelemetry createTelemetry(
-      HttpServletRequest request, HttpServletResponse response, long durationMs, String visitorId) {
-    ClientInfo clientInfo = parseClientInfo(request.getHeader(HttpHeaders.USER_AGENT));
+      HttpServletRequest request,
+      HttpServletResponse response,
+      long durationMs,
+      String hashedVisitorId,
+      String clientIp,
+      ClientInfo clientInfo) {
     Object bestMatchingPattern =
         request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
     String normalizedRequestPath =
@@ -155,9 +183,9 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
 
     return new VisitorTelemetry(
         LocalDateTime.now(clock),
-        digest(visitorId),
+        hashedVisitorId,
         userIdSupplier.get(),
-        clientIpResolver.apply(request),
+        clientIp,
         MDC.get("traceId"),
         request.getMethod(),
         sanitizedRequestPath(request),

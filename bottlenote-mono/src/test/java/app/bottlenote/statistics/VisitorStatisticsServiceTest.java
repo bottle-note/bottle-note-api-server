@@ -7,14 +7,17 @@ import app.bottlenote.global.timeseries.TimeSeries;
 import app.bottlenote.global.timeseries.TimeSeriesException;
 import app.bottlenote.global.timeseries.TimeSeriesExceptionCode;
 import app.bottlenote.global.timeseries.TimeSeriesGranularity;
+import app.bottlenote.statistics.config.StatisticsProperties;
 import app.bottlenote.statistics.domain.ActiveVisitorBucket;
 import app.bottlenote.statistics.domain.ReturningVisitorBucket;
 import app.bottlenote.statistics.dto.request.VisitorStatisticsRequest;
+import app.bottlenote.statistics.facade.payload.VisitorExclusionItem;
 import app.bottlenote.statistics.fixture.InMemoryVisitorStatisticsRepository;
 import app.bottlenote.statistics.service.VisitorStatisticsService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -32,7 +35,7 @@ class VisitorStatisticsServiceTest {
   @BeforeEach
   void setUp() {
     repository = new InMemoryVisitorStatisticsRepository();
-    service = new VisitorStatisticsService(repository);
+    service = new VisitorStatisticsService(repository, new StatisticsProperties());
   }
 
   @Test
@@ -161,5 +164,33 @@ class VisitorStatisticsServiceTest {
         .isInstanceOf(TimeSeriesException.class)
         .hasFieldOrPropertyWithValue(
             "exceptionCode", TimeSeriesExceptionCode.UNSUPPORTED_GRANULARITY);
+  }
+
+  @Test
+  @DisplayName("기간 활성 회원 수를 조회할 때 요청 구간을 그대로 포트에 넘긴다")
+  void 기간_활성_회원_수를_조회할_수_있다() {
+    LocalDateTime from = LocalDateTime.of(2026, 9, 1, 0, 0);
+    LocalDateTime toExclusive = LocalDateTime.of(2026, 9, 8, 0, 0);
+    repository.seedActiveMembers(42L);
+
+    long members = service.countActiveMembers(from, toExclusive);
+
+    assertThat(members).isEqualTo(42L);
+    assertThat(repository.lastFrom()).isEqualTo(from);
+    assertThat(repository.lastToExclusive()).isEqualTo(toExclusive);
+  }
+
+  @Test
+  @DisplayName("제외 규칙을 조회할 때 설정의 기기 유형과 IP 대역을 복사해 돌려준다")
+  void 제외_규칙을_조회할_수_있다() {
+    StatisticsProperties properties = new StatisticsProperties();
+    properties.getExclusion().setDeviceTypes(List.of("봇", "도구"));
+    properties.getExclusion().setIpPrefixes(List.of("66.249."));
+    VisitorStatisticsService configured = new VisitorStatisticsService(repository, properties);
+
+    VisitorExclusionItem exclusion = configured.getExclusion();
+
+    assertThat(exclusion.deviceTypes()).containsExactly("봇", "도구");
+    assertThat(exclusion.ipPrefixes()).containsExactly("66.249.");
   }
 }

@@ -75,6 +75,24 @@ public class JdbcVisitorStatisticsRepository implements VisitorStatisticsReposit
     return jdbcTemplate.query(sql, params, this::mapReturning);
   }
 
+  @Override
+  public long countActiveMembers(LocalDateTime from, LocalDateTime toExclusive) {
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    String sql =
+        """
+        SELECT COUNT(DISTINCT user_id)
+        FROM visitor_telemetry_events
+        WHERE occurred_at >= :from AND occurred_at < :toExclusive
+          AND user_id IS NOT NULL
+        %s
+        """
+            .formatted(exclusionSql(params));
+    params.addValue("from", from);
+    params.addValue("toExclusive", toExclusive);
+    Long members = jdbcTemplate.queryForObject(sql, params, Long.class);
+    return members == null ? 0L : members;
+  }
+
   private String exclusionSql(MapSqlParameterSource params) {
     StringBuilder sql = new StringBuilder();
     StatisticsProperties.Exclusion exclusion = statisticsProperties.getExclusion();

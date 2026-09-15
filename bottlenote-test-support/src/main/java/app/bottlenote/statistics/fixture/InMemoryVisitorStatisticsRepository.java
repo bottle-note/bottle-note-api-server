@@ -55,6 +55,18 @@ public class InMemoryVisitorStatisticsRepository implements VisitorStatisticsRep
         .toList();
   }
 
+  private long activeMembers;
+
+  public void seedActiveMembers(long activeMembers) {
+    this.activeMembers = activeMembers;
+  }
+
+  @Override
+  public long countActiveMembers(LocalDateTime from, LocalDateTime toExclusive) {
+    remember(from, toExclusive, null);
+    return activeMembers;
+  }
+
   private void remember(
       LocalDateTime from, LocalDateTime toExclusive, TimeSeriesGranularity granularity) {
     this.lastFrom = from;

@@ -136,7 +136,8 @@ public class AlcoholQuerySupporter {
           sortOrder == SortOrder.DESC ? alcohol.korCategory.desc() : alcohol.korCategory.asc();
       case ENG_CATEGORY ->
           sortOrder == SortOrder.DESC ? alcohol.engCategory.desc() : alcohol.engCategory.asc();
-      case CREATED_AT -> sortOrder == SortOrder.DESC ? alcohol.createAt.desc() : alcohol.createAt.asc();
+      case CREATED_AT ->
+          sortOrder == SortOrder.DESC ? alcohol.createAt.desc() : alcohol.createAt.asc();
       case UPDATED_AT ->
           sortOrder == SortOrder.DESC ? alcohol.lastModifyAt.desc() : alcohol.lastModifyAt.asc();
     };
