@@ -39,6 +39,8 @@ import org.springframework.web.util.WebUtils;
 public final class VisitorTelemetryFilter extends OncePerRequestFilter {
 
   public static final String VISITOR_COOKIE_NAME = "__Host-bn-visitor-id";
+  public static final String CALLER_HEADER_NAME = "X-Bottlenote-Caller";
+  public static final String SSR_CALLER = "ssr";
 
   private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
   private static final Duration VISITOR_COOKIE_MAX_AGE = Duration.ofDays(365);
@@ -106,6 +108,11 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+    // SSR 서버의 렌더링용 호출은 실제 방문이 아니므로 쿠키 발급과 수집을 모두 건너뛴다
+    String caller = request.getHeader(CALLER_HEADER_NAME);
+    if (caller != null && SSR_CALLER.equalsIgnoreCase(caller.trim())) {
+      return true;
+    }
     String path = request.getRequestURI().substring(request.getContextPath().length());
     return !TELEMETRY_METHODS.contains(request.getMethod())
         || !(path.startsWith("/api/v1/") || path.startsWith("/api/v2/"));
