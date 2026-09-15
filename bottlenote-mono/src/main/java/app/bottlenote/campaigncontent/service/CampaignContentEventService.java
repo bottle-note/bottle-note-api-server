@@ -12,6 +12,7 @@ import app.bottlenote.campaigncontent.dto.response.CampaignContentEventResponse;
 import app.bottlenote.campaigncontent.exception.CampaignContentException;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class CampaignContentEventService {
 
   private final CampaignContentRepository campaignContentRepository;
   private final CampaignContentEventRepository campaignContentEventRepository;
+  private final Clock clock;
 
   @Transactional
   public CampaignContentEventResponse registerEvent(
@@ -42,7 +44,7 @@ public class CampaignContentEventService {
             .orElseThrow(() -> new CampaignContentException(CAMPAIGN_CONTENT_NOT_FOUND));
 
     CampaignContentEventLog event =
-        campaignContentEventRepository.save(
+        campaignContentEventRepository.register(
             CampaignContentEventLog.builder()
                 .campaignContentId(campaignContent.getId())
                 .eventType(type)
@@ -50,7 +52,7 @@ public class CampaignContentEventService {
                 .userId(context.userId())
                 .ipAddress(context.ipAddress())
                 .deviceType(context.deviceType())
-                .occurredAt(LocalDateTime.now(ZONE))
+                .occurredAt(LocalDateTime.now(clock.withZone(ZONE)))
                 .build());
     return new CampaignContentEventResponse(
         campaignContent.getCode(), event.getEventType(), event.getOccurredAt());

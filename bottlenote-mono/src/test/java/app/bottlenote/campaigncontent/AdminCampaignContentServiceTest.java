@@ -24,6 +24,8 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import app.bottlenote.statistics.facade.payload.VisitorExclusionItem;
 import app.bottlenote.statistics.fixture.FakeVisitorStatisticsFacade;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -40,6 +42,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 class AdminCampaignContentServiceTest {
 
   private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
+  private static final Instant NOW = Instant.parse("2026-09-15T06:00:00Z");
+  private static final Clock FIXED_CLOCK = Clock.fixed(NOW, ZONE);
+  private static final LocalDate TODAY = LocalDate.now(FIXED_CLOCK);
 
   private InMemoryCampaignContentRepository campaignContentRepository;
   private InMemoryCampaignContentEventRepository eventRepository;
@@ -50,12 +55,16 @@ class AdminCampaignContentServiceTest {
   @BeforeEach
   void setUp() {
     campaignContentRepository = new InMemoryCampaignContentRepository();
-    eventRepository = new InMemoryCampaignContentEventRepository();
+    eventRepository = new InMemoryCampaignContentEventRepository(campaignContentRepository);
     metricsRepository = new InMemoryCampaignContentMetricsRepository();
     visitorStatisticsFacade = new FakeVisitorStatisticsFacade();
     service =
         new AdminCampaignContentService(
-            campaignContentRepository, eventRepository, metricsRepository, visitorStatisticsFacade);
+            campaignContentRepository,
+            eventRepository,
+            metricsRepository,
+            visitorStatisticsFacade,
+            FIXED_CLOCK);
   }
 
   @Test
@@ -124,11 +133,11 @@ class AdminCampaignContentServiceTest {
   @DisplayName("참여 기록이 있는 캠페인 콘텐츠를 삭제할 때 HAS_EVENTS로 거절하고 남겨 둔다")
   void 참여_기록이_있으면_삭제를_거절한다() {
     CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
-    eventRepository.save(
+    eventRepository.register(
         CampaignContentEventLog.builder()
             .campaignContentId(content.getId())
             .eventType(CampaignContentEventType.VIEW)
-            .occurredAt(LocalDateTime.now(ZONE))
+            .occurredAt(LocalDateTime.now(FIXED_CLOCK))
             .build());
 
     assertThatThrownBy(() -> service.delete(content.getId()))
@@ -166,9 +175,8 @@ class AdminCampaignContentServiceTest {
             AdminCampaignContentListResponse::code,
             AdminCampaignContentListResponse::recentParticipants)
         .containsExactly(tuple(tarot.getCode(), 0L), tuple(mbti.getCode(), 12L));
-    LocalDate today = LocalDate.now(ZONE);
-    assertThat(metricsRepository.lastFrom()).isEqualTo(today.minusDays(6).atStartOfDay());
-    assertThat(metricsRepository.lastToExclusive()).isEqualTo(today.plusDays(1).atStartOfDay());
+    assertThat(metricsRepository.lastFrom()).isEqualTo(TODAY.minusDays(6).atStartOfDay());
+    assertThat(metricsRepository.lastToExclusive()).isEqualTo(TODAY.plusDays(1).atStartOfDay());
     assertThat(metricsRepository.lastExclusion().deviceTypes()).containsExactly("봇");
     assertThat(metricsRepository.lastExclusion().ipPrefixes()).containsExactly("10.");
   }
@@ -180,11 +188,9 @@ class AdminCampaignContentServiceTest {
     metricsRepository.seedCounts(
         content.getId(), new CampaignContentEventCounts(4120L, 2730L, 1905L, 1284L, 1900L, 1280L));
     visitorStatisticsFacade.setActiveMembers(10439L);
-    LocalDate today = LocalDate.now(ZONE);
-
     AdminCampaignContentMetricsResponse metrics =
         service.getMetrics(
-            content.getId(), new AdminCampaignContentMetricsRequest(today.minusDays(6), today));
+            content.getId(), new AdminCampaignContentMetricsRequest(TODAY.minusDays(6), TODAY));
 
     assertThat(metrics.viewVisitors()).isEqualTo(4120L);
     assertThat(metrics.resultMembers()).isEqualTo(1284L);
@@ -192,9 +198,9 @@ class AdminCampaignContentServiceTest {
     assertThat(metrics.completionRate()).isEqualTo(69.6);
     assertThat(metrics.loginConversionRate()).isEqualTo(67.2);
     assertThat(metrics.participationRate()).isEqualTo(12.3);
-    assertThat(visitorStatisticsFacade.lastFrom()).isEqualTo(today.minusDays(6).atStartOfDay());
+    assertThat(visitorStatisticsFacade.lastFrom()).isEqualTo(TODAY.minusDays(6).atStartOfDay());
     assertThat(visitorStatisticsFacade.lastToExclusive())
-        .isEqualTo(today.plusDays(1).atStartOfDay());
+        .isEqualTo(TODAY.plusDays(1).atStartOfDay());
   }
 
   @Test
@@ -208,35 +214,48 @@ class AdminCampaignContentServiceTest {
     assertThat(metrics.completionRate()).isZero();
     assertThat(metrics.loginConversionRate()).isZero();
     assertThat(metrics.participationRate()).isZero();
-    assertThat(metrics.to()).isEqualTo(LocalDate.now(ZONE));
-    assertThat(metrics.from()).isEqualTo(LocalDate.now(ZONE).minusDays(6));
+    assertThat(metrics.to()).isEqualTo(TODAY);
+    assertThat(metrics.from()).isEqualTo(TODAY.minusDays(6));
   }
 
   @Test
-  @DisplayName("지표 기간이 보존 기간 90일을 벗어나거나 미래를 포함하거나 뒤집히면 INVALID_METRICS_RANGE로 거절한다")
-  void 지표_기간이_유효하지_않으면_거절한다() {
+  @DisplayName("오늘에서 90일 전부터 조회할 때 INVALID_METRICS_RANGE로 거절한다")
+  void 오늘에서_90일_전은_거절한다() {
     CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
-    LocalDate today = LocalDate.now(ZONE);
 
     assertThatThrownBy(
             () ->
                 service.getMetrics(
                     content.getId(),
-                    new AdminCampaignContentMetricsRequest(today.minusDays(90), today)))
+                    new AdminCampaignContentMetricsRequest(TODAY.minusDays(90), TODAY)))
         .extracting("exceptionCode")
         .isEqualTo(CampaignContentExceptionCode.CAMPAIGN_CONTENT_INVALID_METRICS_RANGE);
+  }
+
+  @Test
+  @DisplayName("내일까지 조회할 때 INVALID_METRICS_RANGE로 거절한다")
+  void 미래_기간은_거절한다() {
+    CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
+
     assertThatThrownBy(
             () ->
                 service.getMetrics(
                     content.getId(),
-                    new AdminCampaignContentMetricsRequest(today, today.plusDays(1))))
+                    new AdminCampaignContentMetricsRequest(TODAY, TODAY.plusDays(1))))
         .extracting("exceptionCode")
         .isEqualTo(CampaignContentExceptionCode.CAMPAIGN_CONTENT_INVALID_METRICS_RANGE);
+  }
+
+  @Test
+  @DisplayName("시작일이 종료일보다 늦을 때 INVALID_METRICS_RANGE로 거절한다")
+  void 뒤집힌_기간은_거절한다() {
+    CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
+
     assertThatThrownBy(
             () ->
                 service.getMetrics(
                     content.getId(),
-                    new AdminCampaignContentMetricsRequest(today, today.minusDays(1))))
+                    new AdminCampaignContentMetricsRequest(TODAY, TODAY.minusDays(1))))
         .extracting("exceptionCode")
         .isEqualTo(CampaignContentExceptionCode.CAMPAIGN_CONTENT_INVALID_METRICS_RANGE);
   }
@@ -245,17 +264,67 @@ class AdminCampaignContentServiceTest {
   @DisplayName("오늘을 포함한 90일 기간은 지표를 조회할 수 있다")
   void 보존_기간_경계인_90일은_조회할_수_있다() {
     CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
-    LocalDate today = LocalDate.now(ZONE);
 
     AdminCampaignContentMetricsResponse metrics =
         service.getMetrics(
-            content.getId(), new AdminCampaignContentMetricsRequest(today.minusDays(89), today));
+            content.getId(), new AdminCampaignContentMetricsRequest(TODAY.minusDays(89), TODAY));
 
-    assertThat(metrics.from()).isEqualTo(today.minusDays(89));
+    assertThat(metrics.from()).isEqualTo(TODAY.minusDays(89));
+  }
+
+  @Test
+  @DisplayName("KST 23시 59분 59초에는 해당 날짜를 오늘로 사용한다")
+  void 자정_직전에는_해당_날짜를_사용한다() {
+    CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
+    AdminCampaignContentService serviceAtBoundary =
+        serviceWithClock(Clock.fixed(Instant.parse("2026-09-15T14:59:59Z"), ZONE));
+
+    AdminCampaignContentMetricsResponse metrics =
+        serviceAtBoundary.getMetrics(
+            content.getId(), new AdminCampaignContentMetricsRequest(null, null));
+
+    assertThat(metrics.to()).isEqualTo(LocalDate.of(2026, 9, 15));
+  }
+
+  @Test
+  @DisplayName("KST 00시 00분 00초에는 다음 날짜를 오늘로 사용한다")
+  void 자정부터는_다음_날짜를_사용한다() {
+    CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
+    AdminCampaignContentService serviceAtBoundary =
+        serviceWithClock(Clock.fixed(Instant.parse("2026-09-15T15:00:00Z"), ZONE));
+
+    AdminCampaignContentMetricsResponse metrics =
+        serviceAtBoundary.getMetrics(
+            content.getId(), new AdminCampaignContentMetricsRequest(null, null));
+
+    assertThat(metrics.to()).isEqualTo(LocalDate.of(2026, 9, 16));
+  }
+
+  @Test
+  @DisplayName("UTC zone의 Clock을 주입해도 KST 날짜를 오늘로 사용한다")
+  void UTC_Clock을_주입해도_KST_날짜를_사용한다() {
+    CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
+    AdminCampaignContentService serviceWithUtcClock =
+        serviceWithClock(Clock.fixed(Instant.parse("2026-09-15T15:00:00Z"), ZoneId.of("UTC")));
+
+    AdminCampaignContentMetricsResponse metrics =
+        serviceWithUtcClock.getMetrics(
+            content.getId(), new AdminCampaignContentMetricsRequest(null, null));
+
+    assertThat(metrics.to()).isEqualTo(LocalDate.of(2026, 9, 16));
+  }
+
+  private AdminCampaignContentService serviceWithClock(Clock clock) {
+    return new AdminCampaignContentService(
+        campaignContentRepository,
+        eventRepository,
+        metricsRepository,
+        visitorStatisticsFacade,
+        clock);
   }
 
   private CampaignContent persist(String code, String name, boolean isActive) {
-    return campaignContentRepository.save(
+    return campaignContentRepository.register(
         CampaignContent.builder().code(code).name(name).isActive(isActive).build());
   }
 }

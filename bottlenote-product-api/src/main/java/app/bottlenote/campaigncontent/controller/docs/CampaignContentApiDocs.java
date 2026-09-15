@@ -18,7 +18,7 @@ public final class CampaignContentApiDocs {
 
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
-  @Tag(name = "캠페인 콘텐츠", description = "FE가 배포한 캠페인 콘텐츠의 참여 이벤트를 기록한다")
+  @Tag(name = "캠페인 콘텐츠")
   public @interface ApiTag {}
 
   @Target(ElementType.METHOD)

@@ -5,7 +5,7 @@ import app.bottlenote.common.annotation.DomainRepository;
 @DomainRepository
 public interface CampaignContentEventRepository {
 
-  CampaignContentEventLog save(CampaignContentEventLog event);
+  CampaignContentEventLog register(CampaignContentEventLog event);
 
   boolean existsByCampaignContentId(Long campaignContentId);
 }

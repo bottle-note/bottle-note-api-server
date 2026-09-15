@@ -1,10 +1,18 @@
 package app.bottlenote.campaigncontent.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.campaigncontent.constant.CampaignContentEventType;
+import app.bottlenote.campaigncontent.domain.CampaignContent;
+import app.bottlenote.campaigncontent.domain.CampaignContentEventLog;
+import app.bottlenote.campaigncontent.exception.CampaignContentException;
+import app.bottlenote.campaigncontent.exception.CampaignContentExceptionCode;
 import app.bottlenote.campaigncontent.fixture.CampaignContentTestFactory;
+import app.bottlenote.campaigncontent.repository.JpaCampaignContentEventRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +29,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 class CampaignContentEventIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private CampaignContentTestFactory campaignContentTestFactory;
+  @Autowired private JpaCampaignContentEventRepository campaignContentEventRepository;
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @Nested
@@ -104,6 +113,29 @@ class CampaignContentEventIntegrationTest extends IntegrationTestSupport {
 
       assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
       assertThat(events()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("콘텐츠 삭제가 먼저 커밋된 뒤 이벤트를 저장하면 NOT_FOUND로 변환한다")
+    void 삭제된_콘텐츠의_이벤트_저장은_NOT_FOUND다() {
+      CampaignContent content =
+          campaignContentTestFactory.persistCampaignContent("whiskey-mbti", "위스키 MBTI");
+      jdbcTemplate.update("DELETE FROM campaign_contents WHERE id = ?", content.getId());
+
+      CampaignContentEventLog event =
+          CampaignContentEventLog.builder()
+              .campaignContentId(content.getId())
+              .eventType(CampaignContentEventType.VIEW)
+              .visitorId("a".repeat(64))
+              .ipAddress("203.0.113.10")
+              .deviceType("모바일")
+              .occurredAt(LocalDateTime.now())
+              .build();
+
+      assertThatThrownBy(() -> campaignContentEventRepository.register(event))
+          .isInstanceOf(CampaignContentException.class)
+          .extracting("exceptionCode")
+          .isEqualTo(CampaignContentExceptionCode.CAMPAIGN_CONTENT_NOT_FOUND);
     }
   }
 
