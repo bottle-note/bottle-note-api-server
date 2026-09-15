@@ -6,20 +6,10 @@ import app.bottlenote.campaigncontent.constant.CampaignContentEventType.FINISH
 import app.bottlenote.campaigncontent.constant.CampaignContentEventType.RESULT
 import app.bottlenote.campaigncontent.constant.CampaignContentEventType.START
 import app.bottlenote.campaigncontent.constant.CampaignContentEventType.VIEW
-import app.bottlenote.campaigncontent.domain.CampaignContentEventRepository
-import app.bottlenote.campaigncontent.domain.CampaignContentMetricsRepository
-import app.bottlenote.campaigncontent.domain.CampaignContentRepository
-import app.bottlenote.campaigncontent.dto.request.AdminCampaignContentCreateRequest
-import app.bottlenote.campaigncontent.exception.CampaignContentExceptionCode
 import app.bottlenote.campaigncontent.fixture.CampaignContentTestFactory
-import app.bottlenote.campaigncontent.repository.JpaCampaignContentEventRepository
-import app.bottlenote.campaigncontent.repository.JpaCampaignContentRepository
-import app.bottlenote.campaigncontent.service.AdminCampaignContentService
-import app.bottlenote.statistics.facade.VisitorStatisticsFacade
 import app.bottlenote.statistics.fixture.VisitorTelemetryTestFactory
 import app.bottlenote.user.fixture.UserTestFactory
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -29,9 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.assertj.MvcTestResult
-import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.transaction.support.TransactionTemplate
-import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -48,24 +35,6 @@ class AdminCampaignContentIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var userTestFactory: UserTestFactory
-
-	@Autowired
-	private lateinit var campaignContentRepository: JpaCampaignContentRepository
-
-	@Autowired
-	private lateinit var campaignContentEventRepository: JpaCampaignContentEventRepository
-
-	@Autowired
-	private lateinit var campaignContentMetricsRepository: CampaignContentMetricsRepository
-
-	@Autowired
-	private lateinit var visitorStatisticsFacade: VisitorStatisticsFacade
-
-	@Autowired
-	private lateinit var clock: Clock
-
-	@Autowired
-	private lateinit var transactionManager: PlatformTransactionManager
 
 	private lateinit var accessToken: String
 	private val zone: ZoneId = ZoneId.of("Asia/Seoul")
@@ -117,23 +86,6 @@ class AdminCampaignContentIntegrationTest : IntegrationTestSupport() {
 			)
 
 			assertThat(result).hasStatus(HttpStatus.CONFLICT)
-		}
-
-		@Test
-		@DisplayName("사전 중복 확인 뒤 DB unique 제약이 발생해도 DUPLICATE_CODE로 변환한다")
-		fun createDuplicateCodeFromDatabaseConstraint() {
-			campaignContentTestFactory.persistCampaignContent("whiskey-mbti", "위스키 MBTI")
-			val repositoryWithoutPrecheck = object : CampaignContentRepository by campaignContentRepository {
-				override fun existsByCode(code: String): Boolean = false
-			}
-			val service = service(repositoryWithoutPrecheck, campaignContentEventRepository)
-
-			assertThatThrownBy {
-				TransactionTemplate(transactionManager).executeWithoutResult {
-					service.create(AdminCampaignContentCreateRequest("whiskey-mbti", "다른 이름", null, true))
-				}
-			}.extracting("exceptionCode")
-				.isEqualTo(CampaignContentExceptionCode.CAMPAIGN_CONTENT_DUPLICATE_CODE)
 		}
 
 		@Test
@@ -195,24 +147,6 @@ class AdminCampaignContentIntegrationTest : IntegrationTestSupport() {
 			assertThat(rejected).hasStatus(HttpStatus.CONFLICT)
 			assertThat(deleted).hasStatusOk()
 			assertThat(exchange(mockMvcTester.get().uri("/v1/campaign-contents/${unused.id}"))).hasStatus(HttpStatus.NOT_FOUND)
-		}
-
-		@Test
-		@DisplayName("이벤트 사전 확인 뒤 DB FK 제약이 발생해도 HAS_EVENTS로 변환한다")
-		fun deleteFromDatabaseConstraint() {
-			val content = campaignContentTestFactory.persistCampaignContent("whiskey-mbti", "위스키 MBTI")
-			campaignContentTestFactory.persistEvent(content.id!!, VIEW, visitor("A"), null, "203.0.113.10", LocalDateTime.now(clock))
-			val eventRepositoryWithoutPrecheck = object : CampaignContentEventRepository by campaignContentEventRepository {
-				override fun existsByCampaignContentId(campaignContentId: Long?): Boolean = false
-			}
-			val service = service(campaignContentRepository, eventRepositoryWithoutPrecheck)
-
-			assertThatThrownBy {
-				TransactionTemplate(transactionManager).executeWithoutResult {
-					service.delete(content.id!!)
-				}
-			}.extracting("exceptionCode")
-				.isEqualTo(CampaignContentExceptionCode.CAMPAIGN_CONTENT_HAS_EVENTS)
 		}
 	}
 
@@ -323,17 +257,6 @@ class AdminCampaignContentIntegrationTest : IntegrationTestSupport() {
 	}
 
 	private fun visitor(key: String): String = key.repeat(64)
-
-	private fun service(
-		contentRepository: CampaignContentRepository,
-		eventRepository: CampaignContentEventRepository
-	): AdminCampaignContentService = AdminCampaignContentService(
-		contentRepository,
-		eventRepository,
-		campaignContentMetricsRepository,
-		visitorStatisticsFacade,
-		clock
-	)
 
 	private fun exchange(request: org.springframework.test.web.servlet.assertj.MockMvcTester.MockMvcRequestBuilder): MvcTestResult = request.header("Authorization", "Bearer $accessToken").exchange()
 

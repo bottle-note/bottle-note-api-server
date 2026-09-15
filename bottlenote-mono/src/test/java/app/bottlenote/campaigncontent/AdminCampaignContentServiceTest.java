@@ -55,7 +55,7 @@ class AdminCampaignContentServiceTest {
   @BeforeEach
   void setUp() {
     campaignContentRepository = new InMemoryCampaignContentRepository();
-    eventRepository = new InMemoryCampaignContentEventRepository(campaignContentRepository);
+    eventRepository = new InMemoryCampaignContentEventRepository();
     metricsRepository = new InMemoryCampaignContentMetricsRepository();
     visitorStatisticsFacade = new FakeVisitorStatisticsFacade();
     service =
@@ -133,7 +133,7 @@ class AdminCampaignContentServiceTest {
   @DisplayName("참여 기록이 있는 캠페인 콘텐츠를 삭제할 때 HAS_EVENTS로 거절하고 남겨 둔다")
   void 참여_기록이_있으면_삭제를_거절한다() {
     CampaignContent content = persist("whiskey-mbti", "위스키 MBTI", true);
-    eventRepository.register(
+    eventRepository.save(
         CampaignContentEventLog.builder()
             .campaignContentId(content.getId())
             .eventType(CampaignContentEventType.VIEW)
@@ -324,7 +324,7 @@ class AdminCampaignContentServiceTest {
   }
 
   private CampaignContent persist(String code, String name, boolean isActive) {
-    return campaignContentRepository.register(
+    return campaignContentRepository.save(
         CampaignContent.builder().code(code).name(name).isActive(isActive).build());
   }
 }

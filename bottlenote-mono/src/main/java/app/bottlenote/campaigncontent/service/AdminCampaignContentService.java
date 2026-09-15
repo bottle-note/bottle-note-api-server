@@ -114,7 +114,7 @@ public class AdminCampaignContentService {
     }
 
     CampaignContent saved =
-        campaignContentRepository.register(
+        campaignContentRepository.save(
             CampaignContent.builder()
                 .code(request.code())
                 .name(request.name())
@@ -147,7 +147,7 @@ public class AdminCampaignContentService {
     if (campaignContentEventRepository.existsByCampaignContentId(campaignContentId)) {
       throw new CampaignContentException(CAMPAIGN_CONTENT_HAS_EVENTS);
     }
-    campaignContentRepository.remove(campaignContent);
+    campaignContentRepository.delete(campaignContent);
     return AdminResultResponse.of(CAMPAIGN_CONTENT_DELETED, campaignContentId);
   }
 
