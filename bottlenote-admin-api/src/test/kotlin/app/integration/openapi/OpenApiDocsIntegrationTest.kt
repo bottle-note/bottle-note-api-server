@@ -132,7 +132,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 				"alcoholCategoryKo",
 				"alcoholCategoryEn",
 				"distilleryLinked",
-				"regionLinked",
+				"regionLinked"
 			)
 		assertThat(listSchema.at("/properties/ageYears"))
 			.isEqualTo(detailSchema.at("/properties/ageYears"))

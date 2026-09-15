@@ -101,6 +101,11 @@ bottlenote:
         methods: [POST, PATCH, DELETE]
         limit: 60
         window-seconds: 60
+      # 공개 참여 이벤트는 쿠키 없는 반복 전송으로 순방문자가 부풀지 않도록 쓰기 한도를 둔다
+      - path-prefix: /api/v1/campaign-contents
+        methods: [POST]
+        limit: 60
+        window-seconds: 60
     excluded-path-prefixes:
       - /actuator
       - /favicon.ico
