@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
@@ -162,6 +163,52 @@ class VisitorTelemetryFilterTest {
 
     assertThat(response.getHeader(HttpHeaders.SET_COOKIE)).isNull();
     assertThat(publisher.telemetries).isEmpty();
+  }
+
+  @ParameterizedTest(name = "caller=[{0}]")
+  @ValueSource(strings = {"ssr", "SSR", " Ssr "})
+  @DisplayName("SSR 식별 헤더가 있을 때 쿠키를 발급하지 않고 텔레메트리를 발행하지 않는다")
+  void SSR_호출_요청은_수집하지_않는다(String caller) throws Exception {
+    // given
+    CapturingPublisher publisher = new CapturingPublisher();
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
+    request.addHeader(VisitorTelemetryFilter.CALLER_HEADER_NAME, caller);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    // when
+    filter.doFilter(request, response, successfulChain());
+
+    // then
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getHeader(HttpHeaders.SET_COOKIE)).isNull();
+    assertThat(publisher.telemetries).isEmpty();
+  }
+
+  @ParameterizedTest(name = "caller=[{0}]")
+  @NullAndEmptySource
+  @ValueSource(strings = {"csr", "ssr-proxy"})
+  @DisplayName("SSR 식별 헤더가 없거나 다른 값일 때 기존처럼 쿠키를 발급하고 발행한다")
+  void SSR이_아닌_요청은_수집할_수_있다(String caller) throws Exception {
+    // given
+    CapturingPublisher publisher = new CapturingPublisher();
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
+    if (caller != null) {
+      request.addHeader(VisitorTelemetryFilter.CALLER_HEADER_NAME, caller);
+    }
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    // when
+    filter.doFilter(request, response, successfulChain());
+
+    // then
+    String issuedVisitorId = extractCookieValue(response.getHeader(HttpHeaders.SET_COOKIE));
+    assertThat(publisher.single().visitorId()).isEqualTo(sha256(issuedVisitorId));
   }
 
   @Test
