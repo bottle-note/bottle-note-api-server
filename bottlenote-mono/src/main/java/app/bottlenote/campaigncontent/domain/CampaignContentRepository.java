@@ -7,7 +7,7 @@ import java.util.Optional;
 @DomainRepository
 public interface CampaignContentRepository {
 
-  CampaignContent register(CampaignContent campaignContent);
+  CampaignContent save(CampaignContent campaignContent);
 
   Optional<CampaignContent> findById(Long id);
 
@@ -15,7 +15,7 @@ public interface CampaignContentRepository {
 
   boolean existsByCode(String code);
 
-  void remove(CampaignContent campaignContent);
+  void delete(CampaignContent campaignContent);
 
   /** 이름·코드 검색과 활성 필터를 적용해 최신 등록순으로 한 페이지를 조회한다. */
   List<CampaignContent> searchForAdmin(String keyword, Boolean isActive, int page, int size);

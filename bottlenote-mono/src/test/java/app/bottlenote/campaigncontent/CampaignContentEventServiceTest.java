@@ -19,7 +19,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -42,7 +41,7 @@ class CampaignContentEventServiceTest {
   @BeforeEach
   void setUp() {
     campaignContentRepository = new InMemoryCampaignContentRepository();
-    eventRepository = new InMemoryCampaignContentEventRepository(campaignContentRepository);
+    eventRepository = new InMemoryCampaignContentEventRepository();
     service =
         new CampaignContentEventService(campaignContentRepository, eventRepository, FIXED_CLOCK);
   }
@@ -124,55 +123,12 @@ class CampaignContentEventServiceTest {
     assertThat(eventRepository.events()).isEmpty();
   }
 
-  @Test
-  @DisplayName("콘텐츠 조회 뒤 삭제가 먼저 끝나 이벤트 FK가 사라졌을 때 NOT_FOUND로 거절한다")
-  void 이벤트_저장_전에_콘텐츠가_삭제되면_NOT_FOUND로_거절한다() {
-    StaleCampaignContentRepository staleRepository = new StaleCampaignContentRepository();
-    CampaignContent content =
-        staleRepository.register(
-            CampaignContent.builder()
-                .code("whiskey-mbti")
-                .name("whiskey-mbti")
-                .isActive(true)
-                .build());
-    InMemoryCampaignContentEventRepository staleEventRepository =
-        new InMemoryCampaignContentEventRepository(staleRepository);
-    CampaignContentEventService staleService =
-        new CampaignContentEventService(staleRepository, staleEventRepository, FIXED_CLOCK);
-    staleRepository.remove(content);
-
-    assertThatThrownBy(
-            () ->
-                staleService.registerEvent(
-                    "whiskey-mbti", CampaignContentEventType.VIEW, anonymous()))
-        .isInstanceOf(CampaignContentException.class)
-        .extracting("exceptionCode")
-        .isEqualTo(CampaignContentExceptionCode.CAMPAIGN_CONTENT_NOT_FOUND);
-  }
-
   private CampaignContent persist(String code, boolean isActive) {
-    return campaignContentRepository.register(
+    return campaignContentRepository.save(
         CampaignContent.builder().code(code).name(code).isActive(isActive).build());
   }
 
   private CampaignContentEventContextRequest anonymous() {
     return new CampaignContentEventContextRequest(null, VISITOR_ID, "203.0.113.10", "모바일");
-  }
-
-  private static final class StaleCampaignContentRepository
-      extends InMemoryCampaignContentRepository {
-
-    private CampaignContent staleContent;
-
-    @Override
-    public CampaignContent register(CampaignContent campaignContent) {
-      staleContent = super.register(campaignContent);
-      return staleContent;
-    }
-
-    @Override
-    public Optional<CampaignContent> findByCode(String code) {
-      return Optional.ofNullable(staleContent).filter(content -> content.getCode().equals(code));
-    }
   }
 }

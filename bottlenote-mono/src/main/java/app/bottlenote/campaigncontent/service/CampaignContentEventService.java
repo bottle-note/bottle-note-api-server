@@ -44,7 +44,7 @@ public class CampaignContentEventService {
             .orElseThrow(() -> new CampaignContentException(CAMPAIGN_CONTENT_NOT_FOUND));
 
     CampaignContentEventLog event =
-        campaignContentEventRepository.register(
+        campaignContentEventRepository.save(
             CampaignContentEventLog.builder()
                 .campaignContentId(campaignContent.getId())
                 .eventType(type)
