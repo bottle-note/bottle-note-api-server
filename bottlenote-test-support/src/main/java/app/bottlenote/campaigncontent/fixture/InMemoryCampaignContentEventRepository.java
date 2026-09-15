@@ -9,9 +9,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class InMemoryCampaignContentEventRepository implements CampaignContentEventRepository {
 
   private final List<CampaignContentEventLog> events = new ArrayList<>();
+  private final InMemoryCampaignContentRepository campaignContentRepository;
+
+  public InMemoryCampaignContentEventRepository(
+      InMemoryCampaignContentRepository campaignContentRepository) {
+    this.campaignContentRepository = campaignContentRepository;
+  }
 
   @Override
-  public CampaignContentEventLog save(CampaignContentEventLog event) {
+  public CampaignContentEventLog register(CampaignContentEventLog event) {
+    campaignContentRepository.recordEvent(event.getCampaignContentId());
     if (event.getId() == null) {
       ReflectionTestUtils.setField(event, "id", events.size() + 1L);
     }

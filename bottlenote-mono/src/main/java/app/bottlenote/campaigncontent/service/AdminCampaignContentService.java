@@ -31,6 +31,7 @@ import app.bottlenote.statistics.facade.VisitorStatisticsFacade;
 import app.bottlenote.statistics.facade.payload.VisitorExclusionItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -58,6 +59,7 @@ public class AdminCampaignContentService {
   private final CampaignContentEventRepository campaignContentEventRepository;
   private final CampaignContentMetricsRepository campaignContentMetricsRepository;
   private final VisitorStatisticsFacade visitorStatisticsFacade;
+  private final Clock clock;
 
   @Transactional(readOnly = true)
   public GlobalResponse search(AdminCampaignContentSearchRequest request) {
@@ -66,7 +68,7 @@ public class AdminCampaignContentService {
             request.keyword(), request.isActive(), request.page(), request.size());
     long total = campaignContentRepository.countForAdmin(request.keyword(), request.isActive());
 
-    LocalDate today = LocalDate.now(ZONE);
+    LocalDate today = LocalDate.now(clock.withZone(ZONE));
     Map<Long, Long> participants =
         campaignContentMetricsRepository.countResultMembers(
             campaignContents.stream().map(CampaignContent::getId).toList(),
@@ -112,7 +114,7 @@ public class AdminCampaignContentService {
     }
 
     CampaignContent saved =
-        campaignContentRepository.save(
+        campaignContentRepository.register(
             CampaignContent.builder()
                 .code(request.code())
                 .name(request.name())
@@ -145,7 +147,7 @@ public class AdminCampaignContentService {
     if (campaignContentEventRepository.existsByCampaignContentId(campaignContentId)) {
       throw new CampaignContentException(CAMPAIGN_CONTENT_HAS_EVENTS);
     }
-    campaignContentRepository.delete(campaignContent);
+    campaignContentRepository.remove(campaignContent);
     return AdminResultResponse.of(CAMPAIGN_CONTENT_DELETED, campaignContentId);
   }
 
@@ -153,7 +155,7 @@ public class AdminCampaignContentService {
   public AdminCampaignContentMetricsResponse getMetrics(
       Long campaignContentId, AdminCampaignContentMetricsRequest request) {
     CampaignContent campaignContent = findCampaignContent(campaignContentId);
-    LocalDate today = LocalDate.now(ZONE);
+    LocalDate today = LocalDate.now(clock.withZone(ZONE));
     LocalDate to = request.to() != null ? request.to() : today;
     LocalDate from =
         request.from() != null ? request.from() : to.minusDays(RECENT_PARTICIPANT_DAYS - 1L);

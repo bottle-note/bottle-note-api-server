@@ -16,7 +16,7 @@ object AdminCampaignContentApiDocs {
 
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Tag(name = "캠페인 콘텐츠", description = "FE가 배포하는 캠페인 콘텐츠의 코드를 등록·관리하고 참여 지표를 조회한다")
+	@Tag(name = "캠페인 콘텐츠")
 	annotation class ApiTag
 
 	@Target(AnnotationTarget.FUNCTION)

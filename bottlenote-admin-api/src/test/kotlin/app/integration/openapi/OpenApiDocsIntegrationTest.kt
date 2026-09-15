@@ -11,10 +11,10 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	private val envelopeFields = listOf("success", "code", "data", "errors", "meta")
 
-	// Admin의 90 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
+	// Admin의 97 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
 	// 템플릿 다운로드(GET /v1/alcohols/excel/template)는 XLSX binary 응답이라 예외다.
-	// 기존 86 + 방문자 통계 active/retention 2 + 주류 인기도 시계열 2 = 90
-	private val expectedOperationCount = 90
+	// 기존 86 + 방문자 통계 active/retention 2 + 주류 인기도 시계열 2 + 캠페인 콘텐츠 7 = 97
+	private val expectedOperationCount = 97
 	private val binaryDownloadOperations = setOf("GET /v1/alcohols/excel/template")
 
 	@Test
@@ -47,8 +47,8 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 90개 operation이 누락 없이 포함된다")
-	fun openApiSpecContains90Operations() {
+	@DisplayName("문서에는 97개 operation이 누락 없이 포함된다")
+	fun openApiSpecContains97Operations() {
 		val operations = operationsOf(fetchSpec())
 
 		assertThat(operations)
