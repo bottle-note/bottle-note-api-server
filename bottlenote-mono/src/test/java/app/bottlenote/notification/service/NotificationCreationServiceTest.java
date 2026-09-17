@@ -7,7 +7,9 @@ import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionType;
+import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
+import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
@@ -25,6 +27,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 class NotificationCreationServiceTest {
   private InMemoryNotificationRepository repository;
   private UserNotificationService service;
+  private NotificationSettingService settings;
 
   @BeforeEach
   void setUp() {
@@ -32,11 +35,13 @@ class NotificationCreationServiceTest {
     CursorProperties properties = new CursorProperties();
     properties.setCurrentKeyId("v1");
     properties.setCurrentSecret("notification-test-cursor-secret");
+    settings = new NotificationSettingService(new InMemoryUserNotificationSettingRepository());
     service =
         new UserNotificationService(
             new FakeUserFacade(UserProfileItem.create(1L, "사용자", null)),
             repository,
-            new HmacCursorCodec(properties, Clock.systemUTC()));
+            new HmacCursorCodec(properties, Clock.systemUTC()),
+            settings);
   }
 
   @ParameterizedTest
@@ -81,6 +86,50 @@ class NotificationCreationServiceTest {
         .isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> NotificationAction.openUser(0L))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @ParameterizedTest
+  @MethodSource("messages")
+  @DisplayName("기존 알림 발생 액션을 거부했을 때 저장하지 않는다")
+  void 거부한_알림은_저장하지_않는다(NotificationMessage message) {
+    settings.changeSetting(1L, message.eventAction(), false);
+    service.sendNotification(message);
+    assertThat(repository.findAll()).isEmpty();
+  }
+
+  @ParameterizedTest
+  @MethodSource("messages")
+  @DisplayName("기존 알림을 저장할 때 표준 발생 액션도 저장한다")
+  void 발생_액션을_저장한다(NotificationMessage message) {
+    service.sendNotification(message);
+    assertThat(repository.findAll().getFirst().getEventAction()).isEqualTo(message.eventAction());
+  }
+
+  @Test
+  @DisplayName("리뷰 댓글을 거부할 때 댓글 답글 설정은 유지한다")
+  void 댓글과_답글의_설정을_구분한다() {
+    settings.changeSetting(1L, NotificationEventAction.REVIEW_COMMENT, false);
+    service.sendNotification(NotificationMessage.reviewReply(1L, 2L, 3L, "댓글", "내용"));
+    service.sendNotification(NotificationMessage.reviewReplyResponse(1L, 2L, 4L, "답글", "내용"));
+    assertThat(repository.findAll())
+        .singleElement()
+        .satisfies(
+            n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_REPLY));
+  }
+
+  @Test
+  @DisplayName("기본 거부 액션의 저장값을 허용으로 바꿀 때 새 알림을 저장한다")
+  void 기본_거부와_허용_변경을_적용한다() {
+    NotificationMessage message =
+        NotificationMessage.create(1L, NotificationEventAction.PROGRAM_NEW, "프로그램", "내용");
+    service.sendNotification(message);
+    assertThat(repository.findAll()).isEmpty();
+    settings.changeSetting(1L, NotificationEventAction.PROGRAM_NEW, true);
+    service.sendNotification(message);
+    assertThat(repository.findAll())
+        .singleElement()
+        .satisfies(
+            n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.PROGRAM_NEW));
   }
 
   private static java.util.stream.Stream<NotificationMessage> messages() {

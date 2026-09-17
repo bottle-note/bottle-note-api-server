@@ -6,10 +6,11 @@ import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
-import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
+import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
+import app.bottlenote.notification.service.NotificationSettingService;
 import app.bottlenote.notification.service.UserNotificationService;
 import app.bottlenote.support.help.event.payload.HelpAnswerNotificationEvent;
 import app.bottlenote.user.facade.payload.UserProfileItem;
@@ -45,7 +46,8 @@ class HelpAnswerNotificationListenerTest {
             new UserNotificationService(
                 new FakeUserFacade(UserProfileItem.create(HELP_USER_ID, "문의 작성자", null)),
                 notificationRepository,
-                testCursorCodec()));
+                testCursorCodec(),
+                new NotificationSettingService(new InMemoryUserNotificationSettingRepository())));
   }
 
   @Test
@@ -67,7 +69,7 @@ class HelpAnswerNotificationListenerTest {
     assertThat(notification.getCategory()).isEqualTo(NotificationCategory.ANSWER);
     assertThat(notification.getTitle()).isEqualTo(HelpAnswerNotificationListener.TITLE);
     assertThat(notification.getContent()).isEqualTo(content);
-    assertThat(notification.getSourceType()).isEqualTo(NotificationSourceType.HELP_ANSWER.name());
+    assertThat(notification.getSourceType()).isEqualTo("HELP_ANSWER");
     assertThat(notification.getSourceId()).isEqualTo(HELP_ID);
     assertThat(notification.getActionType()).isEqualTo(NotificationActionType.OPEN_HELP.name());
     assertThat(notification.getActionTargetId()).isEqualTo(HELP_ID);

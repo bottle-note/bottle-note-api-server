@@ -37,6 +37,7 @@ public class UserNotificationService implements NotificationService {
   private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
   private final HmacCursorCodec cursorCodec;
+  private final NotificationSettingService notificationSettingService;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Override
@@ -53,6 +54,10 @@ public class UserNotificationService implements NotificationService {
       throw new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND);
     }
 
+    if (!notificationSettingService.isEnabled(message.userId(), message.eventAction())) {
+      return;
+    }
+
     Notification notification =
         Notification.builder()
             .userId(message.userId())
@@ -60,7 +65,8 @@ public class UserNotificationService implements NotificationService {
             .content(message.content())
             .type(message.type())
             .category(message.category())
-            .sourceType(message.sourceType() != null ? message.sourceType().name() : null)
+            .eventAction(message.eventAction())
+            .sourceType(message.sourceType())
             .sourceId(message.sourceId())
             .action(message.action())
             .build();

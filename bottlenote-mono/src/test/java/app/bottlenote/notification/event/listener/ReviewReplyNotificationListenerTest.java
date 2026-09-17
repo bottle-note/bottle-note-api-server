@@ -9,7 +9,6 @@ import app.bottlenote.like.event.payload.ReviewLikeActivityEvent;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
-import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
@@ -68,7 +67,7 @@ class ReviewReplyNotificationListenerTest {
       assertThat(message.category()).isEqualTo(NotificationCategory.REVIEW);
       assertThat(message.title()).isEqualTo(ReviewReplyNotificationListener.TITLE);
       assertThat(message.content()).isEqualTo(content);
-      assertThat(message.sourceType()).isEqualTo(NotificationSourceType.REVIEW_REPLY);
+      assertThat(message.sourceType()).isEqualTo("REVIEW_REPLY");
       assertThat(message.sourceId()).isEqualTo(REPLY_ID);
       assertThat(message.action().type()).isEqualTo(NotificationActionType.OPEN_REVIEW);
       assertThat(message.action().targetId()).isEqualTo(REVIEW_ID);
@@ -197,7 +196,7 @@ class ReviewReplyNotificationListenerTest {
 
       assertThat(notificationService.messages).hasSize(1);
       NotificationMessage message = notificationService.messages.getFirst();
-      assertThat(message.sourceType()).isEqualTo(NotificationSourceType.REVIEW_LIKE);
+      assertThat(message.sourceType()).isEqualTo("REVIEW_LIKE");
       assertThat(message.userId()).isEqualTo(1L);
       assertThat(message.sourceId()).isEqualTo(10L);
       assertThat(message.action().targetId()).isEqualTo(20L);
@@ -212,7 +211,7 @@ class ReviewReplyNotificationListenerTest {
 
       assertThat(notificationService.messages).hasSize(1);
       NotificationMessage message = notificationService.messages.getFirst();
-      assertThat(message.sourceType()).isEqualTo(NotificationSourceType.FOLLOW);
+      assertThat(message.sourceType()).isEqualTo("FOLLOW");
       assertThat(message.userId()).isEqualTo(2L);
       assertThat(message.sourceId()).isEqualTo(10L);
       assertThat(message.action().targetId()).isEqualTo(1L);
