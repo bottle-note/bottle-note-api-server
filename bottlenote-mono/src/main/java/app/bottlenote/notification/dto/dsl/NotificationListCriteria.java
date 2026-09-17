@@ -1,8 +1,8 @@
 package app.bottlenote.notification.dto.dsl;
 
-import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationReadStatus;
-import app.bottlenote.notification.constant.NotificationType;
+import app.bottlenote.notification.constant.NotificationSettingGroup;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -16,8 +16,8 @@ public record NotificationListCriteria(
     Long userId,
     Long cursor,
     Long pageSize,
-    List<NotificationType> types,
-    List<NotificationCategory> categories,
+    List<NotificationEventAction> eventActions,
+    List<NotificationSettingGroup> groups,
     NotificationReadStatus readStatus,
     LocalDateTime createdFrom,
     LocalDateTime createdTo) {
@@ -26,14 +26,21 @@ public record NotificationListCriteria(
     Objects.requireNonNull(userId, "userId는 필수입니다.");
     Objects.requireNonNull(cursor, "cursor는 필수입니다.");
     Objects.requireNonNull(pageSize, "pageSize는 필수입니다.");
-    types = List.copyOf(Objects.requireNonNull(types, "types는 필수입니다."));
-    categories = List.copyOf(Objects.requireNonNull(categories, "categories는 필수입니다."));
+    eventActions = List.copyOf(Objects.requireNonNull(eventActions, "eventActions는 필수입니다."));
+    groups = List.copyOf(Objects.requireNonNull(groups, "groups는 필수입니다."));
     Objects.requireNonNull(readStatus, "readStatus는 필수입니다.");
   }
 
   public static NotificationListCriteria of(Long userId, Long cursor, Long pageSize) {
     return new NotificationListCriteria(
         userId, cursor, pageSize, List.of(), List.of(), NotificationReadStatus.ALL, null, null);
+  }
+
+  public List<NotificationEventAction> groupActions() {
+    return groups.stream()
+        .flatMap(group -> NotificationEventAction.findByGroup(group).stream())
+        .distinct()
+        .toList();
   }
 
   /** 다음 페이지 keyset 조건 사용 여부. 0 이하면 최초 페이지. */

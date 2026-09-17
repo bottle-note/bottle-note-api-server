@@ -2,9 +2,9 @@ package app.bottlenote.notification.controller.docs;
 
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
-import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
+import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.constant.NotificationStatus;
-import app.bottlenote.notification.constant.NotificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -28,8 +28,10 @@ public record NotificationListOpenApiSchema(
       @Schema(description = "알림 식별자", example = "101") Long id,
       @Schema(description = "알림 제목") String title,
       @Schema(description = "알림 내용") String content,
-      @Schema(description = "알림 타입") NotificationType type,
-      @Schema(description = "알림 카테고리") NotificationCategory category,
+      @Schema(description = "알림 발생 액션. 분류되지 않은 과거 알림은 null", nullable = true)
+          NotificationEventAction eventAction,
+      @Schema(description = "발생 액션의 소속 그룹. 분류되지 않은 과거 알림은 null", nullable = true)
+          NotificationSettingGroup group,
       @Schema(description = "PENDING/SENT/FAILED 전달 상태이며 읽음 여부와 무관함") NotificationStatus status,
       @Schema(description = "읽음 상태의 SSOT", example = "false") Boolean isRead,
       @Schema(

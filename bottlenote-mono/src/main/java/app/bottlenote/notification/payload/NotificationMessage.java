@@ -1,9 +1,7 @@
 package app.bottlenote.notification.payload;
 
 import app.bottlenote.notification.action.NotificationAction;
-import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationEventAction;
-import app.bottlenote.notification.constant.NotificationType;
 import java.util.Objects;
 
 public record NotificationMessage(
@@ -21,14 +19,6 @@ public record NotificationMessage(
   public static NotificationMessage create(
       Long userId, NotificationEventAction eventAction, String title, String content) {
     return new NotificationMessage(userId, eventAction, title, content, null, null);
-  }
-
-  public NotificationType type() {
-    return eventAction.legacyType();
-  }
-
-  public NotificationCategory category() {
-    return eventAction.legacyCategory();
   }
 
   public String sourceType() {

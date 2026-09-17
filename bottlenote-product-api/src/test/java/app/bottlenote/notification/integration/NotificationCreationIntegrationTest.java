@@ -58,7 +58,7 @@ class NotificationCreationIntegrationTest extends IntegrationTestSupport {
         mapper.readTree(result.getResponse().getContentAsByteArray()).path("data").path("items");
     assertThat(items.size()).isEqualTo(2);
     var follow = items.get(0);
-    assertThat(follow.path("category").asText()).isEqualTo("FOLLOW");
+    assertThat(follow.path("eventAction").asText()).isEqualTo("FOLLOW");
     assertThat(follow.path("action").path("type").asText()).isEqualTo("OPEN_USER");
     assertThat(follow.path("action").path("targetId").asLong()).isEqualTo(20L);
     assertThat(follow.path("action").path("version").asInt()).isEqualTo(1);

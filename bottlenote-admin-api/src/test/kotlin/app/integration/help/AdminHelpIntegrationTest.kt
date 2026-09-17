@@ -1,8 +1,7 @@
 package app.integration.help
 
 import app.IntegrationTestSupport
-import app.bottlenote.notification.constant.NotificationCategory
-import app.bottlenote.notification.constant.NotificationSourceType
+import app.bottlenote.notification.constant.NotificationEventAction
 import app.bottlenote.notification.domain.NotificationRepository
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria
 import app.bottlenote.support.constant.StatusType
@@ -240,8 +239,8 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 					assertThat(notification.userId).isEqualTo(user.id)
 					assertThat(notification.title).isEqualTo("문의 답변")
 					assertThat(notification.content).isEqualTo("답변 내용입니다.")
-					assertThat(notification.category).isEqualTo(NotificationCategory.ANSWER)
-					assertThat(notification.sourceType).isEqualTo(NotificationSourceType.HELP_ANSWER.name)
+					assertThat(notification.eventAction).isEqualTo(NotificationEventAction.HELP_ANSWER)
+					assertThat(notification.sourceType).isEqualTo("HELP_ANSWER")
 					assertThat(notification.sourceId).isEqualTo(help.id)
 					assertThat(notification.actionType).isEqualTo("OPEN_HELP")
 					assertThat(notification.actionTargetId).isEqualTo(help.id)

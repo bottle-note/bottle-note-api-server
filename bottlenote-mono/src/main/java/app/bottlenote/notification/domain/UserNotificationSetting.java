@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 @Getter
-@Entity
+@Entity(name = "user_notification_setting")
 @Table(
     name = "user_notification_settings",
     uniqueConstraints =
