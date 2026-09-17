@@ -3,6 +3,7 @@ package app.bottlenote.notification.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,6 +66,11 @@ public class Notification extends BaseEntity {
   @Column(name = "read_at")
   private LocalDateTime readAt;
 
+  @Comment("표준 알림 발생 액션. 식별하지 못한 과거 알림은 NULL")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "event_action", length = 64)
+  private NotificationEventAction eventAction;
+
   @Comment("알림 원본 유형")
   @Column(name = "source_type")
   private String sourceType;
@@ -103,6 +109,7 @@ public class Notification extends BaseEntity {
       NotificationStatus status,
       Boolean isRead,
       LocalDateTime readAt,
+      NotificationEventAction eventAction,
       String sourceType,
       Long sourceId,
       NotificationAction action) {
@@ -115,6 +122,7 @@ public class Notification extends BaseEntity {
     this.status = status != null ? status : NotificationStatus.PENDING;
     this.isRead = isRead != null && isRead;
     this.readAt = readAt;
+    this.eventAction = eventAction;
     this.sourceType = sourceType;
     this.sourceId = sourceId;
     if (action != null) {

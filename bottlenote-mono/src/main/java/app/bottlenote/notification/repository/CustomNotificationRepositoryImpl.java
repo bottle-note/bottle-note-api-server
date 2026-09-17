@@ -29,12 +29,12 @@ public class CustomNotificationRepositoryImpl implements CustomNotificationRepos
             """
         INSERT INTO notifications
           (user_id, title, content, type, category, status, is_read, read_at,
-           source_type, source_id, action_type, action_target_id, action_payload, action_version,
+           event_action, source_type, source_id, action_type, action_target_id, action_payload, action_version,
            create_at, last_modify_at, create_principal_id, create_principal_type, create_principal_email,
            last_modify_principal_id, last_modify_principal_type, last_modify_principal_email)
         VALUES
           (:userId, :title, :content, :type, :category, :status, :isRead, :readAt,
-           :sourceType, :sourceId, :actionType, :actionTargetId, :actionPayload, :actionVersion,
+           :eventAction, :sourceType, :sourceId, :actionType, :actionTargetId, :actionPayload, :actionVersion,
            :createdAt, :createdAt, :principalId, :principalType, :principalEmail,
            :principalId, :principalType, :principalEmail)
         ON DUPLICATE KEY UPDATE id = id
@@ -47,6 +47,9 @@ public class CustomNotificationRepositoryImpl implements CustomNotificationRepos
         .setParameter("status", notification.getStatus().name())
         .setParameter("isRead", notification.getIsRead())
         .setParameter("readAt", notification.getReadAt())
+        .setParameter(
+            "eventAction",
+            notification.getEventAction() == null ? null : notification.getEventAction().name())
         .setParameter("sourceType", notification.getSourceType())
         .setParameter("sourceId", notification.getSourceId())
         .setParameter("actionType", notification.getActionType())

@@ -12,8 +12,8 @@ import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPay
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationReadStatus;
-import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
@@ -22,6 +22,7 @@ import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
+import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -61,7 +62,10 @@ class UserNotificationServiceTest {
     properties.setCurrentSecret("test-pagination-cursor-secret");
     service =
         new UserNotificationService(
-            userFacade, notificationRepository, new HmacCursorCodec(properties, Clock.systemUTC()));
+            userFacade,
+            notificationRepository,
+            new HmacCursorCodec(properties, Clock.systemUTC()),
+            new NotificationSettingService(new InMemoryUserNotificationSettingRepository()));
   }
 
   @Nested
@@ -75,11 +79,7 @@ class UserNotificationServiceTest {
 
       service.sendNotification(
           NotificationMessage.create(
-              USER_ID,
-              NotificationType.USER,
-              NotificationCategory.REVIEW,
-              "새 댓글",
-              "리뷰에 댓글이 달렸습니다."));
+              USER_ID, NotificationEventAction.REVIEW_COMMENT, "새 댓글", "리뷰에 댓글이 달렸습니다."));
 
       assertThat(notificationRepository.findAll())
           .hasSize(1)
@@ -99,8 +99,7 @@ class UserNotificationServiceTest {
     @DisplayName("대상 사용자가 없으면 예외를 던진다")
     void sendNotification_whenUserMissing_throwsException() {
       NotificationMessage message =
-          NotificationMessage.create(
-              USER_ID, NotificationType.USER, NotificationCategory.REVIEW, "제목", "내용");
+          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT, "제목", "내용");
 
       assertThatThrownBy(() -> service.sendNotification(message))
           .isInstanceOf(UserException.class)
@@ -122,8 +121,7 @@ class UserNotificationServiceTest {
           .singleElement()
           .satisfies(
               notification -> {
-                assertThat(notification.getSourceType())
-                    .isEqualTo(NotificationSourceType.REVIEW_REPLY.name());
+                assertThat(notification.getSourceType()).isEqualTo("REVIEW_REPLY");
                 assertThat(notification.getSourceId()).isEqualTo(20L);
                 assertThat(notification.getActionType()).isEqualTo("OPEN_REVIEW");
                 assertThat(notification.getActionTargetId()).isEqualTo(10L);
@@ -138,8 +136,7 @@ class UserNotificationServiceTest {
     void sendNotification_whenLegacyMessageDuplicated_savesEachTime() {
       seedUser(USER_ID);
       NotificationMessage message =
-          NotificationMessage.create(
-              USER_ID, NotificationType.USER, NotificationCategory.REVIEW, "제목", "내용");
+          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT, "제목", "내용");
 
       service.sendNotification(message);
       service.sendNotification(message);
