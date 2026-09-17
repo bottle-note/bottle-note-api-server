@@ -63,8 +63,6 @@ public class UserNotificationService implements NotificationService {
             .userId(message.userId())
             .title(message.title())
             .content(message.content())
-            .type(message.type())
-            .category(message.category())
             .eventAction(message.eventAction())
             .sourceType(message.sourceType())
             .sourceId(message.sourceId())
@@ -97,12 +95,12 @@ public class UserNotificationService implements NotificationService {
   }
 
   private static String notificationContext(Long userId, NotificationPageableRequest request) {
-    return "notification.list:"
+    return "notification.list.v2:"
         + userId
         + ":"
-        + request.types()
+        + request.eventActions()
         + ":"
-        + request.categories()
+        + request.groups()
         + ":"
         + request.readStatus()
         + ":"
@@ -148,8 +146,8 @@ public class UserNotificationService implements NotificationService {
         notification.getId(),
         notification.getTitle(),
         notification.getContent(),
-        notification.getType(),
-        notification.getCategory(),
+        notification.getEventAction(),
+        notification.getGroup(),
         notification.getStatus(),
         notification.getIsRead(),
         toKstOffset(notification.getCreateAt()),

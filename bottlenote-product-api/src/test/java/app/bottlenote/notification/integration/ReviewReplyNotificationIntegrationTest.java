@@ -9,9 +9,7 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
-import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationEventAction;
-import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
@@ -102,8 +100,8 @@ class ReviewReplyNotificationIntegrationTest extends IntegrationTestSupport {
                 assertThat(notification.getUserId()).isEqualTo(reviewAuthor.getId());
                 assertThat(notification.getTitle()).isEqualTo(EXPECTED_TITLE);
                 assertThat(notification.getContent()).isEqualTo(content);
-                assertThat(notification.getType()).isEqualTo(NotificationType.USER);
-                assertThat(notification.getCategory()).isEqualTo(NotificationCategory.REVIEW);
+                assertThat(notification.getEventAction())
+                    .isEqualTo(NotificationEventAction.REVIEW_COMMENT);
                 assertThat(notification.getIsRead()).isFalse();
                 assertThat(notification.getEventAction())
                     .isEqualTo(NotificationEventAction.REVIEW_COMMENT);
@@ -167,8 +165,7 @@ class ReviewReplyNotificationIntegrationTest extends IntegrationTestSupport {
               .userId(reviewAuthor.getId())
               .title(EXPECTED_TITLE)
               .content("DB 중복 방지")
-              .type(NotificationType.USER)
-              .category(NotificationCategory.REVIEW)
+              .eventAction(NotificationEventAction.REVIEW_COMMENT)
               .sourceType("REVIEW_REPLY")
               .sourceId(202L)
               .action(message.action())

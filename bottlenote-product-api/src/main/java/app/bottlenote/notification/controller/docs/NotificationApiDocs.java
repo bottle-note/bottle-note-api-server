@@ -1,8 +1,8 @@
 package app.bottlenote.notification.controller.docs;
 
-import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationReadStatus;
-import app.bottlenote.notification.constant.NotificationType;
+import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
@@ -38,8 +38,11 @@ public final class NotificationApiDocs {
 
           - `cursor`: HMAC 커서. 미지정하면 최신부터 조회
           - `size`: 페이지 크기 (기본 10, 최대 100)
-          - `types`: 알림 타입 목록. 미지정 또는 빈 목록이면 전체
-          - `categories`: 알림 카테고리 목록. 미지정 또는 빈 목록이면 전체
+          - `eventActions`: 알림 발생 액션 목록. 미지정 또는 빈 목록이면 전체
+          - `groups`: 알림 설정 그룹 목록. 미지정 또는 빈 목록이면 전체
+          - 같은 필터 안의 값은 OR, `eventActions`와 `groups` 사이는 AND 조건
+          - 분류 미상 과거 알림은 `eventAction/group=null`이며 분류 필터가 없을 때만 포함
+          - 이전 `types/categories` 필터와 응답의 `type/category`는 제거됨
           - `readStatus`: 읽음 필터 (`ALL`, `UNREAD`, `READ`, 기본 `ALL`). `isRead` 기준
           - `createdFrom`: 생성 시각 하한(포함), ISO-8601 OffsetDateTime
           - `createdTo`: 생성 시각 상한(제외), ISO-8601 OffsetDateTime
@@ -71,13 +74,14 @@ public final class NotificationApiDocs {
             example = "10",
             schema = @Schema(type = "integer", format = "int32", minimum = "1", maximum = "100")),
         @Parameter(
-            name = "types",
-            description = "알림 타입 배열. 미지정 또는 빈 배열이면 전체",
-            array = @ArraySchema(schema = @Schema(implementation = NotificationType.class))),
+            name = "eventActions",
+            description = "알림 발생 액션 배열. 미지정 또는 빈 배열이면 전체",
+            array = @ArraySchema(schema = @Schema(implementation = NotificationEventAction.class))),
         @Parameter(
-            name = "categories",
-            description = "알림 카테고리 배열. 미지정 또는 빈 배열이면 전체",
-            array = @ArraySchema(schema = @Schema(implementation = NotificationCategory.class))),
+            name = "groups",
+            description = "알림 설정 그룹 배열. 미지정 또는 빈 배열이면 전체",
+            array =
+                @ArraySchema(schema = @Schema(implementation = NotificationSettingGroup.class))),
         @Parameter(
             name = "readStatus",
             description = "읽음 필터 (ALL, UNREAD, READ)",

@@ -11,11 +11,10 @@ import app.bottlenote.notification.action.NotificationAction.OpenHelpActionPaylo
 import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
-import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationReadStatus;
+import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.constant.NotificationStatus;
-import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
@@ -89,8 +88,8 @@ class UserNotificationServiceTest {
                 assertThat(notification.getUserId()).isEqualTo(USER_ID);
                 assertThat(notification.getTitle()).isEqualTo("새 댓글");
                 assertThat(notification.getContent()).isEqualTo("리뷰에 댓글이 달렸습니다.");
-                assertThat(notification.getType()).isEqualTo(NotificationType.USER);
-                assertThat(notification.getCategory()).isEqualTo(NotificationCategory.REVIEW);
+                assertThat(notification.getEventAction())
+                    .isEqualTo(NotificationEventAction.REVIEW_COMMENT);
                 assertThat(notification.getIsRead()).isFalse();
               });
     }
@@ -202,7 +201,7 @@ class UserNotificationServiceTest {
     }
 
     @Test
-    @DisplayName("알림 타입으로 목록과 totalCount를 필터링한다")
+    @DisplayName("알림 발생 액션으로 목록을 필터링한다")
     void getNotifications_whenTypeFilterExists_returnsMatchingType() {
       seedNotification(USER_ID, "user");
       notificationRepository.save(
@@ -210,25 +209,24 @@ class UserNotificationServiceTest {
               .userId(USER_ID)
               .title("system")
               .content("system-content")
-              .type(NotificationType.SYSTEM)
-              .category(NotificationCategory.REVIEW)
+              .eventAction(NotificationEventAction.NOTICE)
               .build());
 
       KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
-                  .types(List.of(NotificationType.SYSTEM))
+                  .eventActions(List.of(NotificationEventAction.NOTICE))
                   .build());
 
       assertThat(result.content().items().size()).isOne();
       assertThat(result.content().items())
-          .extracting(NotificationListResponse.Item::type)
-          .containsExactly(NotificationType.SYSTEM);
+          .extracting(NotificationListResponse.Item::eventAction)
+          .containsExactly(NotificationEventAction.NOTICE);
     }
 
     @Test
-    @DisplayName("알림 카테고리로 목록을 필터링한다")
+    @DisplayName("알림 그룹으로 목록을 필터링한다")
     void getNotifications_whenCategoryFilterExists_returnsMatchingCategory() {
       seedNotification(USER_ID, "review");
       notificationRepository.save(
@@ -236,20 +234,19 @@ class UserNotificationServiceTest {
               .userId(USER_ID)
               .title("notice")
               .content("notice-content")
-              .type(NotificationType.USER)
-              .category(NotificationCategory.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE)
               .build());
 
       KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
-                  .categories(List.of(NotificationCategory.NOTICE))
+                  .groups(List.of(NotificationSettingGroup.NOTICE_AND_EVENT))
                   .build());
 
       assertThat(result.content().items())
-          .extracting(NotificationListResponse.Item::category)
-          .containsExactly(NotificationCategory.NOTICE);
+          .extracting(NotificationListResponse.Item::group)
+          .containsExactly(NotificationSettingGroup.NOTICE_AND_EVENT);
     }
 
     @Test
@@ -321,8 +318,8 @@ class UserNotificationServiceTest {
       seedNotification(USER_ID, "excluded").markAsRead();
       NotificationPageableRequest firstRequest =
           NotificationPageableRequest.builder()
-              .types(List.of(NotificationType.USER))
-              .categories(List.of(NotificationCategory.REVIEW))
+              .eventActions(List.of(NotificationEventAction.REVIEW_COMMENT))
+              .groups(List.of(NotificationSettingGroup.REVIEW_AND_FOLLOW))
               .readStatus(NotificationReadStatus.UNREAD)
               .size(2)
               .build();
@@ -335,8 +332,8 @@ class UserNotificationServiceTest {
               NotificationPageableRequest.builder()
                   .cursor(first.pagination().nextCursor())
                   .size(2)
-                  .types(firstRequest.types())
-                  .categories(firstRequest.categories())
+                  .eventActions(firstRequest.eventActions())
+                  .groups(firstRequest.groups())
                   .readStatus(firstRequest.readStatus())
                   .build());
 
@@ -359,14 +356,16 @@ class UserNotificationServiceTest {
               .userId(USER_ID)
               .title("notice")
               .content("notice-content")
-              .type(NotificationType.SYSTEM)
-              .category(NotificationCategory.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE)
               .build());
 
       KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
-              NotificationPageableRequest.builder().types(List.of()).categories(List.of()).build());
+              NotificationPageableRequest.builder()
+                  .eventActions(List.of())
+                  .groups(List.of())
+                  .build());
 
       assertThat(result.content().items().size()).isEqualTo(2);
       assertThat(result.content().items()).hasSize(2);
@@ -678,8 +677,7 @@ class UserNotificationServiceTest {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .type(NotificationType.USER)
-            .category(NotificationCategory.REVIEW)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT)
             .action(action)
             .build());
   }
@@ -702,8 +700,7 @@ class UserNotificationServiceTest {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .type(NotificationType.USER)
-            .category(NotificationCategory.REVIEW)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT)
             .status(status)
             .isRead(isRead)
             .readAt(readAt)

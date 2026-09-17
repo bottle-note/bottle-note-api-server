@@ -1,9 +1,9 @@
 package app.bottlenote.notification.dto.request;
 
 import app.bottlenote.global.pagination.KeysetPageRequest;
-import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationReadStatus;
-import app.bottlenote.notification.constant.NotificationType;
+import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import jakarta.validation.constraints.AssertTrue;
 import java.time.LocalDateTime;
@@ -17,8 +17,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 public record NotificationPageableRequest(
     String cursor,
     Integer size,
-    List<NotificationType> types,
-    List<NotificationCategory> categories,
+    List<NotificationEventAction> eventActions,
+    List<NotificationSettingGroup> groups,
     NotificationReadStatus readStatus,
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime createdFrom,
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime createdTo) {
@@ -32,9 +32,9 @@ public record NotificationPageableRequest(
     KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
-    types = types == null ? List.of() : types.stream().filter(Objects::nonNull).toList();
-    categories =
-        categories == null ? List.of() : categories.stream().filter(Objects::nonNull).toList();
+    eventActions =
+        eventActions == null ? List.of() : eventActions.stream().filter(Objects::nonNull).toList();
+    groups = groups == null ? List.of() : groups.stream().filter(Objects::nonNull).toList();
     readStatus = readStatus != null ? readStatus : NotificationReadStatus.ALL;
   }
 
@@ -48,8 +48,8 @@ public record NotificationPageableRequest(
         userId,
         lastId == null ? 0L : lastId,
         size.longValue(),
-        types,
-        categories,
+        eventActions,
+        groups,
         readStatus,
         toKstLocalDateTime(createdFrom),
         toKstLocalDateTime(createdTo));

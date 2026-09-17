@@ -2,10 +2,9 @@ package app.bottlenote.notification.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.notification.action.NotificationAction;
-import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationEventAction;
+import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.constant.NotificationStatus;
-import app.bottlenote.notification.constant.NotificationType;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
@@ -42,16 +41,6 @@ public class Notification extends BaseEntity {
   @Comment("알림 내용")
   @Column(name = "content", nullable = false)
   private String content;
-
-  @Comment("알림의 타입( 시스템 알림, 사용자 알림, 프로모션 알림 )")
-  @Column(name = "type", nullable = false)
-  @Enumerated(EnumType.STRING)
-  private NotificationType type;
-
-  @Comment("알림의 종류 ( 리뷰, 댓글, 팔로우, 좋아요, 프로모션 )")
-  @Column(name = "category", nullable = false)
-  @Enumerated(EnumType.STRING)
-  private NotificationCategory category;
 
   @Comment("알림의 상태")
   @Column(name = "status", nullable = false)
@@ -104,8 +93,6 @@ public class Notification extends BaseEntity {
       Long userId,
       String title,
       String content,
-      NotificationType type,
-      NotificationCategory category,
       NotificationStatus status,
       Boolean isRead,
       LocalDateTime readAt,
@@ -117,8 +104,6 @@ public class Notification extends BaseEntity {
     this.userId = Objects.requireNonNull(userId, "사용자 식별자는 필수입니다.");
     this.title = Objects.requireNonNull(title, "알림 제목은 필수입니다.");
     this.content = Objects.requireNonNull(content, "알림 내용은 필수입니다.");
-    this.type = type != null ? type : NotificationType.SYSTEM;
-    this.category = Objects.requireNonNull(category, "알림 종류는 필수입니다.");
     this.status = status != null ? status : NotificationStatus.PENDING;
     this.isRead = isRead != null && isRead;
     this.readAt = readAt;
@@ -131,6 +116,10 @@ public class Notification extends BaseEntity {
       this.actionPayload = action.payload();
       this.actionVersion = action.version().shortValue();
     }
+  }
+
+  public NotificationSettingGroup getGroup() {
+    return eventAction == null ? null : eventAction.getGroup();
   }
 
   /** 알림을 읽음 처리하고 최초 읽음 시각을 보존한다. */

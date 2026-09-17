@@ -118,18 +118,18 @@ class NotificationCreationServiceTest {
   }
 
   @Test
-  @DisplayName("기본 거부 액션의 저장값을 허용으로 바꿀 때 새 알림을 저장한다")
+  @DisplayName("신규 종류도 기본 허용하고 거부 설정 시 추가 저장하지 않는다")
   void 기본_거부와_허용_변경을_적용한다() {
     NotificationMessage message =
         NotificationMessage.create(1L, NotificationEventAction.PROGRAM_NEW, "프로그램", "내용");
-    service.sendNotification(message);
-    assertThat(repository.findAll()).isEmpty();
-    settings.changeSetting(1L, NotificationEventAction.PROGRAM_NEW, true);
     service.sendNotification(message);
     assertThat(repository.findAll())
         .singleElement()
         .satisfies(
             n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.PROGRAM_NEW));
+    settings.changeSetting(1L, NotificationEventAction.PROGRAM_NEW, false);
+    service.sendNotification(message);
+    assertThat(repository.findAll()).hasSize(1);
   }
 
   private static java.util.stream.Stream<NotificationMessage> messages() {

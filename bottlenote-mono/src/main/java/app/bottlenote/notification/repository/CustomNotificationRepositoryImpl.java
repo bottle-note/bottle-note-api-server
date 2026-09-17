@@ -28,12 +28,12 @@ public class CustomNotificationRepositoryImpl implements CustomNotificationRepos
         .createNativeQuery(
             """
         INSERT INTO notifications
-          (user_id, title, content, type, category, status, is_read, read_at,
+          (user_id, title, content, status, is_read, read_at,
            event_action, source_type, source_id, action_type, action_target_id, action_payload, action_version,
            create_at, last_modify_at, create_principal_id, create_principal_type, create_principal_email,
            last_modify_principal_id, last_modify_principal_type, last_modify_principal_email)
         VALUES
-          (:userId, :title, :content, :type, :category, :status, :isRead, :readAt,
+          (:userId, :title, :content, :status, :isRead, :readAt,
            :eventAction, :sourceType, :sourceId, :actionType, :actionTargetId, :actionPayload, :actionVersion,
            :createdAt, :createdAt, :principalId, :principalType, :principalEmail,
            :principalId, :principalType, :principalEmail)
@@ -42,8 +42,6 @@ public class CustomNotificationRepositoryImpl implements CustomNotificationRepos
         .setParameter("userId", notification.getUserId())
         .setParameter("title", notification.getTitle())
         .setParameter("content", notification.getContent())
-        .setParameter("type", notification.getType().name())
-        .setParameter("category", notification.getCategory().name())
         .setParameter("status", notification.getStatus().name())
         .setParameter("isRead", notification.getIsRead())
         .setParameter("readAt", notification.getReadAt())
@@ -117,11 +115,11 @@ public class CustomNotificationRepositoryImpl implements CustomNotificationRepos
   private List<String> filterConditions(NotificationListCriteria criteria) {
     List<String> conditions = new ArrayList<>();
     conditions.add("n.userId = :userId");
-    if (!criteria.types().isEmpty()) {
-      conditions.add("n.type in :types");
+    if (!criteria.eventActions().isEmpty()) {
+      conditions.add("n.eventAction in :eventActions");
     }
-    if (!criteria.categories().isEmpty()) {
-      conditions.add("n.category in :categories");
+    if (!criteria.groups().isEmpty()) {
+      conditions.add("n.eventAction in :groupActions");
     }
     switch (criteria.readStatus()) {
       case READ -> conditions.add("n.isRead = true");
@@ -141,11 +139,11 @@ public class CustomNotificationRepositoryImpl implements CustomNotificationRepos
 
   private void bindFilterParameters(Query query, NotificationListCriteria criteria) {
     query.setParameter("userId", criteria.userId());
-    if (!criteria.types().isEmpty()) {
-      query.setParameter("types", criteria.types());
+    if (!criteria.eventActions().isEmpty()) {
+      query.setParameter("eventActions", criteria.eventActions());
     }
-    if (!criteria.categories().isEmpty()) {
-      query.setParameter("categories", criteria.categories());
+    if (!criteria.groups().isEmpty()) {
+      query.setParameter("groupActions", criteria.groupActions());
     }
     if (criteria.createdFrom() != null) {
       query.setParameter("createdFrom", criteria.createdFrom());

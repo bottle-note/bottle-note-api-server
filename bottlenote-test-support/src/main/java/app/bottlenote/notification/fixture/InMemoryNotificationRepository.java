@@ -139,11 +139,14 @@ public class InMemoryNotificationRepository implements NotificationRepository {
     if (!notification.getUserId().equals(criteria.userId())) {
       return false;
     }
-    if (!criteria.types().isEmpty() && !criteria.types().contains(notification.getType())) {
+    if ((!criteria.eventActions().isEmpty() || !criteria.groups().isEmpty()) && notification.getEventAction() == null) {
       return false;
     }
-    if (!criteria.categories().isEmpty()
-        && !criteria.categories().contains(notification.getCategory())) {
+    if (!criteria.eventActions().isEmpty() && !criteria.eventActions().contains(notification.getEventAction())) {
+      return false;
+    }
+    if (!criteria.groups().isEmpty()
+        && !criteria.groups().contains(notification.getGroup())) {
       return false;
     }
     if (criteria.readStatus() == NotificationReadStatus.READ

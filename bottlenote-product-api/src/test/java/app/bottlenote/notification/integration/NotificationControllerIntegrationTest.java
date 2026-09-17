@@ -5,9 +5,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.notification.action.NotificationAction;
-import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationStatus;
-import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
@@ -41,6 +40,96 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
   @Autowired private NotificationRepository notificationRepository;
   @Autowired private EntityManager entityManager;
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Test
+  @DisplayName("그룹 필터는 소속 액션을 포함하고 액션 필터와 교집합으로 조회한다")
+  void 그룹과_액션_필터를_검증한다() throws Exception {
+    User user = userTestFactory.persistUser();
+    TokenItem token = getToken(user);
+    for (NotificationEventAction action :
+        List.of(
+            NotificationEventAction.REVIEW_COMMENT,
+            NotificationEventAction.FOLLOW,
+            NotificationEventAction.PROGRAM_NEW)) {
+      notificationRepository.save(
+          Notification.builder()
+              .userId(user.getId())
+              .title(action.name())
+              .content("내용")
+              .eventAction(action)
+              .build());
+    }
+    MvcTestResult grouped =
+        mockMvcTester
+            .get()
+            .uri(BASE + "?groups=REVIEW_AND_FOLLOW")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+            .exchange();
+    grouped.assertThat().hasStatusOk();
+    assertThat(responseData(grouped).path("items")).hasSize(2);
+    MvcTestResult intersection =
+        mockMvcTester
+            .get()
+            .uri(BASE + "?groups=REVIEW_AND_FOLLOW&eventActions=FOLLOW,PROGRAM_NEW")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+            .exchange();
+    intersection.assertThat().hasStatusOk();
+    assertThat(responseData(intersection).path("items")).hasSize(1);
+    assertThat(responseData(intersection).path("items").get(0).path("eventAction").asText())
+        .isEqualTo("FOLLOW");
+    assertThat(responseData(intersection).path("items").get(0).path("group").asText())
+        .isEqualTo("REVIEW_AND_FOLLOW");
+    MvcTestResult mismatch =
+        mockMvcTester
+            .get()
+            .uri(BASE + "?groups=PROGRAM&eventActions=FOLLOW")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+            .exchange();
+    mismatch.assertThat().hasStatusOk();
+    assertThat(responseData(mismatch).path("items")).isEmpty();
+  }
+
+  @Test
+  @DisplayName("분류 미상 과거 알림은 전체 목록에서 보존하고 그룹 필터에서는 제외한다")
+  void 과거_미분류_알림을_조회한다() throws Exception {
+    User user = userTestFactory.persistUser();
+    TokenItem token = getToken(user);
+    notificationRepository.save(
+        Notification.builder().userId(user.getId()).title("과거 알림").content("내용").build());
+    MvcTestResult all =
+        mockMvcTester
+            .get()
+            .uri(BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+            .exchange();
+    all.assertThat().hasStatusOk();
+    assertThat(responseData(all).path("items")).hasSize(1);
+    assertThat(responseData(all).path("items").get(0).path("eventAction").isNull()).isTrue();
+    assertThat(responseData(all).path("items").get(0).path("group").isNull()).isTrue();
+    MvcTestResult filtered =
+        mockMvcTester
+            .get()
+            .uri(BASE + "?groups=REVIEW_AND_FOLLOW")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+            .exchange();
+    filtered.assertThat().hasStatusOk();
+    assertThat(responseData(filtered).path("items")).isEmpty();
+  }
+
+  @Test
+  @DisplayName("정의되지 않은 그룹이나 발생 액션을 요청하면 거부한다")
+  void 잘못된_분류_필터를_거부한다() {
+    TokenItem token = getToken(userTestFactory.persistUser());
+    for (String filter : List.of("eventActions=UNKNOWN", "groups=UNKNOWN")) {
+      mockMvcTester
+          .get()
+          .uri(BASE + "?" + filter)
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+          .exchange()
+          .assertThat()
+          .hasStatus4xxClientError();
+    }
+  }
 
   @Nested
   @DisplayName("알림 목록 조회")
@@ -77,8 +166,8 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               "id",
               "title",
               "content",
-              "type",
-              "category",
+              "eventAction",
+              "group",
               "status",
               "isRead",
               "createAt",
@@ -136,7 +225,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("타입 카테고리 읽음 상태를 결합해 본인 알림만 조회한다")
+    @DisplayName("발생 액션 그룹 읽음 상태를 결합해 본인 알림만 조회한다")
     void getNotifications_whenFiltersCombined_returnsMatchingOwnNotifications() throws Exception {
       User user = userTestFactory.persistUser();
       User other = userTestFactory.persistUser();
@@ -150,15 +239,14 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("notice")
               .content("notice-content")
-              .type(NotificationType.SYSTEM)
-              .category(NotificationCategory.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE)
               .build());
       seedNotification(other.getId(), "other");
 
       MvcTestResult result =
           mockMvcTester
               .get()
-              .uri(BASE + "?types=USER&categories=REVIEW&readStatus=UNREAD")
+              .uri(BASE + "?eventActions=REVIEW_COMMENT&groups=REVIEW_AND_FOLLOW&readStatus=UNREAD")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
 
@@ -169,7 +257,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("빈 타입과 카테고리 query는 전체 알림을 조회한다")
+    @DisplayName("빈 발생 액션과 그룹 query는 전체 알림을 조회한다")
     void getNotifications_whenCollectionQueriesAreEmpty_returnsAllNotifications() throws Exception {
       User user = userTestFactory.persistUser();
       TokenItem token = getToken(user);
@@ -179,14 +267,13 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("notice")
               .content("notice-content")
-              .type(NotificationType.SYSTEM)
-              .category(NotificationCategory.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE)
               .build());
 
       MvcTestResult result =
           mockMvcTester
               .get()
-              .uri(BASE + "?types=&categories=")
+              .uri(BASE + "?eventActions=&groups=")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
 
@@ -207,7 +294,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult first =
           mockMvcTester
               .get()
-              .uri(BASE + "?types=USER&readStatus=ALL&size=2")
+              .uri(BASE + "?eventActions=REVIEW_COMMENT&readStatus=ALL&size=2")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
       JsonNode firstData = responseData(first);
@@ -216,7 +303,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult second =
           mockMvcTester
               .get()
-              .uri(BASE + "?types=USER&readStatus=ALL&size=2&cursor=" + cursor)
+              .uri(BASE + "?eventActions=REVIEW_COMMENT&readStatus=ALL&size=2&cursor=" + cursor)
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
       JsonNode secondData = responseData(second);
@@ -287,8 +374,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("reply")
               .content("reply-content")
-              .type(NotificationType.USER)
-              .category(NotificationCategory.REVIEW)
+              .eventAction(NotificationEventAction.REVIEW_COMMENT)
               .action(NotificationAction.openReview(10L, 20L))
               .build();
       notification.markAsRead(java.time.LocalDateTime.of(2026, 8, 10, 12, 0));
@@ -324,8 +410,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("문의 답변")
               .content("문의에 답변이 등록됐습니다.")
-              .type(NotificationType.USER)
-              .category(NotificationCategory.ANSWER)
+              .eventAction(NotificationEventAction.HELP_ANSWER)
               .sourceType("HELP_ANSWER")
               .sourceId(30L)
               .action(NotificationAction.openHelp(30L))
@@ -342,7 +427,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       result.assertThat().hasStatusOk();
       JsonNode item = responseData(result).path("items").get(0);
       assertThat(item.path("id").asLong()).isEqualTo(notification.getId());
-      assertThat(item.path("category").asText()).isEqualTo("ANSWER");
+      assertThat(item.path("eventAction").asText()).isEqualTo("HELP_ANSWER");
       assertThat(item.path("action").path("type").asText()).isEqualTo("OPEN_HELP");
       assertThat(item.path("action").path("targetId").asLong()).isEqualTo(30L);
       assertThat(item.path("action").path("payload").isObject()).isTrue();
@@ -662,8 +747,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .type(NotificationType.USER)
-            .category(NotificationCategory.REVIEW)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT)
             .status(status)
             .isRead(false)
             .build());
@@ -676,8 +760,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .type(NotificationType.USER)
-            .category(NotificationCategory.REVIEW)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT)
             .action(action)
             .build());
   }

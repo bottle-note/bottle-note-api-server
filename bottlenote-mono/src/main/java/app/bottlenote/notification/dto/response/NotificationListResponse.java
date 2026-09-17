@@ -3,9 +3,9 @@ package app.bottlenote.notification.dto.response;
 import app.bottlenote.notification.action.NotificationAction.ActionPayload;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
-import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationEventAction;
+import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.constant.NotificationStatus;
-import app.bottlenote.notification.constant.NotificationType;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -25,8 +25,8 @@ public record NotificationListResponse(List<Item> items) {
       Long id,
       String title,
       String content,
-      NotificationType type,
-      NotificationCategory category,
+      NotificationEventAction eventAction,
+      NotificationSettingGroup group,
       NotificationStatus status,
       Boolean isRead,
       OffsetDateTime createAt,

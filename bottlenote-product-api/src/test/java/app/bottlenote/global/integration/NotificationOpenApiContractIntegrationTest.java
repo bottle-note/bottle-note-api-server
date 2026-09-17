@@ -27,15 +27,15 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
                 .map(parameter -> parameter.path("name").asText())
                 .toList())
         .containsExactlyInAnyOrder(
-            "cursor", "size", "types", "categories", "readStatus", "createdFrom", "createdTo");
+            "cursor", "size", "eventActions", "groups", "readStatus", "createdFrom", "createdTo");
     assertParameterSchema(operation, "cursor", "string", null);
     assertParameterSchema(operation, "size", "integer", "int32");
     assertThat(parameter(operation, "size").at("/schema").has("minimum")).isTrue();
     assertThat(parameter(operation, "size").at("/schema").has("maximum")).isTrue();
     assertThat(parameter(operation, "size").at("/schema/minimum").asLong()).isEqualTo(1L);
     assertThat(parameter(operation, "size").at("/schema/maximum").asLong()).isEqualTo(100L);
-    assertThat(parameter(operation, "types").at("/schema/type").asText()).isEqualTo("array");
-    assertThat(parameter(operation, "categories").at("/schema/type").asText()).isEqualTo("array");
+    assertThat(parameter(operation, "eventActions").at("/schema/type").asText()).isEqualTo("array");
+    assertThat(parameter(operation, "groups").at("/schema/type").asText()).isEqualTo("array");
     assertParameterSchema(operation, "readStatus", "string", null);
     assertThat(
             StreamSupport.stream(
@@ -51,7 +51,23 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
     JsonNode listSchema = resolve(spec, responseSchema.path("properties").path("data"));
     JsonNode itemSchema = resolve(spec, listSchema.path("properties").path("items").path("items"));
     assertThat(propertyNamesOf(itemSchema))
-        .contains("status", "isRead", "createAt", "readAt", "action");
+        .contains("eventAction", "group", "status", "isRead", "createAt", "readAt", "action")
+        .doesNotContain("type", "category");
+    assertThat(
+            StreamSupport.stream(
+                    parameter(operation, "eventActions").at("/schema/items/enum").spliterator(),
+                    false)
+                .map(JsonNode::asText)
+                .toList())
+        .contains("REVIEW_COMMENT", "REVIEW_REPLY", "PROGRAM_NEW")
+        .hasSize(20);
+    assertThat(
+            StreamSupport.stream(
+                    parameter(operation, "groups").at("/schema/items/enum").spliterator(), false)
+                .map(JsonNode::asText)
+                .toList())
+        .contains("REVIEW_AND_FOLLOW", "PROGRAM")
+        .hasSize(5);
     assertThat(itemSchema.path("properties").path("status").path("description").asText())
         .contains("전달 상태", "읽음 여부와 무관");
     assertThat(itemSchema.path("properties").path("createAt").path("description").asText())

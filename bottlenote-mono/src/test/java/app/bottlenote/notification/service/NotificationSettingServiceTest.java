@@ -52,6 +52,13 @@ class NotificationSettingServiceTest {
   }
 
   @Test
+  @DisplayName("모든 발생 액션은 기본 수신을 허용한다")
+  void 모든_기본값을_허용한다() {
+    assertThat(NotificationEventAction.values())
+        .allSatisfy(action -> assertThat(action.isDefaultEnabled()).isTrue());
+  }
+
+  @Test
   @DisplayName("리뷰와 팔로우 그룹을 조회할 때 소속된 여섯 액션을 반환한다")
   void 그룹으로_액션을_찾는다() {
     assertThat(NotificationEventAction.findByGroup(NotificationSettingGroup.REVIEW_AND_FOLLOW))
