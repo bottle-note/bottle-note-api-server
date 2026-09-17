@@ -20,6 +20,7 @@ import app.bottlenote.notification.dto.request.NotificationPageableRequest;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
+import app.bottlenote.notification.fixture.FakeNotificationTransactionManager;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
 import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
 import app.bottlenote.notification.payload.NotificationMessage;
@@ -64,7 +65,10 @@ class UserNotificationServiceTest {
             userFacade,
             notificationRepository,
             new HmacCursorCodec(properties, Clock.systemUTC()),
-            new NotificationSettingService(new InMemoryUserNotificationSettingRepository()));
+            new NotificationSettingService(
+                new InMemoryUserNotificationSettingRepository(),
+                new FakeNotificationTransactionManager()),
+            new FakeNotificationTransactionManager());
   }
 
   @Nested

@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.domain.UserNotificationSetting;
+import app.bottlenote.notification.fixture.FakeNotificationTransactionManager;
 import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -17,7 +18,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 class NotificationSettingServiceTest {
   private final InMemoryUserNotificationSettingRepository repository =
       new InMemoryUserNotificationSettingRepository();
-  private final NotificationSettingService service = new NotificationSettingService(repository);
+  private final NotificationSettingService service =
+      new NotificationSettingService(repository, new FakeNotificationTransactionManager());
 
   @ParameterizedTest
   @EnumSource(NotificationEventAction.class)

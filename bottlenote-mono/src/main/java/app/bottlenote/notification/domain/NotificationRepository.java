@@ -12,7 +12,7 @@ public interface NotificationRepository {
 
   Notification save(Notification notification);
 
-  void saveIfAbsent(Notification notification);
+  Notification insert(Notification notification);
 
   Optional<Notification> findById(Long id);
 

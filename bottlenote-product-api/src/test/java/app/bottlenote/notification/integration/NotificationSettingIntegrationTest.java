@@ -10,9 +10,14 @@ import app.bottlenote.notification.repository.JpaNotificationRepository;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.notification.service.NotificationSettingService;
 import app.bottlenote.user.fixture.UserTestFactory;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -147,6 +152,83 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
                 userId))
         .isEqualTo(1);
     assertThat(settings.isEnabled(userId, NotificationEventAction.REVIEW_LIKE)).isFalse();
+  }
+
+  @Test
+  @DisplayName("동시에 기본값으로 복원할 때 모두 성공하고 설정 행이 남지 않는다")
+  void 동시_기본값_복원을_처리한다() throws Exception {
+    Long userId = users.persistUser().getId();
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    changeConcurrently(userId, List.of(true, true, true, true));
+    assertThat(settings.isEnabled(userId, NotificationEventAction.FOLLOW)).isTrue();
+    assertThat(settingCount(userId)).isZero();
+  }
+
+  @Test
+  @DisplayName("허용과 거부가 경합한 뒤 마지막 순차 요청을 반영한다")
+  void 허용과_거부의_경합_후_최종_요청을_반영한다() throws Exception {
+    Long userId = users.persistUser().getId();
+    changeConcurrently(userId, List.of(true, false));
+    assertThat(settingCount(userId)).isBetween(0L, 1L);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW, true);
+    assertThat(settingCount(userId)).isZero();
+    changeConcurrently(userId, List.of(false, true));
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    assertThat(settingCount(userId)).isEqualTo(1L);
+    assertThat(settings.isEnabled(userId, NotificationEventAction.FOLLOW)).isFalse();
+  }
+
+  @Test
+  @DisplayName("같은 거부 설정을 반복하면 최초 저장 감사 정보를 유지한다")
+  void 반복_설정은_감사_정보를_변경하지_않는다() {
+    Long userId = users.persistUser().getId();
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    var original =
+        jdbc.queryForMap(
+            "SELECT create_at, last_modify_at FROM user_notification_settings WHERE user_id = ?",
+            userId);
+    assertThat(original.get("create_at")).isNotNull();
+    assertThat(original.get("last_modify_at")).isNotNull();
+    LocalDateTime past = LocalDateTime.of(2020, 1, 1, 0, 0);
+    jdbc.update(
+        "UPDATE user_notification_settings SET last_modify_at = ? WHERE user_id = ?", past, userId);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT last_modify_at FROM user_notification_settings WHERE user_id = ?",
+                LocalDateTime.class,
+                userId))
+        .isEqualTo(past);
+  }
+
+  private long settingCount(Long userId) {
+    return jdbc.queryForObject(
+        "SELECT COUNT(*) FROM user_notification_settings WHERE user_id = ?", Long.class, userId);
+  }
+
+  private void changeConcurrently(Long userId, List<Boolean> enabledValues) throws Exception {
+    CountDownLatch ready = new CountDownLatch(enabledValues.size());
+    CountDownLatch start = new CountDownLatch(1);
+    try (var executor = Executors.newFixedThreadPool(enabledValues.size())) {
+      List<Future<?>> futures = new ArrayList<>();
+      for (boolean enabled : enabledValues) {
+        futures.add(
+            executor.submit(
+                () -> {
+                  ready.countDown();
+                  if (!start.await(10, TimeUnit.SECONDS))
+                    throw new IllegalStateException("동시 실행 대기 초과");
+                  settings.changeSetting(userId, NotificationEventAction.FOLLOW, enabled);
+                  return null;
+                }));
+      }
+      try {
+        assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+      } finally {
+        start.countDown();
+      }
+      for (var future : futures) future.get(20, TimeUnit.SECONDS);
+    }
   }
 
   @Test
