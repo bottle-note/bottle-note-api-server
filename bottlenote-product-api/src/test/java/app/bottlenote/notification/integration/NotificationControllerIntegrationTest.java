@@ -90,33 +90,6 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("분류 미상 과거 알림은 전체 목록에서 보존하고 그룹 필터에서는 제외한다")
-  void 과거_미분류_알림을_조회한다() throws Exception {
-    User user = userTestFactory.persistUser();
-    TokenItem token = getToken(user);
-    notificationRepository.save(
-        Notification.builder().userId(user.getId()).title("과거 알림").content("내용").build());
-    MvcTestResult all =
-        mockMvcTester
-            .get()
-            .uri(BASE)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
-            .exchange();
-    all.assertThat().hasStatusOk();
-    assertThat(responseData(all).path("items")).hasSize(1);
-    assertThat(responseData(all).path("items").get(0).path("eventAction").isNull()).isTrue();
-    assertThat(responseData(all).path("items").get(0).path("group").isNull()).isTrue();
-    MvcTestResult filtered =
-        mockMvcTester
-            .get()
-            .uri(BASE + "?groups=REVIEW_AND_FOLLOW")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
-            .exchange();
-    filtered.assertThat().hasStatusOk();
-    assertThat(responseData(filtered).path("items")).isEmpty();
-  }
-
-  @Test
   @DisplayName("정의되지 않은 그룹이나 발생 액션을 요청하면 거부한다")
   void 잘못된_분류_필터를_거부한다() {
     TokenItem token = getToken(userTestFactory.persistUser());

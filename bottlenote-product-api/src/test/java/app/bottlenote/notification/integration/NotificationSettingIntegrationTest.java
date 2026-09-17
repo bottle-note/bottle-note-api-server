@@ -112,19 +112,19 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("기존 원본 키가 저장되어 있을 때 새 발생 액션으로 재발행해도 중복 저장하지 않는다")
-  void 과거_원본_키와_중복_방지를_유지한다() {
+  @DisplayName("동일 원본 키로 재발행해도 중복 저장하지 않는다")
+  void 원본_키로_중복_저장을_방지한다() {
     Long userId = users.persistUser().getId();
     jdbc.update(
-        "INSERT INTO notifications (user_id, title, content, type, category, status, is_read, source_type, source_id) VALUES (?, '과거 댓글', '내용', 'USER', 'REVIEW', 'PENDING', false, 'REVIEW_REPLY', 20)",
+        "INSERT INTO notifications (user_id, title, content, event_action, status, is_read, source_type, source_id) VALUES (?, '기존 댓글', '내용', 'REVIEW_COMMENT', 'PENDING', false, 'REVIEW_REPLY', 20)",
         userId);
     notifications.sendNotification(NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용"));
     assertThat(repository.findAll())
         .singleElement()
         .satisfies(
             n -> {
-              assertThat(n.getEventAction()).isNull();
-              assertThat(n.getTitle()).isEqualTo("과거 댓글");
+              assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_COMMENT);
+              assertThat(n.getTitle()).isEqualTo("기존 댓글");
             });
   }
 

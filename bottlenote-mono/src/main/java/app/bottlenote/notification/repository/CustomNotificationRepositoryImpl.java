@@ -47,7 +47,7 @@ public class CustomNotificationRepositoryImpl implements CustomNotificationRepos
         .setParameter("readAt", notification.getReadAt())
         .setParameter(
             "eventAction",
-            notification.getEventAction() == null ? null : notification.getEventAction().name())
+            notification.getEventAction().name())
         .setParameter("sourceType", notification.getSourceType())
         .setParameter("sourceId", notification.getSourceId())
         .setParameter("actionType", notification.getActionType())
