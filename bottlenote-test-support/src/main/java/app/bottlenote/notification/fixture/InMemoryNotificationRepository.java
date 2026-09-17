@@ -5,6 +5,8 @@ import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
+import app.bottlenote.notification.exception.NotificationException;
+import app.bottlenote.notification.exception.NotificationExceptionCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,12 +23,14 @@ public class InMemoryNotificationRepository implements NotificationRepository {
   private final List<Notification> database = new ArrayList<>();
 
   @Override
-  public synchronized void saveIfAbsent(Notification notification) {
-    if (notification.getSourceType() != null && notification.getSourceId() != null
-        && existsBySourceTypeAndSourceIdAndUserId(notification.getSourceType(), notification.getSourceId(), notification.getUserId())) {
-      return;
+  public synchronized Notification insert(Notification notification) {
+    if (notification.getSourceType() != null
+        && notification.getSourceId() != null
+        && existsBySourceTypeAndSourceIdAndUserId(
+            notification.getSourceType(), notification.getSourceId(), notification.getUserId())) {
+      throw new NotificationException(NotificationExceptionCode.DUPLICATE_NOTIFICATION_KEY);
     }
-    save(notification);
+    return save(notification);
   }
 
   @Override

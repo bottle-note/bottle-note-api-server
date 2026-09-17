@@ -1,6 +1,7 @@
 package app.bottlenote.notification.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.notification.constant.NotificationStatus;
@@ -70,6 +71,16 @@ class NotificationCreationIntegrationTest extends IntegrationTestSupport {
       assertThat(item.path("action").path("payload").isObject()).isTrue();
       assertThat(item.path("action").path("payload").isEmpty()).isTrue();
     }
+  }
+
+  @Test
+  @DisplayName("중복 키가 아닌 저장 오류는 정상 처리로 숨기지 않는다")
+  void 잘못된_알림_저장_실패를_전달한다() {
+    User user = userTestFactory.persistUser();
+    var message = NotificationMessage.follow(user.getId(), 20L, 300L, "가".repeat(256), "내용");
+    assertThatThrownBy(() -> notificationService.sendNotification(message))
+        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+    assertThat(notificationRepository.countByUserId(user.getId())).isZero();
   }
 
   @Nested

@@ -7,6 +7,7 @@ import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationEventAction;
 import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.fixture.FakeNotificationTransactionManager;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
 import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
 import app.bottlenote.notification.service.NotificationSettingService;
@@ -46,7 +47,10 @@ class HelpAnswerNotificationListenerTest {
                 new FakeUserFacade(UserProfileItem.create(HELP_USER_ID, "문의 작성자", null)),
                 notificationRepository,
                 testCursorCodec(),
-                new NotificationSettingService(new InMemoryUserNotificationSettingRepository())));
+                new NotificationSettingService(
+                    new InMemoryUserNotificationSettingRepository(),
+                    new FakeNotificationTransactionManager()),
+                new FakeNotificationTransactionManager()));
   }
 
   @Test

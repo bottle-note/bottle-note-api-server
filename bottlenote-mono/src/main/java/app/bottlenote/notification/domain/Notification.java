@@ -107,7 +107,7 @@ public class Notification extends BaseEntity {
     this.status = status != null ? status : NotificationStatus.PENDING;
     this.isRead = isRead != null && isRead;
     this.readAt = readAt;
-    this.eventAction = eventAction;
+    this.eventAction = Objects.requireNonNull(eventAction, "알림 발생 액션은 필수입니다.");
     this.sourceType = sourceType;
     this.sourceId = sourceId;
     if (action != null) {

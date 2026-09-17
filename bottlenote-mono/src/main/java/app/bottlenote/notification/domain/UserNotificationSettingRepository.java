@@ -9,7 +9,7 @@ public interface UserNotificationSettingRepository {
   Optional<UserNotificationSetting> findByUserIdAndActionCode(
       Long userId, NotificationEventAction actionCode);
 
-  void saveOverride(UserNotificationSetting setting);
+  UserNotificationSetting insert(UserNotificationSetting setting);
 
   void deleteByUserIdAndActionCode(Long userId, NotificationEventAction actionCode);
 }

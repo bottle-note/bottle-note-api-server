@@ -3,8 +3,11 @@ package app.bottlenote.notification.repository;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
+import app.bottlenote.notification.exception.NotificationException;
+import app.bottlenote.notification.exception.NotificationExceptionCode;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +18,19 @@ public interface JpaNotificationRepository
     extends NotificationRepository,
         JpaRepository<Notification, Long>,
         CustomNotificationRepository {
+
+  @Override
+  default Notification insert(Notification notification) {
+    try {
+      return saveAndFlush(notification);
+    } catch (DataIntegrityViolationException exception) {
+      if (NotificationConstraintViolation.matches(exception, "uq_notifications_source_user")) {
+        throw new NotificationException(
+            NotificationExceptionCode.DUPLICATE_NOTIFICATION_KEY, exception);
+      }
+      throw exception;
+    }
+  }
 
   @Override
   @Query(

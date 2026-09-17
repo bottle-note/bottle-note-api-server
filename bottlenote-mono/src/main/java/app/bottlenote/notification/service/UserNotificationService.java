@@ -22,15 +22,15 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserNotificationService implements NotificationService {
   private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
@@ -39,9 +39,40 @@ public class UserNotificationService implements NotificationService {
   private final HmacCursorCodec cursorCodec;
   private final NotificationSettingService notificationSettingService;
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  private final TransactionTemplate creationTransaction;
+
+  public UserNotificationService(
+      UserFacade userFacade,
+      NotificationRepository notificationRepository,
+      HmacCursorCodec cursorCodec,
+      NotificationSettingService notificationSettingService,
+      PlatformTransactionManager transactionManager) {
+    this.userFacade = userFacade;
+    this.notificationRepository = notificationRepository;
+    this.cursorCodec = cursorCodec;
+    this.notificationSettingService = notificationSettingService;
+    this.creationTransaction = new TransactionTemplate(transactionManager);
+    this.creationTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+  }
+
   @Override
   public void sendNotification(NotificationMessage message) {
+    // 중복 키는 저장 트랜잭션의 롤백이 끝난 뒤 처리한다.
+    try {
+      creationTransaction.executeWithoutResult(status -> createNotification(message));
+    } catch (NotificationException exception) {
+      if (exception.getExceptionCode() != NotificationExceptionCode.DUPLICATE_NOTIFICATION_KEY) {
+        throw exception;
+      }
+      log.debug(
+          "이미 저장된 알림 - userId: {}, sourceType: {}, sourceId: {}",
+          message.userId(),
+          message.sourceType(),
+          message.sourceId());
+    }
+  }
+
+  private void createNotification(NotificationMessage message) {
     log.info(
         "알림 저장 요청 - userId: {}, sourceType: {}, sourceId: {}, threadName: {}",
         message.userId(),
@@ -58,6 +89,13 @@ public class UserNotificationService implements NotificationService {
       return;
     }
 
+    if (message.sourceType() != null
+        && message.sourceId() != null
+        && notificationRepository.existsBySourceTypeAndSourceIdAndUserId(
+            message.sourceType(), message.sourceId(), message.userId())) {
+      return;
+    }
+
     Notification notification =
         Notification.builder()
             .userId(message.userId())
@@ -69,7 +107,7 @@ public class UserNotificationService implements NotificationService {
             .action(message.action())
             .build();
 
-    notificationRepository.saveIfAbsent(notification);
+    notificationRepository.insert(notification);
   }
 
   @Transactional(readOnly = true)

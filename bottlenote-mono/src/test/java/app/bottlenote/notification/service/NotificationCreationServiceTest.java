@@ -8,6 +8,7 @@ import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationEventAction;
+import app.bottlenote.notification.fixture.FakeNotificationTransactionManager;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
 import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
 import app.bottlenote.notification.payload.NotificationMessage;
@@ -35,13 +36,17 @@ class NotificationCreationServiceTest {
     CursorProperties properties = new CursorProperties();
     properties.setCurrentKeyId("v1");
     properties.setCurrentSecret("notification-test-cursor-secret");
-    settings = new NotificationSettingService(new InMemoryUserNotificationSettingRepository());
+    settings =
+        new NotificationSettingService(
+            new InMemoryUserNotificationSettingRepository(),
+            new FakeNotificationTransactionManager());
     service =
         new UserNotificationService(
             new FakeUserFacade(UserProfileItem.create(1L, "사용자", null)),
             repository,
             new HmacCursorCodec(properties, Clock.systemUTC()),
-            settings);
+            settings,
+            new FakeNotificationTransactionManager());
   }
 
   @ParameterizedTest
