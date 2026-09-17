@@ -55,9 +55,9 @@ public class Notification extends BaseEntity {
   @Column(name = "read_at")
   private LocalDateTime readAt;
 
-  @Comment("표준 알림 발생 액션. 식별하지 못한 과거 알림은 NULL")
+  @Comment("표준 알림 발생 액션")
   @Enumerated(EnumType.STRING)
-  @Column(name = "event_action", length = 64)
+  @Column(name = "event_action", length = 64, nullable = false)
   private NotificationEventAction eventAction;
 
   @Comment("알림 원본 유형")
@@ -119,7 +119,7 @@ public class Notification extends BaseEntity {
   }
 
   public NotificationSettingGroup getGroup() {
-    return eventAction == null ? null : eventAction.getGroup();
+    return eventAction.getGroup();
   }
 
   /** 알림을 읽음 처리하고 최초 읽음 시각을 보존한다. */
