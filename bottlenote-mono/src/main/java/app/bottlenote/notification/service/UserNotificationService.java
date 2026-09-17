@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -56,6 +57,7 @@ public class UserNotificationService implements NotificationService {
   }
 
   @Override
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void sendNotification(NotificationMessage message) {
     // 중복 키는 저장 트랜잭션의 롤백이 끝난 뒤 처리한다.
     try {

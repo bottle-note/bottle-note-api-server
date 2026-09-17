@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -36,6 +37,7 @@ public class NotificationSettingService {
         .orElse(action.isDefaultEnabled());
   }
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void changeSetting(Long userId, NotificationEventAction action, boolean enabled) {
     validate(userId, action);
     // 동시 INSERT의 중복 키만 롤백 완료 후 정상 처리한다.
