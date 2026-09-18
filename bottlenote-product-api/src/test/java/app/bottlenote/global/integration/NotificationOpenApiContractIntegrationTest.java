@@ -59,8 +59,25 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
                     false)
                 .map(JsonNode::asText)
                 .toList())
-        .contains("REVIEW_COMMENT", "REVIEW_REPLY", "PROGRAM_NEW")
-        .hasSize(20);
+        .containsExactly(
+            "REVIEW_COMMENT_CREATE",
+            "REVIEW_REPLY_CREATE",
+            "REVIEW_LIKE_ADD",
+            "FOLLOW_CREATE",
+            "FOLLOWING_REVIEW_CREATE",
+            "REVIEW_FEATURE_SELECT",
+            "TASTING_OPEN",
+            "TASTING_UPDATE",
+            "PROGRAM_OPEN",
+            "PROGRAM_UPDATE",
+            "PROGRAM_RESULT_ANNOUNCE",
+            "NOTICE_PUBLISH",
+            "CAMPAIGN_OPEN",
+            "HELP_ANSWER_CREATE",
+            "REPORT_RESULT_ANNOUNCE",
+            "CONTENT_MODERATE",
+            "ACCOUNT_STATUS_UPDATE",
+            "ALCOHOL_SUBMISSION_REVIEW");
     assertThat(
             StreamSupport.stream(
                     parameter(operation, "groups").at("/schema/items/enum").spliterator(), false)

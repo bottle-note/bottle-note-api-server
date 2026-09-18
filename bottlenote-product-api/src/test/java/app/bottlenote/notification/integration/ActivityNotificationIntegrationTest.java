@@ -283,7 +283,7 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
           .singleElement()
           .satisfies(
               message -> {
-                assertThat(message.getSourceType()).isEqualTo("REVIEW_LIKE");
+                assertThat(message.getSourceType()).isEqualTo("REVIEW_LIKE_ADD");
                 assertThat(message.getActionTargetId()).isEqualTo(review.getId());
               });
       assertThat(histories.findAll())
@@ -323,7 +323,7 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
           .singleElement()
           .satisfies(
               message -> {
-                assertThat(message.getSourceType()).isEqualTo("FOLLOW");
+                assertThat(message.getSourceType()).isEqualTo("FOLLOW_CREATE");
                 assertThat(message.getActionType()).isEqualTo("OPEN_USER");
                 assertThat(message.getActionTargetId()).isEqualTo(actor.getId());
               });

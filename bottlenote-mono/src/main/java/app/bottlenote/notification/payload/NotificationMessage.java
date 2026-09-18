@@ -29,7 +29,7 @@ public record NotificationMessage(
       Long userId, Long reviewId, Long replyId, String title, String content) {
     return new NotificationMessage(
         userId,
-        NotificationEventAction.REVIEW_COMMENT,
+        NotificationEventAction.REVIEW_COMMENT_CREATE,
         title,
         content,
         replyId,
@@ -40,7 +40,7 @@ public record NotificationMessage(
       Long userId, Long reviewId, Long replyId, String title, String content) {
     return new NotificationMessage(
         userId,
-        NotificationEventAction.REVIEW_REPLY,
+        NotificationEventAction.REVIEW_REPLY_CREATE,
         title,
         content,
         replyId,
@@ -51,7 +51,7 @@ public record NotificationMessage(
       Long userId, Long helpId, String title, String content) {
     return new NotificationMessage(
         userId,
-        NotificationEventAction.HELP_ANSWER,
+        NotificationEventAction.HELP_ANSWER_CREATE,
         title,
         content,
         helpId,
@@ -62,7 +62,7 @@ public record NotificationMessage(
       Long userId, Long reviewId, Long likeId, String title, String content) {
     return new NotificationMessage(
         userId,
-        NotificationEventAction.REVIEW_LIKE,
+        NotificationEventAction.REVIEW_LIKE_ADD,
         title,
         content,
         likeId,
@@ -73,7 +73,7 @@ public record NotificationMessage(
       Long userId, Long actorId, Long followId, String title, String content) {
     return new NotificationMessage(
         userId,
-        NotificationEventAction.FOLLOW,
+        NotificationEventAction.FOLLOW_CREATE,
         title,
         content,
         followId,
