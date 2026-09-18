@@ -62,10 +62,10 @@ class ReviewReplyNotificationListenerTest {
       assertThat(notificationService.messages).hasSize(1);
       NotificationMessage message = notificationService.messages.getFirst();
       assertThat(message.userId()).isEqualTo(REVIEW_AUTHOR_ID);
-      assertThat(message.eventAction()).isEqualTo(NotificationEventAction.REVIEW_COMMENT);
+      assertThat(message.eventAction()).isEqualTo(NotificationEventAction.REVIEW_COMMENT_CREATE);
       assertThat(message.title()).isEqualTo(ReviewReplyNotificationListener.TITLE);
       assertThat(message.content()).isEqualTo(content);
-      assertThat(message.sourceType()).isEqualTo("REVIEW_REPLY");
+      assertThat(message.sourceType()).isEqualTo("REVIEW_COMMENT_CREATE");
       assertThat(message.sourceId()).isEqualTo(REPLY_ID);
       assertThat(message.action().type()).isEqualTo(NotificationActionType.OPEN_REVIEW);
       assertThat(message.action().targetId()).isEqualTo(REVIEW_ID);
@@ -194,7 +194,7 @@ class ReviewReplyNotificationListenerTest {
 
       assertThat(notificationService.messages).hasSize(1);
       NotificationMessage message = notificationService.messages.getFirst();
-      assertThat(message.sourceType()).isEqualTo("REVIEW_LIKE");
+      assertThat(message.sourceType()).isEqualTo("REVIEW_LIKE_ADD");
       assertThat(message.userId()).isEqualTo(1L);
       assertThat(message.sourceId()).isEqualTo(10L);
       assertThat(message.action().targetId()).isEqualTo(20L);
@@ -209,7 +209,7 @@ class ReviewReplyNotificationListenerTest {
 
       assertThat(notificationService.messages).hasSize(1);
       NotificationMessage message = notificationService.messages.getFirst();
-      assertThat(message.sourceType()).isEqualTo("FOLLOW");
+      assertThat(message.sourceType()).isEqualTo("FOLLOW_CREATE");
       assertThat(message.userId()).isEqualTo(2L);
       assertThat(message.sourceId()).isEqualTo(10L);
       assertThat(message.action().targetId()).isEqualTo(1L);

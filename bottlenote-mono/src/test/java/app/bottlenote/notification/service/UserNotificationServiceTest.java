@@ -82,7 +82,7 @@ class UserNotificationServiceTest {
 
       service.sendNotification(
           NotificationMessage.create(
-              USER_ID, NotificationEventAction.REVIEW_COMMENT, "새 댓글", "리뷰에 댓글이 달렸습니다."));
+              USER_ID, NotificationEventAction.REVIEW_COMMENT_CREATE, "새 댓글", "리뷰에 댓글이 달렸습니다."));
 
       assertThat(notificationRepository.findAll())
           .hasSize(1)
@@ -93,7 +93,7 @@ class UserNotificationServiceTest {
                 assertThat(notification.getTitle()).isEqualTo("새 댓글");
                 assertThat(notification.getContent()).isEqualTo("리뷰에 댓글이 달렸습니다.");
                 assertThat(notification.getEventAction())
-                    .isEqualTo(NotificationEventAction.REVIEW_COMMENT);
+                    .isEqualTo(NotificationEventAction.REVIEW_COMMENT_CREATE);
                 assertThat(notification.getIsRead()).isFalse();
               });
     }
@@ -102,7 +102,7 @@ class UserNotificationServiceTest {
     @DisplayName("대상 사용자가 없으면 예외를 던진다")
     void sendNotification_whenUserMissing_throwsException() {
       NotificationMessage message =
-          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT, "제목", "내용");
+          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT_CREATE, "제목", "내용");
 
       assertThatThrownBy(() -> service.sendNotification(message))
           .isInstanceOf(UserException.class)
@@ -124,7 +124,7 @@ class UserNotificationServiceTest {
           .singleElement()
           .satisfies(
               notification -> {
-                assertThat(notification.getSourceType()).isEqualTo("REVIEW_REPLY");
+                assertThat(notification.getSourceType()).isEqualTo("REVIEW_COMMENT_CREATE");
                 assertThat(notification.getSourceId()).isEqualTo(20L);
                 assertThat(notification.getActionType()).isEqualTo("OPEN_REVIEW");
                 assertThat(notification.getActionTargetId()).isEqualTo(10L);
@@ -139,7 +139,7 @@ class UserNotificationServiceTest {
     void sendNotification_whenLegacyMessageDuplicated_savesEachTime() {
       seedUser(USER_ID);
       NotificationMessage message =
-          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT, "제목", "내용");
+          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT_CREATE, "제목", "내용");
 
       service.sendNotification(message);
       service.sendNotification(message);
@@ -213,20 +213,20 @@ class UserNotificationServiceTest {
               .userId(USER_ID)
               .title("system")
               .content("system-content")
-              .eventAction(NotificationEventAction.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE_PUBLISH)
               .build());
 
       KeysetPageResponse<NotificationListResponse> result =
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
-                  .eventActions(List.of(NotificationEventAction.NOTICE))
+                  .eventActions(List.of(NotificationEventAction.NOTICE_PUBLISH))
                   .build());
 
       assertThat(result.content().items().size()).isOne();
       assertThat(result.content().items())
           .extracting(NotificationListResponse.Item::eventAction)
-          .containsExactly(NotificationEventAction.NOTICE);
+          .containsExactly(NotificationEventAction.NOTICE_PUBLISH);
     }
 
     @Test
@@ -238,7 +238,7 @@ class UserNotificationServiceTest {
               .userId(USER_ID)
               .title("notice")
               .content("notice-content")
-              .eventAction(NotificationEventAction.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE_PUBLISH)
               .build());
 
       KeysetPageResponse<NotificationListResponse> result =
@@ -322,7 +322,7 @@ class UserNotificationServiceTest {
       seedNotification(USER_ID, "excluded").markAsRead();
       NotificationPageableRequest firstRequest =
           NotificationPageableRequest.builder()
-              .eventActions(List.of(NotificationEventAction.REVIEW_COMMENT))
+              .eventActions(List.of(NotificationEventAction.REVIEW_COMMENT_CREATE))
               .groups(List.of(NotificationSettingGroup.REVIEW_AND_FOLLOW))
               .readStatus(NotificationReadStatus.UNREAD)
               .size(2)
@@ -360,7 +360,7 @@ class UserNotificationServiceTest {
               .userId(USER_ID)
               .title("notice")
               .content("notice-content")
-              .eventAction(NotificationEventAction.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE_PUBLISH)
               .build());
 
       KeysetPageResponse<NotificationListResponse> result =
@@ -681,7 +681,7 @@ class UserNotificationServiceTest {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .eventAction(NotificationEventAction.REVIEW_COMMENT)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT_CREATE)
             .action(action)
             .build());
   }
@@ -704,7 +704,7 @@ class UserNotificationServiceTest {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .eventAction(NotificationEventAction.REVIEW_COMMENT)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT_CREATE)
             .status(status)
             .isRead(isRead)
             .readAt(readAt)

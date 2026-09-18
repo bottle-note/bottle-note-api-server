@@ -70,18 +70,18 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
   @ParameterizedTest
   @EnumSource(
       value = NotificationEventAction.class,
-      names = {"REVIEW_COMMENT", "REVIEW_REPLY", "REVIEW_LIKE", "FOLLOW", "HELP_ANSWER"})
+      names = {"REVIEW_COMMENT_CREATE", "REVIEW_REPLY_CREATE", "REVIEW_LIKE_ADD", "FOLLOW_CREATE", "HELP_ANSWER_CREATE"})
   @DisplayName("기존 발행 경로에서 DB 거부 설정과 허용 복원을 반영하고 발생 액션을 저장한다")
   void 기존_발행과_DB_설정을_연결한다(NotificationEventAction action) {
     Long userId = users.persistUser().getId();
     NotificationMessage message =
         switch (action) {
-          case REVIEW_COMMENT -> NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용");
-          case REVIEW_REPLY ->
+          case REVIEW_COMMENT_CREATE -> NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용");
+          case REVIEW_REPLY_CREATE ->
               NotificationMessage.reviewReplyResponse(userId, 10L, 20L, "답글", "내용");
-          case REVIEW_LIKE -> NotificationMessage.reviewLike(userId, 10L, 20L, "좋아요", "내용");
-          case FOLLOW -> NotificationMessage.follow(userId, 10L, 20L, "팔로우", "내용");
-          case HELP_ANSWER -> NotificationMessage.helpAnswer(userId, 20L, "문의", "내용");
+          case REVIEW_LIKE_ADD -> NotificationMessage.reviewLike(userId, 10L, 20L, "좋아요", "내용");
+          case FOLLOW_CREATE -> NotificationMessage.follow(userId, 10L, 20L, "팔로우", "내용");
+          case HELP_ANSWER_CREATE -> NotificationMessage.helpAnswer(userId, 20L, "문의", "내용");
           default -> throw new IllegalArgumentException("기존 발행 액션이 아닙니다.");
         };
     settings.changeSetting(userId, action, false);
@@ -110,8 +110,8 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
   void 설정의_사용자와_액션을_격리한다() {
     Long userId = users.persistUser().getId();
     Long otherId = users.persistUser().getId();
-    settings.changeSetting(otherId, NotificationEventAction.REVIEW_COMMENT, false);
-    settings.changeSetting(userId, NotificationEventAction.REVIEW_REPLY, false);
+    settings.changeSetting(otherId, NotificationEventAction.REVIEW_COMMENT_CREATE, false);
+    settings.changeSetting(userId, NotificationEventAction.REVIEW_REPLY_CREATE, false);
     notifications.sendNotification(NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용"));
     assertThat(repository.countByUserId(userId)).isEqualTo(1);
   }
@@ -121,14 +121,14 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
   void 원본_키로_중복_저장을_방지한다() {
     Long userId = users.persistUser().getId();
     jdbc.update(
-        "INSERT INTO notifications (user_id, title, content, event_action, status, is_read, source_type, source_id) VALUES (?, '기존 댓글', '내용', 'REVIEW_COMMENT', 'PENDING', false, 'REVIEW_REPLY', 20)",
+        "INSERT INTO notifications (user_id, title, content, event_action, status, is_read, source_type, source_id) VALUES (?, '기존 댓글', '내용', 'REVIEW_COMMENT_CREATE', 'PENDING', false, 'REVIEW_COMMENT_CREATE', 20)",
         userId);
     notifications.sendNotification(NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용"));
     assertThat(repository.findAll())
         .singleElement()
         .satisfies(
             n -> {
-              assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_COMMENT);
+              assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_COMMENT_CREATE);
               assertThat(n.getTitle()).isEqualTo("기존 댓글");
             });
   }
@@ -140,7 +140,7 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
     try (var executor = Executors.newFixedThreadPool(2)) {
       Callable<Void> change =
           () -> {
-            settings.changeSetting(userId, NotificationEventAction.REVIEW_LIKE, false);
+            settings.changeSetting(userId, NotificationEventAction.REVIEW_LIKE_ADD, false);
             return null;
           };
       for (var future : executor.invokeAll(List.of(change, change))) future.get();
@@ -151,16 +151,16 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
                 Long.class,
                 userId))
         .isEqualTo(1);
-    assertThat(settings.isEnabled(userId, NotificationEventAction.REVIEW_LIKE)).isFalse();
+    assertThat(settings.isEnabled(userId, NotificationEventAction.REVIEW_LIKE_ADD)).isFalse();
   }
 
   @Test
   @DisplayName("동시에 기본값으로 복원할 때 모두 성공하고 설정 행이 남지 않는다")
   void 동시_기본값_복원을_처리한다() throws Exception {
     Long userId = users.persistUser().getId();
-    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW_CREATE, false);
     changeConcurrently(userId, List.of(true, true, true, true));
-    assertThat(settings.isEnabled(userId, NotificationEventAction.FOLLOW)).isTrue();
+    assertThat(settings.isEnabled(userId, NotificationEventAction.FOLLOW_CREATE)).isTrue();
     assertThat(settingCount(userId)).isZero();
   }
 
@@ -170,19 +170,19 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
     Long userId = users.persistUser().getId();
     changeConcurrently(userId, List.of(true, false));
     assertThat(settingCount(userId)).isBetween(0L, 1L);
-    settings.changeSetting(userId, NotificationEventAction.FOLLOW, true);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW_CREATE, true);
     assertThat(settingCount(userId)).isZero();
     changeConcurrently(userId, List.of(false, true));
-    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW_CREATE, false);
     assertThat(settingCount(userId)).isEqualTo(1L);
-    assertThat(settings.isEnabled(userId, NotificationEventAction.FOLLOW)).isFalse();
+    assertThat(settings.isEnabled(userId, NotificationEventAction.FOLLOW_CREATE)).isFalse();
   }
 
   @Test
   @DisplayName("같은 거부 설정을 반복하면 최초 저장 감사 정보를 유지한다")
   void 반복_설정은_감사_정보를_변경하지_않는다() {
     Long userId = users.persistUser().getId();
-    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW_CREATE, false);
     var original =
         jdbc.queryForMap(
             "SELECT create_at, last_modify_at FROM user_notification_settings WHERE user_id = ?",
@@ -192,7 +192,7 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
     LocalDateTime past = LocalDateTime.of(2020, 1, 1, 0, 0);
     jdbc.update(
         "UPDATE user_notification_settings SET last_modify_at = ? WHERE user_id = ?", past, userId);
-    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW_CREATE, false);
     assertThat(
             jdbc.queryForObject(
                 "SELECT last_modify_at FROM user_notification_settings WHERE user_id = ?",
@@ -218,7 +218,7 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
                   ready.countDown();
                   if (!start.await(10, TimeUnit.SECONDS))
                     throw new IllegalStateException("동시 실행 대기 초과");
-                  settings.changeSetting(userId, NotificationEventAction.FOLLOW, enabled);
+                  settings.changeSetting(userId, NotificationEventAction.FOLLOW_CREATE, enabled);
                   return null;
                 }));
       }
@@ -235,11 +235,11 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
   @DisplayName("사용자와 액션이 중복인 행을 직접 추가할 때 DB가 거부한다")
   void DB_유일_키를_검증한다() {
     Long userId = users.persistUser().getId();
-    settings.changeSetting(userId, NotificationEventAction.FOLLOW, false);
+    settings.changeSetting(userId, NotificationEventAction.FOLLOW_CREATE, false);
     assertThatThrownBy(
             () ->
                 jdbc.update(
-                    "INSERT INTO user_notification_settings (user_id, action_code, enabled) VALUES (?, 'FOLLOW', false)",
+                    "INSERT INTO user_notification_settings (user_id, action_code, enabled) VALUES (?, 'FOLLOW_CREATE', false)",
                     userId))
         .isInstanceOf(DataIntegrityViolationException.class);
   }

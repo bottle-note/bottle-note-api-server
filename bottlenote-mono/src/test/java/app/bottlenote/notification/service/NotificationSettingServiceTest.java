@@ -61,26 +61,60 @@ class NotificationSettingServiceTest {
   }
 
   @Test
+  @DisplayName("알림 발생 액션은 대상과 현재형 동사로 정의한다")
+  void 발생_액션_이름을_현재형_동사로_정의한다() {
+    assertThat(NotificationEventAction.values())
+        .extracting(NotificationEventAction::name)
+        .containsExactly(
+            "REVIEW_COMMENT_CREATE",
+            "REVIEW_REPLY_CREATE",
+            "REVIEW_LIKE_ADD",
+            "FOLLOW_CREATE",
+            "FOLLOWING_REVIEW_CREATE",
+            "REVIEW_FEATURE_SELECT",
+            "TASTING_OPEN",
+            "TASTING_UPDATE",
+            "PROGRAM_OPEN",
+            "PROGRAM_UPDATE",
+            "PROGRAM_RESULT_ANNOUNCE",
+            "NOTICE_PUBLISH",
+            "CAMPAIGN_OPEN",
+            "HELP_ANSWER_CREATE",
+            "REPORT_RESULT_ANNOUNCE",
+            "CONTENT_MODERATE",
+            "ACCOUNT_STATUS_UPDATE",
+            "ALCOHOL_SUBMISSION_REVIEW");
+  }
+
+  @Test
   @DisplayName("리뷰와 팔로우 그룹을 조회할 때 소속된 여섯 액션을 반환한다")
   void 그룹으로_액션을_찾는다() {
     assertThat(NotificationEventAction.findByGroup(NotificationSettingGroup.REVIEW_AND_FOLLOW))
         .containsExactly(
-            NotificationEventAction.REVIEW_COMMENT,
-            NotificationEventAction.REVIEW_REPLY,
-            NotificationEventAction.REVIEW_LIKE,
-            NotificationEventAction.FOLLOW,
-            NotificationEventAction.FOLLOWING_REVIEW,
-            NotificationEventAction.REVIEW_FEATURED);
+            NotificationEventAction.REVIEW_COMMENT_CREATE,
+            NotificationEventAction.REVIEW_REPLY_CREATE,
+            NotificationEventAction.REVIEW_LIKE_ADD,
+            NotificationEventAction.FOLLOW_CREATE,
+            NotificationEventAction.FOLLOWING_REVIEW_CREATE,
+            NotificationEventAction.REVIEW_FEATURE_SELECT);
+  }
+
+  @Test
+  @DisplayName("시음회 그룹을 조회할 때 신규와 변경 액션만 반환한다")
+  void 시음회_결과_액션을_제외한다() {
+    assertThat(NotificationEventAction.findByGroup(NotificationSettingGroup.TASTING))
+        .containsExactly(
+            NotificationEventAction.TASTING_OPEN, NotificationEventAction.TASTING_UPDATE);
   }
 
   @Test
   @DisplayName("기본값을 설정 엔티티로 저장하려 할 때 거부한다")
   void 기본값_행을_거부한다() {
     assertThatThrownBy(
-            () -> new UserNotificationSetting(1L, NotificationEventAction.REVIEW_COMMENT, true))
+            () -> new UserNotificationSetting(1L, NotificationEventAction.REVIEW_COMMENT_CREATE, true))
         .isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(
-            () -> service.changeSetting(0L, NotificationEventAction.REVIEW_COMMENT, false))
+            () -> service.changeSetting(0L, NotificationEventAction.REVIEW_COMMENT_CREATE, false))
         .isInstanceOf(IllegalArgumentException.class);
   }
 }

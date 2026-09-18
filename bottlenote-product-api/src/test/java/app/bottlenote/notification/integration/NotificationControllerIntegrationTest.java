@@ -48,9 +48,9 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     TokenItem token = getToken(user);
     for (NotificationEventAction action :
         List.of(
-            NotificationEventAction.REVIEW_COMMENT,
-            NotificationEventAction.FOLLOW,
-            NotificationEventAction.PROGRAM_NEW)) {
+            NotificationEventAction.REVIEW_COMMENT_CREATE,
+            NotificationEventAction.FOLLOW_CREATE,
+            NotificationEventAction.PROGRAM_OPEN)) {
       notificationRepository.save(
           Notification.builder()
               .userId(user.getId())
@@ -70,19 +70,19 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     MvcTestResult intersection =
         mockMvcTester
             .get()
-            .uri(BASE + "?groups=REVIEW_AND_FOLLOW&eventActions=FOLLOW,PROGRAM_NEW")
+            .uri(BASE + "?groups=REVIEW_AND_FOLLOW&eventActions=FOLLOW_CREATE,PROGRAM_OPEN")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
             .exchange();
     intersection.assertThat().hasStatusOk();
     assertThat(responseData(intersection).path("items")).hasSize(1);
     assertThat(responseData(intersection).path("items").get(0).path("eventAction").asText())
-        .isEqualTo("FOLLOW");
+        .isEqualTo("FOLLOW_CREATE");
     assertThat(responseData(intersection).path("items").get(0).path("group").asText())
         .isEqualTo("REVIEW_AND_FOLLOW");
     MvcTestResult mismatch =
         mockMvcTester
             .get()
-            .uri(BASE + "?groups=PROGRAM&eventActions=FOLLOW")
+            .uri(BASE + "?groups=PROGRAM&eventActions=FOLLOW_CREATE")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
             .exchange();
     mismatch.assertThat().hasStatusOk();
@@ -212,14 +212,14 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("notice")
               .content("notice-content")
-              .eventAction(NotificationEventAction.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE_PUBLISH)
               .build());
       seedNotification(other.getId(), "other");
 
       MvcTestResult result =
           mockMvcTester
               .get()
-              .uri(BASE + "?eventActions=REVIEW_COMMENT&groups=REVIEW_AND_FOLLOW&readStatus=UNREAD")
+              .uri(BASE + "?eventActions=REVIEW_COMMENT_CREATE&groups=REVIEW_AND_FOLLOW&readStatus=UNREAD")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
 
@@ -240,7 +240,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("notice")
               .content("notice-content")
-              .eventAction(NotificationEventAction.NOTICE)
+              .eventAction(NotificationEventAction.NOTICE_PUBLISH)
               .build());
 
       MvcTestResult result =
@@ -267,7 +267,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult first =
           mockMvcTester
               .get()
-              .uri(BASE + "?eventActions=REVIEW_COMMENT&readStatus=ALL&size=2")
+              .uri(BASE + "?eventActions=REVIEW_COMMENT_CREATE&readStatus=ALL&size=2")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
       JsonNode firstData = responseData(first);
@@ -276,7 +276,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult second =
           mockMvcTester
               .get()
-              .uri(BASE + "?eventActions=REVIEW_COMMENT&readStatus=ALL&size=2&cursor=" + cursor)
+              .uri(BASE + "?eventActions=REVIEW_COMMENT_CREATE&readStatus=ALL&size=2&cursor=" + cursor)
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
       JsonNode secondData = responseData(second);
@@ -347,7 +347,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("reply")
               .content("reply-content")
-              .eventAction(NotificationEventAction.REVIEW_COMMENT)
+              .eventAction(NotificationEventAction.REVIEW_COMMENT_CREATE)
               .action(NotificationAction.openReview(10L, 20L))
               .build();
       notification.markAsRead(java.time.LocalDateTime.of(2026, 8, 10, 12, 0));
@@ -383,8 +383,8 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .userId(user.getId())
               .title("문의 답변")
               .content("문의에 답변이 등록됐습니다.")
-              .eventAction(NotificationEventAction.HELP_ANSWER)
-              .sourceType("HELP_ANSWER")
+              .eventAction(NotificationEventAction.HELP_ANSWER_CREATE)
+              .sourceType("HELP_ANSWER_CREATE")
               .sourceId(30L)
               .action(NotificationAction.openHelp(30L))
               .build();
@@ -400,7 +400,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       result.assertThat().hasStatusOk();
       JsonNode item = responseData(result).path("items").get(0);
       assertThat(item.path("id").asLong()).isEqualTo(notification.getId());
-      assertThat(item.path("eventAction").asText()).isEqualTo("HELP_ANSWER");
+      assertThat(item.path("eventAction").asText()).isEqualTo("HELP_ANSWER_CREATE");
       assertThat(item.path("action").path("type").asText()).isEqualTo("OPEN_HELP");
       assertThat(item.path("action").path("targetId").asLong()).isEqualTo(30L);
       assertThat(item.path("action").path("payload").isObject()).isTrue();
@@ -720,7 +720,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .eventAction(NotificationEventAction.REVIEW_COMMENT)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT_CREATE)
             .status(status)
             .isRead(false)
             .build());
@@ -733,7 +733,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
             .userId(userId)
             .title(title)
             .content(title + "-content")
-            .eventAction(NotificationEventAction.REVIEW_COMMENT)
+            .eventAction(NotificationEventAction.REVIEW_COMMENT_CREATE)
             .action(action)
             .build());
   }
