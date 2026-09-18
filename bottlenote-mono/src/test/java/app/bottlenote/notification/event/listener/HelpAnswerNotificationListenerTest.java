@@ -68,10 +68,10 @@ class HelpAnswerNotificationListenerTest {
     assertThat(notificationRepository.findAll()).hasSize(1);
     Notification notification = notificationRepository.findAll().getFirst();
     assertThat(notification.getUserId()).isEqualTo(HELP_USER_ID);
-    assertThat(notification.getEventAction()).isEqualTo(NotificationEventAction.HELP_ANSWER);
+    assertThat(notification.getEventAction()).isEqualTo(NotificationEventAction.HELP_ANSWER_CREATE);
     assertThat(notification.getTitle()).isEqualTo(HelpAnswerNotificationListener.TITLE);
     assertThat(notification.getContent()).isEqualTo(content);
-    assertThat(notification.getSourceType()).isEqualTo("HELP_ANSWER");
+    assertThat(notification.getSourceType()).isEqualTo("HELP_ANSWER_CREATE");
     assertThat(notification.getSourceId()).isEqualTo(HELP_ID);
     assertThat(notification.getActionType()).isEqualTo(NotificationActionType.OPEN_HELP.name());
     assertThat(notification.getActionTargetId()).isEqualTo(HELP_ID);

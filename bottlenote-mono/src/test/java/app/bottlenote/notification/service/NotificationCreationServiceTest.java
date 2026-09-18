@@ -113,26 +113,26 @@ class NotificationCreationServiceTest {
   @Test
   @DisplayName("리뷰 댓글을 거부할 때 댓글 답글 설정은 유지한다")
   void 댓글과_답글의_설정을_구분한다() {
-    settings.changeSetting(1L, NotificationEventAction.REVIEW_COMMENT, false);
+    settings.changeSetting(1L, NotificationEventAction.REVIEW_COMMENT_CREATE, false);
     service.sendNotification(NotificationMessage.reviewReply(1L, 2L, 3L, "댓글", "내용"));
     service.sendNotification(NotificationMessage.reviewReplyResponse(1L, 2L, 4L, "답글", "내용"));
     assertThat(repository.findAll())
         .singleElement()
         .satisfies(
-            n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_REPLY));
+            n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_REPLY_CREATE));
   }
 
   @Test
   @DisplayName("신규 종류도 기본 허용하고 거부 설정 시 추가 저장하지 않는다")
   void 기본_거부와_허용_변경을_적용한다() {
     NotificationMessage message =
-        NotificationMessage.create(1L, NotificationEventAction.PROGRAM_NEW, "프로그램", "내용");
+        NotificationMessage.create(1L, NotificationEventAction.PROGRAM_OPEN, "프로그램", "내용");
     service.sendNotification(message);
     assertThat(repository.findAll())
         .singleElement()
         .satisfies(
-            n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.PROGRAM_NEW));
-    settings.changeSetting(1L, NotificationEventAction.PROGRAM_NEW, false);
+            n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.PROGRAM_OPEN));
+    settings.changeSetting(1L, NotificationEventAction.PROGRAM_OPEN, false);
     service.sendNotification(message);
     assertThat(repository.findAll()).hasSize(1);
   }
