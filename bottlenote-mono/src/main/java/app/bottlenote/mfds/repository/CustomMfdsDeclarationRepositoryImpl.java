@@ -7,6 +7,7 @@ import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -91,6 +92,25 @@ public class CustomMfdsDeclarationRepositoryImpl implements CustomMfdsDeclaratio
             mfdsDeclaration.exportCountryAlpha2.isNotNull())
         .groupBy(mfdsDeclaration.exportCountryAlpha2)
         .orderBy(mfdsDeclaration.exportCountryNameKo.max().asc())
+        .fetch();
+  }
+
+  @Override
+  public List<MfdsPublicAlcoholCategoryItem> findAlcoholCategories() {
+    return queryFactory
+        .select(
+            Projections.constructor(
+                MfdsPublicAlcoholCategoryItem.class,
+                mfdsDeclaration.alcoholCategoryKo,
+                mfdsDeclaration.alcoholCategoryEn,
+                mfdsDeclaration.count()))
+        .from(mfdsDeclaration)
+        .where(
+            supporter.eqNormalizationStatus(MfdsNormalizationStatus.NORMALIZED),
+            mfdsDeclaration.alcoholCategoryKo.isNotNull(),
+            mfdsDeclaration.alcoholCategoryKo.ne(""))
+        .groupBy(mfdsDeclaration.alcoholCategoryKo, mfdsDeclaration.alcoholCategoryEn)
+        .orderBy(mfdsDeclaration.count().desc(), mfdsDeclaration.alcoholCategoryKo.asc())
         .fetch();
   }
 
