@@ -124,7 +124,7 @@ class UserNotificationServiceTest {
           .singleElement()
           .satisfies(
               notification -> {
-                assertThat(notification.getSourceType()).isEqualTo("REVIEW_COMMENT_CREATE");
+                assertThat(notification.getSourceType()).isEqualTo("REVIEW_REPLY_CREATE");
                 assertThat(notification.getSourceId()).isEqualTo(20L);
                 assertThat(notification.getActionType()).isEqualTo("OPEN_REVIEW");
                 assertThat(notification.getActionTargetId()).isEqualTo(10L);

@@ -89,7 +89,8 @@ public enum NotificationEventAction {
     return Arrays.stream(values()).filter(action -> action.group == group).toList();
   }
 
+  // 댓글/답글은 같은 replyId 원본 키를 공유해 동일 수신자 중복 저장을 막는다.
   public String sourceType() {
-    return name();
+    return this == REVIEW_COMMENT_CREATE ? REVIEW_REPLY_CREATE.name() : name();
   }
 }
