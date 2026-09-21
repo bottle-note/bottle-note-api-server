@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.dto.dsl;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
-import app.bottlenote.global.search.SearchKeywordTokenizer;
+import app.bottlenote.alcohols.search.AlcoholSearchTokenizer;
 import app.bottlenote.global.service.cursor.SortOrder;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,7 +36,7 @@ public record ExploreStandardCriteria(
       ExploreStandardRequest request, Long userId, long seed, LocalDateTime popularityBucketAt) {
     return new ExploreStandardCriteria(
         userId,
-        SearchKeywordTokenizer.tokenize(request.keyword()),
+        AlcoholSearchTokenizer.tokenize(request.keyword()),
         request.category(),
         request.regionIds(),
         request.distilleryIds(),

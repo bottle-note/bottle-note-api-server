@@ -7,12 +7,11 @@ import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
+import app.bottlenote.alcohols.search.AlcoholSearchTokenizer;
 import app.bottlenote.alcohols.service.AlcoholLookupService.AlcoholLookupSyncResult;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
@@ -199,12 +198,7 @@ public class AlcoholLookupSnapshotService {
   }
 
   private List<String> parseKeywords(String keyword) {
-    if (keyword == null || keyword.isBlank()) {
-      return List.of();
-    }
-    return Arrays.stream(keyword.trim().toLowerCase(Locale.ROOT).split("\\s+"))
-        .filter(value -> !value.isBlank())
-        .toList();
+    return AlcoholSearchTokenizer.tokenize(keyword);
   }
 
   private boolean matchesKeywords(AlcoholLookupSnapshotItem item, List<String> keywords) {

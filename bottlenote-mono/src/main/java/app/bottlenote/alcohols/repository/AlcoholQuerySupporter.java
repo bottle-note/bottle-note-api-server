@@ -15,6 +15,7 @@ import static app.bottlenote.review.domain.QReview.review;
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
+import app.bottlenote.alcohols.search.AlcoholSearchTokenizer;
 import app.bottlenote.global.rating.RatingDisplay;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Expression;
@@ -136,7 +137,8 @@ public class AlcoholQuerySupporter {
           sortOrder == SortOrder.DESC ? alcohol.korCategory.desc() : alcohol.korCategory.asc();
       case ENG_CATEGORY ->
           sortOrder == SortOrder.DESC ? alcohol.engCategory.desc() : alcohol.engCategory.asc();
-      case CREATED_AT -> sortOrder == SortOrder.DESC ? alcohol.createAt.desc() : alcohol.createAt.asc();
+      case CREATED_AT ->
+          sortOrder == SortOrder.DESC ? alcohol.createAt.desc() : alcohol.createAt.asc();
       case UPDATED_AT ->
           sortOrder == SortOrder.DESC ? alcohol.lastModifyAt.desc() : alcohol.lastModifyAt.asc();
     };
@@ -336,16 +338,14 @@ public class AlcoholQuerySupporter {
       return null;
     }
 
-    // 띄어쓰기로 분리하여 단어별 검색
-    String[] words = keyword.trim().split("\\s+");
-
-    // 단어가 여러 개인 경우 각 단어를 개별적으로 매칭 (순서 무관)
-    if (words.length > 1) {
-      return multiWordSearch(words);
+    List<String> tokens = AlcoholSearchTokenizer.tokenize(keyword);
+    if (tokens.isEmpty()) {
+      return null;
     }
-
-    // 단일 단어인 경우 기존 로직 사용
-    return singleWordSearch(keyword);
+    if (tokens.size() > 1) {
+      return multiWordSearch(tokens.toArray(String[]::new));
+    }
+    return singleWordSearch(tokens.getFirst());
   }
 
   /**
