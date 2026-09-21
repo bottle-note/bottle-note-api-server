@@ -121,7 +121,7 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
   void 원본_키로_중복_저장을_방지한다() {
     Long userId = users.persistUser().getId();
     jdbc.update(
-        "INSERT INTO notifications (user_id, title, content, event_action, status, is_read, source_type, source_id) VALUES (?, '기존 댓글', '내용', 'REVIEW_COMMENT_CREATE', 'PENDING', false, 'REVIEW_COMMENT_CREATE', 20)",
+        "INSERT INTO notifications (user_id, title, content, event_action, status, is_read, source_type, source_id) VALUES (?, '기존 댓글', '내용', 'REVIEW_COMMENT_CREATE', 'PENDING', false, 'REVIEW_REPLY_CREATE', 20)",
         userId);
     notifications.sendNotification(NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용"));
     assertThat(repository.findAll())

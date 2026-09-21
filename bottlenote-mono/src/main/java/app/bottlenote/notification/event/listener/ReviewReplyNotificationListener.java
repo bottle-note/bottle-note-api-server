@@ -6,8 +6,6 @@ import app.bottlenote.common.annotation.DomainEventListener;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyActivityEvent;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,42 +30,37 @@ public class ReviewReplyNotificationListener {
       return;
     }
 
-    List<RuntimeException> failures = new ArrayList<>();
-    boolean sameRecipient = Objects.equals(event.reviewAuthorId(), event.parentReplyUserId());
-    if (!Objects.equals(event.reviewAuthorId(), event.replyUserId()) && !sameRecipient) {
-      sendReviewComment(event, failures);
-    }
-    if (event.parentReplyUserId() != null
-        && !Objects.equals(event.parentReplyUserId(), event.replyUserId())) {
-      try {
-        notificationService.sendNotification(
-            NotificationMessage.reviewReplyResponse(
-                event.parentReplyUserId(),
-                event.reviewId(),
-                event.replyId(),
-                REPLY_TITLE,
-                event.content()));
-      } catch (RuntimeException exception) {
-        failures.add(exception);
+    try {
+      if (event.parentReplyUserId() != null) {
+        sendParentReply(event);
+        return;
       }
-    }
-
-    if (!failures.isEmpty()) {
-      log.error("댓글 알림 일부 처리 실패 - replyId: {}, failureCount: {}", event.replyId(), failures.size());
-      IllegalStateException failure = new IllegalStateException("댓글 알림 수신자 처리 실패");
-      failures.forEach(failure::addSuppressed);
-      throw failure;
+      sendReviewComment(event);
+    } catch (RuntimeException exception) {
+      log.error("댓글 알림 처리 실패 - replyId: {}", event.replyId(), exception);
+      throw exception;
     }
   }
 
-  private void sendReviewComment(ReviewReplyActivityEvent event, List<RuntimeException> failures) {
-    try {
-      notificationService.sendNotification(
-          NotificationMessage.reviewReply(
-              event.reviewAuthorId(), event.reviewId(), event.replyId(), TITLE, event.content()));
-    } catch (RuntimeException exception) {
-      // 수신자별 새 트랜잭션 실패를 모아 나머지 전달을 마친 뒤 보고한다.
-      failures.add(exception);
+  private void sendParentReply(ReviewReplyActivityEvent event) {
+    if (Objects.equals(event.parentReplyUserId(), event.replyUserId())) {
+      return;
     }
+    notificationService.sendNotification(
+        NotificationMessage.reviewReplyResponse(
+            event.parentReplyUserId(),
+            event.reviewId(),
+            event.replyId(),
+            REPLY_TITLE,
+            event.content()));
+  }
+
+  private void sendReviewComment(ReviewReplyActivityEvent event) {
+    if (Objects.equals(event.reviewAuthorId(), event.replyUserId())) {
+      return;
+    }
+    notificationService.sendNotification(
+        NotificationMessage.reviewReply(
+            event.reviewAuthorId(), event.reviewId(), event.replyId(), TITLE, event.content()));
   }
 }

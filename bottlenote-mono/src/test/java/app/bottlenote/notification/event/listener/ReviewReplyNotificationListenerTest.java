@@ -65,7 +65,7 @@ class ReviewReplyNotificationListenerTest {
       assertThat(message.eventAction()).isEqualTo(NotificationEventAction.REVIEW_COMMENT_CREATE);
       assertThat(message.title()).isEqualTo(ReviewReplyNotificationListener.TITLE);
       assertThat(message.content()).isEqualTo(content);
-      assertThat(message.sourceType()).isEqualTo("REVIEW_COMMENT_CREATE");
+      assertThat(message.sourceType()).isEqualTo("REVIEW_REPLY_CREATE");
       assertThat(message.sourceId()).isEqualTo(REPLY_ID);
       assertThat(message.action().type()).isEqualTo(NotificationActionType.OPEN_REVIEW);
       assertThat(message.action().targetId()).isEqualTo(REVIEW_ID);
@@ -103,16 +103,18 @@ class ReviewReplyNotificationListenerTest {
   @DisplayName("대댓글 수신자를 결정할 때")
   class ReplyRecipients {
     @Test
-    @DisplayName("리뷰 작성자와 직접 부모 댓글 작성자에게 각각 전달한다")
-    void distinctRecipients() {
+    @DisplayName("대댓글은 직접 부모 댓글 작성자에게만 전달한다")
+    void nestedReply_targetsParentOnly() {
       listener.handleReviewReplyNotification(reply(1L, 2L, 3L));
 
       assertThat(notificationService.messages)
           .extracting(NotificationMessage::userId)
-          .containsExactly(1L, 2L);
+          .containsExactly(2L);
       assertThat(notificationService.messages)
           .extracting(NotificationMessage::title)
-          .containsExactly("새 댓글", "새 답글");
+          .containsExactly("새 답글");
+      assertThat(notificationService.messages.getFirst().eventAction())
+          .isEqualTo(NotificationEventAction.REVIEW_REPLY_CREATE);
     }
 
     @Test
@@ -126,17 +128,15 @@ class ReviewReplyNotificationListenerTest {
     }
 
     @Test
-    @DisplayName("부모 댓글 작성자가 답글을 달 때 리뷰 작성자에게만 전달한다")
-    void parentAuthorReplies() {
+    @DisplayName("부모 댓글 작성자가 자신의 댓글에 답하면 전달하지 않는다")
+    void parentAuthorRepliesToSelf() {
       listener.handleReviewReplyNotification(reply(1L, 2L, 2L));
 
-      assertThat(notificationService.messages)
-          .extracting(NotificationMessage::userId)
-          .containsExactly(1L);
+      assertThat(notificationService.messages).isEmpty();
     }
 
     @Test
-    @DisplayName("리뷰와 부모 댓글 작성자가 같을 때 부모 답글 한 건만 전달한다")
+    @DisplayName("리뷰와 부모 댓글 작성자가 같을 때 답글 한 건만 전달한다")
     void sameRecipient() {
       listener.handleReviewReplyNotification(reply(1L, 1L, 2L));
 
@@ -153,31 +153,14 @@ class ReviewReplyNotificationListenerTest {
     }
 
     @Test
-    @DisplayName("리뷰 작성자 저장이 실패해도 부모 댓글 작성자에게 전달한다")
-    void failureDoesNotBlockOtherRecipient() {
-      notificationService.failingUserId = 1L;
-
-      assertThatThrownBy(() -> listener.handleReviewReplyNotification(reply(1L, 2L, 3L)))
-          .isInstanceOf(IllegalStateException.class)
-          .satisfies(failure -> assertThat(failure.getSuppressed()).hasSize(1));
-
-      assertThat(notificationService.messages)
-          .extracting(NotificationMessage::userId)
-          .containsExactly(2L);
-    }
-
-    @Test
-    @DisplayName("부모 댓글 작성자 저장이 실패해도 리뷰 작성자에게 전달한다")
-    void parentFailureDoesNotUndoReviewNotification() {
+    @DisplayName("부모 댓글 작성자 저장이 실패하면 예외를 전파한다")
+    void parentFailurePropagates() {
       notificationService.failingUserId = 2L;
 
       assertThatThrownBy(() -> listener.handleReviewReplyNotification(reply(1L, 2L, 3L)))
-          .isInstanceOf(IllegalStateException.class)
-          .satisfies(failure -> assertThat(failure.getSuppressed()).hasSize(1));
+          .isInstanceOf(IllegalStateException.class);
 
-      assertThat(notificationService.messages)
-          .extracting(NotificationMessage::userId)
-          .containsExactly(1L);
+      assertThat(notificationService.messages).isEmpty();
     }
   }
 

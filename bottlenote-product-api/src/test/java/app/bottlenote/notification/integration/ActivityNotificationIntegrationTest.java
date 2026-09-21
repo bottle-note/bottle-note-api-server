@@ -90,36 +90,30 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
   @DisplayName("댓글 활동을 처리할 때")
   class Replies {
     @Test
-    @DisplayName("대댓글을 등록하면 두 수신자에게 알리고 History 한 건의 기존 내용을 보존한다")
-    void reply_deliversToBothAndPreservesHistory() {
+    @DisplayName("대댓글을 등록하면 부모 댓글 작성자에게만 알리고 History 한 건의 기존 내용을 보존한다")
+    void reply_deliversToParentAndPreservesHistory() {
       ReviewReply parent = reviews.persistReviewReply(review, parentAuthor);
 
       replyService.registerReviewReply(
           review.getId(), actor.getId(), new ReviewReplyRegisterRequest("대댓글 내용", parent.getId()));
 
-      awaitCounts(2, 1);
-      assertThat(messages(reviewAuthor))
-          .singleElement()
-          .satisfies(
-              message -> {
-                assertThat(message.getTitle()).isEqualTo("새 댓글");
-                assertThat(message.getContent()).isEqualTo("대댓글 내용");
-                assertThat(message.getActionTargetId()).isEqualTo(review.getId());
-              });
+      awaitCounts(1, 1);
+      assertThat(messages(reviewAuthor)).isEmpty();
       assertThat(messages(parentAuthor))
           .singleElement()
           .satisfies(
               message -> {
                 assertThat(message.getTitle()).isEqualTo("새 답글");
-                assertThat(message.getSourceId())
-                    .isEqualTo(messages(reviewAuthor).getFirst().getSourceId());
+                assertThat(message.getContent()).isEqualTo("대댓글 내용");
+                assertThat(message.getActionTargetId()).isEqualTo(review.getId());
+                assertThat(message.getSourceType()).isEqualTo("REVIEW_REPLY_CREATE");
               });
       assertThat(messages(actor)).isEmpty();
       assertHistory(histories.findAll().getFirst(), actor, EventType.REVIEW_REPLY_CREATE, "대댓글 내용");
     }
 
     @Test
-    @DisplayName("중첩 답글을 등록하면 최상위 댓글 대신 직접 부모 댓글 작성자에게 알린다")
+    @DisplayName("중첩 답글을 등록하면 최상위 댓글과 리뷰 작성자 대신 직접 부모 댓글 작성자에게 알린다")
     void nestedReply_targetsDirectParent() {
       User rootAuthor = users.persistUser();
       ReviewReply root = reviews.persistReviewReply(review, rootAuthor);
@@ -128,9 +122,9 @@ class ActivityNotificationIntegrationTest extends IntegrationTestSupport {
       replyService.registerReviewReply(
           review.getId(), actor.getId(), new ReviewReplyRegisterRequest("중첩 답글", parent.getId()));
 
-      awaitCounts(2, 1);
+      awaitCounts(1, 1);
       assertThat(messages(parentAuthor)).hasSize(1);
-      assertThat(messages(reviewAuthor)).hasSize(1);
+      assertThat(messages(reviewAuthor)).isEmpty();
       assertThat(messages(rootAuthor)).isEmpty();
     }
 

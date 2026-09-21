@@ -105,7 +105,7 @@ class ReviewReplyNotificationIntegrationTest extends IntegrationTestSupport {
                 assertThat(notification.getIsRead()).isFalse();
                 assertThat(notification.getEventAction())
                     .isEqualTo(NotificationEventAction.REVIEW_COMMENT_CREATE);
-                assertThat(notification.getSourceType()).isEqualTo("REVIEW_COMMENT_CREATE");
+                assertThat(notification.getSourceType()).isEqualTo("REVIEW_REPLY_CREATE");
                 assertThat(notification.getSourceId()).isPositive();
                 assertThat(notification.getActionType()).isEqualTo("OPEN_REVIEW");
                 assertThat(notification.getActionTargetId()).isEqualTo(review.getId());
@@ -166,7 +166,7 @@ class ReviewReplyNotificationIntegrationTest extends IntegrationTestSupport {
               .title(EXPECTED_TITLE)
               .content("DB 중복 방지")
               .eventAction(NotificationEventAction.REVIEW_COMMENT_CREATE)
-              .sourceType("REVIEW_COMMENT_CREATE")
+              .sourceType("REVIEW_REPLY_CREATE")
               .sourceId(202L)
               .action(message.action())
               .build();
