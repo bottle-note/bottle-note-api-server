@@ -6,6 +6,7 @@ import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -119,6 +120,44 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
             Comparator.comparing(
                 item -> item.nameKo() == null ? "" : item.nameKo(), String.CASE_INSENSITIVE_ORDER))
         .toList();
+  }
+
+  @Override
+  public List<MfdsPublicAlcoholCategoryItem> findAlcoholCategories() {
+    return database.values().stream()
+        .filter(declaration -> declaration.getNormalizationStatus() == MfdsNormalizationStatus.NORMALIZED)
+        .filter(
+            declaration ->
+                declaration.getAlcoholCategoryKo() != null
+                    && !declaration.getAlcoholCategoryKo().isBlank())
+        .collect(
+            Collectors.groupingBy(
+                declaration ->
+                    categoryKey(
+                        declaration.getAlcoholCategoryKo(), declaration.getAlcoholCategoryEn()),
+                LinkedHashMap::new,
+                Collectors.toList()))
+        .values()
+        .stream()
+        .map(
+            declarations -> {
+              MfdsDeclaration first = declarations.get(0);
+              return new MfdsPublicAlcoholCategoryItem(
+                  first.getAlcoholCategoryKo(),
+                  first.getAlcoholCategoryEn(),
+                  declarations.size());
+            })
+        .sorted(
+            Comparator.comparingLong(MfdsPublicAlcoholCategoryItem::count)
+                .reversed()
+                .thenComparing(
+                    item -> item.alcoholCategoryKo() == null ? "" : item.alcoholCategoryKo(),
+                    String.CASE_INSENSITIVE_ORDER))
+        .toList();
+  }
+
+  private static String categoryKey(String alcoholCategoryKo, String alcoholCategoryEn) {
+    return Objects.toString(alcoholCategoryKo, "") + "\0" + Objects.toString(alcoholCategoryEn, "");
   }
 
   private boolean matches(MfdsDeclaration declaration, MfdsDeclarationSearchCriteria criteria) {

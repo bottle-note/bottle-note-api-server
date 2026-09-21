@@ -21,13 +21,12 @@ public record MfdsPublicAlcoholSearchCriteria(
 
   public static MfdsPublicAlcoholSearchCriteria of(
       MfdsPublicAlcoholSearchRequest request, LocalDate cursorProcessedDate, Long cursorId) {
-    String category = request.alcoholType() == null ? null : request.alcoholType().getKorCategory();
     return new MfdsPublicAlcoholSearchCriteria(
         request.alcoholNameKo(),
         request.alcoholId(),
         request.importerId(),
         request.exportCountry(),
-        category,
+        request.alcoholCategoryKo(),
         request.processedDateFrom(),
         request.processedDateTo(),
         SearchKeywordTokenizer.tokenize(request.keyword()),
@@ -42,13 +41,12 @@ public record MfdsPublicAlcoholSearchCriteria(
 
   /** 커서 컨텍스트. 커서는 포함하지 않으며 request에서 바로 계산할 수 있다. */
   public static String cursorContext(MfdsPublicAlcoholSearchRequest request) {
-    String category = request.alcoholType() == null ? null : request.alcoholType().getKorCategory();
     return buildCursorContext(
         request.alcoholNameKo(),
         request.alcoholId(),
         request.importerId(),
         request.exportCountry(),
-        category,
+        request.alcoholCategoryKo(),
         request.processedDateFrom(),
         request.processedDateTo(),
         SearchKeywordTokenizer.tokenize(request.keyword()));

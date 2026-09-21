@@ -5,14 +5,15 @@ import static app.bottlenote.mfds.constant.MfdsImporterAdminStatus.INACTIVE;
 import static app.bottlenote.mfds.constant.MfdsNormalizationStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
-import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.dto.request.MfdsPublicAlcoholSearchRequest;
 import app.bottlenote.mfds.dto.request.MfdsPublicImporterSearchRequest;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
@@ -78,8 +79,8 @@ class MfdsPublicQueryServiceTest {
   }
 
   @Test
-  @DisplayName("수출국 Alpha-2와 품목 이넘으로 걸러낸다")
-  void 수출국과_품목으로_걸러낸다() {
+  @DisplayName("수출국 Alpha-2와 카테고리 문자열로 걸러낸다")
+  void 수출국과_카테고리로_걸러낸다() {
     MfdsDeclaration gb = saveAlcohol("RCNO-GB", "맥캘란 12년", "보틀상사", LocalDate.of(2026, 8, 1), "GB");
     MfdsTestData.set(gb, "alcoholCategoryKo", "위스키");
     MfdsDeclaration jp = saveAlcohol("RCNO-JP", "야마자키 12년", "보틀상사", LocalDate.of(2026, 8, 2), "JP");
@@ -88,9 +89,41 @@ class MfdsPublicQueryServiceTest {
     MfdsTestData.set(wine, "alcoholCategoryKo", "와인");
 
     List<MfdsPublicAlcoholListItem> items =
-        service.searchAlcohols(request(null, null, "GB", AlcoholType.WHISKY, null, null)).content();
+        service.searchAlcohols(request(null, null, "GB", "위스키", null, null)).content();
 
     assertThat(items).extracting(MfdsPublicAlcoholListItem::rcno).containsExactly("RCNO-GB");
+  }
+
+  @Test
+  @DisplayName("카테고리 목록은 ko/en 조합을 중복 없이 건수와 함께 내린다")
+  void 카테고리_목록은_중복없이_건수를_포함한다() {
+    MfdsDeclaration whisky1 =
+        saveAlcohol("RCNO-1", "글렌피딕", "보틀상사", LocalDate.of(2026, 8, 1), "GB");
+    MfdsTestData.set(whisky1, "alcoholCategoryKo", "위스키");
+    MfdsTestData.set(whisky1, "alcoholCategoryEn", "Whisky");
+    MfdsDeclaration whisky2 =
+        saveAlcohol("RCNO-2", "맥캘란", "보틀상사", LocalDate.of(2026, 8, 2), "GB");
+    MfdsTestData.set(whisky2, "alcoholCategoryKo", "위스키");
+    MfdsTestData.set(whisky2, "alcoholCategoryEn", "Whisky");
+    MfdsDeclaration wine = saveAlcohol("RCNO-3", "보르도", "보틀상사", LocalDate.of(2026, 8, 3), "FR");
+    MfdsTestData.set(wine, "alcoholCategoryKo", "와인");
+    MfdsTestData.set(wine, "alcoholCategoryEn", "Wine");
+    MfdsDeclaration blank = saveAlcohol("RCNO-4", "미분류", "보틀상사", LocalDate.of(2026, 8, 4), "US");
+    MfdsTestData.set(blank, "alcoholCategoryKo", " ");
+    MfdsDeclaration pending =
+        saveAlcohol("RCNO-5", "대기", "보틀상사", LocalDate.of(2026, 8, 5), "JP");
+    MfdsTestData.set(pending, "normalizationStatus", PENDING);
+    MfdsTestData.set(pending, "alcoholCategoryKo", "위스키");
+    MfdsTestData.set(pending, "alcoholCategoryEn", "Whisky");
+
+    assertThat(service.listAlcoholCategories())
+        .extracting(
+            MfdsPublicAlcoholCategoryItem::alcoholCategoryKo,
+            MfdsPublicAlcoholCategoryItem::alcoholCategoryEn,
+            MfdsPublicAlcoholCategoryItem::count)
+        .containsExactly(
+            tuple("위스키", "Whisky", 2L),
+            tuple("와인", "Wine", 1L));
   }
 
   @Test
@@ -229,11 +262,20 @@ class MfdsPublicQueryServiceTest {
       String alcoholNameKo,
       Long alcoholId,
       String exportCountry,
-      AlcoholType alcoholType,
+      String alcoholCategoryKo,
       LocalDate from,
       String keyword) {
     return new MfdsPublicAlcoholSearchRequest(
-        alcoholNameKo, alcoholId, null, exportCountry, alcoholType, from, null, keyword, null, 20);
+        alcoholNameKo,
+        alcoholId,
+        null,
+        exportCountry,
+        alcoholCategoryKo,
+        from,
+        null,
+        keyword,
+        null,
+        20);
   }
 
   private MfdsDeclaration saveAlcohol(

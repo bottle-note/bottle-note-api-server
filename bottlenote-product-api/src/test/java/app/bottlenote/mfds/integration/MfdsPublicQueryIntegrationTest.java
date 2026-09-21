@@ -92,4 +92,35 @@ class MfdsPublicQueryIntegrationTest extends IntegrationTestSupport {
         mapper.readTree(importers.getResponse().getContentAsString()).path("data");
     assertThat(importerData.toString()).contains("윌리엄그랜트");
   }
+
+  @Test
+  @DisplayName("카테고리 목록과 문자열 필터로 수입 주류를 조회한다")
+  void 카테고리_목록과_문자열_필터로_조회한다() throws Exception {
+    mfdsTestFactory.persistPublicDeclarationWithCategory(
+        "RCNO-CAT-1", null, null, "글렌피딕", LocalDate.of(2026, 8, 20), "GB", "영국", "위스키", "Whisky");
+    mfdsTestFactory.persistPublicDeclarationWithCategory(
+        "RCNO-CAT-2", null, null, "보르도", LocalDate.of(2026, 8, 21), "FR", "프랑스", "와인", "Wine");
+
+    var categories =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/mfds/alcohols/category")
+            .accept(APPLICATION_JSON)
+            .exchange();
+    categories.assertThat().hasStatusOk();
+    JsonNode categoryData =
+        mapper.readTree(categories.getResponse().getContentAsString()).path("data");
+    assertThat(categoryData.toString()).contains("위스키", "Whisky", "와인", "Wine");
+
+    var filtered =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/mfds/alcohols?alcoholCategoryKo={category}", "위스키")
+            .accept(APPLICATION_JSON)
+            .exchange();
+    filtered.assertThat().hasStatusOk();
+    JsonNode items = mapper.readTree(filtered.getResponse().getContentAsString()).path("data");
+    assertThat(items).hasSize(1);
+    assertThat(items.get(0).path("rcno").asText()).isEqualTo("RCNO-CAT-1");
+  }
 }

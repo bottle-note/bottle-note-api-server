@@ -3,6 +3,7 @@ package app.bottlenote.mfds.repository;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import java.util.List;
 
@@ -17,4 +18,6 @@ public interface CustomMfdsDeclarationRepository {
   List<MfdsDeclaration> searchPublicAlcohols(MfdsPublicAlcoholSearchCriteria criteria);
 
   List<MfdsPublicCountryItem> findExportCountries();
+
+  List<MfdsPublicAlcoholCategoryItem> findAlcoholCategories();
 }

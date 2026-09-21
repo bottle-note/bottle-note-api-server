@@ -68,6 +68,31 @@ public class MfdsTestFactory {
       @Nullable LocalDate processedDate,
       @Nullable String exportCountryAlpha2,
       @Nullable String exportCountryNameKo) {
+    return persistPublicDeclarationWithCategory(
+        rcno,
+        importerId,
+        importerBaseName,
+        alcoholNameKo,
+        processedDate,
+        exportCountryAlpha2,
+        exportCountryNameKo,
+        null,
+        null);
+  }
+
+  /** Product 공개 조회 테스트용. 카테고리 ko/en까지 영속 전에 채운다. */
+  @Transactional
+  @NotNull
+  public MfdsDeclaration persistPublicDeclarationWithCategory(
+      @NotNull String rcno,
+      @Nullable Long importerId,
+      @Nullable String importerBaseName,
+      @NotNull String alcoholNameKo,
+      @Nullable LocalDate processedDate,
+      @Nullable String exportCountryAlpha2,
+      @Nullable String exportCountryNameKo,
+      @Nullable String alcoholCategoryKo,
+      @Nullable String alcoholCategoryEn) {
     MfdsDeclaration declaration =
         MfdsTestData.publicDeclaration(
             rcno,
@@ -77,6 +102,12 @@ public class MfdsTestFactory {
             processedDate,
             exportCountryAlpha2,
             exportCountryNameKo);
+    if (alcoholCategoryKo != null) {
+      MfdsTestData.set(declaration, "alcoholCategoryKo", alcoholCategoryKo);
+    }
+    if (alcoholCategoryEn != null) {
+      MfdsTestData.set(declaration, "alcoholCategoryEn", alcoholCategoryEn);
+    }
     em.persist(declaration);
     em.flush();
     return declaration;

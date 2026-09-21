@@ -1,6 +1,5 @@
 package app.bottlenote.mfds.dto.request;
 
-import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.global.pagination.KeysetPageRequest;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Pattern;
@@ -13,7 +12,7 @@ public record MfdsPublicAlcoholSearchRequest(
     Long importerId,
     @Pattern(regexp = "^[A-Z]{2}$", message = "INVALID_EXPORT_COUNTRY_PATTERN")
         String exportCountry,
-    AlcoholType alcoholType,
+    String alcoholCategoryKo,
     LocalDate processedDateFrom,
     LocalDate processedDateTo,
     String keyword,
@@ -26,6 +25,7 @@ public record MfdsPublicAlcoholSearchRequest(
   public MfdsPublicAlcoholSearchRequest {
     alcoholNameKo = blankToNull(alcoholNameKo);
     exportCountry = blankToNull(exportCountry == null ? null : exportCountry.trim().toUpperCase());
+    alcoholCategoryKo = blankToNull(alcoholCategoryKo);
     keyword = blankToNull(keyword);
     KeysetPageRequest page = KeysetPageRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();

@@ -3,6 +3,7 @@ package app.bottlenote.mfds.domain;
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import java.util.List;
 import java.util.Optional;
@@ -42,4 +43,7 @@ public interface MfdsDeclarationRepository {
 
   /** 정규화 완료 원장에 등장한 수출국 ISO Alpha-2 목록. */
   List<MfdsPublicCountryItem> findExportCountries();
+
+  /** 정규화 완료 원장의 카테고리 ko/en 중복 제거 목록과 공개 건수. */
+  List<MfdsPublicAlcoholCategoryItem> findAlcoholCategories();
 }
