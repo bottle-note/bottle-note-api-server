@@ -23,9 +23,35 @@ class MfdsPublicOpenApiContractIntegrationTest extends OpenApiSpecTestSupport {
         .contains(
             "GET /api/v1/mfds/alcohols",
             "GET /api/v1/mfds/alcohols/{id}",
+            "GET /api/v1/mfds/alcohols/category",
             "GET /api/v1/mfds/importers",
             "GET /api/v1/mfds/importers/{importerId}",
             "GET /api/v1/mfds/countries");
+  }
+
+  @Test
+  @DisplayName("공개 수입 주류 목록은 alcoholCategoryKo 문자열 필터를 문서화한다")
+  void 공개_수입_주류_목록은_카테고리_문자열_필터를_문서화한다() {
+    var spec = fetchSpec();
+    var parameters = spec.at("/paths/~1api~1v1~1mfds~1alcohols/get/parameters");
+    var requestSchema =
+        java.util.stream.StreamSupport.stream(parameters.spliterator(), false)
+            .filter(node -> "request".equals(node.path("name").asText()))
+            .map(node -> resolve(spec, node.path("schema")))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("목록 검색 request 파라미터가 없습니다"));
+    var propertyNames = propertyNamesOf(requestSchema);
+
+    assertThat(propertyNames).contains("alcoholCategoryKo").doesNotContain("alcoholType");
+    assertThat(requestSchema.at("/properties/alcoholCategoryKo/type").asText()).isEqualTo("string");
+  }
+
+  @Test
+  @DisplayName("공개 카테고리 목록은 ko/en/count를 문서화한다")
+  void 공개_카테고리_목록은_ko_en_count를_문서화한다() {
+    var schema = fetchSpec().at("/components/schemas/MfdsPublicAlcoholCategoryItem");
+    assertThat(propertyNamesOf(schema))
+        .contains("alcoholCategoryKo", "alcoholCategoryEn", "count");
   }
 
   @Test

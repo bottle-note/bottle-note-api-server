@@ -1,5 +1,6 @@
 package app.bottlenote.mfds.controller.docs;
 
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
@@ -35,6 +36,7 @@ public final class MfdsPublicApiDocs {
 
           keyword는 공백 토큰 AND입니다. 제품명·SKU·주류명·카테고리·rcno·제조사명·수입사명을 부분 일치합니다.
           특정 술의 과거 수입은 alcoholNameKo 정확 일치로 묶고, 매칭된 행만 보려면 alcoholId를 씁니다.
+          alcoholCategoryKo는 원장 카테고리 한글 문자열 exact match입니다. 후보 값은 GET /api/v1/mfds/alcohols/category를 사용합니다.
           exportCountry는 ISO Alpha-2입니다. processedDate는 YYYY-MM-DD이며 없으면 null입니다.
           다음 페이지 정보는 meta.pagination, 조회 조건은 meta.searchParameters에 담깁니다.
           """,
@@ -123,4 +125,25 @@ public final class MfdsPublicApiDocs {
                           @ArraySchema(
                               schema = @Schema(implementation = MfdsPublicCountryItem.class)))))
   public @interface ListCountries {}
+
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Operation(
+      summary = "수입 주류 검색용 카테고리 목록을 조회한다",
+      description =
+          """
+          정규화 완료 원장에 등장한 alcoholCategoryKo·alcoholCategoryEn 조합을 중복 없이 내립니다.
+          count는 해당 조합의 공개 건수입니다. 검색 파라미터 alcoholCategoryKo에는 이 목록의 alcoholCategoryKo를 넣습니다.
+          """,
+      responses =
+          @ApiResponse(
+              responseCode = "200",
+              description = "카테고리 목록",
+              content =
+                  @Content(
+                      array =
+                          @ArraySchema(
+                              schema =
+                                  @Schema(implementation = MfdsPublicAlcoholCategoryItem.class)))))
+  public @interface ListAlcoholCategories {}
 }

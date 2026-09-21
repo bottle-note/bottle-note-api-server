@@ -17,6 +17,7 @@ import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicImporterSearchCriteria;
 import app.bottlenote.mfds.dto.request.MfdsPublicAlcoholSearchRequest;
 import app.bottlenote.mfds.dto.request.MfdsPublicImporterSearchRequest;
+import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,6 +106,12 @@ public class MfdsPublicQueryService {
   @Transactional(readOnly = true)
   public List<MfdsPublicCountryItem> listCountries() {
     return declarationRepository.findExportCountries();
+  }
+
+  @Cacheable(value = "local_cache_mfds_alcohol_category_information")
+  @Transactional(readOnly = true)
+  public List<MfdsPublicAlcoholCategoryItem> listAlcoholCategories() {
+    return declarationRepository.findAlcoholCategories();
   }
 
   private MfdsPublicImporterItem publicImporterOf(Long importerId) {
