@@ -43,7 +43,7 @@ public class MfdsPublicAlcoholController {
   }
 
   @MfdsPublicApiDocs.GetAlcohol
-  @GetMapping("/alcohols/{id:\\d+}")
+  @GetMapping("/alcohols/{id}")
   public ResponseEntity<GlobalResponse> getAlcohol(@PathVariable Long id) {
     return GlobalResponse.ok(mfdsPublicQueryService.getAlcohol(id));
   }
