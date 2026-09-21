@@ -58,15 +58,29 @@ public final class AlcoholSearchTokenizer {
       }
 
       if (codePoint == '_') {
+        // LIKE wildcard이므로 토큰으로 보존한다. 식별자 중간 `_`는 접합 유지.
         if (!current.isEmpty()
             && (currentClass == CharClass.LATIN
                 || currentClass == CharClass.DIGIT
                 || currentClass == CharClass.HANGUL)) {
-          current.appendCodePoint(codePoint);
+          current.append('_');
         } else {
           flush(tokens, current);
+          addToken(tokens, "_");
           currentClass = null;
         }
+        apostrophePending = false;
+        continue;
+      }
+
+      if (codePoint == '%' || codePoint == '％') {
+        // LIKE wildcard / 도수 표기. 앞 토큰에 붙이거나 단독 토큰으로 보존한다.
+        if (!current.isEmpty()) {
+          current.append('%');
+        } else {
+          addToken(tokens, "%");
+        }
+        currentClass = null;
         apostrophePending = false;
         continue;
       }
@@ -182,8 +196,6 @@ public final class AlcoholSearchTokenizer {
           '／',
           '.',
           '#',
-          '%',
-          '％',
           '°',
           '(',
           ')',

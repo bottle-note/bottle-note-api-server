@@ -45,7 +45,10 @@ class AlcoholSearchTokenizerTest {
     assertThat(AlcoholSearchTokenizer.tokenize("ex-Bourbon")).containsExactly("ex", "bourbon");
     assertThat(AlcoholSearchTokenizer.tokenize("AD/02.22")).containsExactly("ad", "02", "22");
     assertThat(AlcoholSearchTokenizer.tokenize("No. 7")).containsExactly("no", "7");
-    assertThat(AlcoholSearchTokenizer.tokenize("45%")).containsExactly("45");
+    assertThat(AlcoholSearchTokenizer.tokenize("45%")).containsExactly("45%");
+    assertThat(AlcoholSearchTokenizer.tokenize("%")).containsExactly("%");
+    assertThat(AlcoholSearchTokenizer.tokenize("_")).containsExactly("_");
+    assertThat(AlcoholSearchTokenizer.tokenize("single_malt")).containsExactly("single_malt");
     assertThat(AlcoholSearchTokenizer.tokenize("St. Kilian")).containsExactly("st", "kilian");
     assertThat(AlcoholSearchTokenizer.tokenize("Glenfiddich 21y - Winter Storm"))
         .containsExactly("glenfiddich", "21", "y", "winter", "storm");
