@@ -32,13 +32,18 @@ class MfdsPublicOpenApiContractIntegrationTest extends OpenApiSpecTestSupport {
   @Test
   @DisplayName("공개 수입 주류 목록은 alcoholCategoryKo 문자열 필터를 문서화한다")
   void 공개_수입_주류_목록은_카테고리_문자열_필터를_문서화한다() {
-    var parameters = fetchSpec().at("/paths/~1api~1v1~1mfds~1alcohols/get/parameters");
-    var names =
+    var spec = fetchSpec();
+    var parameters = spec.at("/paths/~1api~1v1~1mfds~1alcohols/get/parameters");
+    var requestSchema =
         java.util.stream.StreamSupport.stream(parameters.spliterator(), false)
-            .map(node -> node.path("name").asText())
-            .toList();
+            .filter(node -> "request".equals(node.path("name").asText()))
+            .map(node -> resolve(spec, node.path("schema")))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("목록 검색 request 파라미터가 없습니다"));
+    var propertyNames = propertyNamesOf(requestSchema);
 
-    assertThat(names).contains("alcoholCategoryKo").doesNotContain("alcoholType");
+    assertThat(propertyNames).contains("alcoholCategoryKo").doesNotContain("alcoholType");
+    assertThat(requestSchema.at("/properties/alcoholCategoryKo/type").asText()).isEqualTo("string");
   }
 
   @Test
