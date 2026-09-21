@@ -104,6 +104,46 @@ class AlcoholLookupServiceTest {
   }
 
   @Test
+  @DisplayName("한글·숫자 경계 공백 유무와 관계없이 같은 검색 결과를 반환한다")
+  void lookup_whenHangulDigitBoundaryAttached_matchesSpacedKeyword() {
+    // given
+    snapshotStore.replaceAll(
+        List.of(
+            lookupSnapshotItem(
+                1L,
+                "발베니 더블우드 12년",
+                "Balvenie 12y DoubleWood",
+                "스페이사이드",
+                "Speyside",
+                "발베니",
+                "Balvenie"),
+            lookupSnapshotItem(
+                2L,
+                "발베니 포트우드 21년",
+                "Balvenie Portwood 21yo",
+                "스페이사이드",
+                "Speyside",
+                "발베니",
+                "Balvenie")));
+
+    // when
+    KeysetPageResponse<AlcoholLookupListResponse> spaced =
+        alcoholLookupService.lookup(
+            AlcoholLookupRequest.builder().keyword("발베니 12").size(20).build());
+    KeysetPageResponse<AlcoholLookupListResponse> attached =
+        alcoholLookupService.lookup(
+            AlcoholLookupRequest.builder().keyword("발베니12").size(20).build());
+
+    // then
+    assertThat(spaced.content().items())
+        .extracting(AlcoholLookupItem::alcoholId)
+        .containsExactly(1L);
+    assertThat(attached.content().items())
+        .extracting(AlcoholLookupItem::alcoholId)
+        .containsExactly(1L);
+  }
+
+  @Test
   @DisplayName("Redis snapshot이 비어 있으면 DB fallback으로 조회한다")
   void lookup_whenSnapshotIsEmpty_usesDatabaseFallback() {
     // given

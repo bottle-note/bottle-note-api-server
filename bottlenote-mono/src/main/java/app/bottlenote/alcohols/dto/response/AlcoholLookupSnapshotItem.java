@@ -1,8 +1,7 @@
 package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
-import java.util.Locale;
-import java.util.stream.Stream;
+import app.bottlenote.alcohols.search.AlcoholSearchTokenizer;
 
 public record AlcoholLookupSnapshotItem(
     Long alcoholId,
@@ -81,9 +80,6 @@ public record AlcoholLookupSnapshotItem(
   }
 
   private static String normalize(String... values) {
-    return Stream.of(values)
-        .filter(value -> value != null && !value.isBlank())
-        .map(value -> value.toLowerCase(Locale.ROOT))
-        .reduce("", (left, right) -> left + " " + right);
+    return AlcoholSearchTokenizer.normalizeDocument(values);
   }
 }
