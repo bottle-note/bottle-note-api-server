@@ -30,6 +30,6 @@ Batch는 `batch_test`에서 `@Tag("batch")` 테스트를 실행한다. 공통 `u
 
 ## 리소스와 배포 경계
 
-Batch는 Flyway를 실행하지 않는다. 현재 main·test resources에는 서브모듈에서 지정한 `storage/mysql/sql/popularity.sql`, `storage/mysql/sql/best-review-selected.sql`만 복사한다. 환경 설정·마이그레이션 전체를 포함하지 않는다. `verifyBatchPackagedResources`는 누락·금지 리소스를 검사하는 별도 태스크이므로 실제 실행 여부를 확인한다.
+Batch는 Flyway를 실행하지 않고 서브모듈의 어떤 리소스도 패키징하지 않는다. 배치가 쓰는 SQL은 Tasklet 안의 문자열 상수로 두고, 필요한 테이블 DDL은 테스트에서 서브모듈의 마이그레이션 파일을 읽어 H2로 실행해 검증한다(`ObservationSqlSupport`, `BestReviewSqlSupport`).
 
 이미 존재하는 배포 workflow 결과는 정확한 소스 SHA로 연결하여 읽을 수 있다. CI 증거를 만들기 위한 workflow dispatch·rerun이나 로컬 이미지 빌드·push·GitOps 수정은 수행하지 않는다. 애플리케이션 Ready와 실제 Job 성공은 별도 증거다.

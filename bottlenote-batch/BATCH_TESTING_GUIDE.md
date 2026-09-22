@@ -28,7 +28,7 @@ app.batch.bottlenote/
 │   └── QuartzConfig.java              # Quartz 스케줄러 설정
 └── job/
     ├── ranking/
-    │   └── BestReviewSelectionJobConfig.java     # Chunk 기반 (다중 Step)
+    │   └── BestReviewSelectionJobConfig.java     # Tasklet 기반 (단일 Step, 변동 로그)
     ├── popularity/
     │   └── PopularityObservationJobConfig.java   # 시간·주·월 인기도 관측
     └── report/
@@ -121,10 +121,10 @@ class BatchJobIntegrationTest {
 
 ```java
 @Test
-@DisplayName("베스트 리뷰 초기화 Step이 정상 동작한다")
-void testResetBestReviewStep() {
+@DisplayName("인기도 Snapshot Step이 정상 동작한다")
+void testPopularitySnapshotStep() {
     // when: 특정 Step만 실행
-    JobExecution execution = jobLauncherTestUtils.launchStep("resetBestReviewStep");
+    JobExecution execution = jobLauncherTestUtils.launchStep("popularitySnapshotStep");
 
     // then
     assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
@@ -218,48 +218,28 @@ class DailyDataReportJobConfigTest {
 }
 ```
 
-### 4.2 BestReviewSelectionJobConfig (다중 Step Chunk 기반)
+### 4.2 BestReviewSelectionJobConfig (단일 Tasklet)
 
-**특성**: 다중 Step (초기화 Step -> 선정 Step)
+**특성**: 단일 Step. 실행마다 DB를 새로 읽어 선정 집합을 만들고, 현재 `is_best`와의 차이만 갱신하며 변동을 `best_review_selection_logs`에 남긴다.
 
-**테스트 전략**:
-- Step 슬라이스 테스트 + 통합 테스트
-- 각 Step 독립 검증
-- 전체 Job 흐름 검증
+**테스트 전략** (현재 구현됨):
+- `BestReviewSelectionRuleTest`: 점수 산식·기준·구간 규칙을 순수 함수로 검증
+- `BestReviewSelectionTaskletSqlTest`: H2(MySQL 모드)에 원본 테이블과 V20 로그 테이블을 만들고 같은 Tasklet 인스턴스로 여러 날을 실행해 선정·해제·재실행 멱등성을 검증한다. 리더가 결과를 캐시해 둘째 날부터 아무것도 선정하지 않던 회귀를 막는 것이 목적이다.
 
 ```java
-@Tag("integration")
-@SpringBatchTest
-@SpringBootTest
-@Import(TestContainersConfig.class)
-class BestReviewSelectionJobIntegrationTest {
-    @Autowired
-    JobLauncherTestUtils jobLauncherTestUtils;
-
+@Tag("batch")
+class BestReviewSelectionTaskletSqlTest {
     @Test
-    @DisplayName("베스트 리뷰 초기화 Step이 모든 리뷰를 초기화한다")
-    void testResetStep() {
-        // given: 베스트 리뷰 데이터 준비
-
-        // when
-        JobExecution execution = jobLauncherTestUtils.launchStep("resetBestReviewStep");
+    @DisplayName("같은 날 다시 실행해도 변동이 없으면 로그와 상태를 건드리지 않는다")
+    void rerunWithoutChangeIsIdempotent() throws Exception {
+        // given: 리뷰 3건, 좋아요 2개
+        run(DAY_1);
+        run(DAY_1);
+        run(DAY_2);
 
         // then
-        assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-        // 모든 is_best가 false인지 검증
-    }
-
-    @Test
-    @DisplayName("베스트 리뷰 선정 Step이 올바른 리뷰를 선정한다")
-    void testSelectionStep() {
-        // given: 리뷰 데이터 준비
-
-        // when
-        JobExecution execution = jobLauncherTestUtils.launchStep("bestReviewSelectedStep");
-
-        // then
-        assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-        // 선정된 리뷰 검증
+        assertThat(bestIds()).containsExactly(1L);
+        assertThat(logs()).hasSize(1);
     }
 }
 ```
@@ -351,10 +331,7 @@ class DailyDataReportQuartzJobTest {
 
 **테스트**: 데이터 몇 건 → **InMemoryRepository로 충분**
 
-현재 `BestReviewSelectionJobConfig`가 JdbcTemplate을 직접 사용하는 이유는 ReviewRepository에 배치용 메서드가 없기 때문. 필요한 메서드를 추가하면 InMemoryRepository로 테스트 가능:
-- `resetAllBestReviews()` - 모든 is_best 초기화
-- `findBestReviewCandidates()` - 베스트 후보 조회
-- `updateBestReviews(List<Long> ids)` - 베스트 업데이트
+`BestReviewSelectionTasklet`과 인기도 관측 Tasklet은 JdbcTemplate을 직접 쓴다. 집계 SQL은 문자열이라 컴파일러가 검증하지 않으므로, 테스트에서는 서브모듈의 마이그레이션 파일을 읽어 H2로 실행하는 `*SqlSupport`로 실제 실행해 본다.
 
 ---
 
@@ -382,7 +359,7 @@ class DailyDataReportQuartzJobTest {
 ./gradlew :bottlenote-batch:batch_test
 
 # 특정 테스트 클래스 실행
-./gradlew :bottlenote-batch:batch_test --tests "BestReviewSelectionJobConfigTest"
+./gradlew :bottlenote-batch:batch_test --tests "app.batch.bottlenote.job.ranking.*"
 
 # 루트에서 전체 배치 테스트
 ./gradlew batch_test
