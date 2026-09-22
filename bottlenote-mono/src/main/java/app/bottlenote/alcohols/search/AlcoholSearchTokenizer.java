@@ -10,6 +10,9 @@ import java.util.Locale;
  * 주류 검색 입력({@code keyword}, {@code keywords}, query string)을 공통 토큰 목록으로 정규화한다.
  *
  * <p>공백 분리에 더해 한글/영문/숫자 경계와 검색 유의 기호를 처리한다. 유니코드 분해(NFD)나 n-gram은 사용하지 않는다.
+ *
+ * <p>기호는 분리만 하고 문자를 바꾸지 않는다. 아포스트로피 접합이나 {@code &}→{@code and} 같은 변환은 정규화된 문서끼리 비교하는 snapshot 경로에서만
+ * 안전하고, 원문 컬럼에 LIKE를 거는 explore/admin 경로에서는 {@code Maker's Mark}처럼 기존에 매칭되던 이름을 놓치게 만든다.
  */
 public final class AlcoholSearchTokenizer {
 
@@ -30,7 +33,6 @@ public final class AlcoholSearchTokenizer {
     List<String> tokens = new ArrayList<>();
     StringBuilder current = new StringBuilder();
     CharClass currentClass = null;
-    boolean apostrophePending = false;
 
     String normalized = input.trim().toLowerCase(Locale.ROOT);
     for (int offset = 0; offset < normalized.length(); ) {
@@ -38,22 +40,12 @@ public final class AlcoholSearchTokenizer {
       offset += Character.charCount(codePoint);
 
       if (isIgnorable(codePoint)) {
-        apostrophePending = false;
-        continue;
-      }
-
-      if (isApostrophe(codePoint)) {
-        apostrophePending = currentClass == CharClass.LATIN && !current.isEmpty();
         continue;
       }
 
       if (isWhitespace(codePoint) || isSeparator(codePoint)) {
         flush(tokens, current);
         currentClass = null;
-        apostrophePending = false;
-        if (codePoint == '&' || codePoint == '＆') {
-          addToken(tokens, "and");
-        }
         continue;
       }
 
@@ -69,7 +61,6 @@ public final class AlcoholSearchTokenizer {
           addToken(tokens, "_");
           currentClass = null;
         }
-        apostrophePending = false;
         continue;
       }
 
@@ -81,19 +72,10 @@ public final class AlcoholSearchTokenizer {
           addToken(tokens, "%");
         }
         currentClass = null;
-        apostrophePending = false;
         continue;
       }
 
       CharClass nextClass = classify(codePoint);
-      if (apostrophePending) {
-        if (nextClass != CharClass.LATIN || currentClass != CharClass.LATIN) {
-          flush(tokens, current);
-          currentClass = null;
-        }
-        apostrophePending = false;
-      }
-
       if (!current.isEmpty() && currentClass != null && currentClass != nextClass) {
         flush(tokens, current);
       }
@@ -173,17 +155,14 @@ public final class AlcoholSearchTokenizer {
     return Character.isWhitespace(codePoint) || codePoint == 0x3000;
   }
 
-  private static boolean isApostrophe(int codePoint) {
-    return codePoint == '\''
-        || codePoint == '’'
-        || codePoint == '‘'
-        || codePoint == '`'
-        || codePoint == '´';
-  }
-
   private static boolean isSeparator(int codePoint) {
     return switch (codePoint) {
-      case '&',
+      case '\'',
+          '’',
+          '‘',
+          '`',
+          '´',
+          '&',
           '＆',
           '-',
           '‐',

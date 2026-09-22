@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -284,6 +285,31 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .asArray()
           .contains(both.getId().intValue())
           .doesNotContain(onlyA.getId().intValue(), onlyB.getId().intValue());
+    }
+
+    @ParameterizedTest(name = "keyword={2}")
+    @CsvSource(
+        delimiter = '|',
+        value = {
+          "메이커스 마크|Maker's Mark|maker's mark",
+          "메이커스 마크|Maker's Mark|Maker's",
+          "밀크 앤 허니|Milk & Honey|milk & honey",
+          "밀크 앤 허니|Milk & Honey|Milk&Honey",
+          "발베니 더블우드 12년|Balvenie 12y DoubleWood|발베니12",
+        })
+    @DisplayName("아포스트로피·&·한글숫자 경계가 섞인 keyword도 원문 이름에 매칭된다")
+    void keyword_symbols_match_raw_name(String korName, String engName, String keyword) {
+      Alcohol target = alcoholTestFactory.persistAlcoholWithName(korName, engName);
+      Alcohol other = alcoholTestFactory.persistAlcoholWithName("글렌피딕 15", "Glenfiddich 15");
+
+      exchangeGet(b -> b.param("keyword", keyword).param("size", "50"))
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .contains(target.getId().intValue())
+          .doesNotContain(other.getId().intValue());
     }
 
     @ParameterizedTest(name = "keyword={0}")
