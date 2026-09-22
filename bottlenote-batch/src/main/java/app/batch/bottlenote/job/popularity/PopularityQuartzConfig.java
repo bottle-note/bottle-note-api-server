@@ -16,8 +16,6 @@ import org.springframework.context.annotation.Configuration;
  *
  * <p>HOUR·WEEK·MONTH 세 Job을 등록한다. Quartz가 JDBC JobStore + 클러스터 모드로 동작하므로 같은 Job은 인스턴스가 여럿이어도 한
  * 번만 실행된다.
- *
- * <p>기존 인기 주류 잡과 별개로 등록한다 — 신구가 당분간 공존한다.
  */
 @Configuration
 public class PopularityQuartzConfig {

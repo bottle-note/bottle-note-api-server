@@ -1,7 +1,6 @@
 package app.batch.bottlenote.config;
 
 import app.batch.bottlenote.job.ranking.BestReviewSelectionJobConfig.BestReviewQuartzJob;
-import app.batch.bottlenote.job.ranking.PopularAlcoholSelectionJobConfig.PopularAlcoholQuartzJob;
 import app.batch.bottlenote.job.report.DailyDataReportJobConfig.DailyDataReportQuartzJob;
 import lombok.RequiredArgsConstructor;
 import org.quartz.CronScheduleBuilder;
@@ -55,41 +54,6 @@ public class QuartzConfig {
 		return TriggerBuilder.newTrigger()
 				.forJob(bestReviewJobDetail())
 				.withIdentity("bestReviewSelectedTrigger")
-				.withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 * * ?"))
-				.build();
-	}
-
-	/**
-	 * 인기 위스키 선정 작업을 위한 JobDetail을 정의합니다.
-	 * <p>
-	 * JobDetail은 Quartz가 실행할 Job의 인스턴스와 관련 정보를 정의합니다.
-	 * 해당 Job의 유형과 식별자를 지정하고, storeDurably() 메소드를 통해
-	 * 트리거가 없어도 스케줄러가 종료되지 않도록 설정합니다.
-	 *
-	 * @return 인기 위스키 선정 작업을 위한 JobDetail 객체
-	 */
-	@Bean
-	public JobDetail popularAlcoholJobDetail() {
-		return JobBuilder.newJob(PopularAlcoholQuartzJob.class)
-				.withIdentity("popularReviewSelectedJob")
-				.storeDurably()
-				.build();
-	}
-
-	/**
-	 * 인기 위스키 선정 작업을 위한 Trigger를 정의합니다.
-	 * <p>
-	 * Trigger는 작업이 언제 실행되어야 하는지를 정의합니다.
-	 * 이 트리거는 매일 자정(0시 0분 0초)에 실행되도록 cron 표현식을 사용하여 설정합니다.
-	 * "0 0 0 * * ?" 표현식은 매일 자정에 실행을 의미합니다.
-	 *
-	 * @return 인기 위스키 선정 작업을 위한 Trigger 객체
-	 */
-	@Bean
-	public Trigger popularAlcoholJobTrigger() {
-		return TriggerBuilder.newTrigger()
-				.forJob(popularAlcoholJobDetail())
-				.withIdentity("popularReviewSelectedTrigger")
 				.withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 * * ?"))
 				.build();
 	}

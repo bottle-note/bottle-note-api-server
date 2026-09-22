@@ -47,7 +47,6 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
         TastingTag.builder().korName("봄 추천 태그").engName("Spring Recommendation").build();
     alcoholTestFactory.appendTastingTag(alcohol, tag);
     LocalDateTime bucket = BucketGranularity.WEEK.startAt(LocalDateTime.now());
-    alcoholTestFactory.persistPopularAlcohol(alcohol.getId(), new BigDecimal("0.9"));
     alcoholTestFactory.persistPopularitySnapshot(
         alcohol.getId(), BucketGranularity.WEEK, bucket, BigDecimal.ZERO, new BigDecimal("0.4"));
 
