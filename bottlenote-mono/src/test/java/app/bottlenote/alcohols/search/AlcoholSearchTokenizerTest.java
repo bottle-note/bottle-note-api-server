@@ -37,11 +37,16 @@ class AlcoholSearchTokenizerTest {
   }
 
   @Test
-  @DisplayName("검색 유의 기호는 분리하고 아포스트로피는 제거 후 접합한다")
+  @DisplayName("검색 유의 기호는 문자를 바꾸지 않고 분리만 한다")
   void tokenize_handles_symbols() {
-    assertThat(AlcoholSearchTokenizer.tokenize("maker's mark")).containsExactly("makers", "mark");
-    assertThat(AlcoholSearchTokenizer.tokenize("Milk & Honey"))
-        .containsExactly("milk", "and", "honey");
+    assertThat(AlcoholSearchTokenizer.tokenize("maker's mark"))
+        .containsExactly("maker", "s", "mark");
+    assertThat(AlcoholSearchTokenizer.tokenize("Michter’s US*1"))
+        .containsExactly("michter", "s", "us", "1");
+    assertThat(AlcoholSearchTokenizer.tokenize("Writers' Tears"))
+        .containsExactly("writers", "tears");
+    assertThat(AlcoholSearchTokenizer.tokenize("Milk & Honey")).containsExactly("milk", "honey");
+    assertThat(AlcoholSearchTokenizer.tokenize("W&Y")).containsExactly("w", "y");
     assertThat(AlcoholSearchTokenizer.tokenize("ex-Bourbon")).containsExactly("ex", "bourbon");
     assertThat(AlcoholSearchTokenizer.tokenize("AD/02.22")).containsExactly("ad", "02", "22");
     assertThat(AlcoholSearchTokenizer.tokenize("No. 7")).containsExactly("no", "7");
