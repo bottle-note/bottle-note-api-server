@@ -22,7 +22,7 @@ flowchart LR
 ### 패키지 구조
 
 - `config/` — Quartz 스케줄·JobDetail·Trigger 구성(`QuartzConfig`), Security, 배치 공통 설정
-- `job/ranking/` — `BestReviewSelectionJobConfig` (랭킹 산출 배치)
+- `job/ranking/` — `BestReviewSelectionJobConfig` (일간 베스트 리뷰 선정, 변동 로그 적재)
 - `job/popularity/` — 시간·주·월 인기도 관측과 롤업
 - `job/report/` — `DailyDataReportJobConfig` (일일 데이터 리포트, Discord 웹훅 발송)
 - `properties/` — 배치 전용 설정 프로퍼티 바인딩

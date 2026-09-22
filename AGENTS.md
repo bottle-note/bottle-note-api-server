@@ -65,8 +65,7 @@ git submodule update --init --recursive
 ### 서브모듈
 
 - **git.environment-variables**: 환경 설정과 DB 마이그레이션 SQL을 담은 비공개 서브모듈
-  - `storage/db/migration/*.sql`: Flyway 마이그레이션 원본
-  - `storage/mysql/sql/*.sql`: batch 전용 쿼리 리소스
+  - `storage/db/migration/*.sql`: Flyway 마이그레이션 원본. batch는 서브모듈에서 어떤 리소스도 패키징하지 않는다
   - 빌드와 통합 테스트 실행 전 서브모듈 초기화 필수
 
 ## 배포 및 실행 인프라
@@ -242,7 +241,7 @@ gh workflow run deploy_development_applications.yml
 
 - 마이그레이션 원본은 `git.environment-variables/storage/db/migration/`에 두고, product-api와 admin-api의 `processResources`가 빌드 시 `classpath:db/migration`으로 복사한다. 저장소 소스 트리에는 `db/migration` 디렉터리가 없다.
 - 설정은 `enabled: ${FLYWAY_ENABLED:true}`, `baseline-on-migrate: false`, `locations: classpath:db/migration`이다. 기존 스키마에 임의로 baseline을 잡지 않는다.
-- batch 모듈은 `flyway.enabled=false`이며 마이그레이션 주체가 아니다. batch는 `storage/mysql/sql`의 지정된 쿼리 리소스만 패키징한다. `verifyBatchPackagedResources`는 누락·금지 리소스를 검사하는 별도 태스크로, 현재 build·CI에 자동 연결되어 있지 않다. 빌드 성공만으로 해당 검사까지 통과했다고 판단하지 않는다.
+- batch 모듈은 `flyway.enabled=false`이며 마이그레이션 주체가 아니다. batch는 서브모듈의 어떤 리소스도 패키징하지 않으며 배치 SQL은 Java 코드 안에 둔다(2026.09.22 ADR).
 - 통합 테스트도 `flyway.enabled=true`로 동작한다. TestContainers 스키마 역시 Flyway가 만들며, 별도 init 스크립트를 쓰지 않는다.
 - 새 마이그레이션은 서브모듈 저장소에 추가한 뒤 서브모듈 포인터를 갱신해야 반영된다.
 
