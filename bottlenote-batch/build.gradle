@@ -48,7 +48,6 @@ sourceSets {
 }
 
 def batchSqlResources = [
-		'storage/mysql/sql/popularity.sql',
 		'storage/mysql/sql/best-review-selected.sql'
 ]
 

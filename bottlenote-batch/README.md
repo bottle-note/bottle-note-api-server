@@ -11,7 +11,7 @@ Quartz 스케줄러가 cron 트리거로 배치 Job을 실행하는 독립 실�
 ```mermaid
 flowchart LR
     Q["Quartz Scheduler (cron 트리거)"] --> J1[BestReviewSelectionJob]
-    Q --> J2[PopularAlcoholSelectionJob]
+    Q --> J2[PopularityObservationJob]
     Q --> J3[DailyDataReportJob]
     J1 --> M["bottlenote-mono (도메인 서비스)"]
     J2 --> M
@@ -22,7 +22,8 @@ flowchart LR
 ### 패키지 구조
 
 - `config/` — Quartz 스케줄·JobDetail·Trigger 구성(`QuartzConfig`), Security, 배치 공통 설정
-- `job/ranking/` — `BestReviewSelectionJobConfig`, `PopularAlcoholSelectionJobConfig` (랭킹 산출 배치)
+- `job/ranking/` — `BestReviewSelectionJobConfig` (랭킹 산출 배치)
+- `job/popularity/` — 시간·주·월 인기도 관측과 롤업
 - `job/report/` — `DailyDataReportJobConfig` (일일 데이터 리포트, Discord 웹훅 발송)
 - `properties/` — 배치 전용 설정 프로퍼티 바인딩
 

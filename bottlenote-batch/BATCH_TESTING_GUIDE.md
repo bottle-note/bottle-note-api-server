@@ -26,12 +26,11 @@
 app.batch.bottlenote/
 ├── config/
 │   └── QuartzConfig.java              # Quartz 스케줄러 설정
-├── properties/
-│   └── PopularAlcoholProperties.java  # 인기 주류 설정
 └── job/
     ├── ranking/
-    │   ├── BestReviewSelectionJobConfig.java     # Chunk 기반 (다중 Step)
-    │   └── PopularAlcoholSelectionJobConfig.java # Chunk 기반
+    │   └── BestReviewSelectionJobConfig.java     # Chunk 기반 (다중 Step)
+    ├── popularity/
+    │   └── PopularityObservationJobConfig.java   # 시간·주·월 인기도 관측
     └── report/
         └── DailyDataReportJobConfig.java         # Tasklet 기반
 ```
@@ -219,52 +218,7 @@ class DailyDataReportJobConfigTest {
 }
 ```
 
-### 4.2 PopularAlcoholSelectionJobConfig (Chunk 기반)
-
-**특성**: 복잡한 처리 (ItemReader -> Processor -> ItemWriter)
-
-**테스트 전략**:
-- TestContainers + 통합 테스트
-- 실제 DB 데이터 기반 검증
-- 청크 처리 결과 검증
-
-```java
-@Tag("integration")
-@SpringBatchTest
-@SpringBootTest
-@Import(TestContainersConfig.class)
-class PopularAlcoholSelectionJobIntegrationTest {
-    @Autowired
-    JobLauncherTestUtils jobLauncherTestUtils;
-
-    @Autowired
-    JdbcTemplate jdbcTemplate;
-
-    @BeforeEach
-    void setUp() {
-        // 테스트 데이터 준비
-        jdbcTemplate.execute("INSERT INTO alcohols ...");
-    }
-
-    @Test
-    @DisplayName("인기 주류 선정 Job이 정상 완료된다")
-    void testPopularAlcoholJob() {
-        // when
-        JobExecution execution = jobLauncherTestUtils.launchJob();
-
-        // then
-        assertThat(execution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-
-        Integer count = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM popular_alcohols WHERE year = ? AND month = ? AND day = ?",
-            Integer.class, LocalDate.now().getYear(), LocalDate.now().getMonthValue(), LocalDate.now().getDayOfMonth()
-        );
-        assertThat(count).isGreaterThan(0);
-    }
-}
-```
-
-### 4.3 BestReviewSelectionJobConfig (다중 Step Chunk 기반)
+### 4.2 BestReviewSelectionJobConfig (다중 Step Chunk 기반)
 
 **특성**: 다중 Step (초기화 Step -> 선정 Step)
 
@@ -365,69 +319,6 @@ class DailyDataReportQuartzJobTest {
         // then
         verify(jobRegistry, times(0)).getJob(any());
         verify(jobLauncher, times(0)).run(any(Job.class), any(JobParameters.class));
-    }
-}
-```
-
-### 5.2 Batch Job 통합 테스트 템플릿
-
-```java
-@Tag("integration")
-@DisplayName("[integration] [batch] PopularAlcoholSelectionJob")
-@SpringBatchTest
-@SpringBootTest
-@Import(TestContainersConfig.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class PopularAlcoholSelectionJobIntegrationTest {
-
-    @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
-
-    @Autowired
-    private Job popularAlcoholJob;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @BeforeEach
-    void setUp() {
-        jobLauncherTestUtils.setJob(popularAlcoholJob);
-        // 테스트 데이터 초기화
-        jdbcTemplate.execute("DELETE FROM popular_alcohols");
-    }
-
-    @Test
-    @DisplayName("인기 주류 선정 Job이 정상적으로 완료된다")
-    void 인기_주류_선정_Job이_정상적으로_완료된다() throws Exception {
-        // given: 테스트 데이터 준비
-        // ...
-
-        // when
-        JobExecution jobExecution = jobLauncherTestUtils.launchJob();
-
-        // then
-        assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
-        assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
-    }
-
-    @Test
-    @DisplayName("인기 주류 데이터가 정상적으로 저장된다")
-    void 인기_주류_데이터가_정상적으로_저장된다() throws Exception {
-        // given
-        LocalDate today = LocalDate.now();
-
-        // when
-        jobLauncherTestUtils.launchJob();
-
-        // then
-        Integer count = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM popular_alcohols WHERE year = ? AND month = ? AND day = ?",
-            Integer.class,
-            today.getYear(),
-            today.getMonthValue(),
-            today.getDayOfMonth()
-        );
-        assertThat(count).isGreaterThan(0);
     }
 }
 ```

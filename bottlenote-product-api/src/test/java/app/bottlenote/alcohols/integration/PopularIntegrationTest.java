@@ -75,10 +75,9 @@ class PopularIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("WEEK Snapshot이 없으면 legacy 인기 점수로 보충하지 않는다")
-    void getPopularOfWeek_doesNotFallbackToLegacyPopularity() throws Exception {
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
-      alcoholTestFactory.persistPopularAlcohol(alcohol.getId(), new BigDecimal("0.9"));
+    @DisplayName("WEEK Snapshot이 없으면 빈 목록을 반환한다")
+    void getPopularOfWeek_returnsEmptyWhenWeeklySnapshotIsMissing() throws Exception {
+      alcoholTestFactory.persistAlcohol();
 
       PopularsOfWeekResponse response = getPopular("/api/v1/popular/week", 5);
 

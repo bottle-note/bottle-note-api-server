@@ -27,14 +27,13 @@ class ViewHistoryPopularityIntegrationTest extends IntegrationTestSupport {
   @Autowired private UserTestFactory userTestFactory;
 
   @Test
-  @DisplayName("조회 이력은 역사상 legacy 최고점이 아니라 최신 HOUR Snapshot 점수를 반환한다")
+  @DisplayName("조회 이력은 직전 HOUR가 아니라 최신 HOUR Snapshot 점수를 반환한다")
   void viewHistory_returnsLatestHourlyPopularitySnapshot() {
     User user = userTestFactory.persistUser();
     Alcohol alcohol = alcoholTestFactory.persistAlcohol();
     LocalDateTime currentBucket = BucketGranularity.HOUR.startAt(LocalDateTime.now());
     viewHistoryTestFactory.persistAlcoholsViewHistory(
         user.getId(), alcohol.getId(), LocalDateTime.now());
-    alcoholTestFactory.persistPopularAlcohol(alcohol.getId(), new BigDecimal("0.9"));
     alcoholTestFactory.persistPopularitySnapshot(
         alcohol.getId(),
         BucketGranularity.HOUR,

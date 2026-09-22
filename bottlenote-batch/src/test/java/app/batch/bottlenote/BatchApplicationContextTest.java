@@ -3,7 +3,6 @@ package app.batch.bottlenote;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.batch.bottlenote.job.ranking.BestReviewSelectionJobConfig.BestReviewQuartzJob;
-import app.batch.bottlenote.job.ranking.PopularAlcoholSelectionJobConfig.PopularAlcoholQuartzJob;
 import app.batch.bottlenote.job.report.DailyDataReportJobConfig.DailyDataReportQuartzJob;
 import app.bottlenote.review.service.ReviewService;
 import app.bottlenote.support.report.service.DailyDataReportService;
@@ -60,12 +59,13 @@ class BatchApplicationContextTest {
   @DisplayName("배치에 필요한 Job과 Quartz binding을 로드한다")
   void contextLoadsBatchJobsAndQuartzBindings() {
     assertThat(context.getBean("bestReviewSelectedJob", Job.class)).isNotNull();
-    assertThat(context.getBean("popularAlcoholJob", Job.class)).isNotNull();
     assertThat(context.getBean("dailyDataReportJob", Job.class)).isNotNull();
+    assertThat(context.containsBean("popularAlcoholJob")).isFalse();
 
     assertThat(context.getBean(BestReviewQuartzJob.class)).isNotNull();
-    assertThat(context.getBean(PopularAlcoholQuartzJob.class)).isNotNull();
     assertThat(context.getBean(DailyDataReportQuartzJob.class)).isNotNull();
+    assertThat(context.containsBean("popularAlcoholJobDetail")).isFalse();
+    assertThat(context.containsBean("popularAlcoholJobTrigger")).isFalse();
     assertThat(context.getBean("curationExpirationStatusJobDetail")).isNotNull();
     assertThat(context.getBean("curationExpirationStatusTrigger")).isNotNull();
   }
