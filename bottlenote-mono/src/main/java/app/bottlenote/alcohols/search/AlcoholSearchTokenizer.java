@@ -44,6 +44,13 @@ public final class AlcoholSearchTokenizer {
       }
 
       if (isWhitespace(codePoint) || isSeparator(codePoint)) {
+        // `D.E.W.`, `W&Y`처럼 한 글자씩 기호로 이어진 약어는 쪼개면 한 글자 토큰만 남아 전체 목록에 매칭되므로 원문 그대로 둔다.
+        if (isAbbreviationJoiner(codePoint)
+            && isSingleLetterAbbreviation(current)
+            && nextIsSingleLatinLetter(normalized, offset)) {
+          current.appendCodePoint(codePoint);
+          continue;
+        }
         flush(tokens, current);
         currentClass = null;
         continue;
@@ -147,8 +154,44 @@ public final class AlcoholSearchTokenizer {
         || (codePoint >= 0x3130 && codePoint <= 0x318F);
   }
 
+  /** ASCII뿐 아니라 {@code Smögen}, {@code Nàdurra} 같은 라틴 확장 문자도 한 단어로 유지한다. */
   private static boolean isLatin(int codePoint) {
-    return (codePoint >= 'a' && codePoint <= 'z') || (codePoint >= 'A' && codePoint <= 'Z');
+    return Character.isLetter(codePoint)
+        && Character.UnicodeScript.of(codePoint) == Character.UnicodeScript.LATIN;
+  }
+
+  /** 다음 글자가 라틴 한 글자이고 그 뒤에 라틴 글자가 이어지지 않는지({@code E.H.}는 유지, {@code E.Pepper}는 분리) 확인한다. */
+  private static boolean nextIsSingleLatinLetter(String text, int offset) {
+    if (offset >= text.length()) {
+      return false;
+    }
+    int next = text.codePointAt(offset);
+    if (!isLatin(next)) {
+      return false;
+    }
+    int after = offset + Character.charCount(next);
+    return after >= text.length() || !isLatin(text.codePointAt(after));
+  }
+
+  private static boolean isAbbreviationJoiner(int codePoint) {
+    return codePoint == '.' || codePoint == '&' || codePoint == '＆' || codePoint == '/';
+  }
+
+  /** {@code d}, {@code d.e}, {@code w&y}처럼 라틴 한 글자가 joiner로만 이어진 형태인지 확인한다. */
+  private static boolean isSingleLetterAbbreviation(StringBuilder current) {
+    if (current.isEmpty()) {
+      return false;
+    }
+    boolean expectLetter = true;
+    for (int i = 0; i < current.length(); ) {
+      int cp = current.codePointAt(i);
+      i += Character.charCount(cp);
+      if (expectLetter ? !isLatin(cp) : !isAbbreviationJoiner(cp)) {
+        return false;
+      }
+      expectLetter = !expectLetter;
+    }
+    return !expectLetter;
   }
 
   private static boolean isWhitespace(int codePoint) {

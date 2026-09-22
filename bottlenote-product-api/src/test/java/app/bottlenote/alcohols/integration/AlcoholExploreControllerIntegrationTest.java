@@ -296,6 +296,9 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           "밀크 앤 허니|Milk & Honey|milk & honey",
           "밀크 앤 허니|Milk & Honey|Milk&Honey",
           "발베니 더블우드 12년|Balvenie 12y DoubleWood|발베니12",
+          "탈라모어 듀 XO|Tullamore D.E.W. XO|d.e.w",
+          "벤 브라켄 10년|Ben Bracken 10y W&Y|W&Y",
+          "스뫼겐 8년|Smögen 8yo|smögen",
         })
     @DisplayName("아포스트로피·&·한글숫자 경계가 섞인 keyword도 원문 이름에 매칭된다")
     void keyword_symbols_match_raw_name(String korName, String engName, String keyword) {
