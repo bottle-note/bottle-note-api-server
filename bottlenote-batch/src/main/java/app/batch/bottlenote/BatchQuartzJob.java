@@ -31,6 +31,9 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 @RequiredArgsConstructor
 public abstract class BatchQuartzJob extends QuartzJobBean {
 
+	/** 모든 Job에 공통으로 넘기는 실행 시각 파라미터 이름. */
+	public static final String EXECUTION_TIME_PARAM = "localDateTime";
+
 	private final JobLauncher jobLauncher;
 	private final JobRegistry jobRegistry;
 	private final String batchJobName;
@@ -60,7 +63,7 @@ public abstract class BatchQuartzJob extends QuartzJobBean {
 			Job job = jobRegistry.getJob(batchJobName);
 			JobParametersBuilder jobParam =
 					new JobParametersBuilder()
-							.addLocalDateTime("localDateTime", startedAt)
+							.addLocalDateTime(EXECUTION_TIME_PARAM, startedAt)
 							.addString("jobName", schedulerName);
 			customizeJobParameters(jobParam, startedAt);
 

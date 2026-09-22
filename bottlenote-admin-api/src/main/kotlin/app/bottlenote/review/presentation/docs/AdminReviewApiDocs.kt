@@ -1,5 +1,6 @@
 package app.bottlenote.review.presentation.docs
 
+import app.bottlenote.review.dto.response.AdminBestReviewSelectionLogResponse
 import app.bottlenote.review.dto.response.AdminReviewListResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -38,4 +39,27 @@ object AdminReviewApiDocs {
 		]
 	)
 	annotation class ListReviews
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(
+		summary = "베스트 리뷰 선정 로그를 조회한다",
+		description = """
+			일간 배치가 베스트 리뷰를 선정하거나 해제한 변동 기록을 최근 기준일부터 페이지 단위로 조회합니다.
+
+			리뷰 ID, 위스키, 변동 종류(SELECTED, RELEASED), 기준일 범위로 좁힐 수 있고 판정 시점의 순위·점수·좋아요·댓글·이미지 수와 사유를 함께 내립니다.
+			""",
+		responses = [
+			ApiResponse(
+				responseCode = "200",
+				description = "베스트 리뷰 선정 로그 목록",
+				content = [
+					Content(
+						array = ArraySchema(schema = Schema(implementation = AdminBestReviewSelectionLogResponse::class))
+					)
+				]
+			)
+		]
+	)
+	annotation class ListBestReviewSelectionLogs
 }
