@@ -119,7 +119,9 @@ class NotificationCreationServiceTest {
     assertThat(repository.findAll())
         .singleElement()
         .satisfies(
-            n -> assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_REPLY_CREATE));
+            n ->
+                assertThat(n.getEventAction())
+                    .isEqualTo(NotificationEventAction.REVIEW_REPLY_CREATE));
   }
 
   @Test

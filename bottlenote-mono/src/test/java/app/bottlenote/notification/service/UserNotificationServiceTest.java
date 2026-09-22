@@ -102,7 +102,8 @@ class UserNotificationServiceTest {
     @DisplayName("대상 사용자가 없으면 예외를 던진다")
     void sendNotification_whenUserMissing_throwsException() {
       NotificationMessage message =
-          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT_CREATE, "제목", "내용");
+          NotificationMessage.create(
+              USER_ID, NotificationEventAction.REVIEW_COMMENT_CREATE, "제목", "내용");
 
       assertThatThrownBy(() -> service.sendNotification(message))
           .isInstanceOf(UserException.class)
@@ -139,7 +140,8 @@ class UserNotificationServiceTest {
     void sendNotification_whenLegacyMessageDuplicated_savesEachTime() {
       seedUser(USER_ID);
       NotificationMessage message =
-          NotificationMessage.create(USER_ID, NotificationEventAction.REVIEW_COMMENT_CREATE, "제목", "내용");
+          NotificationMessage.create(
+              USER_ID, NotificationEventAction.REVIEW_COMMENT_CREATE, "제목", "내용");
 
       service.sendNotification(message);
       service.sendNotification(message);

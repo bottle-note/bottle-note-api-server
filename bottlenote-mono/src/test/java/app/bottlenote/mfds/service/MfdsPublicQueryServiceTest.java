@@ -97,12 +97,10 @@ class MfdsPublicQueryServiceTest {
   @Test
   @DisplayName("카테고리 목록은 ko/en 조합을 중복 없이 건수와 함께 내린다")
   void 카테고리_목록은_중복없이_건수를_포함한다() {
-    MfdsDeclaration whisky1 =
-        saveAlcohol("RCNO-1", "글렌피딕", "보틀상사", LocalDate.of(2026, 8, 1), "GB");
+    MfdsDeclaration whisky1 = saveAlcohol("RCNO-1", "글렌피딕", "보틀상사", LocalDate.of(2026, 8, 1), "GB");
     MfdsTestData.set(whisky1, "alcoholCategoryKo", "위스키");
     MfdsTestData.set(whisky1, "alcoholCategoryEn", "Whisky");
-    MfdsDeclaration whisky2 =
-        saveAlcohol("RCNO-2", "맥캘란", "보틀상사", LocalDate.of(2026, 8, 2), "GB");
+    MfdsDeclaration whisky2 = saveAlcohol("RCNO-2", "맥캘란", "보틀상사", LocalDate.of(2026, 8, 2), "GB");
     MfdsTestData.set(whisky2, "alcoholCategoryKo", "위스키");
     MfdsTestData.set(whisky2, "alcoholCategoryEn", "Whisky");
     MfdsDeclaration wine = saveAlcohol("RCNO-3", "보르도", "보틀상사", LocalDate.of(2026, 8, 3), "FR");
@@ -110,8 +108,7 @@ class MfdsPublicQueryServiceTest {
     MfdsTestData.set(wine, "alcoholCategoryEn", "Wine");
     MfdsDeclaration blank = saveAlcohol("RCNO-4", "미분류", "보틀상사", LocalDate.of(2026, 8, 4), "US");
     MfdsTestData.set(blank, "alcoholCategoryKo", " ");
-    MfdsDeclaration pending =
-        saveAlcohol("RCNO-5", "대기", "보틀상사", LocalDate.of(2026, 8, 5), "JP");
+    MfdsDeclaration pending = saveAlcohol("RCNO-5", "대기", "보틀상사", LocalDate.of(2026, 8, 5), "JP");
     MfdsTestData.set(pending, "normalizationStatus", PENDING);
     MfdsTestData.set(pending, "alcoholCategoryKo", "위스키");
     MfdsTestData.set(pending, "alcoholCategoryEn", "Whisky");
@@ -121,9 +118,7 @@ class MfdsPublicQueryServiceTest {
             MfdsPublicAlcoholCategoryItem::alcoholCategoryKo,
             MfdsPublicAlcoholCategoryItem::alcoholCategoryEn,
             MfdsPublicAlcoholCategoryItem::count)
-        .containsExactly(
-            tuple("위스키", "Whisky", 2L),
-            tuple("와인", "Wine", 1L));
+        .containsExactly(tuple("위스키", "Whisky", 2L), tuple("와인", "Wine", 1L));
   }
 
   @Test

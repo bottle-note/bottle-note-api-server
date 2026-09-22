@@ -70,13 +70,20 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
   @ParameterizedTest
   @EnumSource(
       value = NotificationEventAction.class,
-      names = {"REVIEW_COMMENT_CREATE", "REVIEW_REPLY_CREATE", "REVIEW_LIKE_ADD", "FOLLOW_CREATE", "HELP_ANSWER_CREATE"})
+      names = {
+        "REVIEW_COMMENT_CREATE",
+        "REVIEW_REPLY_CREATE",
+        "REVIEW_LIKE_ADD",
+        "FOLLOW_CREATE",
+        "HELP_ANSWER_CREATE"
+      })
   @DisplayName("기존 발행 경로에서 DB 거부 설정과 허용 복원을 반영하고 발생 액션을 저장한다")
   void 기존_발행과_DB_설정을_연결한다(NotificationEventAction action) {
     Long userId = users.persistUser().getId();
     NotificationMessage message =
         switch (action) {
-          case REVIEW_COMMENT_CREATE -> NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용");
+          case REVIEW_COMMENT_CREATE ->
+              NotificationMessage.reviewReply(userId, 10L, 20L, "댓글", "내용");
           case REVIEW_REPLY_CREATE ->
               NotificationMessage.reviewReplyResponse(userId, 10L, 20L, "답글", "내용");
           case REVIEW_LIKE_ADD -> NotificationMessage.reviewLike(userId, 10L, 20L, "좋아요", "내용");
@@ -128,7 +135,8 @@ class NotificationSettingIntegrationTest extends IntegrationTestSupport {
         .singleElement()
         .satisfies(
             n -> {
-              assertThat(n.getEventAction()).isEqualTo(NotificationEventAction.REVIEW_COMMENT_CREATE);
+              assertThat(n.getEventAction())
+                  .isEqualTo(NotificationEventAction.REVIEW_COMMENT_CREATE);
               assertThat(n.getTitle()).isEqualTo("기존 댓글");
             });
   }
