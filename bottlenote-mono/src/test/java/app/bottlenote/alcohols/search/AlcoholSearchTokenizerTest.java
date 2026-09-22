@@ -46,7 +46,7 @@ class AlcoholSearchTokenizerTest {
     assertThat(AlcoholSearchTokenizer.tokenize("Writers' Tears"))
         .containsExactly("writers", "tears");
     assertThat(AlcoholSearchTokenizer.tokenize("Milk & Honey")).containsExactly("milk", "honey");
-    assertThat(AlcoholSearchTokenizer.tokenize("W&Y")).containsExactly("w", "y");
+    assertThat(AlcoholSearchTokenizer.tokenize("Nikka G&G")).containsExactly("nikka", "g&g");
     assertThat(AlcoholSearchTokenizer.tokenize("ex-Bourbon")).containsExactly("ex", "bourbon");
     assertThat(AlcoholSearchTokenizer.tokenize("AD/02.22")).containsExactly("ad", "02", "22");
     assertThat(AlcoholSearchTokenizer.tokenize("No. 7")).containsExactly("no", "7");
@@ -57,6 +57,33 @@ class AlcoholSearchTokenizerTest {
     assertThat(AlcoholSearchTokenizer.tokenize("St. Kilian")).containsExactly("st", "kilian");
     assertThat(AlcoholSearchTokenizer.tokenize("Glenfiddich 21y - Winter Storm"))
         .containsExactly("glenfiddich", "21", "y", "winter", "storm");
+  }
+
+  @Test
+  @DisplayName("한 글자씩 기호로 이어진 약어는 쪼개지 않고 원문 토큰으로 둔다")
+  void tokenize_keeps_single_letter_abbreviations() {
+    assertThat(AlcoholSearchTokenizer.tokenize("Tullamore D.E.W. XO"))
+        .containsExactly("tullamore", "d.e.w", "xo");
+    assertThat(AlcoholSearchTokenizer.tokenize("Weller C.Y.P.B."))
+        .containsExactly("weller", "c.y.p.b");
+    assertThat(AlcoholSearchTokenizer.tokenize("Ben Bracken 10y W&Y"))
+        .containsExactly("ben", "bracken", "10", "y", "w&y");
+    assertThat(AlcoholSearchTokenizer.tokenize("P.X. Sherry")).containsExactly("p.x", "sherry");
+    assertThat(AlcoholSearchTokenizer.tokenize("Mr.Shand’s")).containsExactly("mr", "shand", "s");
+    assertThat(AlcoholSearchTokenizer.tokenize("James E.Pepper"))
+        .containsExactly("james", "e", "pepper");
+    assertThat(AlcoholSearchTokenizer.tokenize("No.C-8106")).containsExactly("no", "c", "8106");
+  }
+
+  @Test
+  @DisplayName("라틴 확장 문자는 영문과 같은 단어로 묶는다")
+  void tokenize_keeps_extended_latin_in_word() {
+    assertThat(AlcoholSearchTokenizer.tokenize("Smögen 90 Proof"))
+        .containsExactly("smögen", "90", "proof");
+    assertThat(AlcoholSearchTokenizer.tokenize("The Glenlivet Nàdurra"))
+        .containsExactly("the", "glenlivet", "nàdurra");
+    assertThat(AlcoholSearchTokenizer.tokenize("Faß Edition")).containsExactly("faß", "edition");
+    assertThat(AlcoholSearchTokenizer.tokenize("惟斯吉 Edition")).containsExactly("惟斯吉", "edition");
   }
 
   @Test
