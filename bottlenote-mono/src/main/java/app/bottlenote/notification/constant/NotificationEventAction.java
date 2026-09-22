@@ -24,7 +24,8 @@ public enum NotificationEventAction {
       "내 리뷰의 좋아요",
       "내 삭제되지 않은 리뷰에 다른 사용자가 좋아요를 누른 경우 발생하는 알림",
       true),
-  FOLLOW_CREATE(NotificationSettingGroup.REVIEW_AND_FOLLOW, "새 팔로워", "다른 사용자가 나를 팔로우한 경우 발생하는 알림", true),
+  FOLLOW_CREATE(
+      NotificationSettingGroup.REVIEW_AND_FOLLOW, "새 팔로워", "다른 사용자가 나를 팔로우한 경우 발생하는 알림", true),
   FOLLOWING_REVIEW_CREATE(
       NotificationSettingGroup.REVIEW_AND_FOLLOW,
       "팔로우한 사람의 새 리뷰",

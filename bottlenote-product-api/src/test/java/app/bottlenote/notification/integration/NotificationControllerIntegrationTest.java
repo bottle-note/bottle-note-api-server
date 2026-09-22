@@ -219,7 +219,9 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult result =
           mockMvcTester
               .get()
-              .uri(BASE + "?eventActions=REVIEW_COMMENT_CREATE&groups=REVIEW_AND_FOLLOW&readStatus=UNREAD")
+              .uri(
+                  BASE
+                      + "?eventActions=REVIEW_COMMENT_CREATE&groups=REVIEW_AND_FOLLOW&readStatus=UNREAD")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
 
@@ -276,7 +278,10 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult second =
           mockMvcTester
               .get()
-              .uri(BASE + "?eventActions=REVIEW_COMMENT_CREATE&readStatus=ALL&size=2&cursor=" + cursor)
+              .uri(
+                  BASE
+                      + "?eventActions=REVIEW_COMMENT_CREATE&readStatus=ALL&size=2&cursor="
+                      + cursor)
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
       JsonNode secondData = responseData(second);

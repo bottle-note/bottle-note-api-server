@@ -111,7 +111,9 @@ class NotificationSettingServiceTest {
   @DisplayName("기본값을 설정 엔티티로 저장하려 할 때 거부한다")
   void 기본값_행을_거부한다() {
     assertThatThrownBy(
-            () -> new UserNotificationSetting(1L, NotificationEventAction.REVIEW_COMMENT_CREATE, true))
+            () ->
+                new UserNotificationSetting(
+                    1L, NotificationEventAction.REVIEW_COMMENT_CREATE, true))
         .isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(
             () -> service.changeSetting(0L, NotificationEventAction.REVIEW_COMMENT_CREATE, false))

@@ -50,8 +50,7 @@ class MfdsPublicOpenApiContractIntegrationTest extends OpenApiSpecTestSupport {
   @DisplayName("공개 카테고리 목록은 ko/en/count를 문서화한다")
   void 공개_카테고리_목록은_ko_en_count를_문서화한다() {
     var schema = fetchSpec().at("/components/schemas/MfdsPublicAlcoholCategoryItem");
-    assertThat(propertyNamesOf(schema))
-        .contains("alcoholCategoryKo", "alcoholCategoryEn", "count");
+    assertThat(propertyNamesOf(schema)).contains("alcoholCategoryKo", "alcoholCategoryEn", "count");
   }
 
   @Test
