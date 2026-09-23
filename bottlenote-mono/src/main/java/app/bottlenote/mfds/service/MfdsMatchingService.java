@@ -13,11 +13,12 @@ import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.domain.MfdsMatchCandidate;
+import app.bottlenote.mfds.domain.MfdsMatchingSelection;
+import app.bottlenote.mfds.domain.MfdsMatchingSelectionRepository;
 import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest;
 import app.bottlenote.mfds.dto.response.MfdsAlcoholCandidateItem;
 import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetailItem;
 import app.bottlenote.mfds.dto.response.MfdsMatchingCandidatesResponse;
-import app.bottlenote.mfds.dto.response.MfdsMatchingCandidatesResponse.MfdsMatchingSelection;
 import app.bottlenote.mfds.dto.response.MfdsMatchingConfirmResponse;
 import app.bottlenote.mfds.dto.response.MfdsMatchingRunResponse;
 import app.bottlenote.mfds.dto.response.MfdsReferenceCandidateItem;
@@ -47,6 +48,7 @@ public class MfdsMatchingService {
   private final MfdsDeclarationRepository declarationRepository;
   private final AlcoholMatchTargetFacade alcoholMatchTargetFacade;
   private final MfdsMatchingScoreCalculator scoreCalculator;
+  private final MfdsMatchingSelectionRepository selectionRepository;
 
   /** 후보를 계산해 저장하고 점수 근거와 함께 반환한다. 기존 후보는 덮어쓴다. */
   @Transactional
@@ -144,7 +146,7 @@ public class MfdsMatchingService {
         declaration.getId(),
         declaration.getMatchingVersion(),
         declaration.getMatchedAt(),
-        new MfdsMatchingSelection(
+        new MfdsMatchingCandidatesResponse.MfdsMatchingSelection(
             declaration.getSelectedAlcoholId(),
             declaration.getAlcoholMatchDecision(),
             declaration.getSelectedDistilleryId(),
@@ -178,12 +180,13 @@ public class MfdsMatchingService {
   /** 매칭을 확정한다. 후보 목록에 있으면 CANDIDATE, 후보 밖 ID면 MANUAL로 결정 근거를 기록한다. */
   @Transactional
   public MfdsMatchingConfirmResponse confirmMatching(
-      Long declarationId, MfdsMatchingConfirmRequest request) {
+      Long declarationId, MfdsMatchingConfirmRequest request, Long adminId) {
     MfdsDeclaration declaration = getDeclarationForUpdate(declarationId);
 
-    if (!alcoholMatchTargetFacade.existsAlcohol(request.alcoholId())) {
-      throw new MfdsException(MFDS_SELECTED_ALCOHOL_NOT_FOUND);
-    }
+    AlcoholMatchTargetItem alcohol =
+        alcoholMatchTargetFacade.findAlcoholTargetsByIds(List.of(request.alcoholId())).stream()
+            .findFirst()
+            .orElseThrow(() -> new MfdsException(MFDS_SELECTED_ALCOHOL_NOT_FOUND));
     if (request.distilleryId() != null
         && !alcoholMatchTargetFacade.existsDistillery(request.distilleryId())) {
       throw new MfdsException(MFDS_SELECTED_DISTILLERY_NOT_FOUND);
@@ -192,29 +195,108 @@ public class MfdsMatchingService {
       throw new MfdsException(MFDS_SELECTED_REGION_NOT_FOUND);
     }
 
+    Long previousDistilleryId = declaration.getSelectedDistilleryId();
+    Long previousRegionId = declaration.getSelectedRegionId();
+    Long distilleryId =
+        request.distilleryId() != null
+            ? request.distilleryId()
+            : positiveId(alcohol.distilleryId());
+    Long regionId =
+        request.regionId() != null ? request.regionId() : positiveId(alcohol.regionId());
     declaration.confirmMatching(
         request.alcoholId(),
         selectionSource(declaration.hasAlcoholCandidate(request.alcoholId())),
-        request.distilleryId(),
-        request.distilleryId() != null
-            ? selectionSource(declaration.hasDistilleryCandidate(request.distilleryId()))
-            : null,
-        request.regionId(),
-        request.regionId() != null
-            ? selectionSource(declaration.hasRegionCandidate(request.regionId()))
-            : null);
+        distilleryId,
+        referenceSource(
+            request.distilleryId(), distilleryId, declaration.hasDistilleryCandidate(distilleryId)),
+        regionId,
+        referenceSource(request.regionId(), regionId, declaration.hasRegionCandidate(regionId)));
     declarationRepository.save(declaration);
+
+    SelectionAuditContext audit =
+        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now());
+    recordSelection(
+        audit,
+        "ALCOHOL",
+        declaration.getSelectedAlcoholId(),
+        declaration.getAlcoholMatchDecision());
+    recordReferenceSelection(
+        audit,
+        "DISTILLERY",
+        previousDistilleryId,
+        distilleryId,
+        declaration.getDistilleryMatchSource());
+    recordReferenceSelection(
+        audit, "REGION", previousRegionId, regionId, declaration.getRegionMatchSource());
 
     return toConfirmResponse(declaration);
   }
 
   /** 확정을 해제한다. 저장된 후보와 매칭 이력은 유지한다. */
   @Transactional
-  public MfdsMatchingConfirmResponse clearMatching(Long declarationId) {
+  public MfdsMatchingConfirmResponse clearMatching(Long declarationId, Long adminId) {
     MfdsDeclaration declaration = getDeclarationForUpdate(declarationId);
+    SelectionAuditContext audit =
+        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now());
+    recordRevocation(audit, "ALCOHOL", declaration.getSelectedAlcoholId(), "ADMIN_RELEASE");
+    recordRevocation(audit, "DISTILLERY", declaration.getSelectedDistilleryId(), "ADMIN_RELEASE");
+    recordRevocation(audit, "REGION", declaration.getSelectedRegionId(), "ADMIN_RELEASE");
     declaration.clearMatchingSelection();
     declarationRepository.save(declaration);
     return toConfirmResponse(declaration);
+  }
+
+  private static Long positiveId(Long id) {
+    return id != null && id > 0 ? id : null;
+  }
+
+  private static MfdsMatchSelectionSource referenceSource(
+      Long requestedId, Long selectedId, boolean fromCandidate) {
+    if (selectedId == null) {
+      return null;
+    }
+    return requestedId != null
+        ? selectionSource(fromCandidate)
+        : MfdsMatchSelectionSource.ALCOHOL_PROPAGATED;
+  }
+
+  private void recordReferenceSelection(
+      SelectionAuditContext audit,
+      String targetType,
+      Long previousId,
+      Long selectedId,
+      String reasonCode) {
+    if (selectedId != null) {
+      recordSelection(audit, targetType, selectedId, reasonCode);
+    } else {
+      recordRevocation(audit, targetType, previousId, "ADMIN_SELECTION_CLEARED");
+    }
+  }
+
+  private void recordSelection(
+      SelectionAuditContext audit, String targetType, Long targetId, String reasonCode) {
+    selectionRepository.save(
+        MfdsMatchingSelection.adminSelect(
+            audit.declarationId(),
+            targetType,
+            targetId,
+            reasonCode,
+            audit.adminId(),
+            audit.selectedAt()));
+  }
+
+  private void recordRevocation(
+      SelectionAuditContext audit, String targetType, Long targetId, String reasonCode) {
+    if (targetId != null) {
+      selectionRepository.save(
+          MfdsMatchingSelection.adminRevoke(
+              audit.declarationId(),
+              targetType,
+              targetId,
+              reasonCode,
+              audit.adminId(),
+              audit.selectedAt()));
+    }
   }
 
   private List<ScoredAlcohol> rankAlcoholCandidates(MfdsDeclaration declaration) {
@@ -308,6 +390,9 @@ public class MfdsMatchingService {
             })
         .toList();
   }
+
+  private record SelectionAuditContext(
+      Long declarationId, Long adminId, LocalDateTime selectedAt) {}
 
   private record ScoredAlcohol(AlcoholMatchTargetItem target, MfdsMatchScoreDetailItem detail) {
     BigDecimal totalScore() {
