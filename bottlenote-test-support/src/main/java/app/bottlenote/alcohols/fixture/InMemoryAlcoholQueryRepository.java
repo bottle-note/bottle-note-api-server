@@ -11,7 +11,6 @@ import app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
-import app.bottlenote.alcohols.dto.response.ProductAlcoholDetailItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
@@ -76,7 +75,7 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
-  public ProductAlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long AlcoholId) {
+  public AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long AlcoholId) {
     return null;
   }
 

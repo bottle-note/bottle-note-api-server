@@ -48,6 +48,7 @@ archunit = "1.4.0"
 # Documentation
 # 2.8.x가 Spring Boot 3.x 지원 라인 (3.0.x는 Boot 4 전용)
 springdoc-openapi = "2.8.17"
+swagger-core = "2.2.47"
 
 # Scheduling
 quartz = "2.3.2"
@@ -162,6 +163,7 @@ archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "arc
 
 # Documentation
 springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger-core" }
 
 # Jackson - Spring Boot에서 관리하는 버전 사용
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }

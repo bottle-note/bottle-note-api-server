@@ -1,6 +1,6 @@
 package app.bottlenote.history.service;
 
-import app.bottlenote.alcohols.dto.response.ProductAlcoholDetailItem;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
@@ -42,7 +42,7 @@ public class AlcoholViewHistoryService {
 
   /** 사용자의 주류 조회 기록 저장 */
   @Transactional
-  public void recordView(Long userId, ProductAlcoholDetailItem alcohol) {
+  public void recordView(Long userId, AlcoholDetailItem alcohol) {
     // 게스트 유저(-1)는 기록하지 않음
     if (userId <= 0) {
       return;

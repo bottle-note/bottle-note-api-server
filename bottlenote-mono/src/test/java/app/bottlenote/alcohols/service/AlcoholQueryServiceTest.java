@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.AlcoholViewCounter;
-import app.bottlenote.alcohols.dto.response.ProductAlcoholDetailItem;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholPopularitySnapshotRepository;
 import app.bottlenote.global.pagination.HmacCursorCodec;
@@ -62,8 +62,8 @@ class AlcoholQueryServiceTest {
     // given
     long alcoholId = 42L;
     long userId = 7L;
-    ProductAlcoholDetailItem detail =
-        ProductAlcoholDetailItem.builder().alcoholId(alcoholId).build();
+    AlcoholDetailItem detail =
+        AlcoholDetailItem.builder().alcoholId(alcoholId).build();
     when(alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId)).thenReturn(detail);
     when(followFacade.getTastingFriendsInfoList(any(), any(), any(PageRequest.class)))
         .thenReturn(List.of());
@@ -84,8 +84,8 @@ class AlcoholQueryServiceTest {
     // given
     long alcoholId = 42L;
     long guestId = -1L;
-    ProductAlcoholDetailItem detail =
-        ProductAlcoholDetailItem.builder().alcoholId(alcoholId).build();
+    AlcoholDetailItem detail =
+        AlcoholDetailItem.builder().alcoholId(alcoholId).build();
     when(alcoholQueryRepository.findAlcoholDetailById(alcoholId, guestId)).thenReturn(detail);
     when(followFacade.getTastingFriendsInfoList(any(), any(), any(PageRequest.class)))
         .thenReturn(List.of());

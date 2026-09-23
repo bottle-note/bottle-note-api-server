@@ -153,6 +153,26 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .isNotNull();
       result.assertThat().bodyJson().extractingPath("$.data.items[0].pickCount").isNotNull();
     }
+
+    @Test
+    @DisplayName("저장된 알코올 설명을 둘러보기 응답에 반환한다")
+    void explore_response_includes_description() {
+      alcoholTestFactory.persistAlcohol(
+          Alcohol.builder()
+              .korName("설명 노출 위스키")
+              .engName("Description Whisky")
+              .description("둘러보기 설명")
+              .build());
+
+      MvcTestResult result = exchangeGet(b -> b.param("keyword", "설명 노출").param("size", "10"));
+
+      result
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[0].description")
+          .isEqualTo("둘러보기 설명");
+    }
   }
 
   // =============================================================================================
