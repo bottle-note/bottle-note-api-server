@@ -1,0 +1,56 @@
+name: dependency submission
+
+on:
+  workflow_run:
+    workflows: [ "ci pipeline" ]
+    types: [ completed ]
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-submission-main
+  cancel-in-progress: true
+
+jobs:
+  submit-dependencies:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GITHUB_DEPENDENCY_GRAPH_SHA: ${{ github.event.workflow_run.head_sha }}
+      GITHUB_DEPENDENCY_GRAPH_REF: refs/heads/main
+    steps:
+      - name: checkout verified source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # CI가 저장한 동일 커밋의 캐시만 사용하고 캐시 없는 대량 다운로드는 차단한다.
+      - name: restore verified CI gradle cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-${{ github.event.workflow_run.head_sha }}
+          fail-on-cache-miss: true
+
+      - name: generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@4733eaac7c1b0da527e4206b7671e0061de1ce37 # v6
+        with:
+          cache-disabled: true
+          additional-arguments: --no-daemon --no-parallel --max-workers=2
+          artifact-retention-days: 1
