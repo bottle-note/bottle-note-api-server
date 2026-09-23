@@ -17,6 +17,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.dto.response.ProductAlcoholDetailItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.CursorClaims;
@@ -170,13 +171,13 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   /** queryDSL 알코올 상세 조회 */
   @Override
-  public AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId) {
+  public ProductAlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId) {
     if (Objects.isNull(userId)) userId = -1L;
 
     return queryFactory
         .select(
             Projections.constructor(
-                AlcoholDetailItem.class,
+                ProductAlcoholDetailItem.class,
                 alcohol.id,
                 alcohol.imageUrl,
                 alcohol.korName,
@@ -189,6 +190,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.abv,
                 distillery.korName,
                 distillery.engName,
+                alcohol.description,
                 displayedRating().as("rating"),
                 rating.id.countDistinct(),
                 supporter.myRating(alcoholId, userId),
@@ -221,7 +223,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             alcohol.cask,
             alcohol.abv,
             distillery.korName,
-            distillery.engName)
+            distillery.engName,
+            alcohol.description)
         .fetchOne();
   }
 
