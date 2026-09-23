@@ -1,6 +1,6 @@
 package app.bottlenote.mfds.presentation.docs
 
-import app.bottlenote.mfds.dto.response.MfdsNameFieldDescriptions
+import app.bottlenote.mfds.constant.MfdsNameFieldDescriptions
 import io.swagger.v3.oas.models.OpenAPI
 import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springframework.stereotype.Component

@@ -1,4 +1,4 @@
-package app.bottlenote.mfds.dto.response;
+package app.bottlenote.mfds.constant;
 
 import java.util.Map;
 
