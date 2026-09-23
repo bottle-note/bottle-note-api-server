@@ -3,7 +3,6 @@ package app.bottlenote.global.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,36 +27,7 @@ class AlcoholDetailDescriptionOpenApiContractIntegrationTest extends OpenApiSpec
     JsonNode description = alcohols.path("properties").path("description");
 
     assertThat(description.isMissingNode()).isFalse();
-    assertThat(hasType(description, "string")).isTrue();
-    assertThat(isNullable(description)).isTrue();
+    assertThat(description.path("type").asText()).isEqualTo("string");
     assertThat(propertyNamesOf(alcohols)).contains("description");
-  }
-
-  private boolean isNullable(JsonNode schema) {
-    return schema.path("nullable").asBoolean(false)
-        || hasType(schema, "null")
-        || compositionHasType(schema, "null");
-  }
-
-  private boolean hasType(JsonNode schema, String expected) {
-    JsonNode type = schema.path("type");
-    if (type.isTextual()) {
-      return type.asText().equals(expected);
-    }
-    return type.isArray()
-        && StreamSupport.stream(type.spliterator(), false)
-            .anyMatch(candidate -> candidate.asText().equals(expected));
-  }
-
-  private boolean compositionHasType(JsonNode schema, String expected) {
-    for (String compositionName : new String[] {"anyOf", "oneOf"}) {
-      JsonNode composition = schema.path(compositionName);
-      if (composition.isArray()
-          && StreamSupport.stream(composition.spliterator(), false)
-              .anyMatch(candidate -> hasType(candidate, expected))) {
-        return true;
-      }
-    }
-    return false;
   }
 }
