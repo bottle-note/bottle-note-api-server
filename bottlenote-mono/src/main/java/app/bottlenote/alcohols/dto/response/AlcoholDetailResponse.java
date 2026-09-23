@@ -5,4 +5,6 @@ import lombok.Builder;
 
 @Builder
 public record AlcoholDetailResponse(
-    AlcoholDetailItem alcohols, FriendsDetailResponse friendsInfo, ReviewListResponse reviewInfo) {}
+    ProductAlcoholDetailItem alcohols,
+    FriendsDetailResponse friendsInfo,
+    ReviewListResponse reviewInfo) {}

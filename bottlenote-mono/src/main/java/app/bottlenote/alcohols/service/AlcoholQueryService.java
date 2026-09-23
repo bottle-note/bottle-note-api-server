@@ -13,6 +13,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
+import app.bottlenote.alcohols.dto.response.ProductAlcoholDetailItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
@@ -49,7 +50,7 @@ public class AlcoholQueryService {
 
   @Transactional(readOnly = true)
   public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
-    AlcoholDetailItem alcoholDetailItem =
+    ProductAlcoholDetailItem alcoholDetailItem =
         Optional.ofNullable(alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId))
             .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
 

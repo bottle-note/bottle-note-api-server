@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.dto.response.ProductAlcoholDetailItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.KeysetPageResponse;
@@ -29,7 +30,7 @@ public interface AlcoholQueryRepository {
 
   List<Alcohol> findAllByIdIn(List<Long> ids);
 
-  AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);
+  ProductAlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);
 
   Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
 

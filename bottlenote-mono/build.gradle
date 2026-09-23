@@ -11,6 +11,7 @@ dependencies {
 	implementation libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.graphql
 	implementation libs.spring.boot.starter.validation
+	compileOnly 'io.swagger.core.v3:swagger-annotations-jakarta:2.2.47'
 
 	// ===== Database =====
 	implementation libs.spring.boot.starter.data.jpa
