@@ -123,6 +123,16 @@ runs:
         registry: ${{ inputs.registry-url }}
         username: ${{ inputs.registry-username }}
         password: ${{ inputs.registry-password }}
+    # 일부 runner→레지스트리 경로의 1~2% 손실에서 cubic은 100KB/s대로 붕괴하므로 BBR을 쓴다
+    # buildkit 컨테이너는 생성 시점의 값을 물려받으므로 Setup Docker Buildx보다 먼저 설정해야 한다
+    - name: Use BBR congestion control
+      shell: bash
+      run: |
+        if sudo modprobe tcp_bbr && sudo sysctl -qw net.ipv4.tcp_congestion_control=bbr; then
+          echo "tcp congestion control: $(cat /proc/sys/net/ipv4/tcp_congestion_control)"
+        else
+          echo "::warning::BBR을 적용하지 못해 기본 혼잡 제어로 push한다"
+        fi
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v4
       with:
