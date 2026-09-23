@@ -179,6 +179,20 @@ class MfdsMatchingServiceTest {
   }
 
   @Test
+  @DisplayName("확정하면 선택한 주류 이름으로 알코올명을 바로 바꾼다")
+  void 확정시_알코올명을_선택한_주류_이름으로_바꾼다() {
+    MfdsDeclaration declaration =
+        savedDeclaration("글렌모렌지 프라이빗에디션 스피오스", "GLENMORANGIE PRIVATE EDITION SPIOS");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(5582L, "글렌모렌지 스피오스", "Glenmorangie Spios"));
+
+    matchingService.confirmMatching(
+        declaration.getId(), new MfdsMatchingConfirmRequest(5582L, null, null), ADMIN_ID);
+
+    assertThat(declaration.getAlcoholNameKo()).isEqualTo("글렌모렌지 스피오스");
+    assertThat(declaration.getAlcoholNameEn()).isEqualTo("Glenmorangie Spios");
+  }
+
+  @Test
   @DisplayName("후보 밖의 ID로 확정할 때 MANUAL 결정으로 기록한다")
   void 후보외_ID_확정시_MANUAL로_기록한다() {
     MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");

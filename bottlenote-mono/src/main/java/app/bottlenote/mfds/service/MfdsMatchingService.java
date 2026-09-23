@@ -211,6 +211,7 @@ public class MfdsMatchingService {
             request.distilleryId(), distilleryId, declaration.hasDistilleryCandidate(distilleryId)),
         regionId,
         referenceSource(request.regionId(), regionId, declaration.hasRegionCandidate(regionId)));
+    declaration.applyMatchedAlcoholName(alcohol.korName(), alcohol.engName());
     declarationRepository.save(declaration);
 
     SelectionAuditContext audit =
