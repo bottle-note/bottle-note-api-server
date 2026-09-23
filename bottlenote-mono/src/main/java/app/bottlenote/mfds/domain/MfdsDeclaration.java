@@ -268,85 +268,13 @@ public class MfdsDeclaration {
   @Column(name = "distillery_name_en_candidate", columnDefinition = "TEXT")
   private String distilleryNameEnCandidate;
 
-  @Comment("주류 1순위 후보 ID")
-  @Column(name = "alcohol_candidate_1_id")
-  private Long alcoholCandidate1Id;
-
-  @Comment("주류 1순위 후보 점수")
-  @Column(name = "alcohol_candidate_1_score", precision = 10, scale = 6)
-  private BigDecimal alcoholCandidate1Score;
-
-  @Comment("주류 2순위 후보 ID")
-  @Column(name = "alcohol_candidate_2_id")
-  private Long alcoholCandidate2Id;
-
-  @Comment("주류 2순위 후보 점수")
-  @Column(name = "alcohol_candidate_2_score", precision = 10, scale = 6)
-  private BigDecimal alcoholCandidate2Score;
-
-  @Comment("주류 3순위 후보 ID")
-  @Column(name = "alcohol_candidate_3_id")
-  private Long alcoholCandidate3Id;
-
-  @Comment("주류 3순위 후보 점수")
-  @Column(name = "alcohol_candidate_3_score", precision = 10, scale = 6)
-  private BigDecimal alcoholCandidate3Score;
-
   @Comment("선택된 주류 ID")
   @Column(name = "selected_alcohol_id")
   private Long selectedAlcoholId;
 
-  @Comment("증류소 1순위 후보 ID")
-  @Column(name = "distillery_candidate_1_id")
-  private Long distilleryCandidate1Id;
-
-  @Comment("증류소 1순위 후보 점수")
-  @Column(name = "distillery_candidate_1_score", precision = 10, scale = 6)
-  private BigDecimal distilleryCandidate1Score;
-
-  @Comment("증류소 2순위 후보 ID")
-  @Column(name = "distillery_candidate_2_id")
-  private Long distilleryCandidate2Id;
-
-  @Comment("증류소 2순위 후보 점수")
-  @Column(name = "distillery_candidate_2_score", precision = 10, scale = 6)
-  private BigDecimal distilleryCandidate2Score;
-
-  @Comment("증류소 3순위 후보 ID")
-  @Column(name = "distillery_candidate_3_id")
-  private Long distilleryCandidate3Id;
-
-  @Comment("증류소 3순위 후보 점수")
-  @Column(name = "distillery_candidate_3_score", precision = 10, scale = 6)
-  private BigDecimal distilleryCandidate3Score;
-
   @Comment("선택된 증류소 ID")
   @Column(name = "selected_distillery_id")
   private Long selectedDistilleryId;
-
-  @Comment("지역 1순위 후보 ID")
-  @Column(name = "region_candidate_1_id")
-  private Long regionCandidate1Id;
-
-  @Comment("지역 1순위 후보 점수")
-  @Column(name = "region_candidate_1_score", precision = 10, scale = 6)
-  private BigDecimal regionCandidate1Score;
-
-  @Comment("지역 2순위 후보 ID")
-  @Column(name = "region_candidate_2_id")
-  private Long regionCandidate2Id;
-
-  @Comment("지역 2순위 후보 점수")
-  @Column(name = "region_candidate_2_score", precision = 10, scale = 6)
-  private BigDecimal regionCandidate2Score;
-
-  @Comment("지역 3순위 후보 ID")
-  @Column(name = "region_candidate_3_id")
-  private Long regionCandidate3Id;
-
-  @Comment("지역 3순위 후보 점수")
-  @Column(name = "region_candidate_3_score", precision = 10, scale = 6)
-  private BigDecimal regionCandidate3Score;
 
   @Comment("선택된 지역 ID")
   @Column(name = "selected_region_id")
@@ -486,32 +414,10 @@ public class MfdsDeclaration {
     return this.importerId != null;
   }
 
-  /** 매칭 실행 결과의 상위 후보(최대 3개)를 기록한다. 목록이 3개 미만이면 남는 슬롯은 비운다. */
-  public void applyMatchingCandidates(
-      List<MfdsMatchCandidate> alcoholCandidates,
-      List<MfdsMatchCandidate> distilleryCandidates,
-      List<MfdsMatchCandidate> regionCandidates,
-      String matchingVersion,
-      LocalDateTime matchedAt) {
-    this.alcoholCandidate1Id = candidateId(alcoholCandidates, 0);
-    this.alcoholCandidate1Score = candidateScore(alcoholCandidates, 0);
-    this.alcoholCandidate2Id = candidateId(alcoholCandidates, 1);
-    this.alcoholCandidate2Score = candidateScore(alcoholCandidates, 1);
-    this.alcoholCandidate3Id = candidateId(alcoholCandidates, 2);
-    this.alcoholCandidate3Score = candidateScore(alcoholCandidates, 2);
-    this.distilleryCandidate1Id = candidateId(distilleryCandidates, 0);
-    this.distilleryCandidate1Score = candidateScore(distilleryCandidates, 0);
-    this.distilleryCandidate2Id = candidateId(distilleryCandidates, 1);
-    this.distilleryCandidate2Score = candidateScore(distilleryCandidates, 1);
-    this.distilleryCandidate3Id = candidateId(distilleryCandidates, 2);
-    this.distilleryCandidate3Score = candidateScore(distilleryCandidates, 2);
-    this.regionCandidate1Id = candidateId(regionCandidates, 0);
-    this.regionCandidate1Score = candidateScore(regionCandidates, 0);
-    this.regionCandidate2Id = candidateId(regionCandidates, 1);
-    this.regionCandidate2Score = candidateScore(regionCandidates, 1);
-    this.regionCandidate3Id = candidateId(regionCandidates, 2);
-    this.regionCandidate3Score = candidateScore(regionCandidates, 2);
-    this.matchingVersion = matchingVersion;
+  /** 완료된 매칭 실행을 연결하며 후보는 실행별 테이블에서 관리한다. */
+  public void applyMatchingRun(Long runId, String version, LocalDateTime matchedAt) {
+    this.matchingRunId = runId;
+    this.matchingVersion = version;
     this.matchedAt = matchedAt;
   }
 
@@ -552,68 +458,5 @@ public class MfdsDeclaration {
     this.distilleryMatchSource = null;
     this.selectedRegionId = null;
     this.regionMatchSource = null;
-  }
-
-  public List<MfdsMatchCandidate> getAlcoholCandidates() {
-    return storedCandidates(
-        alcoholCandidate1Id,
-        alcoholCandidate1Score,
-        alcoholCandidate2Id,
-        alcoholCandidate2Score,
-        alcoholCandidate3Id,
-        alcoholCandidate3Score);
-  }
-
-  public List<MfdsMatchCandidate> getDistilleryCandidates() {
-    return storedCandidates(
-        distilleryCandidate1Id,
-        distilleryCandidate1Score,
-        distilleryCandidate2Id,
-        distilleryCandidate2Score,
-        distilleryCandidate3Id,
-        distilleryCandidate3Score);
-  }
-
-  public List<MfdsMatchCandidate> getRegionCandidates() {
-    return storedCandidates(
-        regionCandidate1Id,
-        regionCandidate1Score,
-        regionCandidate2Id,
-        regionCandidate2Score,
-        regionCandidate3Id,
-        regionCandidate3Score);
-  }
-
-  public boolean hasAlcoholCandidate(Long alcoholId) {
-    return getAlcoholCandidates().stream().anyMatch(candidate -> candidate.id().equals(alcoholId));
-  }
-
-  public boolean hasDistilleryCandidate(Long distilleryId) {
-    return getDistilleryCandidates().stream()
-        .anyMatch(candidate -> candidate.id().equals(distilleryId));
-  }
-
-  public boolean hasRegionCandidate(Long regionId) {
-    return getRegionCandidates().stream().anyMatch(candidate -> candidate.id().equals(regionId));
-  }
-
-  private static Long candidateId(List<MfdsMatchCandidate> candidates, int index) {
-    return candidates != null && candidates.size() > index ? candidates.get(index).id() : null;
-  }
-
-  private static BigDecimal candidateScore(List<MfdsMatchCandidate> candidates, int index) {
-    return candidates != null && candidates.size() > index ? candidates.get(index).score() : null;
-  }
-
-  private static List<MfdsMatchCandidate> storedCandidates(Object... idScorePairs) {
-    List<MfdsMatchCandidate> candidates = new ArrayList<>();
-    for (int i = 0; i < idScorePairs.length; i += 2) {
-      Long id = (Long) idScorePairs[i];
-      BigDecimal score = (BigDecimal) idScorePairs[i + 1];
-      if (id != null) {
-        candidates.add(new MfdsMatchCandidate(id, score != null ? score : BigDecimal.ZERO));
-      }
-    }
-    return candidates;
   }
 }

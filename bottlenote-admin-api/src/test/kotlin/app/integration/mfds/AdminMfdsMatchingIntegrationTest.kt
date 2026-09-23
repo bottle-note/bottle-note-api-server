@@ -1,9 +1,11 @@
 package app.integration.mfds
 
 import app.IntegrationTestSupport
+import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository
+import app.bottlenote.mfds.domain.MfdsMatchingRepository
 import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest
 import app.bottlenote.mfds.fixture.MfdsTestData
 import app.bottlenote.mfds.fixture.MfdsTestFactory
@@ -45,6 +47,9 @@ class AdminMfdsMatchingIntegrationTest : IntegrationTestSupport() {
 	@Autowired
 	private lateinit var jdbcTemplate: JdbcTemplate
 
+	@Autowired
+	private lateinit var matchingRepository: MfdsMatchingRepository
+
 	private lateinit var accessToken: String
 	private var adminId: Long = 0
 
@@ -53,6 +58,78 @@ class AdminMfdsMatchingIntegrationTest : IntegrationTestSupport() {
 		val admin = adminUserTestFactory.persistRootAdmin()
 		adminId = admin.id
 		accessToken = getAccessToken(admin)
+	}
+
+	@Test
+	@DisplayName("매칭을 실행할 때 위스키 상위 10개를 DB에 저장하고 다시 조회한다")
+	fun runPersistsAndReturnsTenAlcoholCandidates() {
+		repeat(12) {
+			alcoholTestFactory.persistAlcohol("글렌피딕 12", "Glenfiddich 12", AlcoholType.WHISKY)
+		}
+		val declaration = mfdsTestFactory.persistDeclaration("RCNO-TOP10", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+		MfdsTestData.set(declaration, "nameSearchKeyKo", "글렌피딕 12")
+		MfdsTestData.set(declaration, "nameSearchKeyEn", "Glenfiddich 12")
+		declarationRepository.save(declaration)
+
+		val run = mockMvcTester.post().uri("/v1/mfds/declarations/${declaration.id}/matching/run")
+			.header("Authorization", "Bearer $accessToken").exchange()
+		assertThat(run).hasStatusOk()
+		val ranked = mapper.readTree(run.response.contentAsString).path("data").path("alcoholCandidates")
+		assertThat(ranked.size()).isEqualTo(10)
+		val expectedIds = ranked.map { it.path("alcoholId").asLong() }
+		val stored = declarationRepository.findById(declaration.id).orElseThrow()
+		assertThat(matchingRepository.findCandidates(stored.matchingRunId, stored.id).filter { it.targetType == "ALCOHOL" }.map { it.targetId }).containsExactlyElementsOf(expectedIds)
+		assertThat(matchingRepository.findCandidates(stored.matchingRunId, stored.id).filter { it.targetType == "ALCOHOL" }.map { it.rawScore.toDouble() })
+			.containsExactlyElementsOf(ranked.map { it.path("score").asDouble() })
+
+		val fetched = mockMvcTester.get().uri("/v1/mfds/declarations/${declaration.id}/matching/candidates")
+			.header("Authorization", "Bearer $accessToken").exchange()
+		assertThat(fetched).hasStatusOk()
+		assertThat(mapper.readTree(fetched.response.contentAsString).path("data").path("alcoholCandidates").map { it.path("alcoholId").asLong() })
+			.containsExactlyElementsOf(expectedIds)
+
+		assertThat(confirm(declaration.id, expectedIds.last())).hasStatusOk()
+		assertThat(declarationRepository.findById(declaration.id).orElseThrow().alcoholMatchDecision).isEqualTo("CANDIDATE")
+	}
+
+	@Test
+	@DisplayName("고정 후보 컬럼이 남아 있어도 실행 테이블만 읽고 재계산은 이전 이력을 보존한다")
+	fun ignoresLegacySlotsAndPreservesHistory() {
+		val alcohol = alcoholTestFactory.persistAlcohol("글렌모렌지 오리지널 12년", "Glenmorangie Original 12yo", AlcoholType.WHISKY)
+		val d = mfdsTestFactory.persistDeclaration("RCNO-HISTORY", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+		jdbcTemplate.update("UPDATE mfds_declarations SET alcohol_candidate_1_id = ?, alcohol_candidate_1_score = 1, distillery_candidate_1_id = 987, name_search_key_en = 'Glenmorangie Original 12yo' WHERE id = ?", alcohol.id, d.id)
+		assertThat(matchingService.getCandidates(d.id).alcoholCandidates()).isEmpty()
+		assertThat(matchingService.getCandidates(d.id).distilleryCandidates()).isEmpty()
+		val first = matchingService.runMatching(d.id)
+		val firstRun = declarationRepository.findById(d.id).orElseThrow().matchingRunId
+		assertThat(first.alcoholCandidates()).hasSize(1)
+		assertThat(matchingService.getCandidates(d.id).alcoholCandidates().first().scoreDetail()).isEqualTo(first.alcoholCandidates().first().scoreDetail())
+		assertThat(jdbcTemplate.queryForObject("SELECT alcohol_candidate_1_score FROM mfds_declarations WHERE id = ?", java.math.BigDecimal::class.java, d.id)).isEqualByComparingTo("1")
+		val detail = mockMvcTester.get().uri("/v1/mfds/declarations/${d.id}").header("Authorization", "Bearer $accessToken").exchange()
+		assertThat(detail).hasStatusOk()
+		assertThat(mapper.readTree(detail.response.contentAsString).path("data").path("alcoholCandidates").size()).isEqualTo(1)
+		jdbcTemplate.update("UPDATE mfds_declarations SET name_search_key_en = 'UnrelatedBrand UnknownProduct' WHERE id = ?", d.id)
+		matchingService.runMatching(d.id)
+		val latest = declarationRepository.findById(d.id).orElseThrow()
+		assertThat(latest.matchingRunId).isNotEqualTo(firstRun)
+		assertThat(matchingService.getCandidates(d.id).alcoholCandidates()).isEmpty()
+		assertThat(matchingRepository.findCandidates(firstRun, d.id)).hasSize(1)
+	}
+
+	@Test
+	@DisplayName("매칭 트랜잭션을 롤백할 때 실행과 후보 및 최신 실행 연결을 함께 되돌린다")
+	fun rollsBackRunCandidatesAndPointerTogether() {
+		alcoholTestFactory.persistAlcohol("글렌피딕", "Glenfiddich", AlcoholType.WHISKY)
+		val d = mfdsTestFactory.persistDeclaration("RCNO-ROLLBACK", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+		jdbcTemplate.update("UPDATE mfds_declarations SET name_search_key_en = 'Glenfiddich' WHERE id = ?", d.id)
+		val before = requireNotNull(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM mfds_matching_runs", Long::class.java))
+		org.springframework.transaction.support.TransactionTemplate(transactionManager).executeWithoutResult { status ->
+			matchingService.runMatching(d.id)
+			status.setRollbackOnly()
+		}
+		assertThat(requireNotNull(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM mfds_matching_runs", Long::class.java))).isEqualTo(before)
+		assertThat(requireNotNull(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM mfds_matching_candidates WHERE declaration_id = ?", Long::class.java, d.id))).isZero()
+		assertThat(jdbcTemplate.queryForMap("SELECT matching_run_id FROM mfds_declarations WHERE id = ?", d.id)["matching_run_id"]).isNull()
 	}
 
 	@Test

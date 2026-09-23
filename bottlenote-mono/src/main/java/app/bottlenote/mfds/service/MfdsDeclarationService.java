@@ -36,6 +36,7 @@ public class MfdsDeclarationService {
 
   private final MfdsDeclarationRepository declarationRepository;
   private final MfdsImporterRepository importerRepository;
+  private final MfdsMatchingHistoryService historyService;
 
   @Transactional(readOnly = true)
   public MfdsItemDetailResponse getLatestItem(String rcno) {
@@ -74,7 +75,8 @@ public class MfdsDeclarationService {
                 .map(MfdsResponseMapper::toImporterItem)
                 .orElse(null)
             : null;
-    return MfdsResponseMapper.toDeclarationDetail(declaration, importer);
+    return MfdsResponseMapper.toDeclarationDetail(
+        declaration, importer, historyService.findCandidates(declaration));
   }
 
   @Transactional

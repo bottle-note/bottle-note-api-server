@@ -12,10 +12,12 @@ import app.bottlenote.alcohols.facade.payload.RegionMatchTargetItem;
 import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
-import app.bottlenote.mfds.domain.MfdsMatchCandidate;
+import app.bottlenote.mfds.domain.MfdsMatchingCandidate;
 import app.bottlenote.mfds.domain.MfdsMatchingSelection;
 import app.bottlenote.mfds.domain.MfdsMatchingSelectionRepository;
 import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest;
+import app.bottlenote.mfds.dto.request.MfdsMatchingExecutionRequest;
+import app.bottlenote.mfds.dto.request.MfdsMatchingReferenceSnapshotItem;
 import app.bottlenote.mfds.dto.response.MfdsAlcoholCandidateItem;
 import app.bottlenote.mfds.dto.response.MfdsMatchScoreDetailItem;
 import app.bottlenote.mfds.dto.response.MfdsMatchingCandidatesResponse;
@@ -27,7 +29,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -40,25 +41,39 @@ import org.springframework.transaction.annotation.Transactional;
 public class MfdsMatchingService {
 
   /** 점수 산식 버전. 산식(가중치·요소) 변경 시 올린다. */
-  public static final String MATCHING_VERSION = "mfds-matching-v1";
+  public static final String MATCHING_VERSION = "mfds-matching-v2";
 
   private static final BigDecimal CANDIDATE_SCORE_THRESHOLD = new BigDecimal("0.4");
-  private static final int MAX_CANDIDATES = 3;
+  private static final int MAX_ALCOHOL_CANDIDATES = 10;
+  private static final int MAX_REFERENCE_CANDIDATES = 3;
 
   private final MfdsDeclarationRepository declarationRepository;
   private final AlcoholMatchTargetFacade alcoholMatchTargetFacade;
   private final MfdsMatchingScoreCalculator scoreCalculator;
   private final MfdsMatchingSelectionRepository selectionRepository;
+  private final MfdsMatchingHistoryService historyService;
 
-  /** 후보를 계산해 저장하고 점수 근거와 함께 반환한다. 기존 후보는 덮어쓴다. */
+  /** 후보를 계산해 저장하고 점수 근거와 함께 반환한다. 실행별 이력을 보존하고 최신 실행을 연결한다. */
   @Transactional
   public MfdsMatchingRunResponse runMatching(Long declarationId) {
-    MfdsDeclaration declaration = getDeclaration(declarationId);
-
-    List<ScoredAlcohol> alcoholCandidates = rankAlcoholCandidates(declaration);
+    MfdsDeclaration declaration = getDeclarationForUpdate(declarationId);
+    LocalDateTime startedAt = LocalDateTime.now();
+    var alcoholTargets =
+        alcoholMatchTargetFacade.findAllAlcoholTargets().stream()
+            .sorted(Comparator.comparing(AlcoholMatchTargetItem::alcoholId))
+            .toList();
+    var distilleryTargets =
+        alcoholMatchTargetFacade.findAllDistilleryTargets().stream()
+            .sorted(Comparator.comparing(DistilleryMatchTargetItem::id))
+            .toList();
+    var regionTargets =
+        alcoholMatchTargetFacade.findAllRegionTargets().stream()
+            .sorted(Comparator.comparing(RegionMatchTargetItem::id))
+            .toList();
+    List<ScoredAlcohol> alcoholCandidates = rankAlcoholCandidates(declaration, alcoholTargets);
     List<ScoredReference> distilleryCandidates =
         rankReferenceCandidates(
-            alcoholMatchTargetFacade.findAllDistilleryTargets().stream()
+            distilleryTargets.stream()
                 .map(
                     target ->
                         new ScoredReference(
@@ -69,7 +84,7 @@ public class MfdsMatchingService {
                 .toList());
     List<ScoredReference> regionCandidates =
         rankReferenceCandidates(
-            alcoholMatchTargetFacade.findAllRegionTargets().stream()
+            regionTargets.stream()
                 .map(
                     target ->
                         new ScoredReference(
@@ -80,29 +95,35 @@ public class MfdsMatchingService {
                 .toList());
 
     LocalDateTime matchedAt = LocalDateTime.now();
-    declaration.applyMatchingCandidates(
+    var alcoholItems =
         alcoholCandidates.stream()
-            .map(scored -> new MfdsMatchCandidate(scored.target().alcoholId(), scored.totalScore()))
-            .toList(),
-        distilleryCandidates.stream()
-            .map(scored -> new MfdsMatchCandidate(scored.id(), scored.score()))
-            .toList(),
-        regionCandidates.stream()
-            .map(scored -> new MfdsMatchCandidate(scored.id(), scored.score()))
-            .toList(),
-        MATCHING_VERSION,
-        matchedAt);
+            .map(scored -> toAlcoholItem(scored.target(), scored.totalScore(), scored.detail()))
+            .toList();
+    var distilleryItems =
+        distilleryCandidates.stream().map(MfdsMatchingService::toReferenceItem).toList();
+    var regionItems = regionCandidates.stream().map(MfdsMatchingService::toReferenceItem).toList();
+    Long runId =
+        historyService.save(
+            declaration,
+            new MfdsMatchingExecutionRequest(
+                MATCHING_VERSION,
+                startedAt,
+                matchedAt,
+                new MfdsMatchingReferenceSnapshotItem(
+                    alcoholTargets, distilleryTargets, regionTargets),
+                alcoholItems,
+                distilleryItems,
+                regionItems));
+    declaration.applyMatchingRun(runId, MATCHING_VERSION, matchedAt);
     declarationRepository.save(declaration);
 
     return new MfdsMatchingRunResponse(
         declaration.getId(),
         MATCHING_VERSION,
         matchedAt,
-        alcoholCandidates.stream()
-            .map(scored -> toAlcoholItem(scored.target(), scored.totalScore(), scored.detail()))
-            .toList(),
-        distilleryCandidates.stream().map(MfdsMatchingService::toReferenceItem).toList(),
-        regionCandidates.stream().map(MfdsMatchingService::toReferenceItem).toList());
+        alcoholItems,
+        distilleryItems,
+        regionItems);
   }
 
   /** 저장된 후보와 확정 상태를 각 후보의 요약 정보와 함께 조회한다. */
@@ -110,38 +131,16 @@ public class MfdsMatchingService {
   public MfdsMatchingCandidatesResponse getCandidates(Long declarationId) {
     MfdsDeclaration declaration = getDeclaration(declarationId);
 
-    List<MfdsMatchCandidate> alcoholCandidates = declaration.getAlcoholCandidates();
-    Map<Long, AlcoholMatchTargetItem> alcoholSummaries =
+    var candidates = historyService.findCandidates(declaration);
+    var details = historyService.findDetails(candidates);
+    var alcoholCandidates =
+        candidates.stream().filter(c -> "ALCOHOL".equals(c.getTargetType())).toList();
+    var summaries =
         alcoholMatchTargetFacade
             .findAlcoholTargetsByIds(
-                alcoholCandidates.stream().map(MfdsMatchCandidate::id).toList())
+                alcoholCandidates.stream().map(MfdsMatchingCandidate::getTargetId).toList())
             .stream()
             .collect(Collectors.toMap(AlcoholMatchTargetItem::alcoholId, Function.identity()));
-
-    List<MfdsMatchCandidate> distilleryCandidates = declaration.getDistilleryCandidates();
-    Map<Long, ReferenceName> distilleryNames =
-        distilleryCandidates.isEmpty()
-            ? Map.of()
-            : alcoholMatchTargetFacade
-                .findDistilleryTargetsByIds(candidateIds(distilleryCandidates))
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        DistilleryMatchTargetItem::id,
-                        target -> new ReferenceName(target.korName(), target.engName())));
-
-    List<MfdsMatchCandidate> regionCandidates = declaration.getRegionCandidates();
-    Map<Long, ReferenceName> regionNames =
-        regionCandidates.isEmpty()
-            ? Map.of()
-            : alcoholMatchTargetFacade
-                .findRegionTargetsByIds(candidateIds(regionCandidates))
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        RegionMatchTargetItem::id,
-                        target -> new ReferenceName(target.korName(), target.engName())));
-
     return new MfdsMatchingCandidatesResponse(
         declaration.getId(),
         declaration.getMatchingVersion(),
@@ -156,25 +155,36 @@ public class MfdsMatchingService {
         alcoholCandidates.stream()
             .map(
                 candidate -> {
-                  AlcoholMatchTargetItem summary = alcoholSummaries.get(candidate.id());
-                  if (summary == null) {
+                  var summary = summaries.get(candidate.getTargetId());
+                  if (summary == null)
                     return new MfdsAlcoholCandidateItem(
-                        candidate.id(),
-                        candidate.score(),
+                        candidate.getTargetId(),
+                        candidate.getRawScore(),
+                        candidate.getTargetNameKo(),
+                        candidate.getTargetNameEn(),
                         null,
                         null,
                         null,
                         null,
                         null,
-                        null,
-                        null,
-                        null);
-                  }
-                  return toAlcoholItem(summary, candidate.score(), null);
+                        details.get(candidate.getId()));
+                  return toAlcoholItem(
+                      summary, candidate.getRawScore(), details.get(candidate.getId()));
                 })
             .toList(),
-        toStoredReferenceItems(distilleryCandidates, distilleryNames),
-        toStoredReferenceItems(regionCandidates, regionNames));
+        storedReferences(candidates, "DISTILLERY"),
+        storedReferences(candidates, "REGION"));
+  }
+
+  private static List<MfdsReferenceCandidateItem> storedReferences(
+      List<MfdsMatchingCandidate> candidates, String type) {
+    return candidates.stream()
+        .filter(c -> type.equals(c.getTargetType()))
+        .map(
+            c ->
+                new MfdsReferenceCandidateItem(
+                    c.getTargetId(), c.getRawScore(), c.getTargetNameKo(), c.getTargetNameEn()))
+        .toList();
   }
 
   /** 매칭을 확정한다. 후보 목록에 있으면 CANDIDATE, 후보 밖 ID면 MANUAL로 결정 근거를 기록한다. */
@@ -195,6 +205,7 @@ public class MfdsMatchingService {
       throw new MfdsException(MFDS_SELECTED_REGION_NOT_FOUND);
     }
 
+    var candidates = historyService.findCandidates(declaration);
     Long previousDistilleryId = declaration.getSelectedDistilleryId();
     Long previousRegionId = declaration.getSelectedRegionId();
     Long distilleryId =
@@ -205,12 +216,15 @@ public class MfdsMatchingService {
         request.regionId() != null ? request.regionId() : positiveId(alcohol.regionId());
     declaration.confirmMatching(
         request.alcoholId(),
-        selectionSource(declaration.hasAlcoholCandidate(request.alcoholId())),
+        selectionSource(hasCandidate(candidates, "ALCOHOL", request.alcoholId())),
         distilleryId,
         referenceSource(
-            request.distilleryId(), distilleryId, declaration.hasDistilleryCandidate(distilleryId)),
+            request.distilleryId(),
+            distilleryId,
+            hasCandidate(candidates, "DISTILLERY", distilleryId)),
         regionId,
-        referenceSource(request.regionId(), regionId, declaration.hasRegionCandidate(regionId)));
+        referenceSource(
+            request.regionId(), regionId, hasCandidate(candidates, "REGION", regionId)));
     declaration.applyMatchedAlcoholName(alcohol.korName(), alcohol.engName());
     declarationRepository.save(declaration);
 
@@ -300,15 +314,16 @@ public class MfdsMatchingService {
     }
   }
 
-  private List<ScoredAlcohol> rankAlcoholCandidates(MfdsDeclaration declaration) {
-    return alcoholMatchTargetFacade.findAllAlcoholTargets().stream()
+  private List<ScoredAlcohol> rankAlcoholCandidates(
+      MfdsDeclaration declaration, List<AlcoholMatchTargetItem> targets) {
+    return targets.stream()
         .map(target -> new ScoredAlcohol(target, scoreCalculator.scoreAlcohol(declaration, target)))
         .filter(scored -> scored.totalScore().compareTo(CANDIDATE_SCORE_THRESHOLD) >= 0)
         .sorted(
             Comparator.comparing(ScoredAlcohol::totalScore)
                 .reversed()
                 .thenComparing(scored -> scored.target().alcoholId()))
-        .limit(MAX_CANDIDATES)
+        .limit(MAX_ALCOHOL_CANDIDATES)
         .toList();
   }
 
@@ -321,7 +336,7 @@ public class MfdsMatchingService {
             Comparator.comparing(ScoredReference::score)
                 .reversed()
                 .thenComparing(ScoredReference::id))
-        .limit(MAX_CANDIDATES)
+        .limit(MAX_REFERENCE_CANDIDATES)
         .toList();
   }
 
@@ -349,8 +364,10 @@ public class MfdsMatchingService {
         declaration.getRegionMatchSource());
   }
 
-  private static List<Long> candidateIds(List<MfdsMatchCandidate> candidates) {
-    return candidates.stream().map(MfdsMatchCandidate::id).toList();
+  private static boolean hasCandidate(
+      List<MfdsMatchingCandidate> candidates, String type, Long id) {
+    return candidates.stream()
+        .anyMatch(c -> type.equals(c.getTargetType()) && c.getTargetId().equals(id));
   }
 
   private static MfdsMatchSelectionSource selectionSource(boolean fromCandidate) {
@@ -377,21 +394,6 @@ public class MfdsMatchingService {
         scored.id(), scored.score(), scored.korName(), scored.engName());
   }
 
-  private static List<MfdsReferenceCandidateItem> toStoredReferenceItems(
-      List<MfdsMatchCandidate> candidates, Map<Long, ReferenceName> names) {
-    return candidates.stream()
-        .map(
-            candidate -> {
-              ReferenceName name = names.get(candidate.id());
-              return new MfdsReferenceCandidateItem(
-                  candidate.id(),
-                  candidate.score(),
-                  name != null ? name.korName() : null,
-                  name != null ? name.engName() : null);
-            })
-        .toList();
-  }
-
   private record SelectionAuditContext(
       Long declarationId, Long adminId, LocalDateTime selectedAt) {}
 
@@ -402,6 +404,4 @@ public class MfdsMatchingService {
   }
 
   private record ScoredReference(Long id, String korName, String engName, BigDecimal score) {}
-
-  private record ReferenceName(String korName, String engName) {}
 }

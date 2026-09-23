@@ -10,6 +10,7 @@ import app.bottlenote.alcohols.fixture.FakeAlcoholMatchTargetFacade;
 import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
+import app.bottlenote.mfds.domain.MfdsMatchCandidate;
 import app.bottlenote.mfds.domain.MfdsMatchingSelection;
 import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest;
 import app.bottlenote.mfds.dto.response.MfdsAlcoholCandidateItem;
@@ -21,8 +22,10 @@ import app.bottlenote.mfds.dto.response.MfdsReferenceCandidateItem;
 import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
+import app.bottlenote.mfds.fixture.InMemoryMfdsMatchingRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsMatchingSelectionRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +44,8 @@ class MfdsMatchingServiceTest {
   private RecordingMatchTargetFacade alcoholMatchTargetFacade;
   private MfdsMatchingService matchingService;
   private InMemoryMfdsMatchingSelectionRepository selectionRepository;
+  private MfdsMatchingHistoryService historyService;
+  private InMemoryMfdsMatchingRepository matchingRepository;
   private static final Long ADMIN_ID = 42L;
 
   @BeforeEach
@@ -48,36 +53,53 @@ class MfdsMatchingServiceTest {
     declarationRepository = new RecordingDeclarationRepository();
     selectionRepository = new InMemoryMfdsMatchingSelectionRepository();
     alcoholMatchTargetFacade = new RecordingMatchTargetFacade();
+    matchingRepository = new InMemoryMfdsMatchingRepository();
+    historyService =
+        new MfdsMatchingHistoryService(
+            matchingRepository, new MfdsMatchingEvidenceCodec(new ObjectMapper()));
     matchingService =
         new MfdsMatchingService(
             declarationRepository,
             alcoholMatchTargetFacade,
             new MfdsMatchingScoreCalculator(),
-            selectionRepository);
+            selectionRepository,
+            historyService);
   }
 
   @Test
-  @DisplayName("매칭을 실행할 때 점수 상위 3개 후보만 저장한다")
-  void 후보를_3개까지만_저장한다() {
+  @DisplayName("매칭을 실행할 때 점수 상위 10개 후보만 저장한다")
+  void 후보를_10개까지만_저장한다() {
     MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
-    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
-    alcoholMatchTargetFacade.addAlcohol(alcohol(2L, "글렌피딕 12 리저브", "Glenfiddich 12 Reserve"));
-    alcoholMatchTargetFacade.addAlcohol(
-        alcohol(3L, "글렌피딕 12 스페셜 에디션", "Glenfiddich 12 Special Edition"));
-    alcoholMatchTargetFacade.addAlcohol(
-        alcohol(4L, "글렌피딕 12 캐스크 스트렝스 리미티드", "Glenfiddich 12 Cask Strength Limited"));
+    for (long id = 1; id <= 12; id++) {
+      alcoholMatchTargetFacade.addAlcohol(alcohol(id, "글렌피딕 12", "Glenfiddich 12"));
+    }
 
     MfdsMatchingRunResponse response = matchingService.runMatching(declaration.getId());
 
-    assertThat(response.alcoholCandidates()).hasSize(3);
+    assertThat(response.alcoholCandidates()).hasSize(10);
     assertThat(response.alcoholCandidates().get(0).alcoholId()).isEqualTo(1L);
     assertThat(response.alcoholCandidates().get(0).scoreDetail()).isNotNull();
-    assertThat(declaration.getAlcoholCandidates()).hasSize(3);
-    assertThat(declaration.getAlcoholCandidate1Id()).isEqualTo(1L);
-    assertThat(declaration.getAlcoholCandidate1Score())
-        .isGreaterThanOrEqualTo(declaration.getAlcoholCandidate2Score());
-    assertThat(declaration.getAlcoholCandidate2Score())
-        .isGreaterThanOrEqualTo(declaration.getAlcoholCandidate3Score());
+    assertThat(storedCandidates(declaration, "ALCOHOL")).hasSize(10);
+    assertThat(candidateId(declaration, "ALCOHOL", 0)).isEqualTo(1L);
+    assertThat(candidateScore(declaration, "ALCOHOL", 0))
+        .isGreaterThanOrEqualTo(candidateScore(declaration, "ALCOHOL", 1));
+    assertThat(candidateScore(declaration, "ALCOHOL", 1))
+        .isGreaterThanOrEqualTo(candidateScore(declaration, "ALCOHOL", 2));
+    assertThat(matchingService.getCandidates(declaration.getId()).alcoholCandidates())
+        .extracting(MfdsAlcoholCandidateItem::alcoholId)
+        .containsExactly(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
+    assertThat(
+            matchingService
+                .confirmMatching(
+                    declaration.getId(), new MfdsMatchingConfirmRequest(10L, null, null), ADMIN_ID)
+                .alcoholMatchDecision())
+        .isEqualTo("CANDIDATE");
+    alcoholMatchTargetFacade.clear();
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
+    matchingService.runMatching(declaration.getId());
+    assertThat(storedCandidates(declaration, "ALCOHOL"))
+        .extracting(candidate -> candidate.id())
+        .containsExactly(1L);
     assertThat(declaration.getMatchingVersion()).isEqualTo(MfdsMatchingService.MATCHING_VERSION);
     assertThat(declaration.getMatchedAt()).isNotNull();
   }
@@ -92,7 +114,7 @@ class MfdsMatchingServiceTest {
     assertThat(response.alcoholCandidates()).isEmpty();
     assertThat(response.distilleryCandidates()).isEmpty();
     assertThat(response.regionCandidates()).isEmpty();
-    assertThat(declaration.getAlcoholCandidate1Id()).isNull();
+    assertThat(candidateId(declaration, "ALCOHOL", 0)).isNull();
     assertThat(declaration.getMatchingVersion()).isEqualTo(MfdsMatchingService.MATCHING_VERSION);
     assertThat(declaration.getMatchedAt()).isNotNull();
   }
@@ -106,7 +128,7 @@ class MfdsMatchingServiceTest {
     MfdsMatchingRunResponse response = matchingService.runMatching(declaration.getId());
 
     assertThat(response.alcoholCandidates()).isEmpty();
-    assertThat(declaration.getAlcoholCandidate1Id()).isNull();
+    assertThat(candidateId(declaration, "ALCOHOL", 0)).isNull();
   }
 
   @Test
@@ -115,13 +137,13 @@ class MfdsMatchingServiceTest {
     MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
     alcoholMatchTargetFacade.addAlcohol(alcohol(1L, "글렌피딕 12", "Glenfiddich 12"));
     matchingService.runMatching(declaration.getId());
-    assertThat(declaration.getAlcoholCandidate1Id()).isEqualTo(1L);
+    assertThat(candidateId(declaration, "ALCOHOL", 0)).isEqualTo(1L);
 
     alcoholMatchTargetFacade.clear();
     matchingService.runMatching(declaration.getId());
 
-    assertThat(declaration.getAlcoholCandidate1Id()).isNull();
-    assertThat(declaration.getAlcoholCandidate1Score()).isNull();
+    assertThat(candidateId(declaration, "ALCOHOL", 0)).isNull();
+    assertThat(candidateScore(declaration, "ALCOHOL", 0)).isNull();
   }
 
   @Test
@@ -142,8 +164,8 @@ class MfdsMatchingServiceTest {
     assertThat(response.distilleryCandidates().get(0).id()).isEqualTo(11L);
     assertThat(response.regionCandidates()).hasSize(1);
     assertThat(response.regionCandidates().get(0).id()).isEqualTo(21L);
-    assertThat(declaration.getDistilleryCandidate1Id()).isEqualTo(11L);
-    assertThat(declaration.getRegionCandidate1Id()).isEqualTo(21L);
+    assertThat(candidateId(declaration, "DISTILLERY", 0)).isEqualTo(11L);
+    assertThat(candidateId(declaration, "REGION", 0)).isEqualTo(21L);
   }
 
   @Test
@@ -238,7 +260,7 @@ class MfdsMatchingServiceTest {
     assertThat(response.selectedAlcoholId()).isNull();
     assertThat(response.alcoholMatchDecision()).isNull();
     assertThat(declaration.getSelectedAlcoholId()).isNull();
-    assertThat(declaration.getAlcoholCandidate1Id()).isEqualTo(1L);
+    assertThat(candidateId(declaration, "ALCOHOL", 0)).isEqualTo(1L);
     assertThat(declaration.getMatchedAt()).isNotNull();
   }
 
@@ -278,7 +300,7 @@ class MfdsMatchingServiceTest {
   }
 
   @Test
-  @DisplayName("저장된 후보를 조회할 때 증류소·지역을 전체 조회하지 않고 후보 ID로만 읽는다")
+  @DisplayName("저장된 후보를 조회할 때 저장 당시 증류소·지역 이름을 반환한다")
   void 후보_조회는_참조_테이블을_전체_조회하지_않는다() {
     MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
     MfdsTestData.set(declaration, "distilleryNameEnCandidate", "Glenfiddich");
@@ -294,8 +316,8 @@ class MfdsMatchingServiceTest {
     assertThat(response.distilleryCandidates().get(0).korName()).isEqualTo("글렌피딕");
     assertThat(response.regionCandidates().get(0).korName()).isEqualTo("영국");
     assertThat(alcoholMatchTargetFacade.fullScans).isZero();
-    assertThat(alcoholMatchTargetFacade.distilleryIdLookups).isEqualTo(1);
-    assertThat(alcoholMatchTargetFacade.regionIdLookups).isEqualTo(1);
+    assertThat(alcoholMatchTargetFacade.distilleryIdLookups).isZero();
+    assertThat(alcoholMatchTargetFacade.regionIdLookups).isZero();
   }
 
   @Test
@@ -329,8 +351,8 @@ class MfdsMatchingServiceTest {
     assertThat(response.alcoholCandidates())
         .extracting(MfdsAlcoholCandidateItem::alcoholId)
         .containsExactly(1L);
-    assertThat(declaration.getAlcoholCandidate1Id()).isEqualTo(1L);
-    assertThat(declaration.getAlcoholCandidate2Id()).isNull();
+    assertThat(candidateId(declaration, "ALCOHOL", 0)).isEqualTo(1L);
+    assertThat(candidateId(declaration, "ALCOHOL", 1)).isNull();
   }
 
   @Test
@@ -359,12 +381,12 @@ class MfdsMatchingServiceTest {
   }
 
   @Test
-  @DisplayName("점수가 모두 같을 때 alcoholId 오름차순으로 상위 3개를 뽑는다")
+  @DisplayName("점수가 모두 같을 때 alcoholId 오름차순으로 상위 10개를 뽑는다")
   void 동점_후보는_alcoholId_오름차순으로_자른다() {
     // 동점이면 정렬 결과가 입력 순서에 좌우될 수 있다. id 오름차순 고정이 계약이다
     MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
     FixedScoreCalculator calculator = new FixedScoreCalculator();
-    List.of(7L, 3L, 9L, 1L, 5L)
+    List.of(12L, 7L, 3L, 9L, 1L, 5L, 11L, 2L, 10L, 4L, 8L, 6L)
         .forEach(
             id -> {
               calculator.putAlcoholScore(id, "0.900");
@@ -377,21 +399,21 @@ class MfdsMatchingServiceTest {
 
     assertThat(first.alcoholCandidates())
         .extracting(MfdsAlcoholCandidateItem::alcoholId)
-        .containsExactly(1L, 3L, 5L);
+        .containsExactly(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
     assertThat(second.alcoholCandidates())
         .extracting(MfdsAlcoholCandidateItem::alcoholId)
-        .containsExactly(1L, 3L, 5L);
+        .containsExactly(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
   }
 
   @Test
   @DisplayName("점수가 높은 대상을 먼저 두고 동점 구간만 alcoholId 오름차순으로 정렬한다")
   void 점수가_우선이고_동점만_id로_정렬한다() {
-    // 상위 3개 컷이 동점 구간을 가로지를 때도 결과가 결정적이어야 한다
+    // 상위 10개 컷이 동점 구간을 가로지를 때도 결과가 결정적이어야 한다
     MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
     FixedScoreCalculator calculator = new FixedScoreCalculator();
     calculator.putAlcoholScore(9L, "0.950");
     alcoholMatchTargetFacade.addAlcohol(alcohol(9L, "최고점", "Top"));
-    List.of(5L, 1L, 3L)
+    List.of(12L, 11L, 10L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L)
         .forEach(
             id -> {
               calculator.putAlcoholScore(id, "0.900");
@@ -402,11 +424,11 @@ class MfdsMatchingServiceTest {
 
     assertThat(response.alcoholCandidates())
         .extracting(MfdsAlcoholCandidateItem::alcoholId)
-        .containsExactly(9L, 1L, 3L);
+        .containsExactly(9L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 10L);
   }
 
   @Test
-  @DisplayName("저장된 후보가 주류 목록에서 사라졌을 때 ID와 점수만 반환한다")
+  @DisplayName("저장된 후보가 주류 목록에서 사라졌을 때 저장 당시 이름과 점수 근거를 반환한다")
   void 사라진_후보는_요약_없이_반환한다() {
     // 매칭 실행 이후 주류가 삭제될 수 있다. 요약 조회 실패로 후보 자체가 사라지면 안 된다
     MfdsDeclaration declaration = savedDeclaration("글렌피딕 12", "glenfiddich 12");
@@ -420,10 +442,10 @@ class MfdsMatchingServiceTest {
     MfdsAlcoholCandidateItem candidate = response.alcoholCandidates().get(0);
     assertThat(candidate.alcoholId()).isEqualTo(1L);
     assertThat(candidate.score()).isNotNull();
-    assertThat(candidate.korName()).isNull();
-    assertThat(candidate.engName()).isNull();
+    assertThat(candidate.korName()).isEqualTo("글렌피딕 12");
+    assertThat(candidate.engName()).isEqualTo("Glenfiddich 12");
     assertThat(candidate.imageUrl()).isNull();
-    assertThat(candidate.scoreDetail()).isNull();
+    assertThat(candidate.scoreDetail()).isNotNull();
   }
 
   @Test
@@ -695,6 +717,68 @@ class MfdsMatchingServiceTest {
     assertThat(declaration.getInheritedFromDeclarationId()).isNull();
   }
 
+  @Test
+  @DisplayName("재계산할 때 새 실행을 연결하고 이전 후보와 근거는 보존한다")
+  void 재계산_이력을_분리한다() {
+    var d = savedDeclaration(null, "Glenmorangie Original 12yo");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, null, "Glenmorangie Original 12yo"));
+    var first = matchingService.runMatching(d.getId());
+    Long firstRun = d.getMatchingRunId();
+    assertThat(
+            matchingService.getCandidates(d.getId()).alcoholCandidates().getFirst().scoreDetail())
+        .isEqualTo(first.alcoholCandidates().getFirst().scoreDetail());
+    alcoholMatchTargetFacade.clear();
+    matchingService.runMatching(d.getId());
+    assertThat(d.getMatchingRunId()).isNotEqualTo(firstRun);
+    assertThat(matchingService.getCandidates(d.getId()).alcoholCandidates()).isEmpty();
+    assertThat(matchingRepository.findCandidates(firstRun, d.getId())).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("신고와 실행 버전이 다를 때 과거 후보를 반환하거나 후보 선택으로 판정하지 않는다")
+  void 불일치한_실행은_참조하지_않는다() {
+    var d = savedDeclaration(null, "Glenmorangie Original 12yo");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, null, "Glenmorangie Original 12yo"));
+    matchingService.runMatching(d.getId());
+    MfdsTestData.set(d, "matchingVersion", "older-version");
+    assertThat(matchingService.getCandidates(d.getId()).alcoholCandidates()).isEmpty();
+    assertThat(
+            matchingService
+                .confirmMatching(
+                    d.getId(), new MfdsMatchingConfirmRequest(1L, null, null), ADMIN_ID)
+                .alcoholMatchDecision())
+        .isEqualTo("MANUAL");
+  }
+
+  @Test
+  @DisplayName("다른 신고의 실행을 가리켜도 후보를 섞어서 반환하지 않는다")
+  void 신고별_후보를_격리한다() {
+    var first = savedDeclaration(null, "Glenmorangie Original 12yo");
+    alcoholMatchTargetFacade.addAlcohol(alcohol(1L, null, "Glenmorangie Original 12yo"));
+    matchingService.runMatching(first.getId());
+    var second = savedDeclaration(null, "Glenmorangie Original 12yo");
+    second.applyMatchingRun(
+        first.getMatchingRunId(), first.getMatchingVersion(), first.getMatchedAt());
+    assertThat(matchingService.getCandidates(second.getId()).alcoholCandidates()).isEmpty();
+  }
+
+  private List<MfdsMatchCandidate> storedCandidates(MfdsDeclaration declaration, String type) {
+    return historyService.findCandidates(declaration).stream()
+        .filter(c -> type.equals(c.getTargetType()))
+        .map(c -> new MfdsMatchCandidate(c.getTargetId(), c.getRawScore()))
+        .toList();
+  }
+
+  private Long candidateId(MfdsDeclaration declaration, String type, int index) {
+    var candidates = storedCandidates(declaration, type);
+    return candidates.size() > index ? candidates.get(index).id() : null;
+  }
+
+  private BigDecimal candidateScore(MfdsDeclaration declaration, String type, int index) {
+    var candidates = storedCandidates(declaration, type);
+    return candidates.size() > index ? candidates.get(index).score() : null;
+  }
+
   private AlcoholMatchTargetItem alcoholWithReferences(Long id, Long distilleryId, Long regionId) {
     return new AlcoholMatchTargetItem(
         id,
@@ -716,7 +800,11 @@ class MfdsMatchingServiceTest {
 
   private MfdsMatchingService serviceWith(MfdsMatchingScoreCalculator calculator) {
     return new MfdsMatchingService(
-        declarationRepository, alcoholMatchTargetFacade, calculator, selectionRepository);
+        declarationRepository,
+        alcoholMatchTargetFacade,
+        calculator,
+        selectionRepository,
+        historyService);
   }
 
   private MfdsDeclaration savedDeclaration(String nameKo, String nameEn) {
@@ -830,7 +918,8 @@ class MfdsMatchingServiceTest {
     public MfdsMatchScoreDetailItem scoreAlcohol(
         MfdsDeclaration declaration, AlcoholMatchTargetItem target) {
       BigDecimal total = alcoholScores.getOrDefault(target.alcoholId(), BigDecimal.ZERO);
-      return new MfdsMatchScoreDetailItem(total, null, null, null, null, total);
+      return new MfdsMatchScoreDetailItem(
+          total, null, null, null, null, total, null, true, List.of());
     }
 
     @Override

@@ -10,6 +10,7 @@ import app.bottlenote.mfds.domain.MfdsDeclaration
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository
 import app.bottlenote.mfds.domain.MfdsImporterRcnoLinkRepository
 import app.bottlenote.mfds.domain.MfdsImporterRepository
+import app.bottlenote.mfds.domain.MfdsMatchingRepository
 import app.bottlenote.mfds.dto.request.MfdsDeclarationImporterLinkRequest
 import app.bottlenote.mfds.dto.request.MfdsDeclarationStatusRequest
 import app.bottlenote.mfds.dto.request.MfdsImporterCreateRequest
@@ -47,6 +48,9 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var alcoholTestFactory: AlcoholTestFactory
+
+	@Autowired
+	private lateinit var matchingRepository: MfdsMatchingRepository
 
 	private lateinit var accessToken: String
 
@@ -639,7 +643,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 				.isEqualTo("글렌피딕 12")
 
 			val stored = declarationRepository.findById(declaration.id).orElseThrow()
-			assertThat(stored.alcoholCandidate1Id).isEqualTo(alcohol.id)
+			assertThat(matchingRepository.findCandidates(stored.matchingRunId, stored.id).filter { it.targetType == "ALCOHOL" }.map { it.targetId }).containsExactly(alcohol.id)
 			assertThat(stored.matchingVersion).isNotBlank()
 			assertThat(stored.matchedAt).isNotNull()
 		}
@@ -692,7 +696,7 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 			val released = declarationRepository.findById(declaration.id).orElseThrow()
 			assertThat(released.selectedAlcoholId as Any?).isNull()
 			assertThat(released.alcoholMatchDecision).isNull()
-			assertThat(released.alcoholCandidate1Id).isEqualTo(alcohol.id)
+			assertThat(matchingRepository.findCandidates(released.matchingRunId, released.id).filter { it.targetType == "ALCOHOL" }.map { it.targetId }).containsExactly(alcohol.id)
 			assertThat(released.matchedAt).isNotNull()
 		}
 

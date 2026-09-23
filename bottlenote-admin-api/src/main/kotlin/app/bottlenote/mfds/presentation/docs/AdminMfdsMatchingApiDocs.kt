@@ -26,8 +26,9 @@ object AdminMfdsMatchingApiDocs {
 		description = """
 			신고 정제 데이터 한 건을 전체 위스키·증류소·지역과 비교해 유사도 점수를 계산합니다.
 
-			점수 상위 3개 후보를 저장하고, 각 후보의 요소별 점수 근거(이름·도수·숙성·카테고리·지역)와 함께 반환합니다.
-			다시 실행하면 기존 후보를 덮어씁니다.
+			점수 0.4 이상인 후보 중 위스키는 상위 10개, 증류소·지역은 각각 상위 3개를 저장하고, 각 후보의 요소별 점수 근거(이름·도수·숙성·카테고리·지역)와 함께 반환합니다.
+			실행 이력과 후보를 mfds_matching_runs / mfds_matching_candidates에 저장하고 신고의 최신 실행을 갱신합니다. 이전 실행의 후보는 보존합니다.
+			브랜드·제품명·숙성·배치·캐스크·연도 비교 근거와 reviewRequired를 반환합니다. v2 점수는 0~1 범위, 소수점 4자리입니다.
 			""",
 		responses = [
 			ApiResponse(
@@ -49,7 +50,8 @@ object AdminMfdsMatchingApiDocs {
 	@Operation(
 		summary = "저장된 매칭 후보를 조회한다",
 		description = """
-			신고 정제 데이터에 저장된 후보 목록과 각 후보의 요약 정보, 현재 확정 상태를 조회합니다. 점수 근거 상세는 매칭 실행 응답에서만 제공됩니다.
+			신고의 matching_run_id와 matching_version이 일치하는 완료 실행의 후보와 현재 확정 상태를 조회합니다. 고정 후보 컬럼은 참조하지 않습니다.
+			유효한 실행이 없으면 빈 배열이며, 다시 계산해야 합니다. Admin v2 실행은 저장된 점수 근거도 반환합니다. 이전 수집기 실행의 점수는 원래 척도를 유지하며 scoreDetail은 null입니다.
 
 			확정 상태(selection)의 alcoholMatchDecision, distilleryMatchSource, regionMatchSource는 저장된 값을 그대로 돌려줍니다. 관리자가 확정하기 전이라도 정규화 배치가 남긴 판정 값이 들어 있을 수 있습니다.
 
