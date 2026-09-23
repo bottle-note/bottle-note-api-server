@@ -1,6 +1,6 @@
 name: diag registry upload
 
-# 손실 경로 runner에서 cubic 대비 BBR의 업로드 속도를 비교하는 일회성 진단. 이 브랜치 push에서만 실행한다
+# 수정한 docker-build-push action(BBR 적용)으로 실제 배포와 같은 build·push를 검증하는 일회성 진단. 이 브랜치 push에서만 실행한다
 on:
   push:
     branches:
@@ -10,76 +10,41 @@ permissions:
   contents: read
 
 jobs:
-  cc-compare:
+  push-e2e:
     strategy:
       fail-fast: false
       matrix:
         probe: [ runner-a, runner-b, runner-c, runner-d ]
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 30
-    env:
-      REGISTRY: ${{ secrets.REGISTRY_ADDRESS }}
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-      PROBE_REPO: diag-upload-probe
-      PROBE_ROUNDS: 3
-      PROBE_SIZE_MB: 20
-      PROBE_MAX_TIME: 60
     steps:
+      - name: checkout
+        uses: actions/checkout@v7
+
       - name: runner identity
         run: |
           echo "public ip: $(curl -s --max-time 5 https://api.ipify.org || echo unknown)"
-          echo "azure location: $(curl -s --max-time 3 -H Metadata:true 'http://169.254.169.254/metadata/instance/compute/location?api-version=2021-02-01&format=text' || echo unknown)"
-          getent ahostsv4 "$REGISTRY" | awk '{print $1}' | sort -u | tee entry_ips.txt
-          sudo modprobe tcp_bbr
-          sysctl net.ipv4.tcp_available_congestion_control net.ipv4.tcp_congestion_control
 
-      - name: setup buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: verify congestion control inside buildkit
+      - name: prepare probe image (unique 100MB layer)
         run: |
-          sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
+          head -c 100M /dev/urandom > probe.bin
+          printf 'FROM alpine:3.20\nCOPY probe.bin /probe.bin\n' > Dockerfile.probe
+
+      - name: build and push with docker-build-push
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: diag-upload-probe
+          image-tag: e2e-${{ github.run_id }}-${{ matrix.probe }}
+          dockerfile: Dockerfile.probe
+          context: .
+          platforms: linux/arm64
+          cache-export: 'false'
+
+      - name: congestion control used by buildkit
+        run: |
           builder=$(docker ps --filter name=buildx_buildkit --format '{{.Names}}' | head -n 1)
-          echo "buildkit container: ${builder:-none}"
           echo "host: $(cat /proc/sys/net/ipv4/tcp_congestion_control)"
-          if [ -n "$builder" ]; then
-            echo "existing buildkit container: $(docker exec "$builder" cat /proc/sys/net/ipv4/tcp_congestion_control)"
-          fi
-          echo "new container: $(docker run --rm alpine cat /proc/sys/net/ipv4/tcp_congestion_control)"
-          sudo sysctl -w net.ipv4.tcp_congestion_control=cubic
-
-      - name: upload probe (cubic vs bbr, HTTP/1.1)
-        run: |
-          # timeout(curl exit 28)도 측정 결과로 기록해야 하므로 errexit를 끈다
-          set +e -uo pipefail
-          retrans() { awk '/^Tcp:/{if(h){print $13; exit} h=1}' /proc/net/snmp; }
-          echo "| round | cc | entry ip | http | uploaded MB | seconds | KB/s | retrans segs |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|---|---|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          mapfile -t ips < entry_ips.txt
-          for round in $(seq 1 "$PROBE_ROUNDS"); do
-            for ip in "${ips[@]}"; do
-              for cc in cubic bbr; do
-                sudo sysctl -qw net.ipv4.tcp_congestion_control="$cc"
-                head -c "${PROBE_SIZE_MB}M" /dev/urandom > blob
-                digest="sha256:$(sha256sum blob | cut -d' ' -f1)"
-                location=$(curl -s --http1.1 -o /dev/null -D - -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
-                  --resolve "$REGISTRY:443:$ip" -X POST "https://$REGISTRY/v2/$PROBE_REPO/blobs/uploads/" \
-                  | awk -F': ' 'tolower($1)=="location"{print $2}' | tr -d '\r')
-                case "$location" in *\?*) sep='&' ;; *) sep='?' ;; esac
-                case "$location" in http*) url="$location" ;; *) url="https://$REGISTRY$location" ;; esac
-                before=$(retrans)
-                result=$(curl -s --http1.1 -o /dev/null -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
-                  --resolve "$REGISTRY:443:$ip" --max-time "$PROBE_MAX_TIME" \
-                  -X PUT -H 'Content-Type: application/octet-stream' --data-binary @blob \
-                  -w '%{http_code} %{size_upload} %{time_total} %{speed_upload}' \
-                  "${url}${sep}digest=${digest}")
-                after=$(retrans)
-                read -r code size total speed <<< "$result"
-                awk -v r="$round" -v cc="$cc" -v ip="$ip" -v c="$code" -v s="$size" -v t="$total" -v sp="$speed" -v d="$((after - before))" \
-                  'BEGIN{printf "| %s | %s | %s | %s | %.1f | %.1f | %.0f | %s |\n", r, cc, ip, c, s/1e6, t, sp/1e3, d}' \
-                  | tee -a "$GITHUB_STEP_SUMMARY"
-              done
-            done
-          done
-          sudo sysctl -qw net.ipv4.tcp_congestion_control=cubic
+          echo "buildkit: $(docker exec "$builder" cat /proc/sys/net/ipv4/tcp_congestion_control)"
