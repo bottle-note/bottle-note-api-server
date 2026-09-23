@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,69 @@ import org.springframework.stereotype.Component;
 public class MfdsTestFactory {
 
   @PersistenceContext private EntityManager em;
+
+  /** 수집기 적재를 재현하며 원본 데이터도 채워 응답 제외 여부를 검증한다. */
+  @Transactional
+  public Long persistItem(
+      String rcno, String productNameKo, LocalDate processedDate, LocalDateTime observedAt) {
+    em.createNativeQuery(
+            """
+            INSERT INTO mfds_jobs
+              (job_type, requested_from_date, requested_to_date, status, config_json)
+            VALUES ('TEST', '2026-09-01', '2026-09-01', 'COMPLETED', '{}')
+            """)
+        .executeUpdate();
+    Long jobId = lastInsertedId();
+    em.createNativeQuery(
+            """
+            INSERT INTO mfds_tasks (job_id, process_date, status)
+            VALUES (:jobId, '2026-09-01', 'COMPLETED')
+            """)
+        .setParameter("jobId", jobId)
+        .executeUpdate();
+    Long taskId = lastInsertedId();
+    em.createNativeQuery(
+            """
+            INSERT INTO mfds_fetches
+              (job_id, task_id, item_code, item_name, page_no, request_key_sha256,
+               request_method, request_url, request_query_json, attempt_no, started_at, status)
+            VALUES (:jobId, :taskId, 'WHISKY', '위스키', 1, UNHEX(SHA2('test', 256)),
+                    'GET', 'https://example.test/mfds', '{}', 1, :observedAt, 'COMPLETED')
+            """)
+        .setParameter("jobId", jobId)
+        .setParameter("taskId", taskId)
+        .setParameter("observedAt", observedAt)
+        .executeUpdate();
+    Long fetchId = lastInsertedId();
+    em.createNativeQuery(
+            """
+            INSERT INTO mfds_items
+              (job_id, task_id, fetch_id, row_no, rcno, queried_item_code, queried_item_name,
+               product_division_name, importer_name, product_name_ko, product_name_en, item_name,
+               overseas_establishment_name, processed_date_raw, processed_date, expiry_text,
+               manufacture_country_name, export_country_name, detail_href, canonical_values_json,
+               raw_row_html, raw_row_sha256, semantic_sha256, parser_version, observed_at)
+            VALUES (:jobId, :taskId, :fetchId, 1, :rcno, 'WHISKY', '위스키',
+                    '가공식품', '보틀상사', :productNameKo, 'GLENFIDDICH 12 700ML', '위스키',
+                    '테스트 제조업소', '2026.09.01', :processedDate, '해당없음',
+                    '영국', '영국', '/detail/test', '{"test":"raw"}',
+                    '<tr>raw</tr>', UNHEX(SHA2('raw', 256)), UNHEX(SHA2('semantic', 256)),
+                    'test', :observedAt)
+            """)
+        .setParameter("jobId", jobId)
+        .setParameter("taskId", taskId)
+        .setParameter("fetchId", fetchId)
+        .setParameter("rcno", rcno)
+        .setParameter("productNameKo", productNameKo)
+        .setParameter("processedDate", processedDate)
+        .setParameter("observedAt", observedAt)
+        .executeUpdate();
+    return lastInsertedId();
+  }
+
+  private Long lastInsertedId() {
+    return ((Number) em.createNativeQuery("SELECT LAST_INSERT_ID()").getSingleResult()).longValue();
+  }
 
   /** 기본 수입사 생성 */
   @Transactional

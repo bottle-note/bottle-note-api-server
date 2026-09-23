@@ -8,6 +8,7 @@ import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_DECLARATION_A
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_DECLARATION_NOT_FOUND;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_DECLARATION_NOT_LINKED;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_IMPORTER_NOT_FOUND;
+import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_ITEM_NOT_FOUND;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.dto.response.AdminResultResponse;
@@ -22,6 +23,7 @@ import app.bottlenote.mfds.dto.request.MfdsDeclarationSearchRequest;
 import app.bottlenote.mfds.dto.request.MfdsDeclarationStatusRequest;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsImporterItem;
+import app.bottlenote.mfds.dto.response.MfdsItemDetailResponse;
 import app.bottlenote.mfds.exception.MfdsException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,14 @@ public class MfdsDeclarationService {
 
   private final MfdsDeclarationRepository declarationRepository;
   private final MfdsImporterRepository importerRepository;
+
+  @Transactional(readOnly = true)
+  public MfdsItemDetailResponse getLatestItem(String rcno) {
+    return declarationRepository
+        .findLatestItemByRcno(rcno)
+        .map(MfdsResponseMapper::toItemDetail)
+        .orElseThrow(() -> new MfdsException(MFDS_ITEM_NOT_FOUND));
+  }
 
   @Transactional(readOnly = true)
   public GlobalResponse search(MfdsDeclarationSearchRequest request) {

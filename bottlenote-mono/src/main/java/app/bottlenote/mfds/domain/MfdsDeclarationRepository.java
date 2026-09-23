@@ -29,6 +29,8 @@ public interface MfdsDeclarationRepository {
 
   Optional<MfdsDeclaration> findByRcno(String rcno);
 
+  Optional<MfdsItem> findLatestItemByRcno(String rcno);
+
   /** 검색 조건에 맞는 신고 데이터를 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */
   List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria);
 

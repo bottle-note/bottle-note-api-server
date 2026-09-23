@@ -2,9 +2,11 @@ package app.bottlenote.mfds.repository;
 
 import static app.bottlenote.mfds.domain.QMfdsDeclaration.mfdsDeclaration;
 import static app.bottlenote.mfds.domain.QMfdsImporter.mfdsImporter;
+import static app.bottlenote.mfds.domain.QMfdsItem.mfdsItem;
 
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
+import app.bottlenote.mfds.domain.MfdsItem;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
@@ -13,6 +15,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /** QueryDSL id-desc keyset 조회. cursor&gt;0이면 id &lt; cursor, limit = pageSize + 1. */
@@ -21,6 +24,16 @@ public class CustomMfdsDeclarationRepositoryImpl implements CustomMfdsDeclaratio
 
   private final JPAQueryFactory queryFactory;
   private final MfdsDeclarationQuerySupporter supporter;
+
+  @Override
+  public Optional<MfdsItem> findLatestItemByRcno(String rcno) {
+    return Optional.ofNullable(
+        queryFactory
+            .selectFrom(mfdsItem)
+            .where(mfdsItem.rcno.eq(rcno))
+            .orderBy(mfdsItem.observedAt.desc(), mfdsItem.id.desc())
+            .fetchFirst());
+  }
 
   @Override
   public List<MfdsDeclaration> searchByCriteria(MfdsDeclarationSearchCriteria criteria) {

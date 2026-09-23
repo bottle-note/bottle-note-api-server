@@ -3,10 +3,12 @@ package app.bottlenote.mfds.service;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRcnoLink;
+import app.bottlenote.mfds.domain.MfdsItem;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse.MatchCandidate;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationListItem;
 import app.bottlenote.mfds.dto.response.MfdsImporterItem;
+import app.bottlenote.mfds.dto.response.MfdsItemDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
@@ -19,6 +21,26 @@ import java.util.List;
 final class MfdsResponseMapper {
 
   private MfdsResponseMapper() {}
+
+  static MfdsItemDetailResponse toItemDetail(MfdsItem item) {
+    return new MfdsItemDetailResponse(
+        item.getId(),
+        item.getRcno(),
+        item.getQueriedItemCode(),
+        item.getQueriedItemName(),
+        item.getProductDivisionName(),
+        item.getImporterName(),
+        item.getProductNameKo(),
+        item.getProductNameEn(),
+        item.getItemName(),
+        item.getOverseasEstablishmentName(),
+        item.getProcessedDate(),
+        item.getExpiryText(),
+        item.getManufactureCountryName(),
+        item.getExportCountryName(),
+        item.getDetailHref(),
+        item.getObservedAt());
+  }
 
   static MfdsImporterItem toImporterItem(MfdsImporter importer) {
     return new MfdsImporterItem(

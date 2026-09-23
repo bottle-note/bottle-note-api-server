@@ -3,7 +3,10 @@ package app.bottlenote.mfds.presentation.docs
 import app.bottlenote.global.dto.response.AdminResultResponse
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse
 import app.bottlenote.mfds.dto.response.MfdsDeclarationListItem
+import app.bottlenote.mfds.dto.response.MfdsItemDetailResponse
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -176,4 +179,33 @@ object AdminMfdsDeclarationApiDocs {
 		]
 	)
 	annotation class UnlinkImporter
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(
+		summary = "수입신고번호로 최신 원장 한 건을 조회한다",
+		description = """
+			정제 결과와 비교할 수 있도록 수입신고번호(rcno)에 해당하는 최신 수집 원장 한 건을 반환합니다.
+			관찰 시각(observedAt) 내림차순으로 선택하며, 시각이 같으면 원장 ID가 큰 행을 반환합니다.
+			정제 데이터가 참조하는 sourceItemId의 원장과 이 최신 원장은 다를 수 있습니다. 응답 id로 비교할 수 있습니다.
+			제품명, 수입사, 제조업소, 국가, 통관일자 등 원장 필드와 관찰 시각을 제공합니다.
+			원본 HTML·JSON·날짜 원문, 해시와 수집 작업 메타데이터는 응답에 포함하지 않습니다.
+			""",
+		parameters = [
+			Parameter(name = "rcno", description = "수입신고번호", `in` = ParameterIn.PATH, required = true, schema = Schema(type = "string"))
+		],
+		responses = [
+			ApiResponse(
+				responseCode = "200",
+				description = "최신 수입 신고 원장",
+				content = [Content(schema = Schema(implementation = MfdsItemDetailResponse::class))]
+			),
+			ApiResponse(
+				responseCode = "404",
+				description = "해당 수입신고번호의 원장이 없습니다.",
+				content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))]
+			)
+		]
+	)
+	annotation class GetLatestItem
 }

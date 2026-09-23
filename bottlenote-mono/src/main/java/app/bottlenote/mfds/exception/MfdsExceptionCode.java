@@ -4,6 +4,7 @@ import app.bottlenote.global.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
 public enum MfdsExceptionCode implements ExceptionCode {
+  MFDS_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "수입 신고 원장을 찾을 수 없습니다."),
   MFDS_IMPORTER_NOT_FOUND(HttpStatus.NOT_FOUND, "수입사를 찾을 수 없습니다."),
   MFDS_IMPORTER_DUPLICATE_CODE(HttpStatus.CONFLICT, "동일한 공식 업소 코드의 수입사가 이미 존재합니다."),
   MFDS_IMPORTER_HAS_DECLARATIONS(HttpStatus.CONFLICT, "연결된 수입 신고가 있어 수입사를 삭제할 수 없습니다."),

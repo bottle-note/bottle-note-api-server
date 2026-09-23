@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin MFDS API 통합 테스트")
@@ -53,6 +54,87 @@ class AdminMfdsIntegrationTest : IntegrationTestSupport() {
 	fun setUp() {
 		val admin = adminUserTestFactory.persistRootAdmin()
 		accessToken = getAccessToken(admin)
+	}
+
+	@Nested
+	@DisplayName("수입 신고 원장 API")
+	inner class Items {
+		private val observedAt = LocalDateTime.of(2026, 9, 23, 12, 0)
+		private val processedDate = LocalDate.of(2026, 9, 1)
+
+		@Test
+		@DisplayName("같은 신고의 원장이 여러 건일 때 ID보다 관찰 시각을 우선해 최신 한 건을 반환한다")
+		fun latestObservation() {
+			val latestId = mfdsTestFactory.persistItem("RCNO-I-001", "글렌피딕 12년 700ML", processedDate, observedAt)
+			mfdsTestFactory.persistItem("RCNO-I-001", "이전 이름", processedDate, observedAt.minusDays(1))
+			mfdsTestFactory.persistItem("RCNO-I-002", "다른 신고", processedDate, observedAt.plusDays(1))
+
+			val result = mockMvcTester.get().uri("/v1/mfds/items/RCNO-I-001")
+				.header("Authorization", "Bearer $accessToken").exchange()
+
+			assertThat(result).hasStatusOk()
+			val data = mapper.readTree(result.response.contentAsString).path("data")
+			assertThat(data.path("id").asLong()).isEqualTo(latestId)
+			assertThat(data.path("rcno").asText()).isEqualTo("RCNO-I-001")
+			assertThat(data.path("productNameKo").asText()).isEqualTo("글렌피딕 12년 700ML")
+			assertThat(data.path("productNameEn").asText()).isEqualTo("GLENFIDDICH 12 700ML")
+			assertThat(data.path("importerName").asText()).isEqualTo("보틀상사")
+			assertThat(data.path("overseasEstablishmentName").asText()).isEqualTo("테스트 제조업소")
+			assertThat(data.path("manufactureCountryName").asText()).isEqualTo("영국")
+			assertThat(data.path("exportCountryName").asText()).isEqualTo("영국")
+			assertThat(data.path("processedDate").asText()).isEqualTo("2026-09-01")
+			assertThat(data.path("observedAt").asText()).startsWith("2026-09-23T12:00")
+			assertThat(data.fieldNames().asSequence().toList()).containsExactlyInAnyOrder(
+				"id", "rcno", "queriedItemCode", "queriedItemName", "productDivisionName", "importerName",
+				"productNameKo", "productNameEn", "itemName", "overseasEstablishmentName", "processedDate",
+				"expiryText", "manufactureCountryName", "exportCountryName", "detailHref", "observedAt"
+			)
+		}
+
+		@Test
+		@DisplayName("관찰 시각이 같을 때 ID가 큰 원장을 반환한다")
+		fun latestIdBreaksTie() {
+			mfdsTestFactory.persistItem("RCNO-I-001", "이전 이름", processedDate, observedAt)
+			val latestId = mfdsTestFactory.persistItem("RCNO-I-001", "최신 이름", processedDate, observedAt)
+
+			val result = mockMvcTester.get().uri("/v1/mfds/items/RCNO-I-001")
+				.header("Authorization", "Bearer $accessToken").exchange()
+
+			assertThat(result).hasStatusOk()
+			assertThat(mapper.readTree(result.response.contentAsString).at("/data/id").asLong()).isEqualTo(latestId)
+		}
+
+		@Test
+		@DisplayName("원장의 선택 필드가 비어 있을 때 null을 유지한다")
+		fun nullableFields() {
+			mfdsTestFactory.persistItem("RCNO-I-001", null, null, observedAt)
+
+			val result = mockMvcTester.get().uri("/v1/mfds/items/RCNO-I-001")
+				.header("Authorization", "Bearer $accessToken").exchange()
+
+			assertThat(result).hasStatusOk()
+			val data = mapper.readTree(result.response.contentAsString).path("data")
+			assertThat(data.path("productNameKo").isNull).isTrue()
+			assertThat(data.path("processedDate").isNull).isTrue()
+		}
+
+		@Test
+		@DisplayName("해당 신고의 원장이 없을 때 404를 반환한다")
+		fun unknownRcno() {
+			mfdsTestFactory.persistItem("RCNO-I-001", "다른 신고", processedDate, observedAt)
+
+			assertThat(
+				mockMvcTester.get().uri("/v1/mfds/items/RCNO-UNKNOWN")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatus(404).bodyJson().extractingPath("$.errors[0].code").isEqualTo("MFDS_ITEM_NOT_FOUND")
+		}
+
+		@Test
+		@DisplayName("관리자 인증이 없을 때 원장 조회를 거부한다")
+		fun unauthenticated() {
+			assertThat(mockMvcTester.get().uri("/v1/mfds/items/RCNO-I-001")).hasStatus(403)
+		}
 	}
 
 	@Nested
