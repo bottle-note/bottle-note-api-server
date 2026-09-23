@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Entity
+@Entity(name = "mfds_matching_selection")
 @Table(name = "mfds_matching_selections")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MfdsMatchingSelection {
