@@ -213,30 +213,21 @@ public class MfdsMatchingService {
         referenceSource(request.regionId(), regionId, declaration.hasRegionCandidate(regionId)));
     declarationRepository.save(declaration);
 
-    LocalDateTime selectedAt = LocalDateTime.now();
+    SelectionAuditContext audit =
+        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now());
     recordSelection(
-        declarationId,
+        audit,
         "ALCOHOL",
         declaration.getSelectedAlcoholId(),
-        declaration.getAlcoholMatchDecision(),
-        adminId,
-        selectedAt);
+        declaration.getAlcoholMatchDecision());
     recordReferenceSelection(
-        declarationId,
+        audit,
         "DISTILLERY",
         previousDistilleryId,
         distilleryId,
-        declaration.getDistilleryMatchSource(),
-        adminId,
-        selectedAt);
+        declaration.getDistilleryMatchSource());
     recordReferenceSelection(
-        declarationId,
-        "REGION",
-        previousRegionId,
-        regionId,
-        declaration.getRegionMatchSource(),
-        adminId,
-        selectedAt);
+        audit, "REGION", previousRegionId, regionId, declaration.getRegionMatchSource());
 
     return toConfirmResponse(declaration);
   }
@@ -245,28 +236,11 @@ public class MfdsMatchingService {
   @Transactional
   public MfdsMatchingConfirmResponse clearMatching(Long declarationId, Long adminId) {
     MfdsDeclaration declaration = getDeclarationForUpdate(declarationId);
-    LocalDateTime selectedAt = LocalDateTime.now();
-    recordRevocation(
-        declarationId,
-        "ALCOHOL",
-        declaration.getSelectedAlcoholId(),
-        "ADMIN_RELEASE",
-        adminId,
-        selectedAt);
-    recordRevocation(
-        declarationId,
-        "DISTILLERY",
-        declaration.getSelectedDistilleryId(),
-        "ADMIN_RELEASE",
-        adminId,
-        selectedAt);
-    recordRevocation(
-        declarationId,
-        "REGION",
-        declaration.getSelectedRegionId(),
-        "ADMIN_RELEASE",
-        adminId,
-        selectedAt);
+    SelectionAuditContext audit =
+        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now());
+    recordRevocation(audit, "ALCOHOL", declaration.getSelectedAlcoholId(), "ADMIN_RELEASE");
+    recordRevocation(audit, "DISTILLERY", declaration.getSelectedDistilleryId(), "ADMIN_RELEASE");
+    recordRevocation(audit, "REGION", declaration.getSelectedRegionId(), "ADMIN_RELEASE");
     declaration.clearMatchingSelection();
     declarationRepository.save(declaration);
     return toConfirmResponse(declaration);
@@ -287,44 +261,41 @@ public class MfdsMatchingService {
   }
 
   private void recordReferenceSelection(
-      Long declarationId,
+      SelectionAuditContext audit,
       String targetType,
       Long previousId,
       Long selectedId,
-      String reasonCode,
-      Long adminId,
-      LocalDateTime selectedAt) {
+      String reasonCode) {
     if (selectedId != null) {
-      recordSelection(declarationId, targetType, selectedId, reasonCode, adminId, selectedAt);
+      recordSelection(audit, targetType, selectedId, reasonCode);
     } else {
-      recordRevocation(
-          declarationId, targetType, previousId, "ADMIN_SELECTION_CLEARED", adminId, selectedAt);
+      recordRevocation(audit, targetType, previousId, "ADMIN_SELECTION_CLEARED");
     }
   }
 
   private void recordSelection(
-      Long declarationId,
-      String targetType,
-      Long targetId,
-      String reasonCode,
-      Long adminId,
-      LocalDateTime selectedAt) {
+      SelectionAuditContext audit, String targetType, Long targetId, String reasonCode) {
     selectionRepository.save(
         MfdsMatchingSelection.adminSelect(
-            declarationId, targetType, targetId, reasonCode, adminId, selectedAt));
+            audit.declarationId(),
+            targetType,
+            targetId,
+            reasonCode,
+            audit.adminId(),
+            audit.selectedAt()));
   }
 
   private void recordRevocation(
-      Long declarationId,
-      String targetType,
-      Long targetId,
-      String reasonCode,
-      Long adminId,
-      LocalDateTime selectedAt) {
+      SelectionAuditContext audit, String targetType, Long targetId, String reasonCode) {
     if (targetId != null) {
       selectionRepository.save(
           MfdsMatchingSelection.adminRevoke(
-              declarationId, targetType, targetId, reasonCode, adminId, selectedAt));
+              audit.declarationId(),
+              targetType,
+              targetId,
+              reasonCode,
+              audit.adminId(),
+              audit.selectedAt()));
     }
   }
 
@@ -419,6 +390,9 @@ public class MfdsMatchingService {
             })
         .toList();
   }
+
+  private record SelectionAuditContext(
+      Long declarationId, Long adminId, LocalDateTime selectedAt) {}
 
   private record ScoredAlcohol(AlcoholMatchTargetItem target, MfdsMatchScoreDetailItem detail) {
     BigDecimal totalScore() {
