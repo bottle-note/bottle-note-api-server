@@ -11,10 +11,9 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	private val envelopeFields = listOf("success", "code", "data", "errors", "meta")
 
-	// Admin의 97 operation은 대부분 GlobalResponse 공통 형식을 쓴다.
+	// Admin operation은 대부분 GlobalResponse 공통 형식을 쓴다.
 	// 템플릿 다운로드(GET /v1/alcohols/excel/template)는 XLSX binary 응답이라 예외다.
-	// 기존 86 + 방문자 통계 active/retention 2 + 주류 인기도 시계열 2 + 캠페인 콘텐츠 7 = 97
-	private val expectedOperationCount = 98
+	private val expectedOperationCount = 99
 	private val binaryDownloadOperations = setOf("GET /v1/alcohols/excel/template")
 
 	@Test
@@ -47,8 +46,8 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 98개 operation이 누락 없이 포함된다")
-	fun openApiSpecContains98Operations() {
+	@DisplayName("문서에는 99개 operation이 누락 없이 포함된다")
+	fun openApiSpecContains99Operations() {
 		val operations = operationsOf(fetchSpec())
 
 		assertThat(operations)
@@ -114,6 +113,26 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 		}
 		assertThat(spec.at("/components/schemas/MfdsDeclarationDetailResponse/properties/alcoholNameKo/description").asText())
 			.contains("매칭된 보틀노트 주류의 한글 이름으로 덮어쓴다")
+	}
+
+	@Test
+	@DisplayName("최신 원장 API를 문서화할 때 신고번호 경로와 raw 데이터를 제외한 응답을 명시한다")
+	fun mfdsLatestItemContract() {
+		val spec = fetchSpec()
+		val operation = operationsOf(spec).first { it.endpoint() == "GET /v1/mfds/items/{rcno}" }
+		val parameter = operation.definition.path("parameters").first { it.path("name").asText() == "rcno" }
+		assertThat(parameter.path("in").asText()).isEqualTo("path")
+		assertThat(parameter.path("required").asBoolean()).isTrue()
+		assertThat(parameter.at("/schema/type").asText()).isEqualTo("string")
+		assertThat(operation.definition.at("/responses/404").isMissingNode).isFalse()
+		assertThat(operation.security().any { it.has("bearerAuth") }).isTrue()
+		assertThat(operation.successSchema().at("/properties/data/\$ref").asText())
+			.isEqualTo("#/components/schemas/MfdsItemDetailResponse")
+		assertThat(propertyNamesOf(spec.at("/components/schemas/MfdsItemDetailResponse"))).containsExactlyInAnyOrder(
+			"id", "rcno", "queriedItemCode", "queriedItemName", "productDivisionName", "importerName",
+			"productNameKo", "productNameEn", "itemName", "overseasEstablishmentName", "processedDate",
+			"expiryText", "manufactureCountryName", "exportCountryName", "detailHref", "observedAt"
+		)
 	}
 
 	@Test

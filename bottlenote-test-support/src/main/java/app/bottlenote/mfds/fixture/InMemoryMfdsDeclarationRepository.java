@@ -4,6 +4,7 @@ import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import app.bottlenote.mfds.domain.MfdsImporter;
+import app.bottlenote.mfds.domain.MfdsItem;
 import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
@@ -27,6 +28,7 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
 
   private final AtomicLong idGenerator = new AtomicLong(1L);
   private final Map<Long, MfdsDeclaration> database = new ConcurrentHashMap<>();
+  private final Map<Long, MfdsItem> items = new ConcurrentHashMap<>();
   private final Function<Long, Optional<MfdsImporter>> importerLookup;
 
   public InMemoryMfdsDeclarationRepository() {
@@ -63,6 +65,17 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
     return database.values().stream()
         .filter(declaration -> Objects.equals(declaration.getRcno(), rcno))
         .findFirst();
+  }
+
+  public void addItem(MfdsItem item) {
+    items.put(item.getId(), item);
+  }
+
+  @Override
+  public Optional<MfdsItem> findLatestItemByRcno(String rcno) {
+    return items.values().stream()
+        .filter(item -> Objects.equals(item.getRcno(), rcno))
+        .max(Comparator.comparing(MfdsItem::getObservedAt).thenComparing(MfdsItem::getId));
   }
 
   @Override
