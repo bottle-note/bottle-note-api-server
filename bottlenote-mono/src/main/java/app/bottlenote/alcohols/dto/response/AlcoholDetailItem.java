@@ -4,7 +4,6 @@ import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeseria
 import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,10 +26,7 @@ public class AlcoholDetailItem {
   private String abv;
   private String korDistillery;
   private String engDistillery;
-
-  @Schema(description = "위스키 설명", nullable = true)
   private String description;
-
   private Double rating;
   private Long totalRatingsCount;
   private Double myRating;

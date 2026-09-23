@@ -161,8 +161,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           Alcohol.builder()
               .korName("설명 노출 위스키")
               .engName("Description Whisky")
-              .description("둘러보기 설명")
-              .build());
+              .description("둘러보기 설명"));
 
       MvcTestResult result = exchangeGet(b -> b.param("keyword", "설명 노출").param("size", "10"));
 
