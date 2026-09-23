@@ -22,7 +22,7 @@ jobs:
       REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
       PROBE_REPO: diag-upload-probe
-      PROBE_ROUNDS: 10
+      PROBE_ROUNDS: 4
       PROBE_SIZE_MB: 20
       PROBE_MAX_TIME: 45
     steps:
@@ -31,6 +31,8 @@ jobs:
           echo "public ip: $(curl -s --max-time 5 https://api.ipify.org || echo unknown)"
           echo "azure location: $(curl -s --max-time 3 -H Metadata:true 'http://169.254.169.254/metadata/instance/compute/location?api-version=2021-02-01&format=text' || echo unknown)"
           getent ahostsv4 "$REGISTRY" | awk '{print $1}' | sort -u | tee entry_ips.txt
+          sysctl net.ipv4.tcp_wmem net.ipv4.tcp_rmem net.core.wmem_max net.ipv4.tcp_congestion_control net.core.default_qdisc net.ipv4.tcp_notsent_lowat 2>/dev/null
+          ip -o link show | awk '{print $2, $4, $5}'
 
       - name: upload probe (new TCP connection per upload)
         run: |
@@ -50,12 +52,21 @@ jobs:
               case "$location" in *\?*) sep='&' ;; *) sep='?' ;; esac
               case "$location" in http*) url="$location" ;; *) url="https://$REGISTRY$location" ;; esac
               before=$(retrans)
+              # 송신 측 tcp_info로 제한 요인(rwnd_limited, sndbuf_limited, cwnd)을 판별한다
+              ( while sleep 3; do
+                  ss -tinmH "( dst $ip )" 2>/dev/null | tr -s ' ' | grep -o -E 'skmem:\([^)]*\)|cwnd:[0-9]+|ssthresh:[0-9]+|snd_wnd:[0-9]+|rtt:[0-9./]+|retrans:[0-9/]+|bytes_acked:[0-9]+|busy:[0-9]+ms|rwnd_limited:[^ ]+|sndbuf_limited:[^ ]+|notsent:[0-9]+|unacked:[0-9]+|delivery_rate [0-9.]+[KMG]?bps' | tr '\n' ' '
+                  echo
+                done ) > "tcpinfo_${round}_${ip}.log" 2>&1 &
+              sampler=$!
               result=$(curl -s -o /dev/null -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
                 --resolve "$REGISTRY:443:$ip" --max-time "$PROBE_MAX_TIME" \
                 -X PUT -H 'Content-Type: application/octet-stream' --data-binary @blob \
                 -w '%{http_code} %{size_upload} %{time_total} %{speed_upload} %{local_port}' \
                 "${url}${sep}digest=${digest}")
               after=$(retrans)
+              kill "$sampler" 2>/dev/null; wait "$sampler" 2>/dev/null
+              echo "--- sender tcp_info round=$round ip=$ip"
+              grep -v '^$' "tcpinfo_${round}_${ip}.log" | tail -n 5
               read -r code size total speed port <<< "$result"
               line=$(awk -v r="$round" -v ip="$ip" -v c="$code" -v s="$size" -v t="$total" -v sp="$speed" -v d="$((after - before))" -v p="$port" \
                 'BEGIN{printf "| %s | registry | %s | %s | %.1f | %.1f | %.0f | %s | %s |", r, ip, c, s/1e6, t, sp/1e3, d, p}')
