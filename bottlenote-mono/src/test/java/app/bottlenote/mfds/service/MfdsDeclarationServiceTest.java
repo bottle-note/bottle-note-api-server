@@ -34,12 +34,20 @@ class MfdsDeclarationServiceTest {
   private InMemoryMfdsDeclarationRepository declarationRepository;
   private InMemoryMfdsImporterRepository importerRepository;
   private MfdsDeclarationService service;
+  private final app.bottlenote.mfds.fixture.InMemoryMfdsMatchingRepository matchingRepository =
+      new app.bottlenote.mfds.fixture.InMemoryMfdsMatchingRepository();
 
   @BeforeEach
   void setUp() {
     declarationRepository = new InMemoryMfdsDeclarationRepository();
     importerRepository = new InMemoryMfdsImporterRepository();
-    service = new MfdsDeclarationService(declarationRepository, importerRepository);
+    service =
+        new MfdsDeclarationService(
+            declarationRepository,
+            importerRepository,
+            new MfdsMatchingHistoryService(
+                matchingRepository,
+                new MfdsMatchingEvidenceCodec(new com.fasterxml.jackson.databind.ObjectMapper())));
   }
 
   @Test
@@ -184,9 +192,25 @@ class MfdsDeclarationServiceTest {
             "AUTO_ACCEPT",
             null,
             null);
-    MfdsTestData.set(declaration, "alcoholCandidate1Id", 77L);
-    MfdsTestData.set(declaration, "alcoholCandidate2Id", 88L);
     declarationRepository.save(declaration);
+
+    var run =
+        matchingRepository.saveRun(
+            app.bottlenote.mfds.domain.MfdsMatchingRun.builder()
+                .matcherVersion("fixture")
+                .status("DONE")
+                .build());
+    declaration.applyMatchingRun(run.getId(), "fixture", java.time.LocalDateTime.now());
+    for (int i = 0; i < 2; i++)
+      matchingRepository.saveCandidate(
+          app.bottlenote.mfds.domain.MfdsMatchingCandidate.builder()
+              .runId(run.getId())
+              .declarationId(declaration.getId())
+              .targetType("ALCOHOL")
+              .targetId(i == 0 ? 77L : 88L)
+              .rankNo(i + 1)
+              .rawScore(java.math.BigDecimal.ONE)
+              .build());
 
     MfdsDeclarationDetailResponse detail = service.getDetail(declaration.getId());
 

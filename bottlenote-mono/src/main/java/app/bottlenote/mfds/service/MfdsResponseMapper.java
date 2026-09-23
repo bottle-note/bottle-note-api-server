@@ -4,6 +4,7 @@ import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsImporter;
 import app.bottlenote.mfds.domain.MfdsImporterRcnoLink;
 import app.bottlenote.mfds.domain.MfdsItem;
+import app.bottlenote.mfds.domain.MfdsMatchingCandidate;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationDetailResponse.MatchCandidate;
 import app.bottlenote.mfds.dto.response.MfdsDeclarationListItem;
@@ -13,8 +14,6 @@ import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholDetailResponse;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholListItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicImporterItem;
 import app.bottlenote.mfds.dto.response.MfdsRcnoLinkItem;
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 /** MFDS 엔티티 → 응답 DTO 변환. DTO-엔티티 분리 규칙에 따라 매핑은 서비스 계층이 소유한다. */
@@ -91,7 +90,9 @@ final class MfdsResponseMapper {
   }
 
   static MfdsDeclarationDetailResponse toDeclarationDetail(
-      MfdsDeclaration declaration, MfdsImporterItem importer) {
+      MfdsDeclaration declaration,
+      MfdsImporterItem importer,
+      List<MfdsMatchingCandidate> matchingCandidates) {
     return new MfdsDeclarationDetailResponse(
         declaration.getId(),
         declaration.getRcno(),
@@ -134,20 +135,11 @@ final class MfdsResponseMapper {
         importer,
         declaration.getSelectedAlcoholId(),
         declaration.getAlcoholMatchDecision(),
-        candidates(
-            declaration.getAlcoholCandidate1Id(), declaration.getAlcoholCandidate1Score(),
-            declaration.getAlcoholCandidate2Id(), declaration.getAlcoholCandidate2Score(),
-            declaration.getAlcoholCandidate3Id(), declaration.getAlcoholCandidate3Score()),
+        candidates(matchingCandidates, "ALCOHOL"),
         declaration.getSelectedDistilleryId(),
-        candidates(
-            declaration.getDistilleryCandidate1Id(), declaration.getDistilleryCandidate1Score(),
-            declaration.getDistilleryCandidate2Id(), declaration.getDistilleryCandidate2Score(),
-            declaration.getDistilleryCandidate3Id(), declaration.getDistilleryCandidate3Score()),
+        candidates(matchingCandidates, "DISTILLERY"),
         declaration.getSelectedRegionId(),
-        candidates(
-            declaration.getRegionCandidate1Id(), declaration.getRegionCandidate1Score(),
-            declaration.getRegionCandidate2Id(), declaration.getRegionCandidate2Score(),
-            declaration.getRegionCandidate3Id(), declaration.getRegionCandidate3Score()),
+        candidates(matchingCandidates, "REGION"),
         declaration.getMatchedAt(),
         declaration.getCreatedAt(),
         declaration.getUpdatedAt());
@@ -241,17 +233,10 @@ final class MfdsResponseMapper {
   }
 
   private static List<MatchCandidate> candidates(
-      Long id1, BigDecimal score1, Long id2, BigDecimal score2, Long id3, BigDecimal score3) {
-    List<MatchCandidate> result = new ArrayList<>();
-    if (id1 != null) {
-      result.add(new MatchCandidate(id1, score1));
-    }
-    if (id2 != null) {
-      result.add(new MatchCandidate(id2, score2));
-    }
-    if (id3 != null) {
-      result.add(new MatchCandidate(id3, score3));
-    }
-    return result;
+      List<MfdsMatchingCandidate> candidates, String type) {
+    return candidates.stream()
+        .filter(c -> type.equals(c.getTargetType()))
+        .map(c -> new MatchCandidate(c.getTargetId(), c.getRawScore()))
+        .toList();
   }
 }

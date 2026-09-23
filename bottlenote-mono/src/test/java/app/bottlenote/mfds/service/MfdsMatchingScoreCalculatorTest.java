@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 @Tag("unit")
 @DisplayName("MfdsMatchingScoreCalculator 단위 테스트")
@@ -21,147 +23,120 @@ class MfdsMatchingScoreCalculatorTest {
   private final MfdsMatchingScoreCalculator calculator = new MfdsMatchingScoreCalculator();
 
   @Test
-  @DisplayName("이름이 완전히 일치할 때 이름 점수와 총점이 1이다")
-  void 이름_완전_일치시_만점을_준다() {
-    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
-    AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 12", "Glenfiddich 12");
+  @DisplayName("원문에 CS가 있을 때 정제 검색 키에서 빠져도 CS 후보를 우선한다")
+  void 원문_CS를_보존한다() {
+    var source = declaration("일리악 CS", "ILEACH CASK STRENGTH");
+    MfdsTestData.set(source, "nameSearchKeyEn", "ileach");
+    var cs = calculator.scoreAlcohol(source, alcohol(1L, "일리악 CS", "Ileach Cask Strength"));
+    var regular = calculator.scoreAlcohol(source, alcohol(2L, "일리악", "Ileach"));
+    assertThat(cs.totalScore()).isGreaterThanOrEqualTo(new BigDecimal("0.4"));
+    assertThat(cs.totalScore()).isGreaterThan(regular.totalScore());
+    assertThat(status(cs, "CASK_STRENGTH")).isEqualTo("MATCH");
+    assertThat(status(regular, "CASK_STRENGTH")).isEqualTo("UNKNOWN");
+    assertThat(regular.reviewRequired()).isTrue();
+  }
 
-    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
+  @ParameterizedTest
+  @CsvSource({
+    "Glenmorangie 12yo, Glenmorangie The Original 12yo, Glenmorangie X",
+    "The Hakushu Single Malt Japanese Whisky Distillers Reserve, Hakushu Distillers Reserve, Akkeshi Single Malt Japanese Whisky Risshun",
+    "Glencadam Aged 15 Years Highland Single Malt Scotch Whisky, Glencadam 15y, Westward Single Malt Whiskey",
+    "Laphroaig 10yo Cask Strength Batch 17, Laphroaig 10yo CS Batch 17, Glenallachie 10yo CS Batch 17",
+    "Signatory Craigellachie 16Y, Signatory 2007 Craigellachie 16yo 100 Proof Edition, Signatory 2009 Glenallachie 12yo CS",
+    "Dalmore 12yo Sherry Cask, Dalmore 12yo Sherry Cask Select, Armorik Sherry Cask",
+    "Port Charlotte PMC 01, Port Charlotte PMC 01, Port Charlotte Islay Barley 2013",
+    "Jim Beam Kentucky Straight Bourbon Whiskey, Jim Beam, Town Branch Kentucky Straight Bourbon Whiskey",
+    "Balvenie 12yo Double Wood, Balvenie 12yo Doublewood, Balvenie 17yo Doublewood"
+  })
+  @DisplayName("실제 실패 유형을 비교할 때 동일 제품 후보가 다른 제품보다 앞선다")
+  void 제품_식별_정보를_우선한다(String sourceName, String expected, String other) {
+    var source = declaration(null, sourceName);
+    var match = calculator.scoreAlcohol(source, alcohol(1L, null, expected));
+    var mismatch = calculator.scoreAlcohol(source, alcohol(2L, null, other));
+    assertThat(match.totalScore()).isGreaterThanOrEqualTo(new BigDecimal("0.4"));
+    assertThat(match.totalScore()).isGreaterThan(mismatch.totalScore());
+  }
 
-    assertThat(detail.nameScore()).isEqualByComparingTo(BigDecimal.ONE);
-    assertThat(detail.totalScore()).isEqualByComparingTo(BigDecimal.ONE);
+  @ParameterizedTest
+  @CsvSource({
+    "Pappy Van Winkle 15yo, Pappy Van Winkle 23yo, AGE",
+    "Laphroaig 10yo CS Batch 17, Laphroaig 10yo CS Batch 16, BATCH",
+    "Glenlivet Cask 123, Glenlivet Cask 124, CASK",
+    "Shenks 2024, Shenks 2023, YEAR",
+    "Ballantines 23yo Golden Hour Edition 2, Ballantines 23yo Golden Hour Edition 1, EDITION",
+    "Glenmorangie Original 12yo, Glenmorangie Original 13yo, AGE"
+  })
+  @DisplayName("양쪽 식별 속성이 다를 때 후보 기준보다 낮게 감점한다")
+  void 명확한_불일치를_제외한다(String sourceName, String other, String attribute) {
+    var result = calculator.scoreAlcohol(declaration(null, sourceName), alcohol(1L, null, other));
+    assertThat(result.totalScore()).isLessThan(new BigDecimal("0.4"));
+    assertThat(status(result, attribute)).isEqualTo("MISMATCH");
   }
 
   @Test
-  @DisplayName("이름이 부분적으로 일치할 때 0과 1 사이 점수를 준다")
-  void 이름_부분_일치시_중간_점수를_준다() {
-    MfdsDeclaration declaration = declaration(null, "glenfiddich 12 special reserve");
-    AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 12", "Glenfiddich 12");
-
-    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
-
-    assertThat(detail.nameScore()).isGreaterThan(BigDecimal.ZERO);
-    assertThat(detail.nameScore()).isLessThan(BigDecimal.ONE);
+  @DisplayName("브랜드와 숙성만 있을 때 여러 제품을 확인 필요 후보로 남긴다")
+  void 제품명이_부족하면_확인_필요로_남긴다() {
+    var source = declaration(null, "Glenmorangie 12yo");
+    for (String name : new String[] {"Glenmorangie Original 12yo", "Glenmorangie Lasanta 12yo"}) {
+      var result = calculator.scoreAlcohol(source, alcohol(1L, null, name));
+      assertThat(result.totalScore()).isGreaterThanOrEqualTo(new BigDecimal("0.4"));
+      assertThat(result.reviewRequired()).isTrue();
+      assertThat(status(result, "PRODUCT")).isEqualTo("UNKNOWN");
+    }
   }
 
   @Test
-  @DisplayName("이름 정보가 전혀 없을 때 총점은 0이다")
-  void 이름_정보가_없으면_총점_0이다() {
-    MfdsDeclaration declaration = declaration(null, null);
-    AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 12", "Glenfiddich 12");
-
-    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
-
-    assertThat(detail.nameScore()).isNull();
-    assertThat(detail.totalScore()).isEqualByComparingTo(BigDecimal.ZERO);
+  @DisplayName("배치가 한쪽에 없을 때 불일치와 구별하고 확인 필요로 남긴다")
+  void 배치_누락과_불일치를_구별한다() {
+    var source = declaration(null, "Laphroaig 10yo CS Batch 17");
+    var unknown = calculator.scoreAlcohol(source, alcohol(1L, null, "Laphroaig 10yo CS"));
+    var mismatch = calculator.scoreAlcohol(source, alcohol(2L, null, "Laphroaig 10yo CS Batch 16"));
+    assertThat(status(unknown, "BATCH")).isEqualTo("UNKNOWN");
+    assertThat(unknown.reviewRequired()).isTrue();
+    assertThat(unknown.totalScore()).isGreaterThan(mismatch.totalScore());
   }
 
   @Test
-  @DisplayName("도수가 일치하는 후보가 불일치 후보보다 총점이 높다")
-  void 도수_불일치시_감점한다() {
-    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
-    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
+  @DisplayName("브랜드가 다를 때 일반 단어가 같아도 후보에서 제외한다")
+  void 공통_단어만으로_브랜드를_넘지_않는다() {
+    var result =
+        calculator.scoreAlcohol(
+            declaration(null, "Glen Moray 12yo Single Malt Scotch Whisky"),
+            alcohol(1L, null, "Glen Grant 12yo Single Malt Scotch Whisky"));
+    assertThat(result.totalScore()).isLessThan(new BigDecimal("0.4"));
+    assertThat(status(result, "BRAND")).isEqualTo("MISMATCH");
+  }
 
-    AlcoholMatchTargetItem abvMatched =
+  @Test
+  @DisplayName("16Y가 원문에 있을 때 숙성 필드가 없어도 추출한다")
+  void 원문에서_숙성을_복구한다() {
+    var result =
+        calculator.scoreAlcohol(
+            declaration(null, "Signatory Craigellachie 16Y"),
+            alcohol(1L, null, "Signatory Craigellachie 16yo"));
+    assertThat(result.ageScore()).isEqualByComparingTo(BigDecimal.ONE);
+  }
+
+  @Test
+  @DisplayName("원문과 숙성 필드가 충돌할 때 원문을 비교하고 확인 필요로 남긴다")
+  void 입력_충돌을_표시한다() {
+    var source = declaration(null, "Glencadam 15yo");
+    MfdsTestData.set(source, "ageYears", (short) 5);
+    var result = calculator.scoreAlcohol(source, alcohol(1L, null, "Glencadam 15yo"));
+    assertThat(result.reviewRequired()).isTrue();
+    assertThat(status(result, "SOURCE_AGE")).isEqualTo("MISMATCH");
+  }
+
+  @Test
+  @DisplayName("신고가 브랜디일 때 같은 이름의 위스키를 추천하지 않는다")
+  void 다른_주종을_제외한다() {
+    var source = declaration(null, "Hennessy Paradis");
+    MfdsTestData.set(source, "alcoholCategoryEn", "Brandy");
+    var target =
         new AlcoholMatchTargetItem(
             1L,
-            "글렌피딕 12",
-            "Glenfiddich 12",
-            "40.0",
             null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-    AlcoholMatchTargetItem abvMismatched =
-        new AlcoholMatchTargetItem(
-            2L,
-            "글렌피딕 12",
-            "Glenfiddich 12",
-            "55.0",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-
-    MfdsMatchScoreDetailItem matchedDetail = calculator.scoreAlcohol(declaration, abvMatched);
-    MfdsMatchScoreDetailItem mismatchedDetail = calculator.scoreAlcohol(declaration, abvMismatched);
-
-    assertThat(matchedDetail.abvScore()).isEqualByComparingTo(BigDecimal.ONE);
-    assertThat(mismatchedDetail.abvScore()).isLessThan(matchedDetail.abvScore());
-    assertThat(mismatchedDetail.totalScore()).isLessThan(matchedDetail.totalScore());
-  }
-
-  @Test
-  @DisplayName("숙성 연수가 일치하면 1점, 1년 차이는 0.5점, 그 이상은 0점을 준다")
-  void 숙성_연수_근접도를_점수화한다() {
-    MfdsDeclaration declaration = declaration("글렌피딕", "glenfiddich");
-    MfdsTestData.set(declaration, "ageYears", (short) 12);
-
-    MfdsMatchScoreDetailItem exact = calculator.scoreAlcohol(declaration, alcoholWithAge(1L, "12"));
-    MfdsMatchScoreDetailItem nearby =
-        calculator.scoreAlcohol(declaration, alcoholWithAge(2L, "13"));
-    MfdsMatchScoreDetailItem far = calculator.scoreAlcohol(declaration, alcoholWithAge(3L, "18"));
-
-    assertThat(exact.ageScore()).isEqualByComparingTo(BigDecimal.ONE);
-    assertThat(nearby.ageScore()).isEqualByComparingTo(new BigDecimal("0.5"));
-    assertThat(far.ageScore()).isEqualByComparingTo(BigDecimal.ZERO);
-  }
-
-  @Test
-  @DisplayName("신고에 숙성 연수가 있으면 대상 age가 없어도 빈티지 점수를 주지 않는다")
-  void 숙성_연수가_있으면_빈티지_분기를_타지_않는다() {
-    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
-    MfdsTestData.set(declaration, "ageYears", (short) 12);
-    MfdsTestData.set(declaration, "vintageYear", (short) 2012);
-
-    MfdsMatchScoreDetailItem detail =
-        calculator.scoreAlcohol(declaration, alcohol(1L, "글렌피딕 2012", "Glenfiddich 2012"));
-
-    assertThat(detail.ageScore()).isNull();
-    // 판단 불가는 0점이 아니라 가중치 제외다. 총점이 이름 점수와 같아야 분모에서 빠진 것이다
-    assertThat(detail.totalScore()).isEqualByComparingTo(detail.nameScore());
-  }
-
-  @Test
-  @DisplayName("신고에 숙성 연수가 없고 빈티지 연도만 있으면 이름에 연도가 있을 때 1점을 준다")
-  void 숙성_연수가_없을_때_빈티지_연도로_대체한다() {
-    MfdsDeclaration declaration = declaration("글렌피딕", "glenfiddich");
-    MfdsTestData.set(declaration, "vintageYear", (short) 2012);
-
-    MfdsMatchScoreDetailItem withYear =
-        calculator.scoreAlcohol(declaration, alcohol(1L, "글렌피딕 2012", "Glenfiddich 2012"));
-    MfdsMatchScoreDetailItem withoutYear =
-        calculator.scoreAlcohol(declaration, alcohol(2L, "글렌피딕", "Glenfiddich"));
-
-    assertThat(withYear.ageScore()).isEqualByComparingTo(BigDecimal.ONE);
-    assertThat(withoutYear.ageScore()).isNull();
-  }
-
-  @Test
-  @DisplayName("카테고리가 일치할 때 카테고리 점수가 1이다")
-  void 카테고리_일치를_점수화한다() {
-    MfdsDeclaration declaration = declaration("글렌피딕", "glenfiddich");
-    MfdsTestData.set(declaration, "alcoholCategoryEn", "Single Malt");
-
-    AlcoholMatchTargetItem target =
-        new AlcoholMatchTargetItem(
-            1L,
-            "글렌피딕",
-            "Glenfiddich",
+            "Hennessy Paradis",
             null,
             null,
             "싱글 몰트",
@@ -174,10 +149,73 @@ class MfdsMatchingScoreCalculatorTest {
             null,
             null,
             null);
+    var result = calculator.scoreAlcohol(source, target);
+    assertThat(result.totalScore()).isLessThan(new BigDecimal("0.4"));
+    assertThat(status(result, "CATEGORY")).isEqualTo("MISMATCH");
+  }
 
-    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
+  @Test
+  @DisplayName("이름 정보가 없을 때 도수와 숙성이 같아도 추천하지 않는다")
+  void 이름이_없으면_점수는_0이다() {
+    var result =
+        calculator.scoreAlcohol(declaration(null, null), alcohol(1L, "글렌피딕", "Glenfiddich"));
+    assertThat(result.totalScore()).isEqualByComparingTo(BigDecimal.ZERO);
+  }
 
-    assertThat(detail.categoryScore()).isEqualByComparingTo(BigDecimal.ONE);
+  @ParameterizedTest
+  @CsvSource({"40, 1", "45, 0.5", "50, 0", "55, 0"})
+  @DisplayName("도수를 비교할 때 차이에 따른 점수는 0과 1 사이로 제한한다")
+  void 도수_경계값을_검증한다(String abv, String expected) {
+    var source = declaration(null, "Glenfiddich 12yo");
+    MfdsTestData.set(source, "abvPercent", new BigDecimal("40"));
+    var target =
+        new AlcoholMatchTargetItem(
+            1L,
+            null,
+            "Glenfiddich 12yo",
+            abv,
+            "12",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    assertThat(calculator.scoreAlcohol(source, target).abvScore()).isEqualByComparingTo(expected);
+  }
+
+  @Test
+  @DisplayName("대상 브랜드가 없을 때 숙성과 도수만 같아도 후보로 올리지 않는다")
+  void 브랜드_없는_대상을_추천하지_않는다() {
+    var result =
+        calculator.scoreAlcohol(
+            declaration(null, "Pappy Van Winkle 15yo"), alcohol(1L, null, "15yo"));
+    assertThat(result.totalScore()).isLessThan(new BigDecimal("0.4"));
+    assertThat(result.reviewRequired()).isTrue();
+  }
+
+  @Test
+  @DisplayName("공개 이름이 이전 확정값으로 바뀌어도 신고 SKU로 다시 계산한다")
+  void 확정된_이름보다_원본_SKU를_우선한다() {
+    var source = declaration(null, "Laphroaig 10yo CS Batch 16");
+    MfdsTestData.set(source, "alcoholNameEn", "Laphroaig 10yo CS Batch 16");
+    MfdsTestData.set(source, "skuDisplayNameEn", "Laphroaig 10yo CS Batch 17 700ml");
+    var expected = calculator.scoreAlcohol(source, alcohol(1L, null, "Laphroaig 10yo CS Batch 17"));
+    var previous = calculator.scoreAlcohol(source, alcohol(2L, null, "Laphroaig 10yo CS Batch 16"));
+    assertThat(expected.totalScore()).isGreaterThanOrEqualTo(new BigDecimal("0.4"));
+    assertThat(previous.totalScore()).isLessThan(new BigDecimal("0.4"));
+  }
+
+  private String status(MfdsMatchScoreDetailItem detail, String attribute) {
+    return detail.comparisons().stream()
+        .filter(c -> c.attribute().equals(attribute))
+        .findFirst()
+        .orElseThrow()
+        .status();
   }
 
   @Test
@@ -220,82 +258,6 @@ class MfdsMatchingScoreCalculatorTest {
     assertThat(unrelated).isLessThan(matched);
   }
 
-  @Test
-  @DisplayName("이름만 비교 가능할 때 총점은 이름 점수와 정확히 같다")
-  void 이름만_비교_가능하면_총점은_이름_점수와_같다() {
-    // 재정규화 분모가 0.5가 아니면(예: 1.0 고정) 총점이 이름 점수의 절반이 되어 깨진다
-    MfdsDeclaration declaration = declaration("글렌피딕 12", null);
-    AlcoholMatchTargetItem target = alcohol(1L, "글렌피딕 15", null);
-
-    MfdsMatchScoreDetailItem detail = calculator.scoreAlcohol(declaration, target);
-
-    assertThat(detail.nameScore()).isEqualByComparingTo(new BigDecimal("0.857143"));
-    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.857143"));
-  }
-
-  @Test
-  @DisplayName("이름과 도수만 비교 가능할 때 총점은 가중합을 0.65로 나눈 값이다")
-  void 이름과_도수만_비교_가능하면_남은_가중치로_재정규화한다() {
-    // (0.5 * 1.0 + 0.15 * 0.5) / (0.5 + 0.15) = 0.884615. 분모를 1.0으로 두면 0.575가 된다
-    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
-    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
-
-    MfdsMatchScoreDetailItem detail =
-        calculator.scoreAlcohol(declaration, alcoholWithAbv(1L, "45.0"));
-
-    assertThat(detail.nameScore()).isEqualByComparingTo(BigDecimal.ONE);
-    assertThat(detail.abvScore()).isEqualByComparingTo(new BigDecimal("0.5"));
-    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.884615"));
-  }
-
-  @Test
-  @DisplayName("도수 차이가 0이면 1점, 5면 0.5점, 10이면 0점이다")
-  void 도수_근접도의_경계값을_점수화한다() {
-    // 허용 오차 10 기준의 선형 감점이다. 경계 세 지점을 기대값으로 고정한다
-    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
-    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
-
-    MfdsMatchScoreDetailItem same =
-        calculator.scoreAlcohol(declaration, alcoholWithAbv(1L, "40.0"));
-    MfdsMatchScoreDetailItem half =
-        calculator.scoreAlcohol(declaration, alcoholWithAbv(2L, "45.0"));
-    MfdsMatchScoreDetailItem zero =
-        calculator.scoreAlcohol(declaration, alcoholWithAbv(3L, "50.0"));
-
-    assertThat(same.abvScore()).isEqualByComparingTo(BigDecimal.ONE);
-    assertThat(half.abvScore()).isEqualByComparingTo(new BigDecimal("0.5"));
-    assertThat(zero.abvScore()).isEqualByComparingTo(BigDecimal.ZERO);
-  }
-
-  @Test
-  @DisplayName("도수 차이가 허용 오차를 넘어도 음수가 아니라 0점으로 고정한다")
-  void 도수_차이가_허용_오차를_넘으면_0으로_고정한다() {
-    // 클램프가 없으면 -0.5가 되어 총점을 끌어내린다
-    MfdsDeclaration declaration = declaration("글렌피딕 12", "glenfiddich 12");
-    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
-
-    MfdsMatchScoreDetailItem detail =
-        calculator.scoreAlcohol(declaration, alcoholWithAbv(1L, "55.0"));
-
-    assertThat(detail.abvScore()).isEqualByComparingTo(BigDecimal.ZERO);
-    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.769231"));
-  }
-
-  @Test
-  @DisplayName("대상 도수가 없을 때 도수 요소를 가중치에서 제외한다")
-  void 대상_도수가_없으면_도수_요소를_제외한다() {
-    // 0점 처리와 구분해야 한다. 제외라면 총점이 이름 점수 그대로 남는다
-    MfdsDeclaration declaration = declaration("글렌피딕 12", null);
-    MfdsTestData.set(declaration, "abvPercent", new BigDecimal("40.0"));
-
-    MfdsMatchScoreDetailItem detail =
-        calculator.scoreAlcohol(declaration, alcohol(1L, "글렌피딕 15", null));
-
-    assertThat(detail.abvScore()).isNull();
-    assertThat(detail.totalScore()).isEqualByComparingTo(detail.nameScore());
-    assertThat(detail.totalScore()).isEqualByComparingTo(new BigDecimal("0.857143"));
-  }
-
   private MfdsDeclaration declaration(String nameKo, String nameEn) {
     return MfdsTestData.declaration(
         "RCNO-001", MfdsNormalizationStatus.NORMALIZED, null, null, null, nameKo, nameEn);
@@ -304,44 +266,6 @@ class MfdsMatchingScoreCalculatorTest {
   private AlcoholMatchTargetItem alcohol(Long id, String korName, String engName) {
     return new AlcoholMatchTargetItem(
         id, korName, engName, null, null, null, null, null, null, null, null, null, null, null,
-        null);
-  }
-
-  private AlcoholMatchTargetItem alcoholWithAbv(Long id, String abv) {
-    return new AlcoholMatchTargetItem(
-        id,
-        "글렌피딕 12",
-        "Glenfiddich 12",
-        abv,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null);
-  }
-
-  private AlcoholMatchTargetItem alcoholWithAge(Long id, String age) {
-    return new AlcoholMatchTargetItem(
-        id,
-        "글렌피딕",
-        "Glenfiddich",
-        null,
-        age,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         null);
   }
 }
