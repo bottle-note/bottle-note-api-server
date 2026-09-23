@@ -39,6 +39,11 @@ public class InMemoryUserRepository implements UserRepository {
   }
 
   @Override
+  public Optional<User> findByIdForUpdate(Long userId) {
+    return findById(userId);
+  }
+
+  @Override
   public List<User> findAll() {
     return List.copyOf(database.values());
   }

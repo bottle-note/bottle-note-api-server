@@ -16,7 +16,7 @@ import java.util.Map;
 public record NotificationSettingUpdateRequest(
     @Schema(description = "변경할 발생 액션별 수신 여부. 같은 액션은 한 번만 지정한다.")
         @NotEmpty(message = "NOTIFICATION_SETTINGS_REQUIRED")
-        List<@Valid Item> settings) {
+        List<@Valid @NotNull(message = "NOTIFICATION_SETTING_REQUIRED") Item> settings) {
 
   public Map<NotificationEventAction, Boolean> toChanges() {
     Map<NotificationEventAction, Boolean> changes = new LinkedHashMap<>();

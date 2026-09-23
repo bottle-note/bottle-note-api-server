@@ -8,6 +8,9 @@ import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.domain.UserNotificationSetting;
 import app.bottlenote.notification.fixture.FakeNotificationTransactionManager;
 import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.facade.payload.UserProfileItem;
+import app.bottlenote.user.fixture.FakeUserFacade;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +24,11 @@ class NotificationSettingServiceTest {
   private final InMemoryUserNotificationSettingRepository repository =
       new InMemoryUserNotificationSettingRepository();
   private final NotificationSettingService service =
-      new NotificationSettingService(repository, new FakeNotificationTransactionManager());
+      new NotificationSettingService(
+          repository,
+          new FakeUserFacade(
+              UserProfileItem.create(1L, "사용자", null), UserProfileItem.create(2L, "다른 사용자", null)),
+          new FakeNotificationTransactionManager());
 
   @ParameterizedTest
   @EnumSource(NotificationEventAction.class)
@@ -92,6 +99,15 @@ class NotificationSettingServiceTest {
   void 빈_변경을_거부한다() {
     assertThatThrownBy(() -> service.changeSettings(1L, Map.of()))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 사용자의 설정을 변경하면 거부한다")
+  void 없는_사용자의_변경을_거부한다() {
+    assertThatThrownBy(
+            () -> service.changeSettings(99L, Map.of(NotificationEventAction.FOLLOW_CREATE, false)))
+        .isInstanceOf(UserException.class);
+    assertThat(repository.findAllByUserId(99L)).isEmpty();
   }
 
   @Test

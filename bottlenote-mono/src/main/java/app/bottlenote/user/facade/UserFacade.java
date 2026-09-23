@@ -19,4 +19,7 @@ public interface UserFacade {
   void isValidUserId(Long userId);
 
   UserProfileItem getUserProfileInfo(Long userId);
+
+  /** 현재 트랜잭션이 끝날 때까지 사용자 행을 잠가 같은 사용자의 변경을 직렬화한다. */
+  void lockUserForUpdate(Long userId);
 }

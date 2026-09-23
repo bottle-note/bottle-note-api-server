@@ -49,6 +49,7 @@ class HelpAnswerNotificationListenerTest {
                 testCursorCodec(),
                 new NotificationSettingService(
                     new InMemoryUserNotificationSettingRepository(),
+                    new FakeUserFacade(UserProfileItem.create(1L, "사용자", null)),
                     new FakeNotificationTransactionManager()),
                 new FakeNotificationTransactionManager()));
   }

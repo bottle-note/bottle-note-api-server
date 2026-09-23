@@ -77,4 +77,9 @@ public class FakeUserFacade implements UserFacade {
     }
     throw new UserException(UserExceptionCode.USER_NOT_FOUND);
   }
+
+  @Override
+  public void lockUserForUpdate(Long userId) {
+    isValidUserId(userId);
+  }
 }
