@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 public enum MfdsMatchSelectionSource {
   CANDIDATE("후보 선택", "자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다"),
   MANUAL("직접 선택", "자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다"),
+  INHERITED("상속 매칭", "동일 제품의 관리자 확정 결과를 다른 신고가 이어받은 경우에 사용된다"),
+  ALCOHOL_PROPAGATED("주류 정보 전파", "확정한 주류의 증류소 또는 지역을 전파한 경우에 사용된다"),
   AUTO("자동 매칭", "관리자 개입 없이 자동 매칭이 선정한 값이 그대로 확정된 경우에 해당 값이 사용된다");
 
   private final String name;
