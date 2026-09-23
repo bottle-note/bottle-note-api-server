@@ -8,6 +8,8 @@ import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.domain.UserNotificationSetting;
 import app.bottlenote.notification.fixture.FakeNotificationTransactionManager;
 import app.bottlenote.notification.fixture.InMemoryUserNotificationSettingRepository;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -51,6 +53,45 @@ class NotificationSettingServiceTest {
     service.changeSetting(1L, action, action.isDefaultEnabled());
     assertThat(repository.findByUserIdAndActionCode(1L, action)).isEmpty();
     assertThat(service.isEnabled(1L, action)).isEqualTo(action.isDefaultEnabled());
+  }
+
+  @Test
+  @DisplayName("설정을 조회할 때 모든 발생 액션을 선언 순서로 반환하고 저장된 값을 반영한다")
+  void 전체_설정을_조회할_수_있다() {
+    service.changeSetting(1L, NotificationEventAction.FOLLOW_CREATE, false);
+
+    Map<NotificationEventAction, Boolean> settings = service.getSettings(1L);
+
+    assertThat(settings.keySet()).containsExactly(NotificationEventAction.values());
+    assertThat(settings).containsEntry(NotificationEventAction.FOLLOW_CREATE, false);
+    assertThat(settings.values()).filteredOn(enabled -> !enabled).hasSize(1);
+    assertThat(service.getSettings(2L)).doesNotContainValue(false);
+  }
+
+  @Test
+  @DisplayName("여러 설정을 변경할 때 거부는 저장하고 기본값 복원은 삭제한다")
+  void 여러_설정을_변경할_수_있다() {
+    service.changeSetting(1L, NotificationEventAction.TASTING_OPEN, false);
+    Map<NotificationEventAction, Boolean> changes = new LinkedHashMap<>();
+    changes.put(NotificationEventAction.TASTING_OPEN, true);
+    changes.put(NotificationEventAction.REVIEW_LIKE_ADD, false);
+    changes.put(NotificationEventAction.FOLLOW_CREATE, false);
+
+    service.changeSettings(1L, changes);
+    service.changeSettings(1L, changes);
+
+    assertThat(repository.findAllByUserId(1L))
+        .extracting(UserNotificationSetting::getActionCode)
+        .containsExactlyInAnyOrder(
+            NotificationEventAction.REVIEW_LIKE_ADD, NotificationEventAction.FOLLOW_CREATE);
+    assertThat(service.isEnabled(1L, NotificationEventAction.TASTING_OPEN)).isTrue();
+  }
+
+  @Test
+  @DisplayName("변경할 설정이 비어 있으면 거부한다")
+  void 빈_변경을_거부한다() {
+    assertThatThrownBy(() -> service.changeSettings(1L, Map.of()))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test

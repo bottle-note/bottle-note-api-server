@@ -89,6 +89,11 @@ public enum ValidExceptionCode implements ExceptionCode {
   AGREEMENT_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "동의 문서 원문은 비어 있을 수 없습니다."),
   AGREEMENT_INPUT_CONTEXT_REQUIRED(HttpStatus.BAD_REQUEST, "동의 선택 맥락은 필수입니다."),
 
+  // NOTIFICATION
+  NOTIFICATION_SETTINGS_REQUIRED(HttpStatus.BAD_REQUEST, "변경할 알림 설정은 최소 1개 이상이어야 합니다."),
+  NOTIFICATION_EVENT_ACTION_REQUIRED(HttpStatus.BAD_REQUEST, "알림 발생 액션은 필수입니다."),
+  NOTIFICATION_ENABLED_REQUIRED(HttpStatus.BAD_REQUEST, "알림 수신 여부는 필수입니다."),
+
   // REPORT,
   REPORT_TARGET_USER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상자 아이디는 필수입니다."),
   REPORT_TARGET_REVIEW_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상 리뷰 아이디는 필수입니다."),

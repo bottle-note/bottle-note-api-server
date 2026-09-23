@@ -6,6 +6,7 @@ import app.bottlenote.notification.domain.UserNotificationSettingRepository;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,6 +19,11 @@ public class InMemoryUserNotificationSettingRepository implements UserNotificati
   public Optional<UserNotificationSetting> findByUserIdAndActionCode(
       Long userId, NotificationEventAction action) {
     return Optional.ofNullable(settings.get(new Key(userId, action)));
+  }
+
+  @Override
+  public List<UserNotificationSetting> findAllByUserId(Long userId) {
+    return settings.values().stream().filter(s -> s.getUserId().equals(userId)).toList();
   }
 
   @Override

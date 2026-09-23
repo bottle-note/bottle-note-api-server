@@ -5,6 +5,7 @@ import app.bottlenote.notification.constant.NotificationReadStatus;
 import app.bottlenote.notification.constant.NotificationSettingGroup;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
+import app.bottlenote.notification.dto.response.NotificationSettingsResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -156,4 +157,59 @@ public final class NotificationApiDocs {
                   @Content(
                       schema = @Schema(implementation = NotificationMarkAllReadResponse.class))))
   public @interface MarkAllAsRead {}
+
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Operation(
+      summary = "내 알림 수신 설정을 조회한다",
+      description =
+          """
+          인증 사용자 본인의 알림 수신 설정을 반환합니다. 서버가 지원하는 모든 설정 그룹과 발생 액션을 선언 순서대로 포함하므로 종류·표시명·기본값을 하드코딩하지 않습니다.
+
+          - `enabled`: 현재 수신 여부. 저장된 설정이 없으면 `defaultEnabled`와 같음
+          - 수신을 끈 발생 액션의 새 알림은 알림함에 저장되지 않음
+          - 그룹은 표시용 묶음이며 그룹 단위 설정은 따로 저장하지 않음
+          - 마케팅 정보 수신 동의는 이 API가 아니라 `/api/v2/agreements`에서 관리
+          """,
+      responses =
+          @ApiResponse(
+              responseCode = "200",
+              description = "알림 수신 설정",
+              content =
+                  @Content(schema = @Schema(implementation = NotificationSettingsResponse.class))))
+  public @interface GetSettings {}
+
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Operation(
+      summary = "내 알림 수신 설정을 변경한다",
+      description =
+          """
+          요청에 담은 발생 액션의 수신 여부만 변경하고, 변경 후 전체 설정을 조회 API와 같은 형식으로 반환합니다.
+
+          - 그룹·전체 토글은 조회 응답에서 해당 발생 액션을 모두 담아 한 번에 보낸다
+          - 한 요청의 변경은 모두 반영되거나 모두 반영되지 않음
+          - 현재 값과 같은 요청은 변경 없이 성공하므로 재시도해도 안전함
+          - 기본값과 같은 값으로 바꾸면 저장된 설정을 지우고 기본값을 따름
+          - 동시 요청은 마지막에 저장된 요청이 반영됨
+
+          **오류 코드**
+
+          | 코드 | 상태 코드 | 발생 조건 | 설명 |
+          | --- | --- | --- | --- |
+          | `NOTIFICATION_SETTINGS_REQUIRED` | 400 | `settings`가 없거나 비었을 때 | 변경할 알림 설정은 최소 1개 이상이어야 합니다. |
+          | `NOTIFICATION_EVENT_ACTION_REQUIRED` | 400 | `eventAction`이 없을 때 | 알림 발생 액션은 필수입니다. |
+          | `NOTIFICATION_ENABLED_REQUIRED` | 400 | `enabled`가 없을 때 | 알림 수신 여부는 필수입니다. |
+          | `JSON_PASSING_FAILED` | 400 | 정의되지 않은 `eventAction`이거나 본문 형식이 잘못됐을 때 | JSON 파싱에 실패했습니다. |
+          | `DUPLICATE_NOTIFICATION_SETTING` | 400 | 같은 `eventAction`을 두 번 이상 지정했을 때 | 같은 알림 발생 액션을 한 요청에 두 번 이상 변경할 수 없습니다. |
+          | `REQUIRED_USER_ID` | 400 | 액세스 토큰에서 사용자 식별자를 얻지 못했을 때 | 유저 아이디가 필요합니다. |
+          | `DUPLICATE_NOTIFICATION_KEY` | 409 | 같은 사용자의 동시 저장이 재시도 후에도 충돌할 때. 다시 요청하면 된다 | 동일한 사용자와 알림 키가 이미 저장되어 있습니다. |
+          """,
+      responses =
+          @ApiResponse(
+              responseCode = "200",
+              description = "변경 후 알림 수신 설정",
+              content =
+                  @Content(schema = @Schema(implementation = NotificationSettingsResponse.class))))
+  public @interface UpdateSettings {}
 }

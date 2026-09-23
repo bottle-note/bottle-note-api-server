@@ -135,6 +135,46 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
         .contains("OPEN_REVIEW` v1", "OPEN_REVIEW` v2", "OPEN_USER` v1");
   }
 
+  @Test
+  @DisplayName("수신 설정 조회·변경 요청과 응답 schema를 노출한다")
+  void 수신_설정_schema를_노출한다() {
+    JsonNode spec = fetchSpec();
+    SpecOperation get = operation(spec, "GET /api/v1/notifications/settings");
+    SpecOperation patch = operation(spec, "PATCH /api/v1/notifications/settings");
+
+    for (SpecOperation operation : java.util.List.of(get, patch)) {
+      JsonNode responseSchema =
+          resolve(
+              spec, operation.definition().at("/responses/200/content/application~1json/schema"));
+      JsonNode settingsSchema = resolve(spec, responseSchema.path("properties").path("data"));
+      JsonNode groupSchema =
+          resolve(spec, settingsSchema.path("properties").path("groups").path("items"));
+      assertThat(propertyNamesOf(groupSchema))
+          .containsExactlyInAnyOrder("group", "displayName", "settings");
+      JsonNode itemSchema =
+          resolve(spec, groupSchema.path("properties").path("settings").path("items"));
+      assertThat(propertyNamesOf(itemSchema))
+          .containsExactlyInAnyOrder(
+              "eventAction", "displayName", "description", "defaultEnabled", "enabled");
+    }
+
+    JsonNode requestSchema =
+        resolve(spec, patch.definition().at("/requestBody/content/application~1json/schema"));
+    JsonNode requestItemSchema =
+        resolve(spec, requestSchema.path("properties").path("settings").path("items"));
+    assertThat(propertyNamesOf(requestItemSchema))
+        .containsExactlyInAnyOrder("eventAction", "enabled");
+    assertThat(patch.definition().path("description").asText())
+        .contains("DUPLICATE_NOTIFICATION_SETTING", "NOTIFICATION_SETTINGS_REQUIRED");
+  }
+
+  private SpecOperation operation(JsonNode spec, String endpoint) {
+    return operationsOf(spec).stream()
+        .filter(candidate -> candidate.endpoint().equals(endpoint))
+        .findFirst()
+        .orElseThrow();
+  }
+
   private void assertParameterSchema(
       SpecOperation operation, String name, String type, String format) {
     JsonNode schema = parameter(operation, name).path("schema");

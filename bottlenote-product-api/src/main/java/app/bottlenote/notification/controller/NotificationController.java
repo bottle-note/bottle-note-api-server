@@ -10,12 +10,15 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.notification.controller.docs.NotificationApiDocs;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
+import app.bottlenote.notification.dto.request.NotificationSettingUpdateRequest;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
+import app.bottlenote.notification.dto.response.NotificationSettingsResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import app.bottlenote.notification.service.NotificationMarkReadResult;
 import app.bottlenote.notification.service.NotificationService;
+import app.bottlenote.notification.service.NotificationSettingService;
 import app.bottlenote.user.exception.UserException;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -25,10 +28,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 인증 사용자의 알림함 조회·읽음 API. */
+/** 인증 사용자의 알림함 조회·읽음과 수신 설정 API. */
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
@@ -37,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
 
   private final NotificationService notificationService;
+  private final NotificationSettingService notificationSettingService;
 
   @GetMapping
   @NotificationApiDocs.GetNotifications
@@ -77,6 +82,24 @@ public class NotificationController {
     Long userId = currentUserId();
     int updatedCount = notificationService.markAllAsRead(userId);
     return GlobalResponse.ok(NotificationMarkAllReadResponse.of(updatedCount));
+  }
+
+  @GetMapping("/settings")
+  @NotificationApiDocs.GetSettings
+  public ResponseEntity<GlobalResponse> getSettings() {
+    Long userId = currentUserId();
+    return GlobalResponse.ok(
+        NotificationSettingsResponse.from(notificationSettingService.getSettings(userId)));
+  }
+
+  @PatchMapping("/settings")
+  @NotificationApiDocs.UpdateSettings
+  public ResponseEntity<GlobalResponse> updateSettings(
+      @RequestBody @Valid NotificationSettingUpdateRequest request) {
+    Long userId = currentUserId();
+    notificationSettingService.changeSettings(userId, request.toChanges());
+    return GlobalResponse.ok(
+        NotificationSettingsResponse.from(notificationSettingService.getSettings(userId)));
   }
 
   private Long currentUserId() {
