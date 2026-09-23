@@ -93,18 +93,37 @@ class AdminMfdsMatchingIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
-	@DisplayName("고정 후보 컬럼이 남아 있어도 실행 테이블만 읽고 재계산은 이전 이력을 보존한다")
-	fun ignoresLegacySlotsAndPreservesHistory() {
-		val alcohol = alcoholTestFactory.persistAlcohol("글렌모렌지 오리지널 12년", "Glenmorangie Original 12yo", AlcoholType.WHISKY)
+	@DisplayName("마이그레이션 후 고정 후보 컬럼은 제거하고 확정값과 상세 뷰는 유지한다")
+	fun removesLegacyCandidateColumnsAndKeepsDetailView() {
+		val columns = jdbcTemplate.queryForList("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'mfds_declarations'", String::class.java)
+		val legacyColumns = listOf("alcohol", "distillery", "region").flatMap { type ->
+			(1..3).flatMap { rank -> listOf("${type}_candidate_${rank}_id", "${type}_candidate_${rank}_score") }
+		}
+		assertThat(columns).doesNotContainAnyElementsOf(legacyColumns)
+		assertThat(columns).contains("selected_alcohol_id", "selected_distillery_id", "selected_region_id", "matching_run_id", "cask_candidate", "distillery_name_ko_candidate")
+		val sourceItemId = mfdsTestFactory.persistItem("RCNO-SCHEMA", "테스트 주류", java.time.LocalDate.of(2026, 9, 24), java.time.LocalDateTime.of(2026, 9, 24, 0, 0))
+		val declaration = mfdsTestFactory.persistDeclaration("RCNO-SCHEMA", MfdsNormalizationStatus.NORMALIZED, null, null, null)
+		jdbcTemplate.update("UPDATE mfds_declarations SET source_item_id = ?, selected_alcohol_id = 123, selected_distillery_id = 456, selected_region_id = 789 WHERE id = ?", sourceItemId, declaration.id)
+		val detail = jdbcTemplate.queryForMap("SELECT * FROM mfds_declaration_details WHERE id = ?", declaration.id)
+		assertThat(detail.keys).doesNotContainAnyElementsOf(legacyColumns)
+		assertThat((detail["selected_alcohol_id"] as Number).toLong()).isEqualTo(123L)
+		assertThat((detail["selected_distillery_id"] as Number).toLong()).isEqualTo(456L)
+		assertThat((detail["selected_region_id"] as Number).toLong()).isEqualTo(789L)
+		assertThat(jdbcTemplate.queryForObject("SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'mfds_matching_candidates'", String::class.java)).contains("실행", "규칙 버전").doesNotContain("상위 3개")
+	}
+
+	@Test
+	@DisplayName("고정 후보 컬럼 없이 실행 테이블로 조회하고 재계산은 이전 이력을 보존한다")
+	fun readsRunCandidatesAndPreservesHistory() {
+		alcoholTestFactory.persistAlcohol("글렌모렌지 오리지널 12년", "Glenmorangie Original 12yo", AlcoholType.WHISKY)
 		val d = mfdsTestFactory.persistDeclaration("RCNO-HISTORY", MfdsNormalizationStatus.NORMALIZED, null, null, null)
-		jdbcTemplate.update("UPDATE mfds_declarations SET alcohol_candidate_1_id = ?, alcohol_candidate_1_score = 1, distillery_candidate_1_id = 987, name_search_key_en = 'Glenmorangie Original 12yo' WHERE id = ?", alcohol.id, d.id)
+		jdbcTemplate.update("UPDATE mfds_declarations SET name_search_key_en = 'Glenmorangie Original 12yo' WHERE id = ?", d.id)
 		assertThat(matchingService.getCandidates(d.id).alcoholCandidates()).isEmpty()
 		assertThat(matchingService.getCandidates(d.id).distilleryCandidates()).isEmpty()
 		val first = matchingService.runMatching(d.id)
 		val firstRun = declarationRepository.findById(d.id).orElseThrow().matchingRunId
 		assertThat(first.alcoholCandidates()).hasSize(1)
 		assertThat(matchingService.getCandidates(d.id).alcoholCandidates().first().scoreDetail()).isEqualTo(first.alcoholCandidates().first().scoreDetail())
-		assertThat(jdbcTemplate.queryForObject("SELECT alcohol_candidate_1_score FROM mfds_declarations WHERE id = ?", java.math.BigDecimal::class.java, d.id)).isEqualByComparingTo("1")
 		val detail = mockMvcTester.get().uri("/v1/mfds/declarations/${d.id}").header("Authorization", "Bearer $accessToken").exchange()
 		assertThat(detail).hasStatusOk()
 		assertThat(mapper.readTree(detail.response.contentAsString).path("data").path("alcoholCandidates").size()).isEqualTo(1)
