@@ -39,6 +39,7 @@ object AdminMfdsDeclarationApiDocs {
 			- AUTO_SELECTED: 배치가 단일 후보를 자동 선정했다
 			- NO_MATCH: 후보를 찾지 못했다
 			- REVIEW / AMBIGUOUS / CONFLICT_REVIEW: 사람이 판단해야 하는 상태다
+			- INHERITED: 같은 제품 동일성 키를 가진 다른 신고의 관리자 확정을 이어받았다
 
 			목록은 ID 내림차순이며 커서 방식으로 페이징합니다. 응답 meta의 nextCursor를 다음 요청의 cursor로 전달하면 다음 페이지를 받을 수 있습니다.
 
@@ -75,7 +76,7 @@ object AdminMfdsDeclarationApiDocs {
 			- CANDIDATE(후보 선택): 자동 매칭이 계산한 후보 목록에서 관리자가 선택한 경우에 해당 값이 사용된다
 			- MANUAL(직접 선택): 자동매칭이 아닌 관리자가 직접 선택한 경우에 해당 값이 사용된다
 
-			이 밖에 정규화 배치가 남긴 AUTO_SELECTED, NO_MATCH, REVIEW, AMBIGUOUS, CONFLICT_REVIEW 가 그대로 노출될 수 있습니다.
+			이 밖에 정규화 배치가 남긴 AUTO_SELECTED, NO_MATCH, REVIEW, AMBIGUOUS, CONFLICT_REVIEW, INHERITED(같은 제품 키의 관리자 확정을 이어받음)가 그대로 노출될 수 있습니다.
 
 			processedDate는 식약처 수입 원장에 기록된 통관일자이며 YYYY-MM-DD 형식입니다. 원본에 값이 없으면 null로 내려갑니다.
 			""",
