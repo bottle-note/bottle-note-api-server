@@ -34,7 +34,8 @@ jobs:
 
       - name: upload probe (new TCP connection per upload)
         run: |
-          set -uo pipefail
+          # timeout(curl exit 28)도 측정 결과로 기록해야 하므로 errexit를 끈다
+          set +e -uo pipefail
           retrans() { awk '/^Tcp:/{if(h){print $13; exit} h=1}' /proc/net/snmp; }
           echo "| # | target | entry ip | http | uploaded MB | seconds | KB/s | retrans segs | local port |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---|---|---|---|---|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
@@ -64,7 +65,8 @@ jobs:
 
       - name: control probe (cloudflare, non-Oracle destination)
         run: |
-          set -uo pipefail
+          # timeout(curl exit 28)도 측정 결과로 기록해야 하므로 errexit를 끈다
+          set +e -uo pipefail
           head -c "${PROBE_SIZE_MB}M" /dev/urandom > blob
           for round in 1 2 3 4 5; do
             curl -s -o /dev/null --max-time "$PROBE_MAX_TIME" -X POST --data-binary @blob \
