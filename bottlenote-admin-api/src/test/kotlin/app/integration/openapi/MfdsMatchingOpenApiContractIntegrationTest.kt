@@ -2,8 +2,11 @@ package app.integration.openapi
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("admin_integration")
+@DisplayName("[integration] Admin MFDS 매칭 OpenAPI 계약")
 class MfdsMatchingOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 	@Test
 	@DisplayName("매칭 실행 문서에 위스키 10개와 증류소·지역 3개 제한을 명시한다")
