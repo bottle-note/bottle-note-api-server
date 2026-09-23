@@ -2,6 +2,7 @@ package app.bottlenote.global.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -74,5 +75,19 @@ class MfdsPublicOpenApiContractIntegrationTest extends OpenApiSpecTestSupport {
     assertThat(requiredNames)
         .doesNotContain("alcoholCategoryEn", "ageYears")
         .contains("distilleryLinked", "regionLinked");
+  }
+
+  @Test
+  @DisplayName("공개 수입 주류 목록과 상세는 이름 필드의 차이를 설명한다")
+  void 공개_수입_주류_이름_필드_설명을_문서화한다() {
+    var spec = fetchSpec();
+    for (String name : List.of("MfdsPublicAlcoholListItem", "MfdsPublicAlcoholDetailResponse")) {
+      var schema = spec.at("/components/schemas/" + name);
+      assertThat(schema.at("/properties/alcoholNameKo/description").asText())
+          .contains("공개 수입 신고 화면이 표시하는 이름");
+      assertThat(schema.at("/properties/skuDisplayNameEn/description").asText()).contains("SKU는");
+      assertThat(schema.at("/properties/baseProductNameEn/description").asText())
+          .contains("SKU 속성을 뺀 이름");
+    }
   }
 }

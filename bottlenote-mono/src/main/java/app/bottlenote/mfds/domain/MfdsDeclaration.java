@@ -50,27 +50,27 @@ public class MfdsDeclaration {
   @Column(name = "processed_date")
   private LocalDate processedDate;
 
-  @Comment("제품 기본 한글명")
+  @Comment("제품 기본 한글명: 원문에서 용량·도수·숙성 연수·LOT 등 SKU 속성을 뺀 이름, 매칭과 무관하게 원문 기준")
   @Column(name = "base_product_name_ko", columnDefinition = "TEXT")
   private String baseProductNameKo;
 
-  @Comment("제품 기본 영문명")
+  @Comment("제품 기본 영문명: 원문에서 용량·도수·숙성 연수·LOT 등 SKU 속성을 뺀 이름, 매칭과 무관하게 원문 기준")
   @Column(name = "base_product_name_en", columnDefinition = "TEXT")
   private String baseProductNameEn;
 
-  @Comment("SKU 한글 표시명")
+  @Comment("SKU 한글 표시명: 원문에서 포장 문구만 정리하고 이 신고의 용량·도수·숙성 연수를 남긴 이름")
   @Column(name = "sku_display_name_ko", columnDefinition = "TEXT")
   private String skuDisplayNameKo;
 
-  @Comment("SKU 영문 표시명")
+  @Comment("SKU 영문 표시명: 원문에서 포장 문구만 정리하고 이 신고의 용량·도수·숙성 연수를 남긴 이름")
   @Column(name = "sku_display_name_en", columnDefinition = "TEXT")
   private String skuDisplayNameEn;
 
-  @Comment("한글명 검색 키")
+  @Comment("한글명 검색 키: 기본명을 검색용으로 정리한 값, 제품 동일성 키의 입력")
   @Column(name = "name_search_key_ko", columnDefinition = "TEXT")
   private String nameSearchKeyKo;
 
-  @Comment("영문명 검색 키")
+  @Comment("영문명 검색 키: 기본명을 검색용으로 정리한 값, 제품 동일성 키의 입력")
   @Column(name = "name_search_key_en", columnDefinition = "TEXT")
   private String nameSearchKeyEn;
 
@@ -228,11 +228,11 @@ public class MfdsDeclaration {
   @Column(name = "manufacturer_name", columnDefinition = "TEXT")
   private String manufacturerName;
 
-  @Comment("주류 한글명 후보")
+  @Comment("주류 한글명: 공개 화면 표시 이름, 알코올 매칭 시 매칭 주류의 한글 이름으로 덮어씀")
   @Column(name = "alcohol_name_ko", columnDefinition = "TEXT")
   private String alcoholNameKo;
 
-  @Comment("주류 영문명 후보")
+  @Comment("주류 영문명: 공개 화면 표시 이름, 알코올 매칭 시 매칭 주류의 영문 이름으로 덮어씀")
   @Column(name = "alcohol_name_en", columnDefinition = "TEXT")
   private String alcoholNameEn;
 
@@ -352,7 +352,7 @@ public class MfdsDeclaration {
   @Column(name = "selected_region_id")
   private Long selectedRegionId;
 
-  @Comment("매칭을 이어받은 기준 신고 ID")
+  @Comment("매칭을 이어받은 기준 신고 ID, alcohol_match_decision이 INHERITED일 때만 값이 있음")
   @Column(name = "inherited_from_declaration_id")
   private Long inheritedFromDeclarationId;
 

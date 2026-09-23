@@ -104,6 +104,19 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
+	@DisplayName("수입 신고 목록과 상세는 기본 제품명, SKU 표시명, 주류명의 차이를 필드 설명에 싣는다")
+	fun mfdsDeclarationDocumentsNameFields() {
+		val spec = fetchSpec()
+		listOf("MfdsDeclarationListItem", "MfdsDeclarationDetailResponse").forEach { name ->
+			val schema = spec.at("/components/schemas/$name")
+			assertThat(schema.at("/properties/baseProductNameKo/description").asText()).contains("SKU 속성을 뺀 이름")
+			assertThat(schema.at("/properties/skuDisplayNameKo/description").asText()).contains("SKU는")
+		}
+		assertThat(spec.at("/components/schemas/MfdsDeclarationDetailResponse/properties/alcoholNameKo/description").asText())
+			.contains("매칭된 보틀노트 주류의 한글 이름으로 덮어쓴다")
+	}
+
+	@Test
 	@DisplayName("수입 신고 목록과 상세는 동일한 nullable processedDate를 문서화한다")
 	fun mfdsDeclarationListDocumentsProcessedDate() {
 		val spec = fetchSpec()
