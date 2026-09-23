@@ -1,9 +1,12 @@
 package app.bottlenote.mfds.presentation
 
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.security.SecurityContextUtil
 import app.bottlenote.mfds.dto.request.MfdsMatchingConfirmRequest
 import app.bottlenote.mfds.presentation.docs.AdminMfdsMatchingApiDocs
 import app.bottlenote.mfds.service.MfdsMatchingService
+import app.bottlenote.user.exception.UserException
+import app.bottlenote.user.exception.UserExceptionCode
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -36,11 +39,14 @@ class AdminMfdsMatchingController(
 	fun confirmMatching(
 		@PathVariable declarationId: Long,
 		@RequestBody @Valid request: MfdsMatchingConfirmRequest
-	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(mfdsMatchingService.confirmMatching(declarationId, request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(mfdsMatchingService.confirmMatching(declarationId, request, requiredAdminId()))
 
 	@AdminMfdsMatchingApiDocs.ReleaseMatching
 	@PostMapping("/release")
 	fun releaseMatching(
 		@PathVariable declarationId: Long
-	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(mfdsMatchingService.clearMatching(declarationId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(mfdsMatchingService.clearMatching(declarationId, requiredAdminId()))
+
+	private fun requiredAdminId(): Long = SecurityContextUtil.getAdminUserIdByContext()
+		.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
 }

@@ -352,6 +352,10 @@ public class MfdsDeclaration {
   @Column(name = "selected_region_id")
   private Long selectedRegionId;
 
+  @Comment("매칭을 이어받은 기준 신고 ID")
+  @Column(name = "inherited_from_declaration_id")
+  private Long inheritedFromDeclarationId;
+
   @Comment("매칭 로직 버전")
   @Column(name = "matching_version", length = 64)
   private String matchingVersion;
@@ -511,7 +515,7 @@ public class MfdsDeclaration {
     this.matchedAt = matchedAt;
   }
 
-  /** 매칭을 확정한다. distillery/region은 선택 사항이며 지정하지 않으면 기존 선택이 해제된다. */
+  /** 서비스에서 결정한 주류·증류소·지역과 각 선택 근거를 반영한다. */
   public void confirmMatching(
       Long alcoholId,
       MfdsMatchSelectionSource alcoholSource,
@@ -519,6 +523,7 @@ public class MfdsDeclaration {
       MfdsMatchSelectionSource distillerySource,
       Long regionId,
       MfdsMatchSelectionSource regionSource) {
+    this.inheritedFromDeclarationId = null;
     this.selectedAlcoholId = alcoholId;
     this.alcoholMatchDecision = alcoholSource != null ? alcoholSource.name() : null;
     this.selectedDistilleryId = distilleryId;
@@ -530,6 +535,7 @@ public class MfdsDeclaration {
 
   /** 확정된 매칭 선택을 해제한다. 후보와 매칭 이력(matchingVersion, matchedAt)은 유지한다. */
   public void clearMatchingSelection() {
+    this.inheritedFromDeclarationId = null;
     this.selectedAlcoholId = null;
     this.alcoholMatchDecision = null;
     this.selectedDistilleryId = null;
