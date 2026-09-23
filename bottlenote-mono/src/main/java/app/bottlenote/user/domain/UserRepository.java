@@ -17,6 +17,8 @@ public interface UserRepository {
 
   Optional<User> findById(Long usrId);
 
+  Optional<User> findByIdForUpdate(Long userId);
+
   List<User> findAll();
 
   boolean existsByUserId(Long userId);

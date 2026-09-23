@@ -13,10 +13,17 @@ import app.bottlenote.notification.service.NotificationSettingService;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +118,40 @@ class NotificationSettingControllerIntegrationTest extends IntegrationTestSuppor
     assertThat(settingService.getSettings(user.getId())).doesNotContainValue(false);
   }
 
+  @RepeatedTest(5)
+  @DisplayName("상반된 일괄 변경이 동시에 들어와도 한 요청의 값만 모두 반영한다")
+  void 동시_일괄_변경이_섞이지_않는다() throws Exception {
+    Long userId = userTestFactory.persistUser().getId();
+    NotificationEventAction a = NotificationEventAction.REVIEW_LIKE_ADD;
+    NotificationEventAction b = NotificationEventAction.FOLLOW_CREATE;
+    settingService.changeSetting(userId, a, false);
+    List<Map<NotificationEventAction, Boolean>> requests =
+        List.of(Map.of(a, false, b, false), Map.of(a, true, b, true));
+
+    CountDownLatch ready = new CountDownLatch(requests.size());
+    CountDownLatch start = new CountDownLatch(1);
+    try (var executor = Executors.newFixedThreadPool(requests.size())) {
+      List<Future<?>> futures = new ArrayList<>();
+      for (var changes : requests) {
+        futures.add(
+            executor.submit(
+                () -> {
+                  ready.countDown();
+                  if (!start.await(10, TimeUnit.SECONDS))
+                    throw new IllegalStateException("동시 실행 대기 초과");
+                  settingService.changeSettings(userId, changes);
+                  return null;
+                }));
+      }
+      assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+      start.countDown();
+      for (var future : futures) future.get(20, TimeUnit.SECONDS);
+    }
+
+    Map<NotificationEventAction, Boolean> result = settingService.getSettings(userId);
+    assertThat(result.get(a)).isEqualTo(result.get(b));
+  }
+
   @Test
   @DisplayName("같은 발생 액션을 중복 지정하면 아무것도 변경하지 않고 400을 반환한다")
   void 중복_지정을_거부한다() throws Exception {
@@ -142,6 +183,8 @@ class NotificationSettingControllerIntegrationTest extends IntegrationTestSuppor
 
     assertThat(errorCode(patch(token, "{\"settings\":[]}")))
         .isEqualTo(ValidExceptionCode.NOTIFICATION_SETTINGS_REQUIRED.name());
+    assertThat(errorCode(patch(token, "{\"settings\":[null]}")))
+        .isEqualTo(ValidExceptionCode.NOTIFICATION_SETTING_REQUIRED.name());
     assertThat(errorCode(patch(token, "{\"settings\":[{\"enabled\":false}]}")))
         .isEqualTo(ValidExceptionCode.NOTIFICATION_EVENT_ACTION_REQUIRED.name());
     assertThat(errorCode(patch(token, "{\"settings\":[{\"eventAction\":\"FOLLOW_CREATE\"}]}")))

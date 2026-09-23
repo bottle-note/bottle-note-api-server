@@ -91,6 +91,7 @@ public enum ValidExceptionCode implements ExceptionCode {
 
   // NOTIFICATION
   NOTIFICATION_SETTINGS_REQUIRED(HttpStatus.BAD_REQUEST, "변경할 알림 설정은 최소 1개 이상이어야 합니다."),
+  NOTIFICATION_SETTING_REQUIRED(HttpStatus.BAD_REQUEST, "알림 설정 항목은 null일 수 없습니다."),
   NOTIFICATION_EVENT_ACTION_REQUIRED(HttpStatus.BAD_REQUEST, "알림 발생 액션은 필수입니다."),
   NOTIFICATION_ENABLED_REQUIRED(HttpStatus.BAD_REQUEST, "알림 수신 여부는 필수입니다."),
 

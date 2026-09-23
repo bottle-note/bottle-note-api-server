@@ -40,4 +40,11 @@ public class DefaultUserFacade implements UserFacade {
 
     return UserProfileItem.create(user.getId(), user.getNickName(), user.getImageUrl());
   }
+
+  @Override
+  public void lockUserForUpdate(Long userId) {
+    userQueryRepository
+        .findByIdForUpdate(userId)
+        .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+  }
 }
