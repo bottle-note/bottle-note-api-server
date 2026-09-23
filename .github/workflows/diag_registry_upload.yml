@@ -1,6 +1,6 @@
 name: diag registry upload
 
-# 레지스트리 push 지연이 연결 단위로 갈리는지 확인하는 일회성 진단. 이 브랜치 push에서만 실행한다
+# 손실 경로 runner에서 cubic 대비 BBR의 업로드 속도를 비교하는 일회성 진단. 이 브랜치 push에서만 실행한다
 on:
   push:
     branches:
@@ -10,86 +10,76 @@ permissions:
   contents: read
 
 jobs:
-  upload-probe:
+  cc-compare:
     strategy:
       fail-fast: false
       matrix:
-        probe: [ runner-a, runner-b ]
+        probe: [ runner-a, runner-b, runner-c, runner-d ]
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 45
+    timeout-minutes: 30
     env:
       REGISTRY: ${{ secrets.REGISTRY_ADDRESS }}
       REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
       PROBE_REPO: diag-upload-probe
-      PROBE_ROUNDS: 4
+      PROBE_ROUNDS: 3
       PROBE_SIZE_MB: 20
-      PROBE_MAX_TIME: 45
+      PROBE_MAX_TIME: 60
     steps:
       - name: runner identity
         run: |
           echo "public ip: $(curl -s --max-time 5 https://api.ipify.org || echo unknown)"
           echo "azure location: $(curl -s --max-time 3 -H Metadata:true 'http://169.254.169.254/metadata/instance/compute/location?api-version=2021-02-01&format=text' || echo unknown)"
           getent ahostsv4 "$REGISTRY" | awk '{print $1}' | sort -u | tee entry_ips.txt
-          sysctl net.ipv4.tcp_wmem net.ipv4.tcp_rmem net.core.wmem_max net.ipv4.tcp_congestion_control net.core.default_qdisc net.ipv4.tcp_notsent_lowat 2>/dev/null
-          ip -o link show | awk '{print $2, $4, $5}'
+          sudo modprobe tcp_bbr
+          sysctl net.ipv4.tcp_available_congestion_control net.ipv4.tcp_congestion_control
 
-      - name: upload probe (new TCP connection per upload)
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: verify congestion control inside buildkit
+        run: |
+          sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
+          builder=$(docker ps --filter name=buildx_buildkit --format '{{.Names}}' | head -n 1)
+          echo "buildkit container: ${builder:-none}"
+          echo "host: $(cat /proc/sys/net/ipv4/tcp_congestion_control)"
+          if [ -n "$builder" ]; then
+            echo "existing buildkit container: $(docker exec "$builder" cat /proc/sys/net/ipv4/tcp_congestion_control)"
+          fi
+          echo "new container: $(docker run --rm alpine cat /proc/sys/net/ipv4/tcp_congestion_control)"
+          sudo sysctl -w net.ipv4.tcp_congestion_control=cubic
+
+      - name: upload probe (cubic vs bbr, HTTP/1.1)
         run: |
           # timeout(curl exit 28)도 측정 결과로 기록해야 하므로 errexit를 끈다
           set +e -uo pipefail
           retrans() { awk '/^Tcp:/{if(h){print $13; exit} h=1}' /proc/net/snmp; }
-          echo "| # | target | entry ip | http | uploaded MB | seconds | KB/s | retrans segs | local port |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|---|---|---|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| round | cc | entry ip | http | uploaded MB | seconds | KB/s | retrans segs |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|---|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
           mapfile -t ips < entry_ips.txt
           for round in $(seq 1 "$PROBE_ROUNDS"); do
             for ip in "${ips[@]}"; do
-              head -c "${PROBE_SIZE_MB}M" /dev/urandom > blob
-              digest="sha256:$(sha256sum blob | cut -d' ' -f1)"
-              location=$(curl -s -o /dev/null -D - -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
-                --resolve "$REGISTRY:443:$ip" -X POST "https://$REGISTRY/v2/$PROBE_REPO/blobs/uploads/" \
-                | awk -F': ' 'tolower($1)=="location"{print $2}' | tr -d '\r')
-              case "$location" in *\?*) sep='&' ;; *) sep='?' ;; esac
-              case "$location" in http*) url="$location" ;; *) url="https://$REGISTRY$location" ;; esac
-              before=$(retrans)
-              # 송신 측 tcp_info로 제한 요인(rwnd_limited, sndbuf_limited, cwnd)을 판별한다
-              ( while sleep 3; do
-                  ss -tinmH "( dst $ip )" 2>/dev/null | tr -s ' ' | grep -o -E 'skmem:\([^)]*\)|cwnd:[0-9]+|ssthresh:[0-9]+|snd_wnd:[0-9]+|rtt:[0-9./]+|retrans:[0-9/]+|bytes_acked:[0-9]+|busy:[0-9]+ms|rwnd_limited:[^ ]+|sndbuf_limited:[^ ]+|notsent:[0-9]+|unacked:[0-9]+|delivery_rate [0-9.]+[KMG]?bps' | tr '\n' ' '
-                  echo
-                done ) > "tcpinfo_${round}_${ip}.log" 2>&1 &
-              sampler=$!
-              result=$(curl -s -o /dev/null -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
-                --resolve "$REGISTRY:443:$ip" --max-time "$PROBE_MAX_TIME" \
-                -X PUT -H 'Content-Type: application/octet-stream' --data-binary @blob \
-                -w '%{http_code} %{size_upload} %{time_total} %{speed_upload} %{local_port}' \
-                "${url}${sep}digest=${digest}")
-              after=$(retrans)
-              kill "$sampler" 2>/dev/null; wait "$sampler" 2>/dev/null
-              echo "--- sender tcp_info round=$round ip=$ip"
-              grep -v '^$' "tcpinfo_${round}_${ip}.log" | tail -n 5
-              read -r code size total speed port <<< "$result"
-              line=$(awk -v r="$round" -v ip="$ip" -v c="$code" -v s="$size" -v t="$total" -v sp="$speed" -v d="$((after - before))" -v p="$port" \
-                'BEGIN{printf "| %s | registry | %s | %s | %.1f | %.1f | %.0f | %s | %s |", r, ip, c, s/1e6, t, sp/1e3, d, p}')
-              echo "$line" | tee -a "$GITHUB_STEP_SUMMARY"
+              for cc in cubic bbr; do
+                sudo sysctl -qw net.ipv4.tcp_congestion_control="$cc"
+                head -c "${PROBE_SIZE_MB}M" /dev/urandom > blob
+                digest="sha256:$(sha256sum blob | cut -d' ' -f1)"
+                location=$(curl -s --http1.1 -o /dev/null -D - -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
+                  --resolve "$REGISTRY:443:$ip" -X POST "https://$REGISTRY/v2/$PROBE_REPO/blobs/uploads/" \
+                  | awk -F': ' 'tolower($1)=="location"{print $2}' | tr -d '\r')
+                case "$location" in *\?*) sep='&' ;; *) sep='?' ;; esac
+                case "$location" in http*) url="$location" ;; *) url="https://$REGISTRY$location" ;; esac
+                before=$(retrans)
+                result=$(curl -s --http1.1 -o /dev/null -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
+                  --resolve "$REGISTRY:443:$ip" --max-time "$PROBE_MAX_TIME" \
+                  -X PUT -H 'Content-Type: application/octet-stream' --data-binary @blob \
+                  -w '%{http_code} %{size_upload} %{time_total} %{speed_upload}' \
+                  "${url}${sep}digest=${digest}")
+                after=$(retrans)
+                read -r code size total speed <<< "$result"
+                awk -v r="$round" -v cc="$cc" -v ip="$ip" -v c="$code" -v s="$size" -v t="$total" -v sp="$speed" -v d="$((after - before))" \
+                  'BEGIN{printf "| %s | %s | %s | %s | %.1f | %.1f | %.0f | %s |\n", r, cc, ip, c, s/1e6, t, sp/1e3, d}' \
+                  | tee -a "$GITHUB_STEP_SUMMARY"
+              done
             done
           done
-
-      - name: control probe (cloudflare, non-Oracle destination)
-        run: |
-          # timeout(curl exit 28)도 측정 결과로 기록해야 하므로 errexit를 끈다
-          set +e -uo pipefail
-          head -c "${PROBE_SIZE_MB}M" /dev/urandom > blob
-          for round in 1 2 3 4 5; do
-            curl -s -o /dev/null --max-time "$PROBE_MAX_TIME" -X POST --data-binary @blob \
-              -w "| $round | cloudflare | - | %{http_code} | %{size_upload} bytes | %{time_total}s | %{speed_upload} B/s |\n" \
-              https://speed.cloudflare.com/__up | tee -a "$GITHUB_STEP_SUMMARY"
-          done
-
-      - name: tcp path to each entry ip
-        run: |
-          sudo apt-get install -y -qq mtr-tiny > /dev/null
-          mapfile -t ips < entry_ips.txt
-          for ip in "${ips[@]}"; do
-            echo "=== mtr tcp/443 -> $ip"
-            sudo mtr -rwzbc 60 -T -P 443 "$ip" || true
-          done
+          sudo sysctl -qw net.ipv4.tcp_congestion_control=cubic
