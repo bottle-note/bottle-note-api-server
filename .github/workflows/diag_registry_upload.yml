@@ -1,0 +1,82 @@
+name: diag registry upload
+
+# 레지스트리 push 지연이 연결 단위로 갈리는지 확인하는 일회성 진단. 이 브랜치 push에서만 실행한다
+on:
+  push:
+    branches:
+      - infra/registry-upload-diagnostic
+
+permissions:
+  contents: read
+
+jobs:
+  upload-probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        probe: [ runner-a, runner-b ]
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    env:
+      REGISTRY: ${{ secrets.REGISTRY_ADDRESS }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      PROBE_REPO: diag-upload-probe
+      PROBE_ROUNDS: 10
+      PROBE_SIZE_MB: 20
+      PROBE_MAX_TIME: 45
+    steps:
+      - name: runner identity
+        run: |
+          echo "public ip: $(curl -s --max-time 5 https://api.ipify.org || echo unknown)"
+          echo "azure location: $(curl -s --max-time 3 -H Metadata:true 'http://169.254.169.254/metadata/instance/compute/location?api-version=2021-02-01&format=text' || echo unknown)"
+          getent ahostsv4 "$REGISTRY" | awk '{print $1}' | sort -u | tee entry_ips.txt
+
+      - name: upload probe (new TCP connection per upload)
+        run: |
+          set -uo pipefail
+          retrans() { awk '/^Tcp:/{if(h){print $13; exit} h=1}' /proc/net/snmp; }
+          echo "| # | target | entry ip | http | uploaded MB | seconds | KB/s | retrans segs | local port |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|---|---|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          mapfile -t ips < entry_ips.txt
+          for round in $(seq 1 "$PROBE_ROUNDS"); do
+            for ip in "${ips[@]}"; do
+              head -c "${PROBE_SIZE_MB}M" /dev/urandom > blob
+              digest="sha256:$(sha256sum blob | cut -d' ' -f1)"
+              location=$(curl -s -o /dev/null -D - -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
+                --resolve "$REGISTRY:443:$ip" -X POST "https://$REGISTRY/v2/$PROBE_REPO/blobs/uploads/" \
+                | awk -F': ' 'tolower($1)=="location"{print $2}' | tr -d '\r')
+              case "$location" in *\?*) sep='&' ;; *) sep='?' ;; esac
+              case "$location" in http*) url="$location" ;; *) url="https://$REGISTRY$location" ;; esac
+              before=$(retrans)
+              result=$(curl -s -o /dev/null -u "$REGISTRY_USERNAME:$REGISTRY_PASSWORD" \
+                --resolve "$REGISTRY:443:$ip" --max-time "$PROBE_MAX_TIME" \
+                -X PUT -H 'Content-Type: application/octet-stream' --data-binary @blob \
+                -w '%{http_code} %{size_upload} %{time_total} %{speed_upload} %{local_port}' \
+                "${url}${sep}digest=${digest}")
+              after=$(retrans)
+              read -r code size total speed port <<< "$result"
+              line=$(awk -v r="$round" -v ip="$ip" -v c="$code" -v s="$size" -v t="$total" -v sp="$speed" -v d="$((after - before))" -v p="$port" \
+                'BEGIN{printf "| %s | registry | %s | %s | %.1f | %.1f | %.0f | %s | %s |", r, ip, c, s/1e6, t, sp/1e3, d, p}')
+              echo "$line" | tee -a "$GITHUB_STEP_SUMMARY"
+            done
+          done
+
+      - name: control probe (cloudflare, non-Oracle destination)
+        run: |
+          set -uo pipefail
+          head -c "${PROBE_SIZE_MB}M" /dev/urandom > blob
+          for round in 1 2 3 4 5; do
+            curl -s -o /dev/null --max-time "$PROBE_MAX_TIME" -X POST --data-binary @blob \
+              -w "| $round | cloudflare | - | %{http_code} | %{size_upload} bytes | %{time_total}s | %{speed_upload} B/s |\n" \
+              https://speed.cloudflare.com/__up | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: tcp path to each entry ip
+        run: |
+          sudo apt-get install -y -qq mtr-tiny > /dev/null
+          mapfile -t ips < entry_ips.txt
+          for ip in "${ips[@]}"; do
+            echo "=== mtr tcp/443 -> $ip"
+            sudo mtr -rwzbc 60 -T -P 443 "$ip" || true
+          done
