@@ -533,6 +533,16 @@ public class MfdsDeclaration {
     this.regionMatchSource = regionId != null && regionSource != null ? regionSource.name() : null;
   }
 
+  /** 확정한 주류 이름을 공개 화면이 쓰는 알코올명에 반영한다. 비어 있는 이름은 기존 값을 유지한다. */
+  public void applyMatchedAlcoholName(String korName, String engName) {
+    if (korName != null && !korName.isBlank()) {
+      this.alcoholNameKo = korName.trim();
+    }
+    if (engName != null && !engName.isBlank()) {
+      this.alcoholNameEn = engName.trim();
+    }
+  }
+
   /** 확정된 매칭 선택을 해제한다. 후보와 매칭 이력(matchingVersion, matchedAt)은 유지한다. */
   public void clearMatchingSelection() {
     this.inheritedFromDeclarationId = null;
