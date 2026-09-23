@@ -15,9 +15,7 @@ class AlcoholDetailResponseContractTest {
   @Test
   @DisplayName("Product 알코올 상세에 description 필드를 제공한다")
   void 상세_응답에_description을_제공한다() throws NoSuchFieldException {
-    Class<?> detailType = AlcoholDetailResponse.class.getDeclaredField("alcohols").getType();
-
-    assertThat(Arrays.stream(detailType.getDeclaredFields()).map(Field::getName))
+    assertThat(Arrays.stream(AlcoholDetailItem.class.getDeclaredFields()).map(Field::getName))
         .contains("description");
   }
 }

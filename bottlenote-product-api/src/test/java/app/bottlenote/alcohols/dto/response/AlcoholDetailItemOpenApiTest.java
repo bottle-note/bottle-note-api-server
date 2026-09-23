@@ -11,15 +11,15 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-@DisplayName("ProductAlcoholDetailItem OpenAPI 계약")
-class ProductAlcoholDetailItemOpenApiTest {
+@DisplayName("AlcoholDetailItem OpenAPI 계약")
+class AlcoholDetailItemOpenApiTest {
 
   @Test
   @DisplayName("description은 nullable string으로 문서화한다")
   void description은_nullable_string이다() {
     Schema<?> schema =
         ModelConverters.getInstance()
-            .resolveAsResolvedSchema(new AnnotatedType(ProductAlcoholDetailItem.class))
+            .resolveAsResolvedSchema(new AnnotatedType(AlcoholDetailItem.class))
             .schema;
     Schema<?> description = (Schema<?>) schema.getProperties().get("description");
 
