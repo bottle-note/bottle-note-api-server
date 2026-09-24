@@ -27,7 +27,8 @@ record MfdsProductIdentity(
     Set<String> words,
     String category) {
   private static final Pattern AGE =
-      Pattern.compile("(?<![0-9])([1-9][0-9]?)\\s*(?:years?\\s*old|years?|yo|y|년)(?![a-z0-9])");
+      Pattern.compile(
+          "(?<![0-9])([1-9][0-9]?)\\s*(?:years?\\s*old|years?|yrs?|yo|y|년)(?![a-z0-9])");
   private static final Pattern EDITION = Pattern.compile("(?:edition|에디션)\\s*(?:no\\s*)?([0-9]+)");
   private static final Pattern YEAR = Pattern.compile("(?<![0-9])(?:19|20)[0-9]{2}(?![0-9])");
   private static final Pattern BATCH =
@@ -54,6 +55,8 @@ record MfdsProductIdentity(
           "aged",
           "years",
           "year",
+          "yrs",
+          "yr",
           "old",
           "yo",
           "y",
@@ -227,6 +230,14 @@ record MfdsProductIdentity(
   private static String identifier(String value) {
     String v = compact(value).replaceFirst("^(?:batch|배치|배취|cask|캐스크)(?:no)?", "");
     return v.replaceFirst("^0+(?!$)", "");
+  }
+
+  /** 정규화한 표시명에서 숙성 연수를 읽는다. 저장 연수와 섞지 않는다. */
+  static Integer parsedAge(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
+    }
+    return age(normalize(value));
   }
 
   private static Integer age(String text) {
