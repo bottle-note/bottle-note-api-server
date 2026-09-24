@@ -10,20 +10,15 @@ import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_SELECTIO
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_TARGET_INVALID;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_DECLARATION_NOT_FOUND;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_PRODUCT_IDENTITY_UNAVAILABLE;
-import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_SELECTED_ALCOHOL_NOT_FOUND;
-import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_SELECTED_DISTILLERY_NOT_FOUND;
-import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_SELECTED_REGION_NOT_FOUND;
 import static app.bottlenote.mfds.service.MfdsBulkMatchingJudge.APPLICABLE;
 import static app.bottlenote.mfds.service.MfdsBulkMatchingJudge.NO_CHANGE;
+import static app.bottlenote.mfds.service.MfdsBulkMatchingJudge.positive;
 
-import app.bottlenote.alcohols.facade.AlcoholMatchTargetFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
-import app.bottlenote.mfds.constant.MfdsMatchSelectionSource;
 import app.bottlenote.mfds.domain.MfdsBulkPreviewIssuance;
 import app.bottlenote.mfds.domain.MfdsBulkPreviewIssuanceStore;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
-import app.bottlenote.mfds.domain.MfdsMatchingCandidate;
 import app.bottlenote.mfds.domain.MfdsMatchingSelection;
 import app.bottlenote.mfds.domain.MfdsMatchingSelectionRepository;
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingConfirmRequest;
@@ -33,19 +28,29 @@ import app.bottlenote.mfds.dto.response.MfdsBulkMatchingConfirmResponse;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewItem;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewResponse;
 import app.bottlenote.mfds.exception.MfdsException;
+import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.service.MfdsBulkMatchingJudge.Decision;
-import app.bottlenote.mfds.service.MfdsBulkMatchingToken.Applied;
+import app.bottlenote.mfds.service.MfdsBulkMatchingJudge.Signals;
+import app.bottlenote.mfds.service.MfdsMatchingService.MatchTarget;
+import app.bottlenote.mfds.service.MfdsMatchingService.SelectionAuditContext;
 import java.security.SecureRandom;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,53 +60,39 @@ import org.springframework.transaction.annotation.Transactional;
 public class MfdsBulkMatchingService {
 
   static final int MAX_BULK_DECLARATIONS = 500;
+  static final Duration TTL = Duration.ofMinutes(10);
 
   private final MfdsDeclarationRepository declarationRepository;
-  private final AlcoholMatchTargetFacade alcoholMatchTargetFacade;
   private final MfdsMatchingSelectionRepository selectionRepository;
-  private final MfdsMatchingHistoryService historyService;
+  private final MfdsMatchingService matchingService;
   private final MfdsBulkPreviewIssuanceStore issuanceStore;
-  private final MfdsBulkLockGate lockGate;
-  private final MfdsBulkSaveGuard saveGuard;
   private final Clock clock;
   private final SecureRandom secureRandom = new SecureRandom();
 
   @Autowired
   public MfdsBulkMatchingService(
       MfdsDeclarationRepository declarationRepository,
-      AlcoholMatchTargetFacade alcoholMatchTargetFacade,
       MfdsMatchingSelectionRepository selectionRepository,
-      MfdsMatchingHistoryService historyService,
-      MfdsBulkPreviewIssuanceStore issuanceStore,
-      MfdsBulkLockGate lockGate,
-      MfdsBulkSaveGuard saveGuard) {
+      MfdsMatchingService matchingService,
+      MfdsBulkPreviewIssuanceStore issuanceStore) {
     this(
         declarationRepository,
-        alcoholMatchTargetFacade,
         selectionRepository,
-        historyService,
+        matchingService,
         issuanceStore,
-        lockGate,
-        saveGuard,
         Clock.systemDefaultZone());
   }
 
   MfdsBulkMatchingService(
       MfdsDeclarationRepository declarationRepository,
-      AlcoholMatchTargetFacade alcoholMatchTargetFacade,
       MfdsMatchingSelectionRepository selectionRepository,
-      MfdsMatchingHistoryService historyService,
+      MfdsMatchingService matchingService,
       MfdsBulkPreviewIssuanceStore issuanceStore,
-      MfdsBulkLockGate lockGate,
-      MfdsBulkSaveGuard saveGuard,
       Clock clock) {
     this.declarationRepository = declarationRepository;
-    this.alcoholMatchTargetFacade = alcoholMatchTargetFacade;
     this.selectionRepository = selectionRepository;
-    this.historyService = historyService;
+    this.matchingService = matchingService;
     this.issuanceStore = issuanceStore;
-    this.lockGate = lockGate;
-    this.saveGuard = saveGuard;
     this.clock = clock;
   }
 
@@ -109,27 +100,51 @@ public class MfdsBulkMatchingService {
   @Transactional(readOnly = true)
   public MfdsBulkMatchingPreviewResponse preview(
       MfdsBulkMatchingPreviewRequest request, Long adminId) {
-    Applied applied =
-        resolveApplied(request.alcoholId(), request.distilleryId(), request.regionId());
-    List<MfdsDeclaration> rows = readableGroup(request.sourceDeclarationId());
-    LocalDateTime expiresAt =
-        LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS).plus(MfdsBulkMatchingToken.TTL);
-    String stateHash =
-        MfdsBulkMatchingToken.sign(
-            expiresAt, request.sourceDeclarationId(), applied, rows, releaseFlags(rows));
-    String token = randomToken();
+    Long sourceId = request.sourceDeclarationId();
+    MatchTarget target =
+        matchingService.resolveTarget(
+            request.alcoholId(), request.distilleryId(), request.regionId());
+    List<MfdsDeclaration> rows =
+        group(
+            declarationRepository.findByProductIdentityKeySha256(identityKey(sourceId)),
+            sourceId,
+            MFDS_DECLARATION_NOT_FOUND);
+    List<Evaluated> group = evaluate(sourceId, rows, target);
+    LocalDateTime expiresAt = LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS).plus(TTL);
+    byte[] tokenBytes = new byte[32];
+    secureRandom.nextBytes(tokenBytes);
+    String token = HexFormat.of().formatHex(tokenBytes);
     issuanceStore.save(
         new MfdsBulkPreviewIssuance(
             token,
             adminId,
-            request.sourceDeclarationId(),
+            sourceId,
             request.alcoholId(),
             request.distilleryId(),
             request.regionId(),
             expiresAt,
-            stateHash),
-        MfdsBulkMatchingToken.TTL);
-    return response(request.sourceDeclarationId(), applied, rows, expiresAt, token);
+            stateHash(expiresAt, sourceId, target, group)),
+        TTL);
+    Map<String, Long> counts =
+        group.stream()
+            .collect(
+                Collectors.groupingBy(
+                    evaluated -> evaluated.decision().classification(), Collectors.counting()));
+    AlcoholMatchTargetItem alcohol = target.alcohol();
+    return new MfdsBulkMatchingPreviewResponse(
+        sourceId,
+        alcohol.alcoholId(),
+        alcohol.korName(),
+        alcohol.engName(),
+        target.distilleryId(),
+        target.regionId(),
+        token,
+        expiresAt,
+        counts.getOrDefault(APPLICABLE, 0L).intValue(),
+        counts.getOrDefault(NO_CHANGE, 0L).intValue(),
+        counts.getOrDefault(MfdsBulkMatchingJudge.NEEDS_REVIEW, 0L).intValue(),
+        counts.getOrDefault(MfdsBulkMatchingJudge.CONFLICT, 0L).intValue(),
+        group.stream().map(Evaluated::previewItem).toList());
   }
 
   /** 미리보기 검증값이 아직 유효할 때만 선택 대상을 확정한다. 한 건이라도 맞지 않으면 아무것도 쓰지 않는다. */
@@ -137,8 +152,8 @@ public class MfdsBulkMatchingService {
   public MfdsBulkMatchingConfirmResponse confirm(
       MfdsBulkMatchingConfirmRequest request, Long adminId) {
     List<Long> selectedIds = normalizeSelection(request.declarationIds());
-    LocalDateTime now = LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
-    if (request.previewExpiresAt().truncatedTo(ChronoUnit.SECONDS).isBefore(now)) {
+    LocalDateTime expiresAt = request.previewExpiresAt().truncatedTo(ChronoUnit.SECONDS);
+    if (expiresAt.isBefore(LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS))) {
       throw new MfdsException(MFDS_BULK_PREVIEW_EXPIRED);
     }
     MfdsBulkPreviewIssuance issuance =
@@ -148,238 +163,123 @@ public class MfdsBulkMatchingService {
     if (!adminId.equals(issuance.adminId())) {
       throw new MfdsException(MFDS_BULK_PREVIEW_ADMIN_MISMATCH);
     }
-    if (!request.previewExpiresAt().truncatedTo(ChronoUnit.SECONDS).equals(issuance.expiresAt())
-        || !request.sourceDeclarationId().equals(issuance.sourceDeclarationId())
-        || !request.alcoholId().equals(issuance.alcoholId())
-        || !Objects.equals(request.distilleryId(), issuance.distilleryId())
-        || !Objects.equals(request.regionId(), issuance.regionId())) {
+    Long sourceId = request.sourceDeclarationId();
+    // 발급 기록과 요청의 기준 신고·주류·증류소·지역·만료 시각이 모두 같아야 한다.
+    MfdsBulkPreviewIssuance requested =
+        new MfdsBulkPreviewIssuance(
+            issuance.token(),
+            adminId,
+            sourceId,
+            request.alcoholId(),
+            request.distilleryId(),
+            request.regionId(),
+            expiresAt,
+            issuance.stateHash());
+    if (!issuance.equals(requested)) {
       throw new MfdsException(MFDS_BULK_PREVIEW_MISMATCH);
     }
-    byte[] key = identityKey(request.sourceDeclarationId());
-    lockGate.beforeGroupLock(request.sourceDeclarationId());
-    List<MfdsDeclaration> rows = declarationRepository.findByProductIdentityKeySha256ForUpdate(key);
-    ensureWithinLimit(rows.size());
-    if (rows.stream().noneMatch(row -> request.sourceDeclarationId().equals(row.getId()))) {
+    List<MfdsDeclaration> rows =
+        group(
+            declarationRepository.findByProductIdentityKeySha256ForUpdate(identityKey(sourceId)),
+            sourceId,
+            MFDS_BULK_PREVIEW_MISMATCH);
+    MatchTarget target =
+        matchingService.resolveTarget(
+            request.alcoholId(), request.distilleryId(), request.regionId());
+    List<Evaluated> group = evaluate(sourceId, rows, target);
+    if (!MfdsBulkPreviewHash.matches(
+        stateHash(issuance.expiresAt(), sourceId, target, group), issuance.stateHash())) {
       throw new MfdsException(MFDS_BULK_PREVIEW_MISMATCH);
     }
-    Applied applied =
-        resolveApplied(request.alcoholId(), request.distilleryId(), request.regionId());
-    Map<Long, Boolean> released = releaseFlags(rows);
-    String expected =
-        MfdsBulkMatchingToken.sign(
-            issuance.expiresAt(), request.sourceDeclarationId(), applied, rows, released);
-    if (!MfdsBulkMatchingToken.matches(expected, issuance.stateHash())) {
-      throw new MfdsException(MFDS_BULK_PREVIEW_MISMATCH);
-    }
-    Map<Long, Decision> decisions = decisions(request.sourceDeclarationId(), rows, applied);
-    List<MfdsDeclaration> selected = new ArrayList<>();
-    for (Long id : selectedIds) {
-      MfdsDeclaration declaration =
-          rows.stream().filter(row -> id.equals(row.getId())).findFirst().orElse(null);
-      Decision decision = declaration == null ? null : decisions.get(id);
-      if (declaration == null
-          || decision == null
-          || (!APPLICABLE.equals(decision.classification())
-              && !NO_CHANGE.equals(decision.classification()))) {
-        throw new MfdsException(MFDS_BULK_TARGET_INVALID);
-      }
-      selected.add(declaration);
+    Map<Long, Evaluated> byId =
+        group.stream().collect(Collectors.toMap(e -> e.row().getId(), Function.identity()));
+    List<Evaluated> selected = selectedIds.stream().map(byId::get).toList();
+    if (selected.stream().anyMatch(e -> e == null || !e.confirmable())) {
+      throw new MfdsException(MFDS_BULK_TARGET_INVALID);
     }
     LocalDateTime selectedAt = LocalDateTime.now(clock);
     List<MfdsBulkMatchingConfirmItem> items = new ArrayList<>();
-    int appliedCount = 0;
-    int unchangedCount = 0;
-    int saveIndex = 0;
-    SelectionAudit audit = new SelectionAudit(request.sourceDeclarationId(), adminId, selectedAt);
-    for (MfdsDeclaration declaration : selected) {
-      Decision decision = decisions.get(declaration.getId());
-      if (NO_CHANGE.equals(decision.classification())) {
-        unchangedCount++;
-        items.add(item(declaration, "NO_CHANGE"));
-        continue;
+    for (Evaluated evaluated : selected) {
+      boolean apply = APPLICABLE.equals(evaluated.decision().classification());
+      if (apply) {
+        matchingService.applyTarget(
+            evaluated.row(),
+            target,
+            new SelectionAuditContext(
+                evaluated.row().getId(), adminId, selectedAt, "BULK_%s:" + sourceId, false));
       }
-      saveGuard.beforeSave(saveIndex, declaration.getId());
-      apply(declaration, request, applied, audit);
-      declarationRepository.save(declaration);
-      saveIndex++;
-      appliedCount++;
-      items.add(item(declaration, "APPLIED"));
+      items.add(evaluated.confirmItem(apply ? "APPLIED" : NO_CHANGE));
     }
+    int appliedCount = (int) items.stream().filter(i -> "APPLIED".equals(i.outcome())).count();
+    AlcoholMatchTargetItem alcohol = target.alcohol();
     return new MfdsBulkMatchingConfirmResponse(
-        request.sourceDeclarationId(),
-        applied.alcoholId(),
-        applied.alcoholNameKo(),
-        applied.alcoholNameEn(),
-        applied.distilleryId(),
-        applied.regionId(),
+        sourceId,
+        alcohol.alcoholId(),
+        alcohol.korName(),
+        alcohol.engName(),
+        target.distilleryId(),
+        target.regionId(),
         appliedCount,
-        unchangedCount,
+        items.size() - appliedCount,
         List.copyOf(items));
   }
 
-  private void apply(
-      MfdsDeclaration declaration,
-      MfdsBulkMatchingConfirmRequest request,
-      Applied applied,
-      SelectionAudit audit) {
-    List<MfdsMatchingCandidate> candidates = historyService.findCandidates(declaration);
-    MfdsMatchSelectionSource alcoholSource =
-        selectionSource(hasCandidate(candidates, "ALCOHOL", applied.alcoholId()));
-    MfdsMatchSelectionSource distillerySource =
-        referenceSource(
-            request.distilleryId(),
-            applied.distilleryId(),
-            hasCandidate(candidates, "DISTILLERY", applied.distilleryId()));
-    MfdsMatchSelectionSource regionSource =
-        referenceSource(
-            request.regionId(),
-            applied.regionId(),
-            hasCandidate(candidates, "REGION", applied.regionId()));
-    declaration.confirmMatching(
-        applied.alcoholId(),
-        alcoholSource,
-        applied.distilleryId(),
-        distillerySource,
-        applied.regionId(),
-        regionSource);
-    declaration.applyMatchedAlcoholName(applied.alcoholNameKo(), applied.alcoholNameEn());
-    recordSelection(declaration.getId(), "ALCOHOL", applied.alcoholId(), alcoholSource, audit);
-    recordReference(
-        declaration.getId(), "DISTILLERY", applied.distilleryId(), distillerySource, audit);
-    recordReference(declaration.getId(), "REGION", applied.regionId(), regionSource, audit);
+  /** 행마다 신호와 관리자 해제 여부를 한 번만 계산해 분류와 상태 해시가 같이 쓴다. */
+  private List<Evaluated> evaluate(Long sourceId, List<MfdsDeclaration> rows, MatchTarget target) {
+    Set<Long> released = adminReleased(rows);
+    Map<Long, Signals> signals = new HashMap<>();
+    rows.forEach(row -> signals.put(row.getId(), MfdsBulkMatchingJudge.signals(row)));
+    Signals source = signals.get(sourceId);
+    return rows.stream()
+        .map(
+            row -> {
+              Signals rowSignals = signals.get(row.getId());
+              boolean rowReleased = released.contains(row.getId());
+              return new Evaluated(
+                  row,
+                  rowSignals,
+                  rowReleased,
+                  MfdsBulkMatchingJudge.decide(source, rowSignals, row, target, rowReleased));
+            })
+        .toList();
   }
 
-  private void recordReference(
-      Long declarationId,
-      String targetType,
-      Long targetId,
-      MfdsMatchSelectionSource source,
-      SelectionAudit audit) {
-    if (targetId != null && source != null) {
-      recordSelection(declarationId, targetType, targetId, source, audit);
-    }
-  }
-
-  private void recordSelection(
-      Long declarationId,
-      String targetType,
-      Long targetId,
-      MfdsMatchSelectionSource source,
-      SelectionAudit audit) {
-    selectionRepository.save(
-        MfdsMatchingSelection.adminSelect(
-            declarationId,
-            targetType,
-            targetId,
-            "BULK_" + source.name() + ":" + audit.sourceDeclarationId(),
-            audit.adminId(),
-            audit.selectedAt()));
-  }
-
-  private record SelectionAudit(Long sourceDeclarationId, Long adminId, LocalDateTime selectedAt) {}
-
-  private MfdsBulkMatchingPreviewResponse response(
-      Long sourceDeclarationId,
-      Applied applied,
-      List<MfdsDeclaration> rows,
-      LocalDateTime expiresAt,
-      String issuedToken) {
-    MfdsDeclaration source = findRow(rows, sourceDeclarationId);
-    List<MfdsBulkMatchingPreviewItem> items = new ArrayList<>();
-    int applicable = 0;
-    int unchanged = 0;
-    int review = 0;
-    int conflict = 0;
-    for (MfdsDeclaration row : rows) {
-      Decision decision = decisionFor(source, row, applied);
-      switch (decision.classification()) {
-        case APPLICABLE -> applicable++;
-        case NO_CHANGE -> unchanged++;
-        case MfdsBulkMatchingJudge.NEEDS_REVIEW -> review++;
-        case MfdsBulkMatchingJudge.CONFLICT -> conflict++;
-        default -> throw new IllegalStateException(decision.classification());
+  /** 그룹의 선택 이력을 최신순으로 한 번에 읽고, 신고별 최신 관리자 주류 이력이 해제인 신고를 고른다. */
+  private Set<Long> adminReleased(List<MfdsDeclaration> rows) {
+    Set<Long> seen = new HashSet<>();
+    Set<Long> released = new HashSet<>();
+    for (MfdsMatchingSelection selection :
+        selectionRepository.findByDeclarationIdInOrderBySelectedAtDescIdDesc(
+            rows.stream().map(MfdsDeclaration::getId).toList())) {
+      if ("ALCOHOL".equals(selection.getTargetType())
+          && "ADMIN".equals(selection.getSelectionSource())
+          && seen.add(selection.getDeclarationId())
+          && "REVOKE".equals(selection.getAction())) {
+        released.add(selection.getDeclarationId());
       }
-      items.add(
-          new MfdsBulkMatchingPreviewItem(
-              row.getId(),
-              row.getRcno(),
-              MfdsBulkMatchingToken.displayName(row),
-              row.getVolumeMl(),
-              row.getImporterBaseName(),
-              row.getProcessedDate(),
-              decision.classification(),
-              decision.reasons(),
-              MfdsBulkMatchingJudge.positive(row.getSelectedAlcoholId()),
-              MfdsBulkMatchingJudge.positive(row.getSelectedDistilleryId()),
-              MfdsBulkMatchingJudge.positive(row.getSelectedRegionId())));
     }
-    return new MfdsBulkMatchingPreviewResponse(
-        sourceDeclarationId,
-        applied.alcoholId(),
-        applied.alcoholNameKo(),
-        applied.alcoholNameEn(),
-        applied.distilleryId(),
-        applied.regionId(),
-        issuedToken,
-        expiresAt,
-        applicable,
-        unchanged,
-        review,
-        conflict,
-        List.copyOf(items));
+    return released;
   }
 
-  private Map<Long, Decision> decisions(
-      Long sourceId, List<MfdsDeclaration> rows, Applied applied) {
-    MfdsDeclaration source = findRow(rows, sourceId);
-    Map<Long, Decision> decisions = new LinkedHashMap<>();
-    for (MfdsDeclaration row : rows) {
-      decisions.put(row.getId(), decisionFor(source, row, applied));
-    }
-    return decisions;
-  }
-
-  private Decision decisionFor(MfdsDeclaration source, MfdsDeclaration row, Applied applied) {
-    return MfdsBulkMatchingJudge.decide(
-        source,
-        row,
-        applied.alcoholId(),
-        applied.distilleryId(),
-        applied.regionId(),
-        adminReleased(row.getId()));
-  }
-
-  private boolean adminReleased(Long declarationId) {
-    return selectionRepository
-        .findByDeclarationIdOrderBySelectedAtDescIdDesc(declarationId)
-        .stream()
-        .filter(selection -> "ALCOHOL".equals(selection.getTargetType()))
-        .filter(selection -> "ADMIN".equals(selection.getSelectionSource()))
-        .findFirst()
-        .map(selection -> "REVOKE".equals(selection.getAction()))
-        .orElse(false);
-  }
-
-  private Map<Long, Boolean> releaseFlags(List<MfdsDeclaration> rows) {
-    Map<Long, Boolean> flags = new LinkedHashMap<>();
-    for (MfdsDeclaration row : rows) {
-      flags.put(row.getId(), adminReleased(row.getId()));
-    }
-    return flags;
-  }
-
-  private static void ensureWithinLimit(int size) {
-    if (size > MAX_BULK_DECLARATIONS) {
-      throw new MfdsException(MFDS_BULK_SELECTION_LIMIT);
-    }
-  }
-
-  private List<MfdsDeclaration> readableGroup(Long sourceDeclarationId) {
-    byte[] key = identityKey(sourceDeclarationId);
-    List<MfdsDeclaration> rows = declarationRepository.findByProductIdentityKeySha256(key);
-    ensureWithinLimit(rows.size());
-    findRow(rows, sourceDeclarationId);
-    return rows;
+  /** 적용 대상과 그룹 행 상태를 순서대로 모아 해시한다. 확정은 잠근 현재 행으로 다시 계산해 비교한다. */
+  private static String stateHash(
+      LocalDateTime expiresAt, Long sourceId, MatchTarget target, List<Evaluated> group) {
+    AlcoholMatchTargetItem alcohol = target.alcohol();
+    return MfdsBulkPreviewHash.of(
+        Arrays.asList(
+            expiresAt.truncatedTo(ChronoUnit.SECONDS).toString(),
+            sourceId,
+            alcohol.alcoholId(),
+            alcohol.korName(),
+            alcohol.engName(),
+            positive(alcohol.distilleryId()),
+            positive(alcohol.regionId()),
+            target.distilleryId(),
+            target.regionId(),
+            group.stream()
+                .sorted(Comparator.comparing(e -> e.row().getId()))
+                .map(Evaluated::state)
+                .toList()));
   }
 
   private byte[] identityKey(Long sourceDeclarationId) {
@@ -393,48 +293,20 @@ public class MfdsBulkMatchingService {
     return key.clone();
   }
 
-  private String randomToken() {
-    byte[] bytes = new byte[32];
-    secureRandom.nextBytes(bytes);
-    return HexFormat.of().formatHex(bytes);
+  /** 그룹이 한도 안이고 기준 신고를 포함하는지 확인한다. 기준 신고가 없을 때의 오류는 호출 경로가 정한다. */
+  private static List<MfdsDeclaration> group(
+      List<MfdsDeclaration> rows, Long sourceId, MfdsExceptionCode missingSource) {
+    if (withinLimit(rows).stream().noneMatch(row -> sourceId.equals(row.getId()))) {
+      throw new MfdsException(missingSource);
+    }
+    return rows;
   }
 
-  private static MfdsDeclaration findRow(List<MfdsDeclaration> rows, Long id) {
-    return rows.stream()
-        .filter(row -> id.equals(row.getId()))
-        .findFirst()
-        .orElseThrow(() -> new MfdsException(MFDS_DECLARATION_NOT_FOUND));
-  }
-
-  private Applied resolveApplied(
-      Long alcoholId, Long requestedDistilleryId, Long requestedRegionId) {
-    AlcoholMatchTargetItem alcohol =
-        alcoholMatchTargetFacade.findAlcoholTargetsByIds(List.of(alcoholId)).stream()
-            .findFirst()
-            .orElseThrow(() -> new MfdsException(MFDS_SELECTED_ALCOHOL_NOT_FOUND));
-    if (requestedDistilleryId != null
-        && !alcoholMatchTargetFacade.existsDistillery(requestedDistilleryId)) {
-      throw new MfdsException(MFDS_SELECTED_DISTILLERY_NOT_FOUND);
+  private static <T> List<T> withinLimit(List<T> values) {
+    if (values.size() > MAX_BULK_DECLARATIONS) {
+      throw new MfdsException(MFDS_BULK_SELECTION_LIMIT);
     }
-    if (requestedRegionId != null && !alcoholMatchTargetFacade.existsRegion(requestedRegionId)) {
-      throw new MfdsException(MFDS_SELECTED_REGION_NOT_FOUND);
-    }
-    Long distilleryId =
-        requestedDistilleryId != null
-            ? requestedDistilleryId
-            : MfdsBulkMatchingJudge.positive(alcohol.distilleryId());
-    Long regionId =
-        requestedRegionId != null
-            ? requestedRegionId
-            : MfdsBulkMatchingJudge.positive(alcohol.regionId());
-    return new Applied(
-        alcohol.alcoholId(),
-        alcohol.korName(),
-        alcohol.engName(),
-        MfdsBulkMatchingJudge.positive(alcohol.distilleryId()),
-        MfdsBulkMatchingJudge.positive(alcohol.regionId()),
-        distilleryId,
-        regionId);
+    return values;
   }
 
   private static List<Long> normalizeSelection(List<Long> declarationIds) {
@@ -449,42 +321,70 @@ public class MfdsBulkMatchingService {
     if (declarationIds.size() != new HashSet<>(declarationIds).size()) {
       throw new MfdsException(MFDS_BULK_DUPLICATE_TARGET);
     }
-    ensureWithinLimit(declarationIds.size());
-    return declarationIds.stream().sorted().toList();
+    return withinLimit(declarationIds).stream().sorted().toList();
   }
 
-  private static boolean hasCandidate(
-      List<MfdsMatchingCandidate> candidates, String type, Long id) {
-    return id != null
-        && candidates.stream()
-            .anyMatch(
-                candidate ->
-                    type.equals(candidate.getTargetType()) && id.equals(candidate.getTargetId()));
-  }
+  private record Evaluated(
+      MfdsDeclaration row, Signals signals, boolean adminReleased, Decision decision) {
 
-  private static MfdsMatchSelectionSource selectionSource(boolean fromCandidate) {
-    return fromCandidate ? MfdsMatchSelectionSource.CANDIDATE : MfdsMatchSelectionSource.MANUAL;
-  }
-
-  private static MfdsMatchSelectionSource referenceSource(
-      Long requestedId, Long selectedId, boolean fromCandidate) {
-    if (selectedId == null) {
-      return null;
+    boolean confirmable() {
+      return APPLICABLE.equals(decision.classification())
+          || NO_CHANGE.equals(decision.classification());
     }
-    return requestedId != null
-        ? selectionSource(fromCandidate)
-        : MfdsMatchSelectionSource.ALCOHOL_PROPAGATED;
-  }
 
-  private static MfdsBulkMatchingConfirmItem item(MfdsDeclaration declaration, String outcome) {
-    return new MfdsBulkMatchingConfirmItem(
-        declaration.getId(),
-        outcome,
-        declaration.getSelectedAlcoholId(),
-        declaration.getAlcoholMatchDecision(),
-        declaration.getSelectedDistilleryId(),
-        declaration.getDistilleryMatchSource(),
-        declaration.getSelectedRegionId(),
-        declaration.getRegionMatchSource());
+    MfdsBulkMatchingPreviewItem previewItem() {
+      return new MfdsBulkMatchingPreviewItem(
+          row.getId(),
+          row.getRcno(),
+          displayName(),
+          row.getVolumeMl(),
+          row.getImporterBaseName(),
+          row.getProcessedDate(),
+          decision.classification(),
+          decision.reasons(),
+          positive(row.getSelectedAlcoholId()),
+          positive(row.getSelectedDistilleryId()),
+          positive(row.getSelectedRegionId()));
+    }
+
+    MfdsBulkMatchingConfirmItem confirmItem(String outcome) {
+      return new MfdsBulkMatchingConfirmItem(
+          row.getId(),
+          outcome,
+          row.getSelectedAlcoholId(),
+          row.getAlcoholMatchDecision(),
+          row.getSelectedDistilleryId(),
+          row.getDistilleryMatchSource(),
+          row.getSelectedRegionId(),
+          row.getRegionMatchSource());
+    }
+
+    /** 화면에 보이는 값, 현재 연결, 판정 신호와 동일성 키를 모두 해시에 넣는다. */
+    List<Object> state() {
+      return Arrays.asList(
+          row.getId(),
+          row.getRcno(),
+          displayName(),
+          row.getVolumeMl(),
+          row.getImporterBaseName(),
+          Objects.toString(row.getProcessedDate(), null),
+          positive(row.getSelectedAlcoholId()),
+          positive(row.getSelectedDistilleryId()),
+          positive(row.getSelectedRegionId()),
+          signals,
+          adminReleased,
+          row.getProductIdentityKeySha256());
+    }
+
+    private String displayName() {
+      return Stream.of(
+              row.getSkuDisplayNameKo(),
+              row.getBaseProductNameKo(),
+              row.getAlcoholNameKo(),
+              row.getNameSearchKeyKo())
+          .filter(value -> value != null && !value.isBlank())
+          .findFirst()
+          .orElse(row.getRcno());
+    }
   }
 }

@@ -3,6 +3,8 @@ package app.bottlenote.mfds.fixture;
 import app.bottlenote.mfds.domain.MfdsMatchingSelection;
 import app.bottlenote.mfds.domain.MfdsMatchingSelectionRepository;
 import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -20,12 +22,14 @@ public class InMemoryMfdsMatchingSelectionRepository implements MfdsMatchingSele
   }
 
   @Override
-  public List<MfdsMatchingSelection> findByDeclarationIdOrderBySelectedAtDescIdDesc(Long declarationId) {
+  public List<MfdsMatchingSelection> findByDeclarationIdInOrderBySelectedAtDescIdDesc(
+      Collection<Long> declarationIds) {
     return selections.stream()
-        .filter(selection -> declarationId.equals(selection.getDeclarationId()))
+        .filter(selection -> declarationIds.contains(selection.getDeclarationId()))
         .sorted(
             Comparator.comparing(
-                    MfdsMatchingSelection::getSelectedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                    MfdsMatchingSelection::getSelectedAt,
+                    Comparator.nullsLast(Comparator.<LocalDateTime>reverseOrder()))
                 .thenComparing(
                     selection -> selection.getId() == null ? 0L : selection.getId(),
                     Comparator.reverseOrder()))
