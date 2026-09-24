@@ -10,6 +10,7 @@ import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,10 +55,39 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
     return Optional.ofNullable(database.get(id));
   }
 
+  @Override
+  public Long findDeclarationId(Long id) {
+    return database.containsKey(id) ? id : null;
+  }
+
+  @Override
+  public byte[] findProductIdentityKeySha256ById(Long id) {
+    MfdsDeclaration declaration = database.get(id);
+    return declaration == null ? null : declaration.getProductIdentityKeySha256();
+  }
+
   /** 인메모리 구현에는 행 잠금 개념이 없으므로 일반 조회와 동일하게 동작한다. */
   @Override
   public Optional<MfdsDeclaration> findByIdForUpdate(Long id) {
     return findById(id);
+  }
+
+  @Override
+  public List<MfdsDeclaration> findByProductIdentityKeySha256(byte[] productIdentityKeySha256) {
+    if (productIdentityKeySha256 == null || productIdentityKeySha256.length == 0) {
+      return List.of();
+    }
+    return database.values().stream()
+        .filter(declaration -> Arrays.equals(productIdentityKeySha256, declaration.getProductIdentityKeySha256()))
+        .sorted(Comparator.comparing(MfdsDeclaration::getId))
+        .toList();
+  }
+
+  /** 인메모리 구현에는 행 잠금이 없고, 운영 조회와 같이 id 오름차순만 보장한다. */
+  @Override
+  public List<MfdsDeclaration> findByProductIdentityKeySha256ForUpdate(
+      byte[] productIdentityKeySha256) {
+    return findByProductIdentityKeySha256(productIdentityKeySha256);
   }
 
   @Override

@@ -3,6 +3,7 @@ package app.bottlenote.mfds.fixture;
 import app.bottlenote.mfds.domain.MfdsMatchingSelection;
 import app.bottlenote.mfds.domain.MfdsMatchingSelectionRepository;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class InMemoryMfdsMatchingSelectionRepository implements MfdsMatchingSelectionRepository {
@@ -16,5 +17,18 @@ public class InMemoryMfdsMatchingSelectionRepository implements MfdsMatchingSele
 
   public List<MfdsMatchingSelection> findAll() {
     return List.copyOf(selections);
+  }
+
+  @Override
+  public List<MfdsMatchingSelection> findByDeclarationIdOrderBySelectedAtDescIdDesc(Long declarationId) {
+    return selections.stream()
+        .filter(selection -> declarationId.equals(selection.getDeclarationId()))
+        .sorted(
+            Comparator.comparing(
+                    MfdsMatchingSelection::getSelectedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(
+                    selection -> selection.getId() == null ? 0L : selection.getId(),
+                    Comparator.reverseOrder()))
+        .toList();
   }
 }

@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
+import app.bottlenote.user.exception.UserException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -82,6 +83,9 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
       request.setAttribute("exception", e);
     } catch (CustomJwtException e) {
       log.warn("JWT 예외: {}", e.getMessage());
+      request.setAttribute("exception", e);
+    } catch (UserException e) {
+      log.warn("Admin 토큰이 아닙니다.");
       request.setAttribute("exception", e);
     }
 

@@ -78,6 +78,11 @@ public class MfdsDeclaration {
   @Column(name = "sku_candidate_key_sha256", columnDefinition = "BINARY(32)")
   private byte[] skuCandidateKeySha256;
 
+  /** 정제기가 계산한다. 매칭 확정은 이 값을 다시 계산하거나 덮어쓰지 않는다. */
+  @Comment("제품 동일성 키 SHA-256")
+  @Column(name = "product_identity_key_sha256", columnDefinition = "BINARY(32)", updatable = false)
+  private byte[] productIdentityKeySha256;
+
   @Comment("용량 원문")
   @Column(name = "volume_raw", length = 255)
   private String volumeRaw;
