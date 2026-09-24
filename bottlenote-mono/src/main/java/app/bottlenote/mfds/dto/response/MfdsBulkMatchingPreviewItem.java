@@ -12,7 +12,7 @@ public record MfdsBulkMatchingPreviewItem(
     String importerBaseName,
     LocalDate processedDate,
     String classification,
-    List<MfdsBulkMatchingReason> reasons,
+    List<MfdsBulkMatchingReasonItem> reasons,
     Long currentAlcoholId,
     Long currentDistilleryId,
     Long currentRegionId) {}
