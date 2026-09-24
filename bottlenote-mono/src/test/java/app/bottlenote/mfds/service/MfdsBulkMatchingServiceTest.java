@@ -15,7 +15,7 @@ import app.bottlenote.mfds.dto.request.MfdsBulkMatchingConfirmRequest;
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingPreviewRequest;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewItem;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewResponse;
-import app.bottlenote.mfds.dto.response.MfdsBulkMatchingReason;
+import app.bottlenote.mfds.dto.response.MfdsBulkMatchingReasonItem;
 import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsBulkPreviewIssuanceStore;
@@ -85,7 +85,7 @@ class MfdsBulkMatchingServiceTest {
     assertThat(item.classification()).as(scenario.name()).isEqualTo(scenario.classification());
     if (scenario.reasonCode() != null) {
       assertThat(item.reasons())
-          .extracting(MfdsBulkMatchingReason::code)
+          .extracting(MfdsBulkMatchingReasonItem::code)
           .as(scenario.name())
           .contains(scenario.reasonCode());
     }
@@ -273,7 +273,7 @@ class MfdsBulkMatchingServiceTest {
 
     assertThat(item.classification()).isEqualTo("CONFLICT");
     assertThat(item.reasons())
-        .extracting(MfdsBulkMatchingReason::code)
+        .extracting(MfdsBulkMatchingReasonItem::code)
         .contains("EXISTING_REFERENCE_WOULD_CLEAR");
   }
 
@@ -704,7 +704,7 @@ class MfdsBulkMatchingServiceTest {
 
     assertThat(item.classification()).isEqualTo("CONFLICT");
     assertThat(item.reasons())
-        .extracting(MfdsBulkMatchingReason::code)
+        .extracting(MfdsBulkMatchingReasonItem::code)
         .contains("EXISTING_SELECTION_DIFFERS", "BATCH_DIFFERS");
   }
 
@@ -715,7 +715,7 @@ class MfdsBulkMatchingServiceTest {
     MfdsDeclaration versionTarget = row("VER-T", key(2));
     MfdsTestData.set(versionTarget, "versionMarker", "구형");
     assertThat(item(preview(versionSource.getId(), null, null), versionTarget.getId()).reasons())
-        .extracting(MfdsBulkMatchingReason::code)
+        .extracting(MfdsBulkMatchingReasonItem::code)
         .contains("VERSION_MISSING_ON_SOURCE");
 
     MfdsDeclaration variantSource = row("VAR-S", key(3));
@@ -723,7 +723,7 @@ class MfdsBulkMatchingServiceTest {
     MfdsTestData.set(variantSource, "variantMarkerRaw", "#1");
     MfdsTestData.set(variantTarget, "variantMarkerRaw", "#2");
     assertThat(item(preview(variantSource.getId(), null, null), variantTarget.getId()).reasons())
-        .extracting(MfdsBulkMatchingReason::code)
+        .extracting(MfdsBulkMatchingReasonItem::code)
         .contains("VARIANT_DIFFERS");
 
     MfdsDeclaration reviewSource = row("REV-S", key(4));
@@ -732,7 +732,7 @@ class MfdsBulkMatchingServiceTest {
     MfdsTestData.set(
         reviewTarget, "normalizationReasons", List.of("GENERIC_PRODUCT_NAME_REVIEW_REQUIRED"));
     assertThat(item(preview(reviewSource.getId(), null, null), reviewTarget.getId()).reasons())
-        .extracting(MfdsBulkMatchingReason::code)
+        .extracting(MfdsBulkMatchingReasonItem::code)
         .contains("NORMALIZATION_REVIEW_REQUIRED", "GENERIC_PRODUCT_NAME");
 
     MfdsDeclaration countrySource = row("CTY-S", key(5));
@@ -740,7 +740,7 @@ class MfdsBulkMatchingServiceTest {
     MfdsTestData.set(countrySource, "manufactureCountryAlpha2", "IE");
     MfdsTestData.set(countryTarget, "manufactureCountryAlpha2", "gb");
     assertThat(item(preview(countrySource.getId(), null, null), countryTarget.getId()).reasons())
-        .extracting(MfdsBulkMatchingReason::code)
+        .extracting(MfdsBulkMatchingReasonItem::code)
         .contains("COUNTRY_DIFFERS");
 
     MfdsDeclaration releaseSource = row("REL-S", key(6));
@@ -758,7 +758,7 @@ class MfdsBulkMatchingServiceTest {
                 .classification())
         .isEqualTo("NEEDS_REVIEW");
     assertThat(item(preview(releaseSource.getId(), null, null), releaseTarget.getId()).reasons())
-        .extracting(MfdsBulkMatchingReason::code)
+        .extracting(MfdsBulkMatchingReasonItem::code)
         .contains("ADMIN_RELEASED");
   }
 

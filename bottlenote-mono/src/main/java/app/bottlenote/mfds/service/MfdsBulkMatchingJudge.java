@@ -2,7 +2,7 @@ package app.bottlenote.mfds.service;
 
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
-import app.bottlenote.mfds.dto.response.MfdsBulkMatchingReason;
+import app.bottlenote.mfds.dto.response.MfdsBulkMatchingReasonItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ final class MfdsBulkMatchingJudge {
       boolean normalizationReview,
       boolean genericName) {}
 
-  record Decision(String classification, List<MfdsBulkMatchingReason> reasons) {}
+  record Decision(String classification, List<MfdsBulkMatchingReasonItem> reasons) {}
 
   static Signals signals(MfdsDeclaration declaration) {
     MfdsProductIdentity identity = MfdsProductIdentity.from(declaration);
@@ -79,19 +79,19 @@ final class MfdsBulkMatchingJudge {
       Long distilleryId,
       Long regionId,
       boolean targetAdminReleased) {
-    List<MfdsBulkMatchingReason> reasons = new ArrayList<>();
+    List<MfdsBulkMatchingReasonItem> reasons = new ArrayList<>();
     reasons.addAll(identityReasons(signals(source), signals(target)));
     if (signals(target).normalizationReview()) {
       reasons.add(
-          new MfdsBulkMatchingReason(
+          new MfdsBulkMatchingReasonItem(
               "NORMALIZATION_REVIEW_REQUIRED", "정제 결과가 검토 필요라 자동으로 적용하지 않습니다."));
     }
     if (signals(target).genericName()) {
       reasons.add(
-          new MfdsBulkMatchingReason("GENERIC_PRODUCT_NAME", "제품명이 일반명이라 같은 제품으로 보지 않습니다."));
+          new MfdsBulkMatchingReasonItem("GENERIC_PRODUCT_NAME", "제품명이 일반명이라 같은 제품으로 보지 않습니다."));
     }
     if (targetAdminReleased) {
-      reasons.add(new MfdsBulkMatchingReason("ADMIN_RELEASED", "관리자가 연결을 해제한 신고입니다."));
+      reasons.add(new MfdsBulkMatchingReasonItem("ADMIN_RELEASED", "관리자가 연결을 해제한 신고입니다."));
     }
     LinkDecision links = linkDecision(target, alcoholId, distilleryId, regionId);
     boolean review = !reasons.isEmpty();
@@ -108,8 +108,8 @@ final class MfdsBulkMatchingJudge {
     return new Decision(APPLICABLE, List.copyOf(reasons));
   }
 
-  private static List<MfdsBulkMatchingReason> identityReasons(Signals source, Signals target) {
-    List<MfdsBulkMatchingReason> reasons = new ArrayList<>();
+  private static List<MfdsBulkMatchingReasonItem> identityReasons(Signals source, Signals target) {
+    List<MfdsBulkMatchingReasonItem> reasons = new ArrayList<>();
     Relation storedAge = relate(source.age(), target.age());
     compare(reasons, "AGE", "숙성", storedAge, source.age() == null);
     Integer sourceDisplayAge = displayAge(source);
@@ -157,23 +157,25 @@ final class MfdsBulkMatchingJudge {
         || strengthType == Relation.ASYMMETRIC
         || caskStrength == Relation.MISMATCH
         || caskStrength == Relation.ASYMMETRIC) {
-      reasons.add(new MfdsBulkMatchingReason("STRENGTH_DIFFERS", "도수 유형 또는 캐스크 스트렝스 정보가 다릅니다."));
+      reasons.add(
+          new MfdsBulkMatchingReasonItem("STRENGTH_DIFFERS", "도수 유형 또는 캐스크 스트렝스 정보가 다릅니다."));
     }
     return reasons;
   }
 
   private static void addStoredAgeMismatch(
-      List<MfdsBulkMatchingReason> reasons, Signals signals, String side) {
+      List<MfdsBulkMatchingReasonItem> reasons, Signals signals, String side) {
     if (signals.parsedKoAge() != null
         && signals.parsedEnAge() != null
         && !signals.parsedKoAge().equals(signals.parsedEnAge())) {
       reasons.add(
-          new MfdsBulkMatchingReason("AGE_TEXT_CONFLICT", side + " 신고의 한글 숙성과 영문 숙성이 서로 다릅니다."));
+          new MfdsBulkMatchingReasonItem(
+              "AGE_TEXT_CONFLICT", side + " 신고의 한글 숙성과 영문 숙성이 서로 다릅니다."));
     }
     Integer parsed = signals.parsedKoAge() != null ? signals.parsedKoAge() : signals.parsedEnAge();
     if (signals.age() != null && parsed != null && !signals.age().equals(parsed)) {
       reasons.add(
-          new MfdsBulkMatchingReason(
+          new MfdsBulkMatchingReasonItem(
               "AGE_STORED_MISMATCH", side + " 신고의 저장된 숙성과 표시명 숙성이 서로 다릅니다."));
     }
   }
@@ -212,29 +214,29 @@ final class MfdsBulkMatchingJudge {
   }
 
   private static void compare(
-      List<MfdsBulkMatchingReason> reasons,
+      List<MfdsBulkMatchingReasonItem> reasons,
       String code,
       String label,
       Relation relation,
       boolean sourceAbsent) {
     if (relation == Relation.MISMATCH) {
-      reasons.add(new MfdsBulkMatchingReason(code + "_DIFFERS", label + " 정보가 서로 다릅니다."));
+      reasons.add(new MfdsBulkMatchingReasonItem(code + "_DIFFERS", label + " 정보가 서로 다릅니다."));
     } else if (relation == Relation.ASYMMETRIC) {
       String reasonCode = sourceAbsent ? code + "_MISSING_ON_SOURCE" : code + "_MISSING_ON_TARGET";
       String message =
           sourceAbsent
               ? "기준 신고에는 " + label + " 정보가 없고 대상 신고에만 있습니다."
               : "대상 신고에는 " + label + " 정보가 없고 기준 신고에만 있습니다.";
-      reasons.add(new MfdsBulkMatchingReason(reasonCode, message));
+      reasons.add(new MfdsBulkMatchingReasonItem(reasonCode, message));
     }
   }
 
   private record LinkDecision(
-      boolean conflict, boolean fill, List<MfdsBulkMatchingReason> reasons) {}
+      boolean conflict, boolean fill, List<MfdsBulkMatchingReasonItem> reasons) {}
 
   private static LinkDecision linkDecision(
       MfdsDeclaration target, Long alcoholId, Long distilleryId, Long regionId) {
-    List<MfdsBulkMatchingReason> reasons = new ArrayList<>();
+    List<MfdsBulkMatchingReasonItem> reasons = new ArrayList<>();
     boolean conflict = false;
     boolean fill = false;
     boolean selectionDiffers = false;
@@ -252,18 +254,19 @@ final class MfdsBulkMatchingJudge {
     }
     if (selectionDiffers) {
       reasons.add(
-          new MfdsBulkMatchingReason("EXISTING_SELECTION_DIFFERS", "이미 다른 주류가 연결되어 있어 덮어쓰지 않습니다."));
+          new MfdsBulkMatchingReasonItem(
+              "EXISTING_SELECTION_DIFFERS", "이미 다른 주류가 연결되어 있어 덮어쓰지 않습니다."));
       conflict = true;
     }
     if (referenceDiffers) {
       reasons.add(
-          new MfdsBulkMatchingReason(
+          new MfdsBulkMatchingReasonItem(
               "EXISTING_REFERENCE_DIFFERS", "이미 다른 증류소 또는 지역이 연결되어 있어 덮어쓰지 않습니다."));
       conflict = true;
     }
     if (referenceClears) {
       reasons.add(
-          new MfdsBulkMatchingReason(
+          new MfdsBulkMatchingReasonItem(
               "EXISTING_REFERENCE_WOULD_CLEAR", "이미 연결된 증류소 또는 지역을 비우는 변경은 적용하지 않습니다."));
       conflict = true;
     }

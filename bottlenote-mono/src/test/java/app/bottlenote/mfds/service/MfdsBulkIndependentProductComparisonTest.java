@@ -11,7 +11,7 @@ import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsMatchingSelection;
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingPreviewRequest;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewItem;
-import app.bottlenote.mfds.dto.response.MfdsBulkMatchingReason;
+import app.bottlenote.mfds.dto.response.MfdsBulkMatchingReasonItem;
 import app.bottlenote.mfds.fixture.InMemoryMfdsBulkPreviewIssuanceStore;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsMatchingRepository;
@@ -321,7 +321,8 @@ class MfdsBulkIndependentProductComparisonTest {
 
   private static Outcome outcome(MfdsBulkMatchingPreviewItem item) {
     return new Outcome(
-        item.classification(), item.reasons().stream().map(MfdsBulkMatchingReason::code).toList());
+        item.classification(),
+        item.reasons().stream().map(MfdsBulkMatchingReasonItem::code).toList());
   }
 
   private Map<String, Object> baseRecord(
