@@ -56,7 +56,7 @@ class AdminMfdsMatchingController(
 	fun previewBulkMatching(
 		@PathVariable declarationId: Long,
 		@RequestBody @Valid request: MfdsBulkMatchingPreviewRequest
-	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(mfdsBulkMatchingService.preview(declarationId, request, requiredAdminId()))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(mfdsBulkMatchingService.preview(declarationId, request))
 
 	@AdminMfdsMatchingApiDocs.ConfirmBulkMatching
 	@PostMapping("/bulk-confirm")

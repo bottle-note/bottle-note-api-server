@@ -197,7 +197,7 @@ public class MfdsMatchingService {
     applyTarget(
         declaration,
         target,
-        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now(), null, true));
+        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now(), null));
     return toConfirmResponse(declaration);
   }
 
@@ -263,7 +263,7 @@ public class MfdsMatchingService {
   public MfdsMatchingConfirmResponse clearMatching(Long declarationId, Long adminId) {
     MfdsDeclaration declaration = getDeclarationForUpdate(declarationId);
     SelectionAuditContext audit =
-        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now(), null, true);
+        new SelectionAuditContext(declarationId, adminId, LocalDateTime.now(), null);
     recordRevocation(audit, "ALCOHOL", declaration.getSelectedAlcoholId(), "ADMIN_RELEASE");
     recordRevocation(audit, "DISTILLERY", declaration.getSelectedDistilleryId(), "ADMIN_RELEASE");
     recordRevocation(audit, "REGION", declaration.getSelectedRegionId(), "ADMIN_RELEASE");
@@ -294,7 +294,7 @@ public class MfdsMatchingService {
       String reasonCode) {
     if (selectedId != null) {
       recordSelection(audit, targetType, selectedId, reasonCode);
-    } else if (audit.revokeCleared()) {
+    } else {
       recordRevocation(audit, targetType, previousId, "ADMIN_SELECTION_CLEARED");
     }
   }
@@ -413,13 +413,9 @@ public class MfdsMatchingService {
       Long distilleryId,
       Long regionId) {}
 
-  /** 감사 이력 작성 방식. 일괄 확정은 근거 코드에 기준 신고를 붙이고 비워진 참조를 해제 이력으로 남기지 않는다. */
+  /** 감사 이력 작성 방식. 일괄 확정은 근거 코드에 기준 신고를 붙인다. */
   record SelectionAuditContext(
-      Long declarationId,
-      Long adminId,
-      LocalDateTime selectedAt,
-      String reasonFormat,
-      boolean revokeCleared) {
+      Long declarationId, Long adminId, LocalDateTime selectedAt, String reasonFormat) {
     String reasonCode(String source) {
       return reasonFormat == null ? source : reasonFormat.formatted(source);
     }

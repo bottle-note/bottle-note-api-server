@@ -7,7 +7,6 @@ import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingPreviewRequest;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewItem;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewResponse;
-import app.bottlenote.mfds.fixture.InMemoryMfdsBulkPreviewIssuanceStore;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsMatchingRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsMatchingSelectionRepository;
@@ -30,7 +29,6 @@ final class MfdsBulkTestFixture {
       new InMemoryMfdsMatchingSelectionRepository();
   final InMemoryMfdsMatchingRepository matching = new InMemoryMfdsMatchingRepository();
   final FakeAlcoholMatchTargetFacade alcohols = new FakeAlcoholMatchTargetFacade();
-  final InMemoryMfdsBulkPreviewIssuanceStore issuances = new InMemoryMfdsBulkPreviewIssuanceStore();
 
   MfdsBulkTestFixture() {
     this(new InMemoryMfdsDeclarationRepository());
@@ -41,7 +39,7 @@ final class MfdsBulkTestFixture {
   }
 
   MfdsBulkMatchingService service(Clock clock) {
-    return new MfdsBulkMatchingService(declarations, selections, single(), issuances, clock);
+    return new MfdsBulkMatchingService(declarations, selections, single(), clock);
   }
 
   MfdsMatchingService single() {
@@ -73,7 +71,7 @@ final class MfdsBulkTestFixture {
       Long distilleryId,
       Long regionId) {
     return service.preview(
-        sourceId, new MfdsBulkMatchingPreviewRequest(alcoholId, distilleryId, regionId), ADMIN_ID);
+        sourceId, new MfdsBulkMatchingPreviewRequest(alcoholId, distilleryId, regionId));
   }
 
   static Optional<MfdsBulkMatchingPreviewItem> item(

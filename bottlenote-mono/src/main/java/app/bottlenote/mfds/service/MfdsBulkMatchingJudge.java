@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-/** 같은 제품 키 위의 추가 속성과 현재 연결을 판정한다. 우선순위는 충돌, 변경 불필요, 확인 필요, 적용 가능하다. */
+/** 같은 제품 키 위의 추가 속성과 현재 연결을 미리보기 안내용으로 판정한다. 확정을 막지 않는다. 우선순위는 충돌, 변경 불필요, 확인 필요, 적용 가능하다. */
 final class MfdsBulkMatchingJudge {
 
   static final String APPLICABLE = "APPLICABLE";
@@ -82,7 +82,7 @@ final class MfdsBulkMatchingJudge {
     List<MfdsBulkMatchingReasonItem> reasons = new ArrayList<>();
     reasons.addAll(identityReasons(source, target));
     if (target.normalizationReview()) {
-      reasons.add(reason("NORMALIZATION_REVIEW_REQUIRED", "정제 결과가 검토 필요라 자동으로 적용하지 않습니다."));
+      reasons.add(reason("NORMALIZATION_REVIEW_REQUIRED", "정제 결과가 검토 필요 상태입니다."));
     }
     if (target.genericName()) {
       reasons.add(reason("GENERIC_PRODUCT_NAME", "제품명이 일반명이라 같은 제품으로 보지 않습니다."));
@@ -104,14 +104,13 @@ final class MfdsBulkMatchingJudge {
             || references.stream().anyMatch(ids -> ids[0] == null && ids[1] != null);
     List<MfdsBulkMatchingReasonItem> conflicts = new ArrayList<>();
     if (currentAlcohol != null && !currentAlcohol.equals(alcohol)) {
-      conflicts.add(reason("EXISTING_SELECTION_DIFFERS", "이미 다른 주류가 연결되어 있어 덮어쓰지 않습니다."));
+      conflicts.add(reason("EXISTING_SELECTION_DIFFERS", "이미 다른 주류가 연결되어 있어 확정하면 덮어씁니다."));
     }
     if (references.stream().anyMatch(ids -> ids[0] != null && !ids[0].equals(ids[1]))) {
-      conflicts.add(reason("EXISTING_REFERENCE_DIFFERS", "이미 다른 증류소 또는 지역이 연결되어 있어 덮어쓰지 않습니다."));
+      conflicts.add(reason("EXISTING_REFERENCE_DIFFERS", "이미 다른 증류소 또는 지역이 연결되어 있어 확정하면 덮어씁니다."));
     }
     if (references.stream().anyMatch(ids -> ids[0] != null && ids[1] == null)) {
-      conflicts.add(
-          reason("EXISTING_REFERENCE_WOULD_CLEAR", "이미 연결된 증류소 또는 지역을 비우는 변경은 적용하지 않습니다."));
+      conflicts.add(reason("EXISTING_REFERENCE_WOULD_CLEAR", "확정하면 이미 연결된 증류소 또는 지역이 비워집니다."));
     }
     reasons.addAll(conflicts);
     String classification =

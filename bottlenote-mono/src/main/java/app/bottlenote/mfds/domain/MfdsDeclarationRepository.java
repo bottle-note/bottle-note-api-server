@@ -5,6 +5,7 @@ import app.bottlenote.mfds.dto.dsl.MfdsDeclarationSearchCriteria;
 import app.bottlenote.mfds.dto.dsl.MfdsPublicAlcoholSearchCriteria;
 import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,11 +38,11 @@ public interface MfdsDeclarationRepository {
   List<MfdsDeclaration> findByProductIdentityKeySha256(byte[] productIdentityKeySha256);
 
   /**
-   * 같은 제품 그룹을 id 오름차순으로 잠그고 조회한다. 일괄 확정은 이 순서로만 잠가 교착을 피한다.
+   * 주어진 신고를 id 오름차순으로 잠그고 조회한다. 일괄 확정은 이 순서로만 잠가 교착을 피한다. 없는 id는 결과에서 빠진다.
    *
    * <p>반드시 트랜잭션 경계 안에서 호출해야 한다.
    */
-  List<MfdsDeclaration> findByProductIdentityKeySha256ForUpdate(byte[] productIdentityKeySha256);
+  List<MfdsDeclaration> findByIdInForUpdate(Collection<Long> ids);
 
   Optional<MfdsDeclaration> findByRcno(String rcno);
 
