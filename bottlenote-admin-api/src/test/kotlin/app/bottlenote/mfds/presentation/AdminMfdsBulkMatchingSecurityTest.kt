@@ -12,12 +12,12 @@ class AdminMfdsBulkMatchingSecurityTest {
 	@Test
 	@DisplayName("미리보기와 확정에 PUBLIC 정책을 붙이지 않는다")
 	fun bulkEndpointsDoNotOptOutOfAdminAuth() {
-		val controller = AdminMfdsBulkMatchingController::class.java
+		val controller = AdminMfdsMatchingController::class.java
 		assertThat(controller.getAnnotation(SecurityPolicy::class.java)).isNull()
 		assertThat(controller.declaredMethods.map { it.name })
-			.contains("preview", "confirm")
+			.contains("previewBulkMatching", "confirmBulkMatching")
 		controller.declaredMethods
-			.filter { it.name == "preview" || it.name == "confirm" }
+			.filter { it.name == "previewBulkMatching" || it.name == "confirmBulkMatching" }
 			.forEach { method ->
 				assertThat(method.getAnnotation(SecurityPolicy::class.java)).isNull()
 			}

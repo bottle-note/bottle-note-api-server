@@ -33,11 +33,11 @@ class MfdsMatchingOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("같은 제품 일괄 미리보기와 확정은 경로 ID 없이 인증을 요구한다")
+	@DisplayName("같은 제품 일괄 미리보기와 확정은 기준 신고 경로에서 인증을 요구한다")
 	fun documentsBulkMatching() {
 		val spec = fetchSpec()
-		val preview = operationsOf(spec).single { it.endpoint() == "POST /v1/mfds/matching/preview" }
-		val confirm = operationsOf(spec).single { it.endpoint() == "POST /v1/mfds/matching/confirm" }
+		val preview = operationsOf(spec).single { it.endpoint() == "POST /v1/mfds/declarations/{declarationId}/matching/bulk-preview" }
+		val confirm = operationsOf(spec).single { it.endpoint() == "POST /v1/mfds/declarations/{declarationId}/matching/bulk-confirm" }
 		assertThat(preview.definition.path("description").asText())
 			.contains("적용 가능", "변경 불필요", "확인 필요", "충돌")
 		assertThat(confirm.definition.path("description").asText()).contains("한 트랜잭션", "previewToken")

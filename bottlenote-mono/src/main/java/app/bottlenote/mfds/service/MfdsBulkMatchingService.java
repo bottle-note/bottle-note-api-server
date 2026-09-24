@@ -3,7 +3,6 @@ package app.bottlenote.mfds.service;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_DUPLICATE_TARGET;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_EMPTY_SELECTION;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_PREVIEW_ADMIN_MISMATCH;
-import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_PREVIEW_EXPIRED;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_PREVIEW_MISMATCH;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_PREVIEW_NOT_ISSUED;
 import static app.bottlenote.mfds.exception.MfdsExceptionCode.MFDS_BULK_SELECTION_LIMIT;
@@ -23,10 +22,10 @@ import app.bottlenote.mfds.domain.MfdsMatchingSelection;
 import app.bottlenote.mfds.domain.MfdsMatchingSelectionRepository;
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingConfirmRequest;
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingPreviewRequest;
-import app.bottlenote.mfds.dto.response.MfdsBulkMatchingConfirmItem;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingConfirmResponse;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewItem;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewResponse;
+import app.bottlenote.mfds.dto.response.MfdsMatchingConfirmResponse;
 import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.service.MfdsBulkMatchingJudge.Decision;
@@ -99,8 +98,7 @@ public class MfdsBulkMatchingService {
   /** 저장소를 바꾸지 않고 같은 제품 그룹을 분류하고, 발급 기록을 Redis에 남긴다. */
   @Transactional(readOnly = true)
   public MfdsBulkMatchingPreviewResponse preview(
-      MfdsBulkMatchingPreviewRequest request, Long adminId) {
-    Long sourceId = request.sourceDeclarationId();
+      Long sourceId, MfdsBulkMatchingPreviewRequest request, Long adminId) {
     MatchTarget target =
         matchingService.resolveTarget(
             request.alcoholId(), request.distilleryId(), request.regionId());
@@ -125,57 +123,30 @@ public class MfdsBulkMatchingService {
             expiresAt,
             stateHash(expiresAt, sourceId, target, group)),
         TTL);
-    Map<String, Long> counts =
-        group.stream()
-            .collect(
-                Collectors.groupingBy(
-                    evaluated -> evaluated.decision().classification(), Collectors.counting()));
-    AlcoholMatchTargetItem alcohol = target.alcohol();
     return new MfdsBulkMatchingPreviewResponse(
-        sourceId,
-        alcohol.alcoholId(),
-        alcohol.korName(),
-        alcohol.engName(),
+        target.alcohol().korName(),
+        target.alcohol().engName(),
         target.distilleryId(),
         target.regionId(),
         token,
         expiresAt,
-        counts.getOrDefault(APPLICABLE, 0L).intValue(),
-        counts.getOrDefault(NO_CHANGE, 0L).intValue(),
-        counts.getOrDefault(MfdsBulkMatchingJudge.NEEDS_REVIEW, 0L).intValue(),
-        counts.getOrDefault(MfdsBulkMatchingJudge.CONFLICT, 0L).intValue(),
         group.stream().map(Evaluated::previewItem).toList());
   }
 
-  /** 미리보기 검증값이 아직 유효할 때만 선택 대상을 확정한다. 한 건이라도 맞지 않으면 아무것도 쓰지 않는다. */
+  /** 발급 기록의 대상과 잠근 현재 행이 미리보기와 같을 때만 선택 대상을 확정한다. 한 건이라도 맞지 않으면 아무것도 쓰지 않는다. */
   @Transactional
   public MfdsBulkMatchingConfirmResponse confirm(
-      MfdsBulkMatchingConfirmRequest request, Long adminId) {
+      Long sourceId, MfdsBulkMatchingConfirmRequest request, Long adminId) {
     List<Long> selectedIds = normalizeSelection(request.declarationIds());
-    LocalDateTime expiresAt = request.previewExpiresAt().truncatedTo(ChronoUnit.SECONDS);
-    if (expiresAt.isBefore(LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS))) {
-      throw new MfdsException(MFDS_BULK_PREVIEW_EXPIRED);
-    }
     MfdsBulkPreviewIssuance issuance =
         issuanceStore
             .consume(request.previewToken())
+            .filter(issued -> !issued.expiresAt().isBefore(LocalDateTime.now(clock)))
             .orElseThrow(() -> new MfdsException(MFDS_BULK_PREVIEW_NOT_ISSUED));
     if (!adminId.equals(issuance.adminId())) {
       throw new MfdsException(MFDS_BULK_PREVIEW_ADMIN_MISMATCH);
     }
-    Long sourceId = request.sourceDeclarationId();
-    // 발급 기록과 요청의 기준 신고·주류·증류소·지역·만료 시각이 모두 같아야 한다.
-    MfdsBulkPreviewIssuance requested =
-        new MfdsBulkPreviewIssuance(
-            issuance.token(),
-            adminId,
-            sourceId,
-            request.alcoholId(),
-            request.distilleryId(),
-            request.regionId(),
-            expiresAt,
-            issuance.stateHash());
-    if (!issuance.equals(requested)) {
+    if (!sourceId.equals(issuance.sourceDeclarationId())) {
       throw new MfdsException(MFDS_BULK_PREVIEW_MISMATCH);
     }
     List<MfdsDeclaration> rows =
@@ -185,7 +156,7 @@ public class MfdsBulkMatchingService {
             MFDS_BULK_PREVIEW_MISMATCH);
     MatchTarget target =
         matchingService.resolveTarget(
-            request.alcoholId(), request.distilleryId(), request.regionId());
+            issuance.alcoholId(), issuance.distilleryId(), issuance.regionId());
     List<Evaluated> group = evaluate(sourceId, rows, target);
     if (!MfdsBulkPreviewHash.matches(
         stateHash(issuance.expiresAt(), sourceId, target, group), issuance.stateHash())) {
@@ -198,30 +169,22 @@ public class MfdsBulkMatchingService {
       throw new MfdsException(MFDS_BULK_TARGET_INVALID);
     }
     LocalDateTime selectedAt = LocalDateTime.now(clock);
-    List<MfdsBulkMatchingConfirmItem> items = new ArrayList<>();
+    List<MfdsMatchingConfirmResponse> applied = new ArrayList<>();
+    List<Long> unchanged = new ArrayList<>();
     for (Evaluated evaluated : selected) {
-      boolean apply = APPLICABLE.equals(evaluated.decision().classification());
-      if (apply) {
-        matchingService.applyTarget(
-            evaluated.row(),
-            target,
-            new SelectionAuditContext(
-                evaluated.row().getId(), adminId, selectedAt, "BULK_%s:" + sourceId, false));
+      MfdsDeclaration row = evaluated.row();
+      if (NO_CHANGE.equals(evaluated.decision().classification())) {
+        unchanged.add(row.getId());
+        continue;
       }
-      items.add(evaluated.confirmItem(apply ? "APPLIED" : NO_CHANGE));
+      matchingService.applyTarget(
+          row,
+          target,
+          new SelectionAuditContext(
+              row.getId(), adminId, selectedAt, "BULK_%s:" + sourceId, false));
+      applied.add(MfdsMatchingService.toConfirmResponse(row));
     }
-    int appliedCount = (int) items.stream().filter(i -> "APPLIED".equals(i.outcome())).count();
-    AlcoholMatchTargetItem alcohol = target.alcohol();
-    return new MfdsBulkMatchingConfirmResponse(
-        sourceId,
-        alcohol.alcoholId(),
-        alcohol.korName(),
-        alcohol.engName(),
-        target.distilleryId(),
-        target.regionId(),
-        appliedCount,
-        items.size() - appliedCount,
-        List.copyOf(items));
+    return new MfdsBulkMatchingConfirmResponse(List.copyOf(applied), List.copyOf(unchanged));
   }
 
   /** 행마다 신호와 관리자 해제 여부를 한 번만 계산해 분류와 상태 해시가 같이 쓴다. */
@@ -345,18 +308,6 @@ public class MfdsBulkMatchingService {
           positive(row.getSelectedAlcoholId()),
           positive(row.getSelectedDistilleryId()),
           positive(row.getSelectedRegionId()));
-    }
-
-    MfdsBulkMatchingConfirmItem confirmItem(String outcome) {
-      return new MfdsBulkMatchingConfirmItem(
-          row.getId(),
-          outcome,
-          row.getSelectedAlcoholId(),
-          row.getAlcoholMatchDecision(),
-          row.getSelectedDistilleryId(),
-          row.getDistilleryMatchSource(),
-          row.getSelectedRegionId(),
-          row.getRegionMatchSource());
     }
 
     /** 화면에 보이는 값, 현재 연결, 판정 신호와 동일성 키를 모두 해시에 넣는다. */

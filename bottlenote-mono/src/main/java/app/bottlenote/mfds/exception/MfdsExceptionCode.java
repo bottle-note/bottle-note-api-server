@@ -20,12 +20,11 @@ public enum MfdsExceptionCode implements ExceptionCode {
   MFDS_PRODUCT_IDENTITY_UNAVAILABLE(
       HttpStatus.BAD_REQUEST, "제품 식별 키가 없어 일괄 확정할 수 없습니다. 이 신고는 기존 단건 확정을 사용해 주세요."),
   MFDS_BULK_SELECTION_LIMIT(HttpStatus.BAD_REQUEST, "한 번에 확정할 수 있는 신고는 500건까지입니다."),
-  MFDS_BULK_PREVIEW_EXPIRED(HttpStatus.CONFLICT, "미리보기 유효 시간이 지났습니다. 다시 조회해 주세요."),
   MFDS_BULK_PREVIEW_MISMATCH(HttpStatus.CONFLICT, "미리보기 이후 신고나 기준 정보가 바뀌었습니다. 다시 조회해 주세요."),
   MFDS_BULK_TARGET_INVALID(HttpStatus.BAD_REQUEST, "미리보기에서 적용할 수 없는 신고가 포함되어 있습니다."),
   MFDS_BULK_DUPLICATE_TARGET(HttpStatus.BAD_REQUEST, "같은 신고가 요청에 중복되어 있습니다."),
   MFDS_BULK_EMPTY_SELECTION(HttpStatus.BAD_REQUEST, "적용할 신고를 한 건 이상 선택해 주세요."),
-  MFDS_BULK_PREVIEW_NOT_ISSUED(HttpStatus.CONFLICT, "서버가 발급한 미리보기가 아닙니다. 다시 조회해 주세요."),
+  MFDS_BULK_PREVIEW_NOT_ISSUED(HttpStatus.CONFLICT, "미리보기가 없거나 유효 시간이 지났습니다. 다시 조회해 주세요."),
   MFDS_BULK_PREVIEW_ADMIN_MISMATCH(HttpStatus.FORBIDDEN, "미리보기를 발급한 관리자만 확정할 수 있습니다."),
   MFDS_BULK_PREVIEW_STORE_UNAVAILABLE(
       HttpStatus.SERVICE_UNAVAILABLE, "미리보기 발급 저장소를 사용하지 못했습니다. 다시 조회해 주세요.");

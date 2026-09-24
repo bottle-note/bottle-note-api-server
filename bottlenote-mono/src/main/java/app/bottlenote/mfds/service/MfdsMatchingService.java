@@ -364,7 +364,7 @@ public class MfdsMatchingService {
         .orElseThrow(() -> new MfdsException(MFDS_DECLARATION_NOT_FOUND));
   }
 
-  private static MfdsMatchingConfirmResponse toConfirmResponse(MfdsDeclaration declaration) {
+  static MfdsMatchingConfirmResponse toConfirmResponse(MfdsDeclaration declaration) {
     return new MfdsMatchingConfirmResponse(
         declaration.getId(),
         declaration.getSelectedAlcoholId(),
