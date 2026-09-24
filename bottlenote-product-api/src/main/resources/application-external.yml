@@ -12,3 +12,8 @@ amazon:
     region: ${AWS_REGION:ap-northeast-2}
     bucket: ${AWS_BUCKET:AMAZON_AWS_BUCKET}
     cloudFrontUrl: ${AWS_CLOUDFRONT_URL:AMAZON_AWS_CLOUDFRONT_URL}
+
+# System One (TypeSafe Jev) - 키가 없으면 호출 시 NOT_CONFIGURED 실패를 반환한다
+systemone:
+  jev:
+    api-key: ${JEV_API_KEY:}
