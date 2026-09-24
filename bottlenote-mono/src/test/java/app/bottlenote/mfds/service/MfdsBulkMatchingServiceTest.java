@@ -18,6 +18,7 @@ import app.bottlenote.mfds.dto.request.MfdsBulkMatchingConfirmRequest;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingConfirmResponse;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewItem;
 import app.bottlenote.mfds.dto.response.MfdsBulkMatchingPreviewResponse;
+import app.bottlenote.mfds.dto.response.MfdsMatchingConfirmResponse;
 import app.bottlenote.mfds.exception.MfdsException;
 import app.bottlenote.mfds.exception.MfdsExceptionCode;
 import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
@@ -29,7 +30,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
@@ -54,6 +57,7 @@ class MfdsBulkMatchingServiceTest {
 
   private MfdsBulkTestFixture fixture;
   private MfdsBulkMatchingService service;
+  private final Map<String, Long> sources = new HashMap<>();
 
   @BeforeEach
   void setUp() {
@@ -105,8 +109,9 @@ class MfdsBulkMatchingServiceTest {
     assertThat(preview.items())
         .extracting(MfdsBulkMatchingPreviewItem::declarationId)
         .isEqualTo(ids);
-    assertThat(preview.applicableCount()).isEqualTo(18);
-    assertThat(preview.unchangedCount() + preview.reviewCount() + preview.conflictCount()).isZero();
+    assertThat(preview.items())
+        .extracting(MfdsBulkMatchingPreviewItem::classification)
+        .containsOnly("APPLICABLE");
     assertThat(preview.items())
         .extracting(MfdsBulkMatchingPreviewItem::volumeMl)
         .contains(200, 500, 700);
@@ -188,24 +193,21 @@ class MfdsBulkMatchingServiceTest {
   }
 
   @Test
-  @DisplayName("서버가 발급하지 않았거나 이미 소비한 토큰으로 확정할 때 거절한다")
+  @DisplayName("발급하지 않았거나 다른 기준 신고의 토큰, 이미 소비한 토큰으로 확정할 때 거절한다")
   void 발급되지_않은_토큰은_거절한다() {
     MfdsDeclaration source = fixture.row("SRC", key(1));
     MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
     String token = preview.previewToken();
     String tampered = token.substring(0, 63) + (token.endsWith("a") ? "b" : "a");
+    List<Long> ids = List.of(source.getId());
 
     assertRejected(
-        () -> service.confirm(request(preview, tampered, preview.previewExpiresAt()), ADMIN_ID),
+        () -> service.confirm(source.getId(), request(tampered, ids), ADMIN_ID),
         "MFDS_BULK_PREVIEW_NOT_ISSUED");
     assertRejected(
-        () ->
-            service.confirm(
-                request(preview, "a".repeat(64), preview.previewExpiresAt().plusHours(5)),
-                ADMIN_ID),
-        "MFDS_BULK_PREVIEW_NOT_ISSUED");
-    confirm(preview, List.of(source.getId()));
-    assertRejected(() -> confirm(preview, List.of(source.getId())), "MFDS_BULK_PREVIEW_NOT_ISSUED");
+        () -> service.confirm(999L, request(token, ids), ADMIN_ID), "MFDS_BULK_PREVIEW_MISMATCH");
+    assertRejected(() -> confirm(preview, ids), "MFDS_BULK_PREVIEW_NOT_ISSUED");
+    assertThat(source.getSelectedAlcoholId()).isNull();
   }
 
   @Test
@@ -215,30 +217,26 @@ class MfdsBulkMatchingServiceTest {
     MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
 
     assertRejected(
-        () -> service.confirm(request(preview, List.of(source.getId())), 99L),
+        () ->
+            service.confirm(
+                source.getId(), request(preview.previewToken(), List.of(source.getId())), 99L),
         "MFDS_BULK_PREVIEW_ADMIN_MISMATCH");
     assertThat(source.getSelectedAlcoholId()).isNull();
   }
 
   @Test
-  @DisplayName("유효 시간이 지났을 때 거절하고 클라이언트가 만료 시각만 늘렸을 때도 거절한다")
-  void 만료와_만료시각_변조는_거절한다() {
+  @DisplayName("유효 시간이 지난 미리보기로 확정할 때 거절한다")
+  void 만료된_미리보기는_거절한다() {
     MfdsDeclaration source = fixture.row("SRC", key(1));
     MfdsBulkMatchingPreviewResponse expired = preview(source.getId(), null, null);
-    MfdsBulkMatchingPreviewResponse extended = preview(source.getId(), null, null);
     MfdsBulkMatchingService later =
         fixture.service(Clock.offset(BASE_CLOCK, Duration.ofMinutes(11)));
 
     assertRejected(
-        () -> later.confirm(request(expired, List.of(source.getId())), ADMIN_ID),
-        "MFDS_BULK_PREVIEW_EXPIRED");
-    assertRejected(
         () ->
-            service.confirm(
-                request(
-                    extended, extended.previewToken(), extended.previewExpiresAt().plusMinutes(30)),
-                ADMIN_ID),
-        "MFDS_BULK_PREVIEW_MISMATCH");
+            later.confirm(
+                source.getId(), request(expired.previewToken(), List.of(source.getId())), ADMIN_ID),
+        "MFDS_BULK_PREVIEW_NOT_ISSUED");
     assertThat(source.getSelectedAlcoholId()).isNull();
   }
 
@@ -279,8 +277,10 @@ class MfdsBulkMatchingServiceTest {
 
     MfdsBulkMatchingConfirmResponse response = confirm(preview, List.of(chosen.getId()));
 
-    assertThat(response.appliedCount()).isEqualTo(1);
-    assertThat(response.items()).extracting(i -> i.outcome()).containsExactly("APPLIED");
+    assertThat(response.applied())
+        .extracting(MfdsMatchingConfirmResponse::declarationId)
+        .containsExactly(chosen.getId());
+    assertThat(response.unchangedDeclarationIds()).isEmpty();
     assertThat(chosen.getSelectedAlcoholId()).isEqualTo(ALCOHOL_ID);
     assertThat(skipped.getSelectedAlcoholId()).isNull();
     assertThat(source.getSelectedAlcoholId()).isNull();
@@ -296,9 +296,8 @@ class MfdsBulkMatchingServiceTest {
 
     MfdsBulkMatchingConfirmResponse response = confirm(preview, List.of(source.getId()));
 
-    assertThat(response.unchangedCount()).isEqualTo(1);
-    assertThat(response.appliedCount()).isZero();
-    assertThat(response.items()).extracting(i -> i.outcome()).containsExactly("NO_CHANGE");
+    assertThat(response.unchangedDeclarationIds()).containsExactly(source.getId());
+    assertThat(response.applied()).isEmpty();
     assertThat(source.getAlcoholNameKo()).isEqualTo("기존 이름");
     assertThat(fixture.selections.findAll()).isEmpty();
   }
@@ -366,7 +365,8 @@ class MfdsBulkMatchingServiceTest {
     MfdsBulkMatchingPreviewResponse preview =
         MfdsBulkTestFixture.preview(service, source.getId(), 11L, null, null);
 
-    confirm(preview, List.of(source.getId()));
+    service.confirm(
+        source.getId(), request(preview.previewToken(), List.of(source.getId())), ADMIN_ID);
 
     assertThat(source.getSelectedDistilleryId()).isNull();
     assertThat(fixture.selections.findAll())
@@ -411,16 +411,7 @@ class MfdsBulkMatchingServiceTest {
     MfdsDeclaration source = fixture.row("SRC", key(1));
     MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), 9L, null);
 
-    service.confirm(
-        new MfdsBulkMatchingConfirmRequest(
-            source.getId(),
-            ALCOHOL_ID,
-            9L,
-            null,
-            List.of(source.getId()),
-            preview.previewToken(),
-            preview.previewExpiresAt()),
-        ADMIN_ID);
+    confirm(preview, List.of(source.getId()));
 
     assertThat(preview.distilleryId()).isEqualTo(9L);
     assertThat(source.getSelectedDistilleryId()).isEqualTo(9L);
@@ -451,36 +442,21 @@ class MfdsBulkMatchingServiceTest {
   }
 
   private MfdsBulkMatchingPreviewResponse preview(Long sourceId, Long distilleryId, Long regionId) {
-    return MfdsBulkTestFixture.preview(service, sourceId, ALCOHOL_ID, distilleryId, regionId);
+    MfdsBulkMatchingPreviewResponse preview =
+        MfdsBulkTestFixture.preview(service, sourceId, ALCOHOL_ID, distilleryId, regionId);
+    sources.put(preview.previewToken(), sourceId);
+    return preview;
   }
 
+  /** 미리보기를 받은 기준 신고 경로로 확정한다. */
   private MfdsBulkMatchingConfirmResponse confirm(
       MfdsBulkMatchingPreviewResponse preview, List<Long> ids) {
-    return service.confirm(request(preview, ids), ADMIN_ID);
+    return service.confirm(
+        sources.get(preview.previewToken()), request(preview.previewToken(), ids), ADMIN_ID);
   }
 
-  private static MfdsBulkMatchingConfirmRequest request(
-      MfdsBulkMatchingPreviewResponse preview, List<Long> ids) {
-    return new MfdsBulkMatchingConfirmRequest(
-        preview.sourceDeclarationId(),
-        preview.alcoholId(),
-        null,
-        null,
-        ids,
-        preview.previewToken(),
-        preview.previewExpiresAt());
-  }
-
-  private static MfdsBulkMatchingConfirmRequest request(
-      MfdsBulkMatchingPreviewResponse preview, String token, LocalDateTime expiresAt) {
-    return new MfdsBulkMatchingConfirmRequest(
-        preview.sourceDeclarationId(),
-        preview.alcoholId(),
-        null,
-        null,
-        List.of(preview.sourceDeclarationId()),
-        token,
-        expiresAt);
+  private static MfdsBulkMatchingConfirmRequest request(String token, List<Long> ids) {
+    return new MfdsBulkMatchingConfirmRequest(token, ids);
   }
 
   private static void assertRejected(ThrowingCallable call, String code) {

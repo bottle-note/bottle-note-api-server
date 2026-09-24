@@ -66,9 +66,9 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 	@Test
 	@DisplayName("인증이 없으면 일괄 미리보기를 거절한다")
 	fun previewRequiresAuthentication() {
-		val result = mockMvcTester.post().uri("/v1/mfds/matching/preview")
+		val result = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-preview")
 			.contentType(MediaType.APPLICATION_JSON)
-			.content("""{"sourceDeclarationId":1,"alcoholId":1}""")
+			.content("""{"alcoholId":1}""")
 			.exchange()
 		assertThat(result).hasStatus(HttpStatus.FORBIDDEN)
 	}
@@ -76,7 +76,7 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 	@Test
 	@DisplayName("인증이 없으면 일괄 확정을 거절한다")
 	fun confirmRequiresAuthentication() {
-		val result = mockMvcTester.post().uri("/v1/mfds/matching/confirm")
+		val result = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
 			.contentType(MediaType.APPLICATION_JSON)
 			.content(confirmBody("a".repeat(64)))
 			.exchange()
@@ -87,12 +87,12 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 	@DisplayName("일반 사용자 토큰은 일괄 미리보기와 확정을 거절한다")
 	fun productUserTokenIsRejected() {
 		val token = jwtTokenProvider.generateToken("member@example.com", UserType.ROLE_USER, 99L).accessToken()
-		val preview = mockMvcTester.post().uri("/v1/mfds/matching/preview")
+		val preview = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-preview")
 			.header("Authorization", "Bearer $token")
 			.contentType(MediaType.APPLICATION_JSON)
-			.content("""{"sourceDeclarationId":1,"alcoholId":1}""")
+			.content("""{"alcoholId":1}""")
 			.exchange()
-		val confirm = mockMvcTester.post().uri("/v1/mfds/matching/confirm")
+		val confirm = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
 			.header("Authorization", "Bearer $token")
 			.contentType(MediaType.APPLICATION_JSON)
 			.content(confirmBody("a".repeat(64)))
@@ -104,17 +104,17 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 	@Test
 	@DisplayName("관리자 토큰은 인증을 통과하고 잘못된 발급 토큰은 권한 오류가 아니다")
 	fun adminTokenPassesAuthentication() {
-		val missingAlcohol = mockMvcTester.post().uri("/v1/mfds/matching/preview")
+		val missingAlcohol = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-preview")
 			.header("Authorization", "Bearer $accessToken")
 			.contentType(MediaType.APPLICATION_JSON)
-			.content("""{"sourceDeclarationId":1,"alcoholId":1}""")
+			.content("""{"alcoholId":1}""")
 			.exchange()
-		val shortToken = mockMvcTester.post().uri("/v1/mfds/matching/confirm")
+		val shortToken = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
 			.header("Authorization", "Bearer $accessToken")
 			.contentType(MediaType.APPLICATION_JSON)
 			.content(confirmBody("abc"))
 			.exchange()
-		val unknownToken = mockMvcTester.post().uri("/v1/mfds/matching/confirm")
+		val unknownToken = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
 			.header("Authorization", "Bearer $accessToken")
 			.contentType(MediaType.APPLICATION_JSON)
 			.content(confirmBody("a".repeat(64)))
@@ -125,7 +125,7 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 	}
 
 	private fun confirmBody(token: String) = """
-		{"sourceDeclarationId":1,"alcoholId":1,"declarationIds":[1],"previewToken":"$token","previewExpiresAt":"2099-01-01T00:00:00"}
+		{"previewToken":"$token","declarationIds":[1]}
 	""".trimIndent()
 
 	@Test
@@ -139,7 +139,7 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 			key(1),
 			declaration.id!!
 		)
-		val preview = bulkService.preview(MfdsBulkMatchingPreviewRequest(declaration.id!!, requested.id!!, null, null), adminId)
+		val preview = bulkService.preview(declaration.id!!, MfdsBulkMatchingPreviewRequest(requested.id!!, null, null), adminId)
 		val arrived = CountDownLatch(1)
 		val changed = CountDownLatch(1)
 		gated.beforeGroupLock = {
@@ -150,15 +150,8 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 		val thread = Thread {
 			try {
 				bulkService.confirm(
-					MfdsBulkMatchingConfirmRequest(
-						declaration.id!!,
-						requested.id!!,
-						null,
-						null,
-						listOf(declaration.id!!),
-						preview.previewToken(),
-						preview.previewExpiresAt()
-					),
+					declaration.id!!,
+					MfdsBulkMatchingConfirmRequest(preview.previewToken(), listOf(declaration.id!!)),
 					adminId
 				)
 			} catch (throwable: Throwable) {
@@ -198,21 +191,14 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 		val first = mfdsTestFactory.persistDeclaration("RCNO-RB1", MfdsNormalizationStatus.NORMALIZED, null, null, null)
 		val second = mfdsTestFactory.persistDeclaration("RCNO-RB2", MfdsNormalizationStatus.NORMALIZED, null, null, null)
 		jdbcTemplate.update("update mfds_declarations set product_identity_key_sha256 = ? where id in (?, ?)", key(2), first.id!!, second.id!!)
-		val preview = bulkService.preview(MfdsBulkMatchingPreviewRequest(first.id!!, alcohol.id!!, null, null), adminId)
+		val preview = bulkService.preview(first.id!!, MfdsBulkMatchingPreviewRequest(alcohol.id!!, null, null), adminId)
 		val saves = AtomicInteger()
 		gated.beforeSave = { if (saves.incrementAndGet() == 2) throw IllegalStateException("nth save") }
 
 		assertThatThrownBy {
 			bulkService.confirm(
-				MfdsBulkMatchingConfirmRequest(
-					first.id!!,
-					alcohol.id!!,
-					null,
-					null,
-					listOf(first.id!!, second.id!!),
-					preview.previewToken(),
-					preview.previewExpiresAt()
-				),
+				first.id!!,
+				MfdsBulkMatchingConfirmRequest(preview.previewToken(), listOf(first.id!!, second.id!!)),
 				adminId
 			)
 		}.isInstanceOf(IllegalStateException::class.java)

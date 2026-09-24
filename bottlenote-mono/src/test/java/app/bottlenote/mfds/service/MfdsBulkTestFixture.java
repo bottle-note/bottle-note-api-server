@@ -73,7 +73,7 @@ final class MfdsBulkTestFixture {
       Long distilleryId,
       Long regionId) {
     return service.preview(
-        new MfdsBulkMatchingPreviewRequest(sourceId, alcoholId, distilleryId, regionId), ADMIN_ID);
+        sourceId, new MfdsBulkMatchingPreviewRequest(alcoholId, distilleryId, regionId), ADMIN_ID);
   }
 
   static Optional<MfdsBulkMatchingPreviewItem> item(
