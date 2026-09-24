@@ -63,102 +63,90 @@ final class MfdsBulkMatchingJudge {
         edition,
         List.copyOf(identity.years()),
         identity.strength() || variantIndicatesStrength(declaration) ? Boolean.TRUE : null,
-        normalizeStrength(declaration.getStrengthType()),
+        upper(declaration.getStrengthType()),
         normalizeAbv(declaration.getAbvPercent()),
         blankToNull(declaration.getVersionMarker()),
         variant(declaration),
-        country(declaration),
+        upper(declaration.getManufactureCountryAlpha2()),
         declaration.getNormalizationStatus() == MfdsNormalizationStatus.REVIEW_REQUIRED,
         genericName(declaration));
   }
 
+  /** 신호는 호출자가 행마다 한 번 계산해 넘긴다. */
   static Decision decide(
-      MfdsDeclaration source,
-      MfdsDeclaration target,
-      Long alcoholId,
-      Long distilleryId,
-      Long regionId,
+      Signals source,
+      Signals target,
+      MfdsDeclaration targetRow,
+      MfdsMatchingService.MatchTarget applied,
       boolean targetAdminReleased) {
     List<MfdsBulkMatchingReasonItem> reasons = new ArrayList<>();
-    reasons.addAll(identityReasons(signals(source), signals(target)));
-    if (signals(target).normalizationReview()) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem(
-              "NORMALIZATION_REVIEW_REQUIRED", "정제 결과가 검토 필요라 자동으로 적용하지 않습니다."));
+    reasons.addAll(identityReasons(source, target));
+    if (target.normalizationReview()) {
+      reasons.add(reason("NORMALIZATION_REVIEW_REQUIRED", "정제 결과가 검토 필요라 자동으로 적용하지 않습니다."));
     }
-    if (signals(target).genericName()) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem("GENERIC_PRODUCT_NAME", "제품명이 일반명이라 같은 제품으로 보지 않습니다."));
+    if (target.genericName()) {
+      reasons.add(reason("GENERIC_PRODUCT_NAME", "제품명이 일반명이라 같은 제품으로 보지 않습니다."));
     }
     if (targetAdminReleased) {
-      reasons.add(new MfdsBulkMatchingReasonItem("ADMIN_RELEASED", "관리자가 연결을 해제한 신고입니다."));
+      reasons.add(reason("ADMIN_RELEASED", "관리자가 연결을 해제한 신고입니다."));
     }
-    LinkDecision links = linkDecision(target, alcoholId, distilleryId, regionId);
     boolean review = !reasons.isEmpty();
-    reasons.addAll(links.reasons());
-    if (links.conflict()) {
-      return new Decision(CONFLICT, List.copyOf(reasons));
+    Long currentAlcohol = positive(targetRow.getSelectedAlcoholId());
+    Long alcohol = positive(applied.alcohol().alcoholId());
+    List<Long[]> references =
+        List.of(
+            new Long[] {
+              positive(targetRow.getSelectedDistilleryId()), positive(applied.distilleryId())
+            },
+            new Long[] {positive(targetRow.getSelectedRegionId()), positive(applied.regionId())});
+    boolean fill =
+        currentAlcohol == null && alcohol != null
+            || references.stream().anyMatch(ids -> ids[0] == null && ids[1] != null);
+    List<MfdsBulkMatchingReasonItem> conflicts = new ArrayList<>();
+    if (currentAlcohol != null && !currentAlcohol.equals(alcohol)) {
+      conflicts.add(reason("EXISTING_SELECTION_DIFFERS", "이미 다른 주류가 연결되어 있어 덮어쓰지 않습니다."));
     }
-    if (!links.fill()) {
-      return new Decision(NO_CHANGE, List.copyOf(reasons));
+    if (references.stream().anyMatch(ids -> ids[0] != null && !ids[0].equals(ids[1]))) {
+      conflicts.add(reason("EXISTING_REFERENCE_DIFFERS", "이미 다른 증류소 또는 지역이 연결되어 있어 덮어쓰지 않습니다."));
     }
-    if (review) {
-      return new Decision(NEEDS_REVIEW, List.copyOf(reasons));
+    if (references.stream().anyMatch(ids -> ids[0] != null && ids[1] == null)) {
+      conflicts.add(
+          reason("EXISTING_REFERENCE_WOULD_CLEAR", "이미 연결된 증류소 또는 지역을 비우는 변경은 적용하지 않습니다."));
     }
-    return new Decision(APPLICABLE, List.copyOf(reasons));
+    reasons.addAll(conflicts);
+    String classification =
+        !conflicts.isEmpty() ? CONFLICT : !fill ? NO_CHANGE : review ? NEEDS_REVIEW : APPLICABLE;
+    return new Decision(classification, List.copyOf(reasons));
+  }
+
+  private static MfdsBulkMatchingReasonItem reason(String code, String message) {
+    return new MfdsBulkMatchingReasonItem(code, message);
   }
 
   private static List<MfdsBulkMatchingReasonItem> identityReasons(Signals source, Signals target) {
     List<MfdsBulkMatchingReasonItem> reasons = new ArrayList<>();
-    Relation storedAge = relate(source.age(), target.age());
-    compare(reasons, "AGE", "숙성", storedAge, source.age() == null);
+    Relation storedAge = compare(reasons, "AGE", "숙성", source.age(), target.age());
     Integer sourceDisplayAge = displayAge(source);
     Integer targetDisplayAge = displayAge(target);
-    Relation displayAge = relate(sourceDisplayAge, targetDisplayAge);
     String storedAgeCode = ageCode(storedAge, source.age() == null);
-    String displayAgeCode = ageCode(displayAge, sourceDisplayAge == null);
+    String displayAgeCode =
+        ageCode(relate(sourceDisplayAge, targetDisplayAge), sourceDisplayAge == null);
     if (displayAgeCode != null && !displayAgeCode.equals(storedAgeCode)) {
-      compare(reasons, "AGE", "표시명 숙성", displayAge, sourceDisplayAge == null);
+      compare(reasons, "AGE", "표시명 숙성", sourceDisplayAge, targetDisplayAge);
     }
     addStoredAgeMismatch(reasons, source, "기준");
     addStoredAgeMismatch(reasons, target, "대상");
-    compare(reasons, "BATCH", "배치", relate(source.batch(), target.batch()), source.batch() == null);
-    compare(reasons, "CASK", "캐스크", relate(source.cask(), target.cask()), source.cask() == null);
-    compare(
-        reasons,
-        "EDITION",
-        "에디션",
-        relate(source.edition(), target.edition()),
-        source.edition() == null);
-    compare(
-        reasons, "VINTAGE", "빈티지", relate(source.years(), target.years()), absent(source.years()));
-    compare(
-        reasons,
-        "VERSION",
-        "버전",
-        relate(source.versionMarker(), target.versionMarker()),
-        source.versionMarker() == null);
-    compare(
-        reasons,
-        "VARIANT",
-        "변이",
-        relate(source.variant(), target.variant()),
-        source.variant() == null);
-    compare(reasons, "ABV", "도수", relate(source.abv(), target.abv()), source.abv() == null);
-    compare(
-        reasons,
-        "COUNTRY",
-        "제조국",
-        relate(source.country(), target.country()),
-        source.country() == null);
-    Relation strengthType = relate(source.strengthType(), target.strengthType());
-    Relation caskStrength = relate(source.caskStrength(), target.caskStrength());
-    if (strengthType == Relation.MISMATCH
-        || strengthType == Relation.ASYMMETRIC
-        || caskStrength == Relation.MISMATCH
-        || caskStrength == Relation.ASYMMETRIC) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem("STRENGTH_DIFFERS", "도수 유형 또는 캐스크 스트렝스 정보가 다릅니다."));
+    compare(reasons, "BATCH", "배치", source.batch(), target.batch());
+    compare(reasons, "CASK", "캐스크", source.cask(), target.cask());
+    compare(reasons, "EDITION", "에디션", source.edition(), target.edition());
+    compare(reasons, "VINTAGE", "빈티지", source.years(), target.years());
+    compare(reasons, "VERSION", "버전", source.versionMarker(), target.versionMarker());
+    compare(reasons, "VARIANT", "변이", source.variant(), target.variant());
+    compare(reasons, "ABV", "도수", source.abv(), target.abv());
+    compare(reasons, "COUNTRY", "제조국", source.country(), target.country());
+    if (differs(relate(source.strengthType(), target.strengthType()))
+        || differs(relate(source.caskStrength(), target.caskStrength()))) {
+      reasons.add(reason("STRENGTH_DIFFERS", "도수 유형 또는 캐스크 스트렝스 정보가 다릅니다."));
     }
     return reasons;
   }
@@ -168,15 +156,11 @@ final class MfdsBulkMatchingJudge {
     if (signals.parsedKoAge() != null
         && signals.parsedEnAge() != null
         && !signals.parsedKoAge().equals(signals.parsedEnAge())) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem(
-              "AGE_TEXT_CONFLICT", side + " 신고의 한글 숙성과 영문 숙성이 서로 다릅니다."));
+      reasons.add(reason("AGE_TEXT_CONFLICT", side + " 신고의 한글 숙성과 영문 숙성이 서로 다릅니다."));
     }
-    Integer parsed = signals.parsedKoAge() != null ? signals.parsedKoAge() : signals.parsedEnAge();
+    Integer parsed = displayAge(signals);
     if (signals.age() != null && parsed != null && !signals.age().equals(parsed)) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem(
-              "AGE_STORED_MISMATCH", side + " 신고의 저장된 숙성과 표시명 숙성이 서로 다릅니다."));
+      reasons.add(reason("AGE_STORED_MISMATCH", side + " 신고의 저장된 숙성과 표시명 숙성이 서로 다릅니다."));
     }
   }
 
@@ -213,80 +197,25 @@ final class MfdsBulkMatchingJudge {
     return raw != null && raw.trim().matches("(?i)cs|cask strength");
   }
 
-  private static void compare(
+  private static Relation compare(
       List<MfdsBulkMatchingReasonItem> reasons,
       String code,
       String label,
-      Relation relation,
-      boolean sourceAbsent) {
+      Object source,
+      Object target) {
+    Relation relation = relate(source, target);
+    boolean sourceAbsent = absent(source);
     if (relation == Relation.MISMATCH) {
-      reasons.add(new MfdsBulkMatchingReasonItem(code + "_DIFFERS", label + " 정보가 서로 다릅니다."));
+      reasons.add(reason(code + "_DIFFERS", label + " 정보가 서로 다릅니다."));
     } else if (relation == Relation.ASYMMETRIC) {
       String reasonCode = sourceAbsent ? code + "_MISSING_ON_SOURCE" : code + "_MISSING_ON_TARGET";
       String message =
           sourceAbsent
               ? "기준 신고에는 " + label + " 정보가 없고 대상 신고에만 있습니다."
               : "대상 신고에는 " + label + " 정보가 없고 기준 신고에만 있습니다.";
-      reasons.add(new MfdsBulkMatchingReasonItem(reasonCode, message));
+      reasons.add(reason(reasonCode, message));
     }
-  }
-
-  private record LinkDecision(
-      boolean conflict, boolean fill, List<MfdsBulkMatchingReasonItem> reasons) {}
-
-  private static LinkDecision linkDecision(
-      MfdsDeclaration target, Long alcoholId, Long distilleryId, Long regionId) {
-    List<MfdsBulkMatchingReasonItem> reasons = new ArrayList<>();
-    boolean conflict = false;
-    boolean fill = false;
-    boolean selectionDiffers = false;
-    boolean referenceDiffers = false;
-    boolean referenceClears = false;
-    for (Field field :
-        List.of(
-            field(positive(target.getSelectedAlcoholId()), positive(alcoholId), true),
-            field(positive(target.getSelectedDistilleryId()), positive(distilleryId), false),
-            field(positive(target.getSelectedRegionId()), positive(regionId), false))) {
-      fill = fill || field.fill();
-      selectionDiffers = selectionDiffers || field.selectionDiffers();
-      referenceDiffers = referenceDiffers || field.referenceDiffers();
-      referenceClears = referenceClears || field.referenceClears();
-    }
-    if (selectionDiffers) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem(
-              "EXISTING_SELECTION_DIFFERS", "이미 다른 주류가 연결되어 있어 덮어쓰지 않습니다."));
-      conflict = true;
-    }
-    if (referenceDiffers) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem(
-              "EXISTING_REFERENCE_DIFFERS", "이미 다른 증류소 또는 지역이 연결되어 있어 덮어쓰지 않습니다."));
-      conflict = true;
-    }
-    if (referenceClears) {
-      reasons.add(
-          new MfdsBulkMatchingReasonItem(
-              "EXISTING_REFERENCE_WOULD_CLEAR", "이미 연결된 증류소 또는 지역을 비우는 변경은 적용하지 않습니다."));
-      conflict = true;
-    }
-    return new LinkDecision(conflict, fill, reasons);
-  }
-
-  private record Field(
-      boolean fill, boolean selectionDiffers, boolean referenceDiffers, boolean referenceClears) {}
-
-  private static Field field(Long current, Long applied, boolean alcohol) {
-    if (Objects.equals(current, applied)) {
-      return new Field(false, false, false, false);
-    }
-    if (current == null) {
-      return new Field(true, false, false, false);
-    }
-    if (applied == null) {
-      return new Field(false, alcohol, !alcohol, !alcohol);
-    }
-    return new Field(false, alcohol, !alcohol, false);
+    return relation;
   }
 
   static Long positive(Long id) {
@@ -298,6 +227,10 @@ final class MfdsBulkMatchingJudge {
     BOTH_ABSENT,
     MISMATCH,
     ASYMMETRIC
+  }
+
+  private static boolean differs(Relation relation) {
+    return relation == Relation.MISMATCH || relation == Relation.ASYMMETRIC;
   }
 
   private static Relation relate(Object left, Object right) {
@@ -342,11 +275,6 @@ final class MfdsBulkMatchingJudge {
         + (value == null ? "" : value);
   }
 
-  private static String country(MfdsDeclaration declaration) {
-    String value = blankToNull(declaration.getManufactureCountryAlpha2());
-    return value == null ? null : value.toUpperCase(Locale.ROOT);
-  }
-
   private static boolean genericName(MfdsDeclaration declaration) {
     List<String> reasons = declaration.getNormalizationReasons();
     return reasons != null && reasons.contains(GENERIC_REASON);
@@ -356,11 +284,9 @@ final class MfdsBulkMatchingJudge {
     return value == null || value.isBlank() ? null : value.trim();
   }
 
-  private static String normalizeStrength(String value) {
-    if (value == null || value.isBlank()) {
-      return null;
-    }
-    return value.trim().toUpperCase(Locale.ROOT);
+  private static String upper(String value) {
+    String trimmed = blankToNull(value);
+    return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
   }
 
   private static BigDecimal normalizeAbv(BigDecimal value) {

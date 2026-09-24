@@ -4,34 +4,38 @@ import app.IntegrationTestSupport
 import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import app.bottlenote.mfds.constant.MfdsNormalizationStatus
+import app.bottlenote.mfds.domain.MfdsDeclaration
+import app.bottlenote.mfds.domain.MfdsDeclarationRepository
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingConfirmRequest
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingPreviewRequest
 import app.bottlenote.mfds.exception.MfdsException
 import app.bottlenote.mfds.fixture.MfdsTestFactory
-import app.bottlenote.mfds.service.MfdsBulkLockGate
+import app.bottlenote.mfds.repository.JpaMfdsDeclarationRepository
 import app.bottlenote.mfds.service.MfdsBulkMatchingService
-import app.bottlenote.mfds.service.MfdsBulkSaveGuard
 import app.bottlenote.user.constant.UserType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.doThrow
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 @Tag("admin_integration")
 @DisplayName("[integration] MFDS 일괄 확정 인증·경합·롤백")
+@Import(AdminMfdsBulkMatchingConcurrencyIntegrationTest.GatedRepositoryConfiguration::class)
 class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport() {
 	@Autowired private lateinit var mfdsTestFactory: MfdsTestFactory
 
@@ -41,9 +45,7 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 
 	@Autowired private lateinit var jdbcTemplate: JdbcTemplate
 
-	@MockitoBean private lateinit var lockGate: MfdsBulkLockGate
-
-	@MockitoBean private lateinit var saveGuard: MfdsBulkSaveGuard
+	@Autowired private lateinit var gated: GatedDeclarationRepository
 
 	private lateinit var accessToken: String
 	private var adminId: Long = 0
@@ -53,6 +55,12 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 		val admin = adminUserTestFactory.persistRootAdmin()
 		adminId = admin.id
 		accessToken = getAccessToken(admin)
+	}
+
+	@AfterEach
+	fun resetHooks() {
+		gated.beforeGroupLock = {}
+		gated.beforeSave = {}
 	}
 
 	@Test
@@ -134,11 +142,10 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 		val preview = bulkService.preview(MfdsBulkMatchingPreviewRequest(declaration.id!!, requested.id!!, null, null), adminId)
 		val arrived = CountDownLatch(1)
 		val changed = CountDownLatch(1)
-		doAnswer {
+		gated.beforeGroupLock = {
 			arrived.countDown()
 			assertThat(changed.await(10, TimeUnit.SECONDS)).isTrue()
-			null
-		}.`when`(lockGate).beforeGroupLock(anyLong())
+		}
 		val error = AtomicReference<Throwable>()
 		val thread = Thread {
 			try {
@@ -192,7 +199,8 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 		val second = mfdsTestFactory.persistDeclaration("RCNO-RB2", MfdsNormalizationStatus.NORMALIZED, null, null, null)
 		jdbcTemplate.update("update mfds_declarations set product_identity_key_sha256 = ? where id in (?, ?)", key(2), first.id!!, second.id!!)
 		val preview = bulkService.preview(MfdsBulkMatchingPreviewRequest(first.id!!, alcohol.id!!, null, null), adminId)
-		doThrow(IllegalStateException("nth save")).`when`(saveGuard).beforeSave(org.mockito.ArgumentMatchers.eq(1), anyLong())
+		val saves = AtomicInteger()
+		gated.beforeSave = { if (saves.incrementAndGet() == 2) throw IllegalStateException("nth save") }
 
 		assertThatThrownBy {
 			bulkService.confirm(
@@ -228,4 +236,28 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 	).single()
 
 	private fun key(marker: Int) = ByteArray(32).also { it[31] = marker.toByte() }
+
+	/** 운영 훅 없이 기존 포트를 감싸 잠금 직전 대기와 N번째 저장 실패를 만든다. */
+	class GatedDeclarationRepository(private val delegate: MfdsDeclarationRepository) : MfdsDeclarationRepository by delegate {
+		@Volatile var beforeGroupLock: () -> Unit = {}
+
+		@Volatile var beforeSave: () -> Unit = {}
+
+		override fun findByProductIdentityKeySha256ForUpdate(key: ByteArray): List<MfdsDeclaration> {
+			beforeGroupLock()
+			return delegate.findByProductIdentityKeySha256ForUpdate(key)
+		}
+
+		override fun save(declaration: MfdsDeclaration): MfdsDeclaration {
+			beforeSave()
+			return delegate.save(declaration)
+		}
+	}
+
+	@TestConfiguration(proxyBeanMethods = false)
+	class GatedRepositoryConfiguration {
+		@Bean
+		@Primary
+		fun gatedDeclarationRepository(delegate: JpaMfdsDeclarationRepository) = GatedDeclarationRepository(delegate)
+	}
 }
