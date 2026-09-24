@@ -7,8 +7,6 @@ import app.bottlenote.mfds.constant.MfdsNormalizationStatus
 import app.bottlenote.mfds.domain.MfdsDeclaration
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository
 import app.bottlenote.mfds.dto.request.MfdsBulkMatchingConfirmRequest
-import app.bottlenote.mfds.dto.request.MfdsBulkMatchingPreviewRequest
-import app.bottlenote.mfds.exception.MfdsException
 import app.bottlenote.mfds.fixture.MfdsTestFactory
 import app.bottlenote.mfds.repository.JpaMfdsDeclarationRepository
 import app.bottlenote.mfds.service.MfdsBulkMatchingService
@@ -28,15 +26,12 @@ import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
 
 @Tag("admin_integration")
-@DisplayName("[integration] MFDS 일괄 확정 인증·경합·롤백")
-@Import(AdminMfdsBulkMatchingConcurrencyIntegrationTest.GatedRepositoryConfiguration::class)
-class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport() {
+@DisplayName("[integration] MFDS 일괄 매칭 인증·반영·롤백")
+@Import(AdminMfdsBulkMatchingIntegrationTest.GatedRepositoryConfiguration::class)
+class AdminMfdsBulkMatchingIntegrationTest : IntegrationTestSupport() {
 	@Autowired private lateinit var mfdsTestFactory: MfdsTestFactory
 
 	@Autowired private lateinit var alcoholTestFactory: AlcoholTestFactory
@@ -59,7 +54,6 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 
 	@AfterEach
 	fun resetHooks() {
-		gated.beforeGroupLock = {}
 		gated.beforeSave = {}
 	}
 
@@ -78,7 +72,7 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 	fun confirmRequiresAuthentication() {
 		val result = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
 			.contentType(MediaType.APPLICATION_JSON)
-			.content(confirmBody("a".repeat(64)))
+			.content(confirmBody(1L, listOf(1L)))
 			.exchange()
 		assertThat(result).hasStatus(HttpStatus.FORBIDDEN)
 	}
@@ -95,125 +89,102 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 		val confirm = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
 			.header("Authorization", "Bearer $token")
 			.contentType(MediaType.APPLICATION_JSON)
-			.content(confirmBody("a".repeat(64)))
+			.content(confirmBody(1L, listOf(1L)))
 			.exchange()
 		assertThat(preview).hasStatus(HttpStatus.FORBIDDEN)
 		assertThat(confirm).hasStatus(HttpStatus.FORBIDDEN)
 	}
 
 	@Test
-	@DisplayName("관리자 토큰은 인증을 통과하고 잘못된 발급 토큰은 권한 오류가 아니다")
+	@DisplayName("관리자 토큰으로 잘못된 요청을 보내면 권한 오류가 아니라 입력 오류로 거절한다")
 	fun adminTokenPassesAuthentication() {
 		val missingAlcohol = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-preview")
 			.header("Authorization", "Bearer $accessToken")
 			.contentType(MediaType.APPLICATION_JSON)
 			.content("""{"alcoholId":1}""")
 			.exchange()
-		val shortToken = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
+		val emptySelection = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
 			.header("Authorization", "Bearer $accessToken")
 			.contentType(MediaType.APPLICATION_JSON)
-			.content(confirmBody("abc"))
-			.exchange()
-		val unknownToken = mockMvcTester.post().uri("/v1/mfds/declarations/1/matching/bulk-confirm")
-			.header("Authorization", "Bearer $accessToken")
-			.contentType(MediaType.APPLICATION_JSON)
-			.content(confirmBody("a".repeat(64)))
+			.content("""{"alcoholId":1,"declarationIds":[]}""")
 			.exchange()
 		assertThat(missingAlcohol).hasStatus(HttpStatus.BAD_REQUEST)
-		assertThat(shortToken).hasStatus(HttpStatus.BAD_REQUEST)
-		assertThat(unknownToken).hasStatus(HttpStatus.CONFLICT)
+		assertThat(emptySelection).hasStatus(HttpStatus.BAD_REQUEST)
 	}
 
-	private fun confirmBody(token: String) = """
-		{"previewToken":"$token","declarationIds":[1]}
-	""".trimIndent()
+	@Test
+	@DisplayName("미리보기 없이 확정할 때 기존 연결을 덮어쓰고 같은 연결은 건너뛴다")
+	fun confirmOverwritesAndSkipsSameLink() {
+		val alcohol = alcoholTestFactory.persistAlcohol("확정 주류", "Confirmed", AlcoholType.WHISKY)
+		val existing = alcoholTestFactory.persistAlcohol("기존 주류", "Existing", AlcoholType.WHISKY)
+		val linked = declaration("RCNO-OVERWRITE")
+		val same = declaration("RCNO-SAME")
+		jdbcTemplate.update("update mfds_declarations set selected_alcohol_id = ? where id = ?", existing.id!!, linked.id!!)
+		jdbcTemplate.update(
+			"update mfds_declarations set selected_alcohol_id = ?, selected_distillery_id = ?, selected_region_id = ? where id = ?",
+			alcohol.id!!,
+			alcohol.distillery?.id,
+			alcohol.region?.id,
+			same.id!!
+		)
+
+		val result = mockMvcTester.post().uri("/v1/mfds/declarations/${linked.id}/matching/bulk-confirm")
+			.header("Authorization", "Bearer $accessToken")
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(confirmBody(alcohol.id!!, listOf(same.id!!, linked.id!!)))
+			.exchange()
+
+		assertThat(result).hasStatusOk()
+		assertThat(result).bodyJson().extractingPath("$.data.applied[0].declarationId").asNumber().isEqualTo(linked.id!!.toInt())
+		assertThat(result).bodyJson().extractingPath("$.data.unchangedDeclarationIds[0]").asNumber().isEqualTo(same.id!!.toInt())
+		assertThat(selected(linked.id!!)).isEqualTo(alcohol.id)
+		assertThat(selectionCount(same.id!!)).isZero()
+	}
 
 	@Test
-	@DisplayName("잠금 전에 단건 확정이 커밋되면 이전 미리보기로 덮어쓰지 않는다")
-	fun concurrentSingleConfirmIsNotOverwritten() {
-		val requested = alcoholTestFactory.persistAlcohol("요청 주류", "Requested", AlcoholType.WHISKY)
-		val existing = alcoholTestFactory.persistAlcohol("기존 주류", "Existing", AlcoholType.WHISKY)
-		val declaration = mfdsTestFactory.persistDeclaration("RCNO-RACE", MfdsNormalizationStatus.NORMALIZED, null, null, null)
-		jdbcTemplate.update(
-			"update mfds_declarations set product_identity_key_sha256 = ? where id = ?",
-			key(1),
-			declaration.id!!
-		)
-		val preview = bulkService.preview(declaration.id!!, MfdsBulkMatchingPreviewRequest(requested.id!!, null, null), adminId)
-		val arrived = CountDownLatch(1)
-		val changed = CountDownLatch(1)
-		gated.beforeGroupLock = {
-			arrived.countDown()
-			assertThat(changed.await(10, TimeUnit.SECONDS)).isTrue()
-		}
-		val error = AtomicReference<Throwable>()
-		val thread = Thread {
-			try {
-				bulkService.confirm(
-					declaration.id!!,
-					MfdsBulkMatchingConfirmRequest(preview.previewToken(), listOf(declaration.id!!)),
-					adminId
-				)
-			} catch (throwable: Throwable) {
-				error.set(throwable)
-			}
-		}
-		thread.start()
-		assertThat(arrived.await(10, TimeUnit.SECONDS)).isTrue()
-		jdbcTemplate.update(
-			"update mfds_declarations set selected_alcohol_id = ? where id = ?",
-			existing.id!!,
-			declaration.id!!
-		)
-		changed.countDown()
-		thread.join(10_000)
-		assertThat(error.get()).isInstanceOf(MfdsException::class.java)
-		assertThat(
-			jdbcTemplate.queryForObject(
-				"select selected_alcohol_id from mfds_declarations where id = ?",
-				Long::class.java,
-				declaration.id!!
-			)
-		).isEqualTo(existing.id)
-		assertThat(
-			jdbcTemplate.queryForObject(
-				"select count(*) from mfds_matching_selections where declaration_id = ?",
-				Long::class.java,
-				declaration.id!!
-			)
-		).isZero()
+	@DisplayName("없는 신고가 섞여 있으면 404로 거절하고 아무것도 쓰지 않는다")
+	fun missingDeclarationRejectsAll() {
+		val alcohol = alcoholTestFactory.persistAlcohol("거절 주류", "Rejected", AlcoholType.WHISKY)
+		val declaration = declaration("RCNO-MISSING")
+
+		val result = mockMvcTester.post().uri("/v1/mfds/declarations/${declaration.id}/matching/bulk-confirm")
+			.header("Authorization", "Bearer $accessToken")
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(confirmBody(alcohol.id!!, listOf(declaration.id!!, 999_999L)))
+			.exchange()
+
+		assertThat(result).hasStatus(HttpStatus.NOT_FOUND)
+		assertThat(selected(declaration.id!!)).isNull()
 	}
 
 	@Test
 	@DisplayName("두 번째 저장이 실패하면 본문과 감사 이력이 함께 롤백된다")
 	fun secondSaveRollsBackEverything() {
 		val alcohol = alcoholTestFactory.persistAlcohol("롤백 주류", "Rollback", AlcoholType.WHISKY)
-		val first = mfdsTestFactory.persistDeclaration("RCNO-RB1", MfdsNormalizationStatus.NORMALIZED, null, null, null)
-		val second = mfdsTestFactory.persistDeclaration("RCNO-RB2", MfdsNormalizationStatus.NORMALIZED, null, null, null)
-		jdbcTemplate.update("update mfds_declarations set product_identity_key_sha256 = ? where id in (?, ?)", key(2), first.id!!, second.id!!)
-		val preview = bulkService.preview(first.id!!, MfdsBulkMatchingPreviewRequest(alcohol.id!!, null, null), adminId)
+		val first = declaration("RCNO-RB1")
+		val second = declaration("RCNO-RB2")
 		val saves = AtomicInteger()
 		gated.beforeSave = { if (saves.incrementAndGet() == 2) throw IllegalStateException("nth save") }
 
 		assertThatThrownBy {
 			bulkService.confirm(
 				first.id!!,
-				MfdsBulkMatchingConfirmRequest(preview.previewToken(), listOf(first.id!!, second.id!!)),
+				MfdsBulkMatchingConfirmRequest(alcohol.id!!, null, null, listOf(first.id!!, second.id!!)),
 				adminId
 			)
 		}.isInstanceOf(IllegalStateException::class.java)
 
 		assertThat(selected(first.id!!)).isNull()
 		assertThat(selected(second.id!!)).isNull()
-		assertThat(
-			jdbcTemplate.queryForObject(
-				"select count(*) from mfds_matching_selections where declaration_id in (?, ?)",
-				Long::class.java,
-				first.id!!,
-				second.id!!
-			)
-		).isZero()
+		assertThat(selectionCount(first.id!!) + selectionCount(second.id!!)).isZero()
 	}
+
+	private fun declaration(rcno: String): MfdsDeclaration = mfdsTestFactory.persistDeclaration(rcno, MfdsNormalizationStatus.NORMALIZED, null, null, null)
+
+	private fun confirmBody(
+		alcoholId: Long,
+		ids: List<Long>
+	) = """{"alcoholId":$alcoholId,"declarationIds":${ids.joinToString(",", "[", "]")}}"""
 
 	private fun selected(id: Long): Long? = jdbcTemplate.query(
 		"select selected_alcohol_id from mfds_declarations where id = ?",
@@ -221,18 +192,15 @@ class AdminMfdsBulkMatchingConcurrencyIntegrationTest : IntegrationTestSupport()
 		id
 	).single()
 
-	private fun key(marker: Int) = ByteArray(32).also { it[31] = marker.toByte() }
+	private fun selectionCount(id: Long): Long = jdbcTemplate.queryForObject(
+		"select count(*) from mfds_matching_selections where declaration_id = ?",
+		Long::class.java,
+		id
+	)!!
 
-	/** 운영 훅 없이 기존 포트를 감싸 잠금 직전 대기와 N번째 저장 실패를 만든다. */
+	/** 운영 훅 없이 기존 포트를 감싸 N번째 저장 실패를 만든다. */
 	class GatedDeclarationRepository(private val delegate: MfdsDeclarationRepository) : MfdsDeclarationRepository by delegate {
-		@Volatile var beforeGroupLock: () -> Unit = {}
-
 		@Volatile var beforeSave: () -> Unit = {}
-
-		override fun findByProductIdentityKeySha256ForUpdate(key: ByteArray): List<MfdsDeclaration> {
-			beforeGroupLock()
-			return delegate.findByProductIdentityKeySha256ForUpdate(key)
-		}
 
 		override fun save(declaration: MfdsDeclaration): MfdsDeclaration {
 			beforeSave()

@@ -40,7 +40,7 @@ class MfdsMatchingOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 		val confirm = operationsOf(spec).single { it.endpoint() == "POST /v1/mfds/declarations/{declarationId}/matching/bulk-confirm" }
 		assertThat(preview.definition.path("description").asText())
 			.contains("적용 가능", "변경 불필요", "확인 필요", "충돌")
-		assertThat(confirm.definition.path("description").asText()).contains("한 트랜잭션", "previewToken")
+		assertThat(confirm.definition.path("description").asText()).contains("한 트랜잭션", "덮어씁니다")
 		assertThat(preview.security().any { it.has("bearerAuth") }).isTrue()
 		assertThat(confirm.security().any { it.has("bearerAuth") }).isTrue()
 		assertThat(operationsOf(spec).any { it.endpoint() == "POST /v1/mfds/declarations/{declarationId}/matching/confirm" }).isTrue()

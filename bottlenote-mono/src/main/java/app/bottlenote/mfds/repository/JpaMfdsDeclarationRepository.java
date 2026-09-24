@@ -4,6 +4,7 @@ import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.mfds.domain.MfdsDeclaration;
 import app.bottlenote.mfds.domain.MfdsDeclarationRepository;
 import jakarta.persistence.LockModeType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -39,12 +40,11 @@ public interface JpaMfdsDeclarationRepository
       "select d from mfds_declaration d where d.productIdentityKeySha256 = :key order by d.id asc")
   List<MfdsDeclaration> findByProductIdentityKeySha256(@Param("key") byte[] key);
 
-  /** id 오름차순으로 잠가야 서로 다른 일괄 확정이 같은 그룹에서 교차 대기하지 않는다. */
+  /** id 오름차순으로 잠가야 서로 다른 일괄 확정이 같은 신고에서 교차 대기하지 않는다. */
   @Override
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query(
-      "select d from mfds_declaration d where d.productIdentityKeySha256 = :key order by d.id asc")
-  List<MfdsDeclaration> findByProductIdentityKeySha256ForUpdate(@Param("key") byte[] key);
+  @Query("select d from mfds_declaration d where d.id in :ids order by d.id asc")
+  List<MfdsDeclaration> findByIdInForUpdate(@Param("ids") Collection<Long> ids);
 
   @Override
   boolean existsByImporterId(Long importerId);

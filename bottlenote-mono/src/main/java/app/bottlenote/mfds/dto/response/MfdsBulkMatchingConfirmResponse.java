@@ -2,6 +2,6 @@ package app.bottlenote.mfds.dto.response;
 
 import java.util.List;
 
-/** 선택한 신고를 한 번에 확정한 결과. 일부만 반영하지 않는다. */
+/** 일괄 확정 결과. 이미 같은 값이 연결된 신고는 쓰지 않고 unchangedDeclarationIds로 돌려준다. */
 public record MfdsBulkMatchingConfirmResponse(
     List<MfdsMatchingConfirmResponse> applied, List<Long> unchangedDeclarationIds) {}

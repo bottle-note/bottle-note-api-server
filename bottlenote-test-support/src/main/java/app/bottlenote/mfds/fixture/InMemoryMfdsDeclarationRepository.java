@@ -11,6 +11,7 @@ import app.bottlenote.mfds.dto.response.MfdsPublicAlcoholCategoryItem;
 import app.bottlenote.mfds.dto.response.MfdsPublicCountryItem;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -85,9 +86,13 @@ public class InMemoryMfdsDeclarationRepository implements MfdsDeclarationReposit
 
   /** 인메모리 구현에는 행 잠금이 없고, 운영 조회와 같이 id 오름차순만 보장한다. */
   @Override
-  public List<MfdsDeclaration> findByProductIdentityKeySha256ForUpdate(
-      byte[] productIdentityKeySha256) {
-    return findByProductIdentityKeySha256(productIdentityKeySha256);
+  public List<MfdsDeclaration> findByIdInForUpdate(Collection<Long> ids) {
+    return ids.stream()
+        .distinct()
+        .map(database::get)
+        .filter(Objects::nonNull)
+        .sorted(Comparator.comparing(MfdsDeclaration::getId))
+        .toList();
   }
 
   @Override

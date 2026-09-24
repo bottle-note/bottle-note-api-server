@@ -25,14 +25,10 @@ import app.bottlenote.mfds.fixture.InMemoryMfdsDeclarationRepository;
 import app.bottlenote.mfds.fixture.InMemoryMfdsMatchingSelectionRepository;
 import app.bottlenote.mfds.fixture.MfdsTestData;
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
@@ -57,7 +53,6 @@ class MfdsBulkMatchingServiceTest {
 
   private MfdsBulkTestFixture fixture;
   private MfdsBulkMatchingService service;
-  private final Map<String, Long> sources = new HashMap<>();
 
   @BeforeEach
   void setUp() {
@@ -142,7 +137,6 @@ class MfdsBulkMatchingServiceTest {
               }
             },
             fixture.single(),
-            fixture.issuances,
             BASE_CLOCK);
 
     MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
@@ -157,9 +151,7 @@ class MfdsBulkMatchingServiceTest {
 
   static Stream<Arguments> invalidSelections() {
     return Stream.of(
-        selection("미리보기에 없는 신고", g -> List.of(999L), "MFDS_BULK_TARGET_INVALID"),
-        selection("확인 필요와 적용 가능 혼합", g -> List.of(g.get(1), g.get(2)), "MFDS_BULK_TARGET_INVALID"),
-        selection("충돌 대상", g -> List.of(g.get(3)), "MFDS_BULK_TARGET_INVALID"),
+        selection("없는 신고", g -> List.of(g.get(0), 999L), "MFDS_DECLARATION_NOT_FOUND"),
         selection("중복 ID", g -> List.of(g.get(0), g.get(0)), "MFDS_BULK_DUPLICATE_TARGET"),
         selection("빈 선택", g -> List.of(), "MFDS_BULK_EMPTY_SELECTION"),
         selection("0 ID", g -> List.of(0L), "MFDS_BULK_TARGET_INVALID"),
@@ -172,110 +164,86 @@ class MfdsBulkMatchingServiceTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("invalidSelections")
-  @DisplayName("적용할 수 없는 선택을 확정할 때 전체를 거절하고 아무것도 쓰지 않는다")
+  @DisplayName("요청한 신고 목록이 올바르지 않을 때 전체를 거절하고 아무것도 쓰지 않는다")
   void 잘못된_선택은_전체_거절한다(Function<List<Long>, List<Long>> pick, String code) {
     MfdsDeclaration source = fixture.row("SRC", key(1));
-    MfdsDeclaration applicable = fixture.row("OK", key(1));
-    MfdsDeclaration review = fixture.row("REVIEW", key(1));
-    MfdsTestData.set(review, "batchNumber", "9");
-    MfdsDeclaration conflict = fixture.row("CONFLICT", key(1));
-    link(conflict, 99L, null, null);
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
-    List<Long> group =
-        List.of(source.getId(), applicable.getId(), review.getId(), conflict.getId());
+    MfdsDeclaration other = fixture.row("OTHER", key(1));
 
-    assertRejected(() -> confirm(preview, pick.apply(group)), code);
-    assertThat(Stream.of(source, applicable, review, conflict))
+    assertRejected(
+        () -> confirm(source.getId(), pick.apply(List.of(source.getId(), other.getId()))), code);
+    assertThat(Stream.of(source, other))
         .extracting(MfdsDeclaration::getSelectedAlcoholId)
-        .containsExactly(null, null, null, 99L);
-    assertThat(review.getBatchNumber()).isEqualTo("9");
+        .containsOnlyNulls();
     assertThat(fixture.selections.findAll()).isEmpty();
   }
 
   @Test
-  @DisplayName("발급하지 않았거나 다른 기준 신고의 토큰, 이미 소비한 토큰으로 확정할 때 거절한다")
-  void 발급되지_않은_토큰은_거절한다() {
+  @DisplayName("없는 주류로 확정할 때 거절하고 아무것도 쓰지 않는다")
+  void 없는_주류는_거절한다() {
     MfdsDeclaration source = fixture.row("SRC", key(1));
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
-    String token = preview.previewToken();
-    String tampered = token.substring(0, 63) + (token.endsWith("a") ? "b" : "a");
-    List<Long> ids = List.of(source.getId());
-
-    assertRejected(
-        () -> service.confirm(source.getId(), request(tampered, ids), ADMIN_ID),
-        "MFDS_BULK_PREVIEW_NOT_ISSUED");
-    assertRejected(
-        () -> service.confirm(999L, request(token, ids), ADMIN_ID), "MFDS_BULK_PREVIEW_MISMATCH");
-    assertRejected(() -> confirm(preview, ids), "MFDS_BULK_PREVIEW_NOT_ISSUED");
-    assertThat(source.getSelectedAlcoholId()).isNull();
-  }
-
-  @Test
-  @DisplayName("다른 관리자가 확정할 때 거절한다")
-  void 다른_관리자는_거절한다() {
-    MfdsDeclaration source = fixture.row("SRC", key(1));
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
 
     assertRejected(
         () ->
             service.confirm(
-                source.getId(), request(preview.previewToken(), List.of(source.getId())), 99L),
-        "MFDS_BULK_PREVIEW_ADMIN_MISMATCH");
+                source.getId(),
+                new MfdsBulkMatchingConfirmRequest(404L, null, null, List.of(source.getId())),
+                ADMIN_ID),
+        "MFDS_SELECTED_ALCOHOL_NOT_FOUND");
     assertThat(source.getSelectedAlcoholId()).isNull();
   }
 
   @Test
-  @DisplayName("유효 시간이 지난 미리보기로 확정할 때 거절한다")
-  void 만료된_미리보기는_거절한다() {
+  @DisplayName("미리보기 없이도 확정할 수 있고 충돌·확인 필요로 분류된 신고도 덮어쓴다")
+  void 충돌과_확인_필요도_덮어쓴다() {
     MfdsDeclaration source = fixture.row("SRC", key(1));
-    MfdsBulkMatchingPreviewResponse expired = preview(source.getId(), null, null);
-    MfdsBulkMatchingService later =
-        fixture.service(Clock.offset(BASE_CLOCK, Duration.ofMinutes(11)));
+    MfdsDeclaration conflict = fixture.row("CONFLICT", key(1));
+    link(conflict, 99L, 7L, 8L);
+    MfdsDeclaration review = fixture.row("REVIEW", key(1));
+    MfdsTestData.set(review, "batchNumber", "9");
+    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
 
-    assertRejected(
-        () ->
-            later.confirm(
-                source.getId(), request(expired.previewToken(), List.of(source.getId())), ADMIN_ID),
-        "MFDS_BULK_PREVIEW_NOT_ISSUED");
-    assertThat(source.getSelectedAlcoholId()).isNull();
+    MfdsBulkMatchingConfirmResponse response =
+        confirm(source.getId(), List.of(conflict.getId(), review.getId()));
+
+    assertThat(item(preview, conflict.getId()).orElseThrow().classification())
+        .isEqualTo("CONFLICT");
+    assertThat(item(preview, review.getId()).orElseThrow().classification())
+        .isEqualTo("NEEDS_REVIEW");
+    assertThat(response.applied())
+        .extracting(MfdsMatchingConfirmResponse::declarationId)
+        .containsExactly(conflict.getId(), review.getId());
+    assertThat(Stream.of(conflict, review))
+        .extracting(
+            MfdsDeclaration::getSelectedAlcoholId,
+            MfdsDeclaration::getSelectedDistilleryId,
+            MfdsDeclaration::getSelectedRegionId)
+        .containsOnly(tuple(ALCOHOL_ID, DISTILLERY_ID, REGION_ID));
+    assertThat(review.getBatchNumber()).isEqualTo("9");
   }
 
   @Test
-  @DisplayName("미리보기 이후 신고 속성·그룹 구성·주류 이름이 바뀌었을 때 선택 전체를 거절한다")
-  void 미리보기_이후_변경은_전체_거절한다() {
+  @DisplayName("기준 신고와 다른 제품 그룹의 신고를 골랐을 때도 그대로 반영한다")
+  void 그룹_밖_신고도_반영한다() {
     MfdsDeclaration source = fixture.row("SRC", key(1));
-    MfdsDeclaration other = fixture.row("OTHER", key(1));
-    MfdsBulkMatchingPreviewResponse batchChanged = preview(source.getId(), null, null);
-    MfdsTestData.set(other, "batchNumber", "77");
-    assertRejected(
-        () -> confirm(batchChanged, List.of(source.getId(), other.getId())),
-        "MFDS_BULK_PREVIEW_MISMATCH");
+    MfdsDeclaration otherKey = fixture.row("OTHER-KEY", key(2));
+    MfdsDeclaration noKey = fixture.row("NO-KEY", null);
 
-    MfdsBulkMatchingPreviewResponse rowAdded = preview(source.getId(), null, null);
-    fixture.row("NEW", key(1));
-    assertRejected(() -> confirm(rowAdded, List.of(source.getId())), "MFDS_BULK_PREVIEW_MISMATCH");
+    confirm(source.getId(), List.of(otherKey.getId(), noKey.getId()));
 
-    MfdsBulkMatchingPreviewResponse renamed = preview(source.getId(), null, null);
-    fixture.alcohols.clear();
-    fixture.alcohols.addAlcohol(alcohol(ALCOHOL_ID, "바뀐 이름", "Changed", DISTILLERY_ID, REGION_ID));
-    assertRejected(() -> confirm(renamed, List.of(source.getId())), "MFDS_BULK_PREVIEW_MISMATCH");
-
-    assertThat(Stream.of(source, other))
+    assertThat(Stream.of(otherKey, noKey))
         .extracting(MfdsDeclaration::getSelectedAlcoholId)
-        .containsOnlyNulls();
-    assertThat(source.getAlcoholNameKo()).isNull();
-    assertThat(other.getBatchNumber()).isEqualTo("77");
+        .containsOnly(ALCOHOL_ID);
+    assertThat(source.getSelectedAlcoholId()).isNull();
   }
 
   @Test
-  @DisplayName("적용 가능한 대상 중 고른 신고만 확정할 때 나머지는 그대로 둔다")
-  void 선택하지_않은_적용_대상은_유지한다() {
+  @DisplayName("고른 신고만 확정할 때 나머지는 그대로 둔다")
+  void 선택하지_않은_신고는_유지한다() {
     MfdsDeclaration source = fixture.row("SRC", key(1));
     MfdsDeclaration chosen = fixture.row("CHOSEN", key(1));
     MfdsDeclaration skipped = fixture.row("SKIP", key(1));
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
 
-    MfdsBulkMatchingConfirmResponse response = confirm(preview, List.of(chosen.getId()));
+    MfdsBulkMatchingConfirmResponse response = confirm(source.getId(), List.of(chosen.getId()));
 
     assertThat(response.applied())
         .extracting(MfdsMatchingConfirmResponse::declarationId)
@@ -287,18 +255,28 @@ class MfdsBulkMatchingServiceTest {
   }
 
   @Test
-  @DisplayName("변경이 필요 없는 신고를 확정할 때 이름과 감사 이력을 바꾸지 않는다")
-  void 변경_불필요는_이력을_남기지_않는다() {
+  @DisplayName("이미 같은 주류·증류소·지역이 연결된 신고를 확정할 때 저장과 감사 이력을 건너뛴다")
+  void 같은_값은_건너뛴다() {
+    List<Integer> saves = new ArrayList<>();
+    use(
+        new InMemoryMfdsDeclarationRepository() {
+          @Override
+          public MfdsDeclaration save(MfdsDeclaration declaration) {
+            saves.add(1);
+            return super.save(declaration);
+          }
+        });
     MfdsDeclaration source = fixture.row("SRC", key(1));
     link(source, ALCOHOL_ID, DISTILLERY_ID, REGION_ID);
     MfdsTestData.set(source, "alcoholNameKo", "기존 이름");
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
+    saves.clear();
 
-    MfdsBulkMatchingConfirmResponse response = confirm(preview, List.of(source.getId()));
+    MfdsBulkMatchingConfirmResponse response = confirm(source.getId(), List.of(source.getId()));
 
     assertThat(response.unchangedDeclarationIds()).containsExactly(source.getId());
     assertThat(response.applied()).isEmpty();
     assertThat(source.getAlcoholNameKo()).isEqualTo("기존 이름");
+    assertThat(saves).isEmpty();
     assertThat(fixture.selections.findAll()).isEmpty();
   }
 
@@ -307,17 +285,13 @@ class MfdsBulkMatchingServiceTest {
   void 확정은_선택값과_이력만_저장한다() {
     MfdsDeclaration source = fixture.row("SRC", key(1));
     MfdsDeclaration target = fixture.row("TGT", key(1));
-    for (MfdsDeclaration row : List.of(source, target)) {
-      MfdsTestData.set(row, "abvPercent", new BigDecimal("40.000"));
-      MfdsTestData.set(row, "ageYears", (short) 12);
-      MfdsTestData.set(row, "batchNumber", "8");
-    }
-    MfdsTestData.set(source, "volumeMl", 700);
+    MfdsTestData.set(target, "abvPercent", new BigDecimal("40.000"));
+    MfdsTestData.set(target, "ageYears", (short) 12);
+    MfdsTestData.set(target, "batchNumber", "8");
     MfdsTestData.set(target, "volumeMl", 200);
     MfdsTestData.set(target, "matchingRunId", 5L);
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
 
-    confirm(preview, List.of(target.getId()));
+    confirm(source.getId(), List.of(target.getId()));
 
     assertThat(target)
         .extracting(
@@ -353,25 +327,28 @@ class MfdsBulkMatchingServiceTest {
     assertThat(fixture.selections.findAll())
         .extracting(MfdsMatchingSelection::getSelectedBy)
         .containsOnly("42");
-    assertThat(source.getProductIdentityKeySha256()).isEqualTo(key(1));
   }
 
   @Test
-  @DisplayName("0 이하 증류소를 비우며 확정할 때 단건과 달리 해제 이력을 남기지 않는다")
-  void 일괄_확정은_해제_이력을_남기지_않는다() {
+  @DisplayName("증류소가 없는 주류로 덮어쓸 때 기존 증류소를 비우고 해제 이력을 남긴다")
+  void 비워진_참조는_해제_이력을_남긴다() {
     fixture.alcohols.addAlcohol(alcohol(11L, "증류소 없는 주류", "No Distillery", null, null));
     MfdsDeclaration source = fixture.row("SRC", key(1));
-    MfdsTestData.set(source, "selectedDistilleryId", -1L);
-    MfdsBulkMatchingPreviewResponse preview =
-        MfdsBulkTestFixture.preview(service, source.getId(), 11L, null, null);
+    link(source, 99L, 7L, null);
 
     service.confirm(
-        source.getId(), request(preview.previewToken(), List.of(source.getId())), ADMIN_ID);
+        source.getId(),
+        new MfdsBulkMatchingConfirmRequest(11L, null, null, List.of(source.getId())),
+        ADMIN_ID);
 
+    assertThat(source.getSelectedAlcoholId()).isEqualTo(11L);
     assertThat(source.getSelectedDistilleryId()).isNull();
     assertThat(fixture.selections.findAll())
-        .extracting(MfdsMatchingSelection::getAction, MfdsMatchingSelection::getTargetType)
-        .containsExactly(tuple("SELECT", "ALCOHOL"));
+        .extracting(
+            MfdsMatchingSelection::getAction,
+            MfdsMatchingSelection::getTargetType,
+            MfdsMatchingSelection::getTargetId)
+        .containsExactly(tuple("SELECT", "ALCOHOL", 11L), tuple("REVOKE", "DISTILLERY", 7L));
   }
 
   @Test
@@ -395,9 +372,8 @@ class MfdsBulkMatchingServiceTest {
             .evidenceStrength(0)
             .createdAt(LocalDateTime.of(2026, 9, 24, 0, 0))
             .build());
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), null, null);
 
-    confirm(preview, List.of(source.getId()));
+    confirm(source.getId(), List.of(source.getId()));
 
     assertThat(source.getAlcoholMatchDecision()).isEqualTo("CANDIDATE");
     assertThat(fixture.selections.findAll().get(0).getReasonCode())
@@ -409,24 +385,28 @@ class MfdsBulkMatchingServiceTest {
   void 명시한_증류소를_적용한다() {
     fixture.alcohols.addDistillery(new DistilleryMatchTargetItem(9L, "다른 증류소", "Other"));
     MfdsDeclaration source = fixture.row("SRC", key(1));
-    MfdsBulkMatchingPreviewResponse preview = preview(source.getId(), 9L, null);
 
-    confirm(preview, List.of(source.getId()));
+    service.confirm(
+        source.getId(),
+        new MfdsBulkMatchingConfirmRequest(ALCOHOL_ID, 9L, null, List.of(source.getId())),
+        ADMIN_ID);
 
-    assertThat(preview.distilleryId()).isEqualTo(9L);
+    assertThat(preview(source.getId(), 9L, null).distilleryId()).isEqualTo(9L);
     assertThat(source.getSelectedDistilleryId()).isEqualTo(9L);
     assertThat(source.getDistilleryMatchSource()).isEqualTo("MANUAL");
   }
 
   @Test
-  @DisplayName("같은 제품 그룹을 확정할 때 신고 ID 오름차순으로 잠근다")
+  @DisplayName("여러 신고를 확정할 때 요청 순서와 관계없이 신고 ID 오름차순으로 잠근다")
   void 잠금_순서는_신고_ID_오름차순이다() {
+    List<Collection<Long>> lockRequests = new ArrayList<>();
     List<Long> lockedIds = new ArrayList<>();
     use(
         new InMemoryMfdsDeclarationRepository() {
           @Override
-          public List<MfdsDeclaration> findByProductIdentityKeySha256ForUpdate(byte[] key) {
-            List<MfdsDeclaration> rows = super.findByProductIdentityKeySha256ForUpdate(key);
+          public List<MfdsDeclaration> findByIdInForUpdate(Collection<Long> ids) {
+            lockRequests.add(List.copyOf(ids));
+            List<MfdsDeclaration> rows = super.findByIdInForUpdate(ids);
             rows.forEach(row -> lockedIds.add(row.getId()));
             return rows;
           }
@@ -434,29 +414,20 @@ class MfdsBulkMatchingServiceTest {
     MfdsDeclaration third = savedWithId("C", 30L);
     MfdsDeclaration first = savedWithId("A", 10L);
     savedWithId("B", 20L);
-    MfdsBulkMatchingPreviewResponse preview = preview(first.getId(), null, null);
 
-    confirm(preview, List.of(third.getId(), first.getId()));
+    confirm(first.getId(), List.of(third.getId(), first.getId()));
 
-    assertThat(lockedIds).containsExactly(10L, 20L, 30L);
+    assertThat(lockRequests).containsExactly(List.of(10L, 30L));
+    assertThat(lockedIds).containsExactly(10L, 30L);
   }
 
   private MfdsBulkMatchingPreviewResponse preview(Long sourceId, Long distilleryId, Long regionId) {
-    MfdsBulkMatchingPreviewResponse preview =
-        MfdsBulkTestFixture.preview(service, sourceId, ALCOHOL_ID, distilleryId, regionId);
-    sources.put(preview.previewToken(), sourceId);
-    return preview;
+    return MfdsBulkTestFixture.preview(service, sourceId, ALCOHOL_ID, distilleryId, regionId);
   }
 
-  /** 미리보기를 받은 기준 신고 경로로 확정한다. */
-  private MfdsBulkMatchingConfirmResponse confirm(
-      MfdsBulkMatchingPreviewResponse preview, List<Long> ids) {
+  private MfdsBulkMatchingConfirmResponse confirm(Long sourceId, List<Long> ids) {
     return service.confirm(
-        sources.get(preview.previewToken()), request(preview.previewToken(), ids), ADMIN_ID);
-  }
-
-  private static MfdsBulkMatchingConfirmRequest request(String token, List<Long> ids) {
-    return new MfdsBulkMatchingConfirmRequest(token, ids);
+        sourceId, new MfdsBulkMatchingConfirmRequest(ALCOHOL_ID, null, null, ids), ADMIN_ID);
   }
 
   private static void assertRejected(ThrowingCallable call, String code) {
