@@ -15,6 +15,7 @@ public enum AlcoholType {
   TEQUILA("데킬라", "데킬라", "Tequila", "기본 데킬라", "Default Tequila"),
   BRANDY("브랜디", "브랜디", "Brandy", "기본 브랜디", "Default Brandy"),
   LIQUEUR("리큐르", "리큐르", "Liqueur", "기본 리큐르", "Default Liqueur"),
+  SAKE("사케", "사케", "Sake", "기본 사케", "Default Sake"),
   BEER("맥주", "맥주", "Beer", "기본 맥주", "Default Beer"),
   WINE("와인", "와인", "Wine", "기본 와인", "Default Wine"),
   ETC("기타", "기타", "Others", "기타 술", "Default Alcohol");

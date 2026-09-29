@@ -196,8 +196,8 @@ class DefaultAdminAlcoholBulkServiceTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "RUM", "VODKA", "GIN", "TEQUILA", "BRANDY", "LIQUEUR", "리큐르", "Liqueur", "BEER", "WINE",
-        "ETC", "기타", "Others"
+        "RUM", "VODKA", "GIN", "TEQUILA", "BRANDY", "LIQUEUR", "리큐르", "Liqueur", "SAKE", "사케",
+        "Sake", "BEER", "WINE", "ETC", "기타", "Others"
       })
   @DisplayName("위스키 이외 타입의 그룹이 없을 때 OTHER를 기본값으로 쓴다")
   void 모든_비위스키_타입을_허용한다(String type) {
