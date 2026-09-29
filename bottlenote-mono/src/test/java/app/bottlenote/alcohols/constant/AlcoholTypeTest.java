@@ -29,4 +29,24 @@ class AlcoholTypeTest {
     assertThat(AlcoholType.parsing("LIQUEUR")).isEqualTo(AlcoholType.LIQUEUR);
     assertThat(AlcoholType.parsing("liqueur")).isEqualTo(AlcoholType.LIQUEUR);
   }
+
+  @Test
+  @DisplayName("사케 타입의 표시값과 기본 그룹을 제공한다")
+  void 사케_타입을_제공한다() {
+    AlcoholType sake = AlcoholType.SAKE;
+
+    assertThat(sake.getType()).isEqualTo("사케");
+    assertThat(sake.getKorCategory()).isEqualTo("사케");
+    assertThat(sake.getEngCategory()).isEqualTo("Sake");
+    assertThat(sake.getDefaultKorName()).isEqualTo("기본 사케");
+    assertThat(sake.getDefaultEngName()).isEqualTo("Default Sake");
+    assertThat(sake.getDefaultCategoryGroup()).isEqualTo(AlcoholCategoryGroup.OTHER);
+  }
+
+  @Test
+  @DisplayName("사케 enum 코드를 대소문자와 무관하게 파싱한다")
+  void 사케_코드를_파싱한다() {
+    assertThat(AlcoholType.parsing("SAKE")).isEqualTo(AlcoholType.SAKE);
+    assertThat(AlcoholType.parsing("sake")).isEqualTo(AlcoholType.SAKE);
+  }
 }
