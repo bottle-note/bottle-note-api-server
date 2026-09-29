@@ -19,7 +19,7 @@ object AdminAlcoholBulkApiDocs {
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "알코올 JSON 목록을 검증한다",
-		description = "최대 1,000행을 저장 없이 검증한다. clientRowId는 요청 안에서 유일해야 한다. 오류 없는 행의 normalized는 벌크 저장 입력으로 재사용할 수 있다. 중복 후보와 데이터 불일치는 경고이며 자동 병합하지 않는다. 필수 항목은 clientRowId, korName, engName, abv, type, korCategory, engCategory, regionId, distilleryId, volume이다. type은 WHISKY/RUM/VODKA/GIN/TEQUILA/BRANDY/BEER/WINE/ETC 또는 한글 표시값이다. categoryGroup은 SINGLE_MALT/BLEND/BLENDED_MALT/BOURBON/RYE/OTHER 또는 한글 표시값이며, 생략 시 카테고리로 유일하게 추론하거나 비위스키에 OTHER를 사용한다. age/cask/description/tastingTagIds/imageUrl은 선택이다."
+		description = "최대 1,000행을 저장 없이 검증한다. clientRowId는 요청 안에서 유일해야 한다. 오류 없는 행의 normalized는 벌크 저장 입력으로 재사용할 수 있다. 중복 후보와 데이터 불일치는 경고이며 자동 병합하지 않는다. 필수 항목은 clientRowId, korName, engName, abv, type, korCategory, engCategory, regionId, distilleryId, volume이다. type은 WHISKY/RUM/VODKA/GIN/TEQUILA/BRANDY/LIQUEUR/SAKE/BEER/WINE/ETC 또는 한글·영문 표시값이다. categoryGroup은 SINGLE_MALT/BLEND/BLENDED_MALT/BOURBON/RYE/OTHER 또는 한글 표시값이며, 생략 시 카테고리로 유일하게 추론하거나 비위스키에 OTHER를 사용한다. age/cask/description/tastingTagIds/imageUrl은 선택이다."
 	)
 	@ApiResponse(responseCode = "200", description = "행별 오류·경고·정규화 결과", content = [Content(mediaType = "application/json", schema = Schema(implementation = AdminAlcoholBulkValidateResponse::class))])
 	@ApiResponse(responseCode = "400", description = "잘못된 JSON, 빈 목록 또는 최대 행 수 초과", content = [Content(mediaType = "application/json", schema = Schema(implementation = RequestFailureEnvelope::class))])

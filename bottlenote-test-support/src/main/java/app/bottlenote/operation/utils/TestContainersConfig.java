@@ -71,9 +71,10 @@ public class TestContainersConfig {
     return new FakeWebhookRestTemplate();
   }
 
-  // Docker Hub minio/minio 배포 중단. quay 고정 태그 사용.
+  // MinIO Community 이미지 배포 중단. Chainguard 공개 이미지를 digest로 고정한다.
   private static final DockerImageName MINIO_IMAGE =
-      DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z")
+      DockerImageName.parse(
+              "cgr.dev/chainguard/minio@sha256:6a1d0b45c8669726bba580ced0bfa4cb9fdeed1ed636dfabd81d1577beb6937b")
           .asCompatibleSubstituteFor("minio/minio");
   private static final String MINIO_ACCESS_KEY = "minioadmin";
   private static final String MINIO_SECRET_KEY = "minioadmin";
