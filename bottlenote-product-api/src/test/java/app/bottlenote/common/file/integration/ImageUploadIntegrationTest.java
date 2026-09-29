@@ -95,7 +95,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
         createTestLocationInfo(),
         imageRequests,
         List.of("테이스팅태그"),
-        4.5);
+        4.5,
+        null);
   }
 
   private List<ReviewImageInfoRequest> fakeImageRequests(int size) {
@@ -404,6 +405,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               null,
               null,
               createTestLocationInfo(),
+              null,
               null);
 
       // when
@@ -455,6 +457,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               null,
               null,
               createTestLocationInfo(),
+              null,
               null);
 
       // when
@@ -575,7 +578,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               createTestLocationInfo(),
               imageRequests,
               List.of("테이스팅태그"),
-              4.5);
+              4.5,
+              null);
 
       // when
       MvcTestResult reviewResult =
@@ -637,7 +641,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               createTestLocationInfo(),
               List.of(),
               List.of(),
-              3.0);
+              3.0,
+              null);
 
       // when
       MvcTestResult reviewResult =
@@ -707,7 +712,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               createTestLocationInfo(),
               List.of(new ReviewImageInfoRequest(1L, viewUrl)),
               List.of(),
-              4.0);
+              4.0,
+              null);
 
       MvcTestResult reviewResult =
           mockMvcTester
@@ -791,7 +797,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               createTestLocationInfo(),
               List.of(new ReviewImageInfoRequest(1L, existingImageUrl)),
               List.of(),
-              4.0);
+              4.0,
+              null);
 
       MvcTestResult createResult =
           mockMvcTester
@@ -853,6 +860,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               null,
               null,
               createTestLocationInfo(),
+              null,
               null);
 
       // when
@@ -937,7 +945,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
                   new ReviewImageInfoRequest(1L, imageUrl1),
                   new ReviewImageInfoRequest(2L, imageUrl2)),
               List.of(),
-              4.0);
+              4.0,
+              null);
 
       MvcTestResult createResult =
           mockMvcTester
@@ -975,6 +984,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               null,
               null,
               createTestLocationInfo(),
+              null,
               null);
 
       // when
@@ -1060,7 +1070,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
                   new ReviewImageInfoRequest(1L, imageUrl1),
                   new ReviewImageInfoRequest(2L, imageUrl2)),
               List.of(),
-              4.0);
+              4.0,
+              null);
 
       MvcTestResult createResult =
           mockMvcTester
@@ -1160,7 +1171,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               createTestLocationInfo(),
               List.of(new ReviewImageInfoRequest(1L, oldImageUrl)),
               List.of(),
-              4.0);
+              4.0,
+              null);
 
       MvcTestResult createResult =
           mockMvcTester
@@ -1219,6 +1231,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               null,
               null,
               createTestLocationInfo(),
+              null,
               null);
 
       // when

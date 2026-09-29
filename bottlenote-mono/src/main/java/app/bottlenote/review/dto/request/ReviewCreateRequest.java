@@ -2,6 +2,7 @@ package app.bottlenote.review.dto.request;
 
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.review.domain.ReviewTastingProfile;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -28,10 +29,12 @@ public record ReviewCreateRequest(
     @Valid LocationInfoRequest locationInfo,
     @Valid List<ReviewImageInfoRequest> imageUrlList,
     List<String> tastingTagList,
-    Double rating) {
+    Double rating,
+    @Valid ReviewTastingProfile tastingProfile) {
   public ReviewCreateRequest {
     status = status == null ? ReviewDisplayStatus.PUBLIC : status;
     imageUrlList = imageUrlList == null ? List.of() : imageUrlList;
     rating = rating == null ? 0.0 : rating;
+    tastingProfile = ReviewTastingProfile.normalize(tastingProfile);
   }
 }

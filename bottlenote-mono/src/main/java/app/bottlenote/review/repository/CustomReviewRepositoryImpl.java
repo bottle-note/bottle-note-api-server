@@ -93,7 +93,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
         // 기타 정보
         review.viewCount,
-        getTastingTag());
+        getTastingTag(),
+        review.tastingProfile);
   }
 
   @Override
@@ -434,7 +435,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
               tuple.get(likes.id.countDistinct()),
               tuple.get(isLikeByMeSubquery(userId)),
               tuple.get(reviewReply.id.countDistinct()),
-              tuple.get(hasReplyByMeSubquery(userId)));
+              tuple.get(hasReplyByMeSubquery(userId)),
+              tuple.get(review.tastingProfile));
       items.add(item);
       cursorItems.put(
           item.reviewId(),

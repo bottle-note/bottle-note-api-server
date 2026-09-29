@@ -10,6 +10,7 @@ import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -30,6 +31,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.Type;
 
 @Slf4j
 @Getter
@@ -105,12 +107,18 @@ public class Review extends BaseEntity {
   @Builder.Default @Embedded
   private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
 
+  @Comment("테이스팅 프로필 (version, maxScore, axes). NULL은 미기록")
+  @Type(JsonType.class)
+  @Column(name = "tasting_profile", columnDefinition = "json")
+  private ReviewTastingProfile tastingProfile;
+
   public void update(ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem) {
     this.status = reviewModifyRequestWrapperItem.getReviewDisplayStatus();
     this.content = reviewModifyRequestWrapperItem.getContent();
     this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
     this.price = reviewModifyRequestWrapperItem.getPrice();
     this.reviewRating = reviewModifyRequestWrapperItem.getRating();
+    this.tastingProfile = reviewModifyRequestWrapperItem.getTastingProfile();
     LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
     if (!Objects.isNull(locationInfoRequest)) {
       this.reviewLocation =

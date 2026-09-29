@@ -6,6 +6,7 @@ import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerialize
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.ReviewLocation;
+import app.bottlenote.review.domain.ReviewTastingProfile;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.math.BigDecimal;
@@ -45,4 +46,5 @@ public record ReviewInfo(
     Long viewCount,
     @JsonSerialize(using = TagListSerializer.class)
         @JsonDeserialize(using = TagListDeserializer.class)
-        String tastingTagList) {}
+        String tastingTagList,
+    ReviewTastingProfile tastingProfile) {}

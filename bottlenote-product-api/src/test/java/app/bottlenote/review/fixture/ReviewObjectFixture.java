@@ -124,7 +124,8 @@ public class ReviewObjectFixture {
             "https://map.naver.com",
             "111.111",
             "222.222"),
-        3.0);
+        3.0,
+        null);
   }
 
   public static ReviewModifyRequest getReviewModifyRequest(String content) {
@@ -146,15 +147,16 @@ public class ReviewObjectFixture {
             "https://map.naver.com",
             "111.111",
             "222.222"),
-        3.0);
+        3.0,
+        null);
   }
 
   public static ReviewModifyRequest getNullableReviewModifyRequest(ReviewDisplayStatus status) {
-    return new ReviewModifyRequest("맛있어요", status, null, null, null, null, null, null);
+    return new ReviewModifyRequest("맛있어요", status, null, null, null, null, null, null, null);
   }
 
   public static ReviewModifyRequest getWrongReviewModifyRequest() {
-    return new ReviewModifyRequest(null, null, null, null, null, null, null, null);
+    return new ReviewModifyRequest(null, null, null, null, null, null, null, null, null);
   }
 
   /** 기본 ReviewCreateRequest 객체를 생성합니다. */
@@ -187,7 +189,8 @@ public class ReviewObjectFixture {
             new ReviewImageInfoRequest(
                 3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3")),
         List.of("테이스팅태그1", "테이스팅태그2", "테이스팅태그3"),
-        0.5);
+        0.5,
+        null);
   }
 
   public static ReviewCreateRequest getReviewCreateRequest(String content, BigDecimal price) {
@@ -210,7 +213,8 @@ public class ReviewObjectFixture {
             new ReviewImageInfoRequest(
                 1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
         List.of("테이스팅태그1"),
-        0.5);
+        0.5,
+        null);
   }
 
   public static ReviewCreateResponse getReviewCreateResponse() {

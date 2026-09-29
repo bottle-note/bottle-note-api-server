@@ -64,7 +64,8 @@ class ReviewExploreServiceTest {
         0L,
         false,
         0L,
-        false);
+        false,
+        null);
   }
 
   private static final class LatestOnlyInMemoryReviewRepository extends InMemoryReviewRepository {

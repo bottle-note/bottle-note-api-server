@@ -83,6 +83,7 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
         request.locationInfo(),
         List.of(),
         request.tastingTagList(),
-        request.rating());
+        request.rating(),
+        request.tastingProfile());
   }
 }

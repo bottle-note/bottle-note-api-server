@@ -133,7 +133,7 @@ class ImageResourceActivatedEventPublishTest {
       newImages.forEach(image -> saveCreated(1L, image.viewUrl(), "review"));
       ReviewModifyRequest modifyRequest =
           new ReviewModifyRequest(
-              "수정된 내용", null, null, newImages, null, null, LocationInfoRequest.empty(), null);
+              "수정된 내용", null, null, newImages, null, null, LocationInfoRequest.empty(), null, null);
 
       // when
       reviewService.modifyReview(modifyRequest, createResponse.getId(), 1L);
@@ -151,7 +151,16 @@ class ImageResourceActivatedEventPublishTest {
 
     private ReviewCreateRequest createReviewRequest(List<ReviewImageInfoRequest> images) {
       return new ReviewCreateRequest(
-          1L, null, "테스트 리뷰 내용", null, null, LocationInfoRequest.empty(), images, List.of(), 4.5);
+          1L,
+          null,
+          "테스트 리뷰 내용",
+          null,
+          null,
+          LocationInfoRequest.empty(),
+          images,
+          List.of(),
+          4.5,
+          null);
     }
 
     private void saveCreated(Long userId, String viewUrl, String rootPath) {

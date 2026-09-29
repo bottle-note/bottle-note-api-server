@@ -106,6 +106,7 @@ public class ReviewService {
             .sizeType(reviewCreateRequest.sizeType())
             .status(reviewCreateRequest.status())
             .content(reviewCreateRequest.content())
+            .tastingProfile(reviewCreateRequest.tastingProfile())
             .reviewLocation(
                 ReviewLocation.builder()
                     .name(reviewCreateRequest.locationInfo().locationName())
