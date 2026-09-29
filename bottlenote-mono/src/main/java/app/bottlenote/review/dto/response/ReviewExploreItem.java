@@ -1,5 +1,6 @@
 package app.bottlenote.review.dto.response;
 
+import app.bottlenote.review.domain.ReviewTastingProfile;
 import app.bottlenote.review.facade.payload.LocationInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
 import java.time.LocalDateTime;
@@ -32,4 +33,5 @@ public record ReviewExploreItem(
     Long likeCount,
     Boolean isLikedByMe,
     Long replyCount,
-    Boolean hasReplyByMe) {}
+    Boolean hasReplyByMe,
+    ReviewTastingProfile tastingProfile) {}

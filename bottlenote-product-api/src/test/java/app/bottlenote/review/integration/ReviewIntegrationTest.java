@@ -57,7 +57,8 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
         request.locationInfo(),
         List.of(),
         request.tastingTagList(),
-        request.rating());
+        request.rating(),
+        request.tastingProfile());
   }
 
   private ReviewModifyRequest withoutImages(ReviewModifyRequest request) {
@@ -69,7 +70,8 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
         request.sizeType(),
         request.tastingTagList(),
         request.locationInfo(),
-        request.rating());
+        request.rating(),
+        request.tastingProfile());
   }
 
   @Nested

@@ -2,6 +2,7 @@ package app.bottlenote.review.dto.request;
 
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.review.domain.ReviewTastingProfile;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -27,8 +28,10 @@ public record ReviewModifyRequest(
     @JsonInclude() @JsonProperty(required = true) SizeType sizeType,
     @JsonInclude() @JsonProperty(required = true) List<String> tastingTagList,
     @Valid @JsonInclude() @JsonProperty(required = true) LocationInfoRequest locationInfo,
-    Double rating) {
+    Double rating,
+    @Valid ReviewTastingProfile tastingProfile) {
   public ReviewModifyRequest {
     rating = rating == null ? 0.0 : rating;
+    tastingProfile = ReviewTastingProfile.normalize(tastingProfile);
   }
 }

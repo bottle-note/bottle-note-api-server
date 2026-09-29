@@ -3,6 +3,7 @@ package app.bottlenote.review.dto.request;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.review.domain.ReviewTastingProfile;
 import java.math.BigDecimal;
 import java.util.Objects;
 import lombok.Getter;
@@ -15,6 +16,7 @@ public class ReviewModifyRequestWrapperItem {
   private final SizeType sizeType;
   private final LocationInfoRequest locationInfo;
   private final Double rating;
+  private final ReviewTastingProfile tastingProfile;
 
   public ReviewModifyRequestWrapperItem(
       app.bottlenote.review.dto.request.ReviewModifyRequest reviewModifyRequest) {
@@ -25,6 +27,7 @@ public class ReviewModifyRequestWrapperItem {
     this.locationInfo =
         Objects.requireNonNullElse(reviewModifyRequest.locationInfo(), LocationInfoRequest.empty());
     this.rating = RatingPoint.of(reviewModifyRequest.rating()).getRating();
+    this.tastingProfile = reviewModifyRequest.tastingProfile();
   }
 
   public static ReviewModifyRequestWrapperItem create(
