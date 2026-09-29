@@ -339,7 +339,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 likes.id.countDistinct(),
                 isLikeByMeSubquery(userId),
                 reviewReply.id.countDistinct(),
-                hasReplyByMeSubquery(userId))
+                hasReplyByMeSubquery(userId),
+                review.tastingProfile)
             .from(review)
             .join(user)
             .on(review.userId.eq(user.id))
@@ -384,7 +385,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 review.reviewLocation.category,
                 review.reviewLocation.mapUrl,
                 review.reviewLocation.latitude,
-                review.reviewLocation.longitude)
+                review.reviewLocation.longitude,
+                review.tastingProfile)
             .having(keysetSeek(criteria.sortType(), criteria.sortOrder(), cursorClaims))
             .orderBy(
                 sortBy(criteria.sortType(), criteria.sortOrder()).toArray(new OrderSpecifier[0]))
