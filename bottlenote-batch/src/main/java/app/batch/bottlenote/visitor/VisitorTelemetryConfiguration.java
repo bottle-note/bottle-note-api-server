@@ -54,4 +54,29 @@ class VisitorTelemetryConfiguration {
         .withSchedule(CronScheduleBuilder.cronSchedule("0 30 3 * * ?"))
         .build();
   }
+
+  @Bean
+  UserDailyActivityRollup userDailyActivityRollup(
+      JdbcTemplate jdbcTemplate, PlatformTransactionManager transactionManager) {
+    return new UserDailyActivityRollup(jdbcTemplate, new TransactionTemplate(transactionManager));
+  }
+
+  @Bean
+  JobDetail userDailyActivityRollupJobDetail() {
+    return JobBuilder.newJob(UserDailyActivityRollupJob.class)
+        .withIdentity("userDailyActivityRollupJob")
+        .storeDurably()
+        .requestRecovery(true)
+        .build();
+  }
+
+  /** 03:10. 03:30 보존 정리보다 먼저 돌아 지워질 원본을 롤업에 먼저 남긴다. */
+  @Bean
+  Trigger userDailyActivityRollupTrigger(JobDetail userDailyActivityRollupJobDetail) {
+    return TriggerBuilder.newTrigger()
+        .forJob(userDailyActivityRollupJobDetail)
+        .withIdentity("userDailyActivityRollupTrigger")
+        .withSchedule(CronScheduleBuilder.cronSchedule("0 10 3 * * ?"))
+        .build();
+  }
 }
