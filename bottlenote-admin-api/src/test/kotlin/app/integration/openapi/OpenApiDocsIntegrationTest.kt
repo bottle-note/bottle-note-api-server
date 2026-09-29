@@ -13,7 +13,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	// Admin operation은 대부분 GlobalResponse 공통 형식을 쓴다.
 	// 템플릿 다운로드(GET /v1/alcohols/excel/template)는 XLSX binary 응답이라 예외다.
-	private val expectedOperationCount = 101
+	private val expectedOperationCount = 103
 	private val binaryDownloadOperations = setOf("GET /v1/alcohols/excel/template")
 
 	@Test
@@ -46,8 +46,8 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 101개 operation이 누락 없이 포함된다")
-	fun openApiSpecContains101Operations() {
+	@DisplayName("문서에는 103개 operation이 누락 없이 포함된다")
+	fun openApiSpecContains103Operations() {
 		val operations = operationsOf(fetchSpec())
 
 		assertThat(operations)
@@ -58,6 +58,14 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 				joined(operations.map { it.toString() })
 			)
 			.hasSize(expectedOperationCount)
+	}
+
+	@Test
+	@DisplayName("회원 전환 퍼널과 가입 코호트 리텐션을 문서화한다")
+	fun memberStatisticsEndpointsAreDocumented() {
+		val endpoints = operationsOf(fetchSpec()).map { it.endpoint() }
+
+		assertThat(endpoints).contains("GET /v1/statistics/members/funnel", "GET /v1/statistics/members/cohort-retention")
 	}
 
 	@Test
