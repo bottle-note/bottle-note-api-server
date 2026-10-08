@@ -1,6 +1,5 @@
-package app.external.systemone.jev;
+package app.external.systemone.http;
 
-import app.external.systemone.jev.config.JevProperties;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpHeaders;
@@ -8,17 +7,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-/** Jev HTTP 전송 계층. 상태 코드 해석과 본문 변환은 하지 않고 원본 응답만 돌려준다. */
-public class JevHttpTransport {
-  static final String SYSTEM_ONE_PATH = "/v1/systemone";
+/** 공급자 공통 HTTP 전송 계층. 상태 코드 해석과 본문 변환은 하지 않고 원본 응답만 돌려준다. */
+public class SystemOneHttpTransport {
 
   private final RestClient restClient;
+  private final String path;
 
-  public JevHttpTransport(RestClient restClient) {
+  public SystemOneHttpTransport(RestClient restClient, String path) {
     this.restClient = restClient;
+    this.path = path;
   }
 
-  public static JevHttpTransport create(RestClient.Builder builder, JevProperties properties) {
+  public static SystemOneHttpTransport create(
+      RestClient.Builder builder, SystemOneProviderProperties properties, String path) {
     HttpClient httpClient =
         HttpClient.newBuilder().connectTimeout(properties.getConnectTimeout()).build();
     JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
@@ -35,17 +36,21 @@ public class JevHttpTransport {
                   }
                 })
             .build();
-    return new JevHttpTransport(restClient);
+    return new SystemOneHttpTransport(restClient, path);
   }
 
-  /** 전송 실패 시 RestClient의 {@code ResourceAccessException}을 그대로 던진다. */
-  public RawResponse post(Object body) {
+  /**
+   * 직렬화가 끝난 JSON 본문을 보낸다. 네트워크 I/O 전에 직렬화 오류를 걸러내기 위해 객체가 아니라 바이트를 받는다.
+   *
+   * <p>전송 실패 시 RestClient의 {@code ResourceAccessException}을 그대로 던진다.
+   */
+  public RawResponse post(byte[] jsonBody) {
     return restClient
         .post()
-        .uri(SYSTEM_ONE_PATH)
+        .uri(path)
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_JSON)
-        .body(body)
+        .body(jsonBody)
         .exchange(
             (request, response) ->
                 new RawResponse(
@@ -57,6 +62,10 @@ public class JevHttpTransport {
   public record RawResponse(int status, HttpHeaders headers, String body) {
     public boolean isSuccessful() {
       return status >= 200 && status < 300;
+    }
+
+    public String header(String name) {
+      return headers == null ? null : headers.getFirst(name);
     }
   }
 }
