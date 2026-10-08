@@ -12,3 +12,11 @@ amazon:
     region: ${AWS_REGION:ap-northeast-2}
     bucket: ${AWS_BUCKET:AMAZON_AWS_BUCKET}
     cloudFrontUrl: ${AWS_CLOUDFRONT_URL:AMAZON_AWS_CLOUDFRONT_URL}
+
+# System One - provider로 공급자(jev | openai)를 고르고, 키가 없으면 호출 시 NOT_CONFIGURED 실패를 반환한다
+systemone:
+  provider: ${SYSTEMONE_PROVIDER:jev}
+  jev:
+    api-key: ${JEV_API_KEY:}
+  openai:
+    api-key: ${OPENAI_API_KEY:}

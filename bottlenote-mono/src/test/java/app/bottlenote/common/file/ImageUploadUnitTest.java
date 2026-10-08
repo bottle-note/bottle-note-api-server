@@ -65,7 +65,8 @@ class ImageUploadUnitTest {
   @Container
   static MinIOContainer minioContainer =
       new MinIOContainer(
-              DockerImageName.parse("cgr.dev/chainguard/minio@sha256:6a1d0b45c8669726bba580ced0bfa4cb9fdeed1ed636dfabd81d1577beb6937b")
+              DockerImageName.parse(
+                      "cgr.dev/chainguard/minio@sha256:6a1d0b45c8669726bba580ced0bfa4cb9fdeed1ed636dfabd81d1577beb6937b")
                   .asCompatibleSubstituteFor("minio/minio"))
           .withUserName(MINIO_ACCESS_KEY)
           .withPassword(MINIO_SECRET_KEY);
