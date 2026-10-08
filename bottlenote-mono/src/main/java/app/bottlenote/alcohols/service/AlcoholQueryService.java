@@ -49,6 +49,12 @@ public class AlcoholQueryService {
 
   @Transactional(readOnly = true)
   public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
+    return findAlcoholDetailById(alcoholId, userId, false);
+  }
+
+  @Transactional(readOnly = true)
+  public AlcoholDetailResponse findAlcoholDetailById(
+      Long alcoholId, Long userId, boolean ssrCaller) {
     AlcoholDetailItem alcoholDetailItem =
         Optional.ofNullable(alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId))
             .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
@@ -65,7 +71,10 @@ public class AlcoholQueryService {
     if (userId > 0) {
       viewHistoryService.recordView(userId, alcoholDetailItem);
     }
-    alcoholViewCounter.increment(alcoholId);
+    // SSR 렌더 호출은 실제 방문이 아니므로 조회수 집계에서 제외한다.
+    if (!ssrCaller) {
+      alcoholViewCounter.increment(alcoholId);
+    }
     return response;
   }
 
