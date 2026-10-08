@@ -10,6 +10,7 @@ import app.bottlenote.alcohols.service.AlcoholLookupService;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,8 +45,17 @@ public class AlcoholQueryController {
 
   @AlcoholQueryApiDocs.GetAlcoholDetail
   @GetMapping("/{alcoholId}")
-  public ResponseEntity<GlobalResponse> findAlcoholDetailById(@PathVariable Long alcoholId) {
+  public ResponseEntity<GlobalResponse> findAlcoholDetailById(
+      @PathVariable Long alcoholId,
+      @RequestHeader(name = VisitorTelemetryFilter.CALLER_HEADER_NAME, required = false)
+          String caller) {
     Long id = getUserIdByContext().orElse(-1L);
-    return GlobalResponse.ok(alcoholQueryService.findAlcoholDetailById(alcoholId, id));
+    return GlobalResponse.ok(
+        alcoholQueryService.findAlcoholDetailById(alcoholId, id, isSsrCaller(caller)));
+  }
+
+  /** VisitorTelemetryFilter와 같이 trim 후 대소문자를 무시하고 ssr을 판정한다. */
+  static boolean isSsrCaller(String caller) {
+    return caller != null && VisitorTelemetryFilter.SSR_CALLER.equalsIgnoreCase(caller.trim());
   }
 }
