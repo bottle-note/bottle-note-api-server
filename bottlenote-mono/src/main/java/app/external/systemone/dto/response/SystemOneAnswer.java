@@ -30,7 +30,9 @@ public sealed interface SystemOneAnswer {
     }
   }
 
-  /** @param probability 예(1)일 확률. Noul은 신뢰도를 따로 주지 않는다 */
+  /**
+   * @param probability 예(1)일 확률. Noul은 신뢰도를 따로 주지 않는다
+   */
   record Noul(double probability) implements SystemOneAnswer {}
 
   // 공급자가 null 값을 보낼 수 있어 Map.copyOf 대신 순서를 보존하는 복사를 쓴다

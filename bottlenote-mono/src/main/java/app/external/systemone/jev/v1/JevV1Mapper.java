@@ -6,6 +6,7 @@ import app.external.systemone.dto.response.SystemOneAnswer;
 import app.external.systemone.dto.response.SystemOneFailureType;
 import app.external.systemone.dto.response.SystemOneResult;
 import app.external.systemone.dto.response.SystemOneUsage;
+import app.external.systemone.http.SystemOneContractException;
 import app.external.systemone.jev.v1.dto.request.JevV1Request;
 import app.external.systemone.jev.v1.dto.response.JevV1Response;
 import com.fasterxml.jackson.core.JacksonException;
@@ -13,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import lombok.Getter;
 
 /**
  * Jev API v1 계약 변환기. 공급자 계약이 바뀌면 이 클래스와 v1 DTO만 교체하거나 v2를 추가한다.
@@ -46,15 +46,18 @@ public class JevV1Mapper {
           new JevV1Request.Question("choice", choice.instructions(), choice.options());
       case SystemOneQuestion.Score score ->
           new JevV1Request.Question("score", score.instructions(), score.levels());
-      case SystemOneQuestion.Noul noul -> new JevV1Request.Question("noul", noul.instructions(), null);
+      case SystemOneQuestion.Noul noul ->
+          new JevV1Request.Question("noul", noul.instructions(), null);
     };
   }
 
-  /** @throws JevContractException 응답이 v1 계약과 다르거나 지원하지 않는 버전일 때 */
+  /**
+   * @throws SystemOneContractException 응답이 v1 계약과 다르거나 지원하지 않는 버전일 때
+   */
   public SystemOneResult.Success toResult(String body, SystemOneRequest request) {
     JevV1Response response = parse(body);
     if (!isSupportedVersion(response.model())) {
-      throw new JevContractException(
+      throw new SystemOneContractException(
           SystemOneFailureType.UNSUPPORTED_VERSION, "지원하지 않는 응답 모델: " + response.model());
     }
     if (response.answers() == null) {
@@ -138,18 +141,7 @@ public class JevV1Mapper {
     return model != null && SUPPORTED_MODEL.matcher(model).matches();
   }
 
-  private JevContractException invalid(String message) {
-    return new JevContractException(SystemOneFailureType.INVALID_RESPONSE, message);
-  }
-
-  /** v1 계약 위반. 클라이언트 경계 밖으로 나가지 않고 Failure로 변환된다. */
-  @Getter
-  public static class JevContractException extends RuntimeException {
-    private final SystemOneFailureType type;
-
-    public JevContractException(SystemOneFailureType type, String message) {
-      super(message);
-      this.type = type;
-    }
+  private SystemOneContractException invalid(String message) {
+    return SystemOneContractException.invalidResponse(message);
   }
 }

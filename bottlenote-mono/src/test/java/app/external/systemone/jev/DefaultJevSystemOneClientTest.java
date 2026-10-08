@@ -2,6 +2,8 @@ package app.external.systemone.jev;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.external.systemone.ExplosiveState;
+import app.external.systemone.StubProviderServer;
 import app.external.systemone.dto.request.SystemOneQuestion;
 import app.external.systemone.dto.request.SystemOneRequest;
 import app.external.systemone.dto.response.SystemOneAnswer;
@@ -9,21 +11,16 @@ import app.external.systemone.dto.response.SystemOneFailureType;
 import app.external.systemone.dto.response.SystemOneResult;
 import app.external.systemone.dto.response.SystemOneResult.Failure;
 import app.external.systemone.dto.response.SystemOneResult.Success;
+import app.external.systemone.http.SystemOneHttpTransport;
 import app.external.systemone.jev.config.JevProperties;
 import app.external.systemone.jev.v1.JevV1Mapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,44 +38,16 @@ class DefaultJevSystemOneClientTest {
   private static final String API_KEY = "test-jev-key";
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final AtomicReference<String> requestBody = new AtomicReference<>();
-  private final AtomicReference<String> authorization = new AtomicReference<>();
-  private final AtomicInteger requestCount = new AtomicInteger();
-  private HttpServer server;
-  private volatile Stub stub;
+  private StubProviderServer server;
 
   @BeforeEach
   void setUp() throws IOException {
-    server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-    server.createContext(
-        "/v1/systemone",
-        exchange -> {
-          requestCount.incrementAndGet();
-          authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
-          requestBody.set(
-              new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-          Stub current = stub;
-          if (current.delay().isPositive()) {
-            try {
-              Thread.sleep(current.delay().toMillis());
-            } catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-            }
-          }
-          byte[] body = current.body().getBytes(StandardCharsets.UTF_8);
-          exchange.getResponseHeaders().add("Content-Type", "application/json");
-          exchange.sendResponseHeaders(current.status(), body.length == 0 ? -1 : body.length);
-          if (body.length > 0) {
-            exchange.getResponseBody().write(body);
-          }
-          exchange.close();
-        });
-    server.start();
+    server = new StubProviderServer(DefaultJevSystemOneClient.SYSTEM_ONE_PATH);
   }
 
   @AfterEach
   void tearDown() {
-    server.stop(0);
+    server.close();
   }
 
   @Nested
@@ -89,7 +58,7 @@ class DefaultJevSystemOneClientTest {
     @DisplayName("choice, score, noul 질문을 v1 계약으로 보내고 응답을 공급자 중립 타입으로 변환한다")
     void evaluate_세_가지_질문을_변환할_수_있다() throws IOException {
       // given
-      respond(
+      server.respond(
           200,
           """
           {
@@ -136,13 +105,12 @@ class DefaultJevSystemOneClientTest {
       assertThat(success.usage().inputTokens()).isEqualTo(312);
       assertThat(success.answer("department", SystemOneAnswer.Choice.class).choice())
           .isEqualTo("technical");
-      assertThat(success.answer("sentiment", SystemOneAnswer.Score.class).score())
-          .isEqualTo(1.56);
+      assertThat(success.answer("sentiment", SystemOneAnswer.Score.class).score()).isEqualTo(1.56);
       assertThat(success.answer("urgent", SystemOneAnswer.Noul.class).probability())
           .isEqualTo(0.91);
 
-      assertThat(authorization.get()).isEqualTo("Bearer " + API_KEY);
-      JsonNode sent = objectMapper.readTree(requestBody.get());
+      assertThat(server.lastAuthorization()).isEqualTo("Bearer " + API_KEY);
+      JsonNode sent = objectMapper.readTree(server.lastRequestBody());
       assertThat(sent.path("model").asText()).isEqualTo("jev-latest");
       assertThat(sent.path("state").asText()).isEqualTo("결제가 안 돼요");
       assertThat(sent.at("/questions/department/type").asText()).isEqualTo("choice");
@@ -170,7 +138,7 @@ class DefaultJevSystemOneClientTest {
     })
     @DisplayName("비정상 HTTP 상태를 실패 유형으로 변환하고 오류 메시지를 담는다")
     void evaluate_비정상_상태를_실패로_변환할_수_있다(int status, SystemOneFailureType expected) {
-      respond(status, "{\"error\":{\"message\":\"provider said no\"}}");
+      server.respond(status, "{\"error\":{\"message\":\"provider said no\"}}");
 
       Failure failure = failure(client(properties()).evaluate(noulRequest()));
 
@@ -182,7 +150,7 @@ class DefaultJevSystemOneClientTest {
     @Test
     @DisplayName("응답이 readTimeout보다 늦으면 TIMEOUT 실패를 반환한다")
     void evaluate_응답_지연을_타임아웃으로_처리할_수_있다() {
-      stub = new Stub(200, noulBody("jev-1.13.0"), Duration.ofMillis(1500));
+      server.respondAfter(Duration.ofMillis(1500), 200, noulBody("jev-1.13.0"));
       JevProperties properties = properties();
       properties.setReadTimeout(Duration.ofMillis(200));
 
@@ -196,7 +164,7 @@ class DefaultJevSystemOneClientTest {
     @DisplayName("연결할 수 없는 주소면 TRANSPORT_ERROR 실패를 반환한다")
     void evaluate_연결_실패를_전송_오류로_처리할_수_있다() throws IOException {
       JevProperties properties = properties();
-      properties.setBaseUrl("http://127.0.0.1:" + unusedPort());
+      properties.setBaseUrl(StubProviderServer.unusedBaseUrl());
 
       Failure failure = failure(client(properties).evaluate(noulRequest()));
 
@@ -205,9 +173,23 @@ class DefaultJevSystemOneClientTest {
     }
 
     @Test
+    @DisplayName("state를 JSON으로 직렬화할 수 없으면 요청을 보내지 않고 예외 원문 없는 INVALID_REQUEST를 반환한다")
+    void evaluate_직렬화_불가_state를_처리할_수_있다() {
+      SystemOneRequest request =
+          SystemOneRequest.of(new ExplosiveState(), "urgent", new SystemOneQuestion.Noul("q"));
+
+      Failure failure = failure(client(properties()).evaluate(request));
+
+      assertThat(failure.type()).isEqualTo(SystemOneFailureType.INVALID_REQUEST);
+      assertThat(failure.retryable()).isFalse();
+      assertThat(failure.message()).doesNotContain(ExplosiveState.SECRET);
+      assertThat(server.requestCount()).isZero();
+    }
+
+    @Test
     @DisplayName("200이지만 JSON이 아니면 INVALID_RESPONSE 실패를 반환한다")
     void evaluate_해석_불가_응답을_처리할_수_있다() {
-      respond(200, "not-json");
+      server.respond(200, "not-json");
 
       Failure failure = failure(client(properties()).evaluate(noulRequest()));
 
@@ -217,7 +199,7 @@ class DefaultJevSystemOneClientTest {
     @Test
     @DisplayName("요청한 질문 키의 응답이 없으면 INVALID_RESPONSE 실패를 반환한다")
     void evaluate_누락된_응답을_처리할_수_있다() {
-      respond(200, "{\"model\":\"jev-1.13.0\",\"answers\":{}}");
+      server.respond(200, "{\"model\":\"jev-1.13.0\",\"answers\":{}}");
 
       Failure failure = failure(client(properties()).evaluate(noulRequest()));
 
@@ -228,7 +210,7 @@ class DefaultJevSystemOneClientTest {
     @Test
     @DisplayName("응답 타입이 질문 타입과 다르면 INVALID_RESPONSE 실패를 반환한다")
     void evaluate_타입이_다른_응답을_처리할_수_있다() {
-      respond(
+      server.respond(
           200,
           "{\"model\":\"jev-1.13.0\",\"answers\":{\"urgent\":{\"type\":\"choice\",\"noul\":0.5}}}");
 
@@ -240,7 +222,7 @@ class DefaultJevSystemOneClientTest {
     @Test
     @DisplayName("응답 모델의 major 버전이 v1이 아니면 UNSUPPORTED_VERSION 실패를 반환한다")
     void evaluate_지원하지_않는_응답_버전을_처리할_수_있다() {
-      respond(200, noulBody("jev-2.0.0"));
+      server.respond(200, noulBody("jev-2.0.0"));
 
       Failure failure = failure(client(properties()).evaluate(noulRequest()));
 
@@ -256,7 +238,7 @@ class DefaultJevSystemOneClientTest {
       Failure failure = failure(client(properties).evaluate(noulRequest()));
 
       assertThat(failure.type()).isEqualTo(SystemOneFailureType.UNSUPPORTED_VERSION);
-      assertThat(requestCount.get()).isZero();
+      assertThat(server.requestCount()).isZero();
     }
 
     @Test
@@ -268,13 +250,14 @@ class DefaultJevSystemOneClientTest {
       Failure failure = failure(client(properties).evaluate(noulRequest()));
 
       assertThat(failure.type()).isEqualTo(SystemOneFailureType.NOT_CONFIGURED);
-      assertThat(requestCount.get()).isZero();
+      assertThat(server.requestCount()).isZero();
     }
   }
 
   private DefaultJevSystemOneClient client(JevProperties properties) {
     return new DefaultJevSystemOneClient(
-        JevHttpTransport.create(RestClient.builder(), properties),
+        SystemOneHttpTransport.create(
+            RestClient.builder(), properties, DefaultJevSystemOneClient.SYSTEM_ONE_PATH),
         new JevV1Mapper(objectMapper),
         properties,
         objectMapper);
@@ -282,15 +265,11 @@ class DefaultJevSystemOneClientTest {
 
   private JevProperties properties() {
     JevProperties properties = new JevProperties();
-    properties.setBaseUrl("http://127.0.0.1:" + server.getAddress().getPort());
+    properties.setBaseUrl(server.baseUrl());
     properties.setApiKey(API_KEY);
     properties.setConnectTimeout(Duration.ofSeconds(1));
     properties.setReadTimeout(Duration.ofSeconds(2));
     return properties;
-  }
-
-  private void respond(int status, String body) {
-    stub = new Stub(status, body, Duration.ZERO);
   }
 
   private static SystemOneRequest noulRequest() {
@@ -317,12 +296,4 @@ class DefaultJevSystemOneClientTest {
     }
     return map;
   }
-
-  private static int unusedPort() throws IOException {
-    try (ServerSocket socket = new ServerSocket(0)) {
-      return socket.getLocalPort();
-    }
-  }
-
-  private record Stub(int status, String body, Duration delay) {}
 }

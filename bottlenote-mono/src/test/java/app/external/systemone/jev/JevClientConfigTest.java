@@ -39,7 +39,8 @@ class JevClientConfigTest {
           assertThat(result)
               .isInstanceOfSatisfying(
                   SystemOneResult.Failure.class,
-                  failure -> assertThat(failure.type()).isEqualTo(SystemOneFailureType.NOT_CONFIGURED));
+                  failure ->
+                      assertThat(failure.type()).isEqualTo(SystemOneFailureType.NOT_CONFIGURED));
         });
   }
 

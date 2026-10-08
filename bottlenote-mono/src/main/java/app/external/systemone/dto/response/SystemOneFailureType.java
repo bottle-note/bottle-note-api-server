@@ -14,7 +14,8 @@ public enum SystemOneFailureType {
   TIMEOUT("연결 또는 응답 시간 초과", true),
   TRANSPORT_ERROR("연결 실패 등 전송 오류", true),
   INVALID_RESPONSE("응답을 해석할 수 없거나 계약과 다름", false),
-  UNSUPPORTED_VERSION("지원하지 않는 모델 버전", false);
+  UNSUPPORTED_VERSION("지원하지 않는 모델 버전", false),
+  REFUSED("모델이 질문에 대한 답변을 거부함", false);
 
   private final String description;
   private final boolean retryable;

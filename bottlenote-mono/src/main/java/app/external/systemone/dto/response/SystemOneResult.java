@@ -21,7 +21,8 @@ public sealed interface SystemOneResult {
     public <T extends SystemOneAnswer> T answer(String key, Class<T> type) {
       SystemOneAnswer answer = answers.get(key);
       if (!type.isInstance(answer)) {
-        throw new IllegalArgumentException("질문 키 %s의 응답이 %s가 아닙니다".formatted(key, type.getSimpleName()));
+        throw new IllegalArgumentException(
+            "질문 키 %s의 응답이 %s가 아닙니다".formatted(key, type.getSimpleName()));
       }
       return type.cast(answer);
     }
