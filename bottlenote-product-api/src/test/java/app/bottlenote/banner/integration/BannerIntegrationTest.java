@@ -12,6 +12,7 @@ import app.bottlenote.banner.dto.response.BannerResponse;
 import app.bottlenote.banner.fixture.BannerTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -118,6 +119,24 @@ class BannerIntegrationTest extends IntegrationTestSupport {
       // then
       List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
       assertEquals(3, banners.size());
+    }
+
+    @DisplayName("노출 기간이 만료된 배너는 조회되지 않는다.")
+    @Test
+    void 만료된_배너는_조회되지_않는다() throws Exception {
+      // given
+      bannerTestFactory.persistBanner("노출 배너", "https://example.com/visible.jpg");
+      bannerTestFactory.persistBannerWithPeriod(
+          "만료 배너", LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1));
+
+      // when
+      MvcTestResult result =
+          mockMvcTester.get().uri("/api/v1/banners").contentType(APPLICATION_JSON).exchange();
+
+      // then
+      List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
+      assertEquals(1, banners.size());
+      assertEquals("노출 배너", banners.getFirst().getName());
     }
 
     @DisplayName("동영상 배너는 대표 이미지 URL을 반환한다.")
