@@ -12,9 +12,9 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeyItem
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeywordItem
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import app.bottlenote.global.dto.response.AdminResultResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -248,14 +248,14 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 
 		val keys = getAs(accessToken, "/v1/alcohols/attributes/keys")
 		assertThat(keys).hasStatusOk()
-		val keyItems = extractData(keys, Array<AdminAlcoholAttributeKeyItem>::class.java)
+		val keyItems = extractData(keys, Array<AlcoholAttributeKeyCountItem>::class.java)
 		val keyword = keyItems.first { it.key == "keyword" }
 		assertThat(keyword.count).isEqualTo(2)
 		assertThat(keyItems.none { it.key == "price_bottle" }).isTrue()
 
 		val keywords = getAs(accessToken, "/v1/alcohols/attributes/keywords")
 		assertThat(keywords).hasStatusOk()
-		val keywordItems = extractData(keywords, Array<AdminAlcoholAttributeKeywordItem>::class.java)
+		val keywordItems = extractData(keywords, Array<AlcoholAttributeKeywordCountItem>::class.java)
 		assertThat(keywordItems[0].value).isEqualTo("피트")
 		assertThat(keywordItems[0].alcoholCount).isEqualTo(2)
 

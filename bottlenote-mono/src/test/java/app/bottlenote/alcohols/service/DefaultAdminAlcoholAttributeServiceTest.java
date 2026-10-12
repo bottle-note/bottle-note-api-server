@@ -20,9 +20,9 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeyItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeywordItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
@@ -419,15 +419,15 @@ class DefaultAdminAlcoholAttributeServiceTest {
     saveAttribute(
         first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
 
-    List<AdminAlcoholAttributeKeyItem> keys = service.findKeys();
+    List<AlcoholAttributeKeyCountItem> keys = service.findKeys();
 
-    AdminAlcoholAttributeKeyItem keyword =
+    AlcoholAttributeKeyCountItem keyword =
         keys.stream().filter(item -> item.key().equals("keyword")).findFirst().orElseThrow();
     assertThat(keyword.type()).isEqualTo(AttributeType.KEYWORD);
     assertThat(keyword.datatype()).isEqualTo(AttributeDatatype.STRING);
     assertThat(keyword.count()).isEqualTo(2);
     assertThat(keyword.alcoholCount()).isEqualTo(2);
-    assertThat(keys).extracting(AdminAlcoholAttributeKeyItem::key).contains("price_bottle");
+    assertThat(keys).extracting(AlcoholAttributeKeyCountItem::key).contains("price_bottle");
   }
 
   @Test
@@ -439,10 +439,10 @@ class DefaultAdminAlcoholAttributeServiceTest {
     saveAttribute(
         first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
 
-    List<AdminAlcoholAttributeKeywordItem> keywords = service.findKeywords();
+    List<AlcoholAttributeKeywordCountItem> keywords = service.findKeywords();
 
     assertThat(keywords)
-        .extracting(AdminAlcoholAttributeKeywordItem::value)
+        .extracting(AlcoholAttributeKeywordCountItem::value)
         .containsExactly("피트", "과일");
     assertThat(keywords.get(0).alcoholCount()).isEqualTo(2);
     assertThat(keywords.get(1).alcoholCount()).isEqualTo(1);

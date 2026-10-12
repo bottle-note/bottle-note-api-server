@@ -7,9 +7,9 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeyItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeywordItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import java.util.List;
 
@@ -28,9 +28,9 @@ public interface AdminAlcoholAttributeService {
 
   List<AdminAlcoholAttributeItem> deleteBatch(AdminAlcoholAttributeBatchDeleteRequest request);
 
-  List<AdminAlcoholAttributeKeyItem> findKeys();
+  List<AlcoholAttributeKeyCountItem> findKeys();
 
-  List<AdminAlcoholAttributeKeywordItem> findKeywords();
+  List<AlcoholAttributeKeywordCountItem> findKeywords();
 
   AdminAlcoholAttributeEnumsResponse findEnums();
 }
