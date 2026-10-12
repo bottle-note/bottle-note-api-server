@@ -34,5 +34,8 @@ public interface JpaTastingTagGroupRepository
   boolean existsByCode(String code);
 
   @Override
+  boolean existsByName(String name);
+
+  @Override
   boolean existsByNameAndIdNot(String name, Long id);
 }

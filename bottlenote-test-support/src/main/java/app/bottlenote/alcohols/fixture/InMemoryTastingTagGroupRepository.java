@@ -43,6 +43,11 @@ public class InMemoryTastingTagGroupRepository implements TastingTagGroupReposit
   }
 
   @Override
+  public boolean existsByName(String name) {
+    return groups.stream().anyMatch(group -> Objects.equals(group.getName(), name));
+  }
+
+  @Override
   public boolean existsByNameAndIdNot(String name, Long id) {
     return groups.stream()
         .anyMatch(

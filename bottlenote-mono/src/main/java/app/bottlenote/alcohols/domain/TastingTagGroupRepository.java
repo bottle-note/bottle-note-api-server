@@ -17,6 +17,8 @@ public interface TastingTagGroupRepository {
 
   boolean existsByCode(String code);
 
+  boolean existsByName(String name);
+
   boolean existsByNameAndIdNot(String name, Long id);
 
   TastingTagGroup save(TastingTagGroup group);
