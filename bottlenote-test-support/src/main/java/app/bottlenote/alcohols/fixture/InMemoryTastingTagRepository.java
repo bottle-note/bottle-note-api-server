@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.TastingTagRepository;
+import app.bottlenote.alcohols.dto.response.TastingTagCatalogSourceItem;
 import app.bottlenote.alcohols.dto.response.TastingTagNodeItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,16 @@ public class InMemoryTastingTagRepository implements TastingTagRepository {
   @Override
   public List<TastingTag> findAll() {
     return List.copyOf(tags);
+  }
+
+  @Override
+  public List<TastingTagCatalogSourceItem> findAllCatalogSources() {
+    return tags.stream()
+        .map(
+            tag ->
+                new TastingTagCatalogSourceItem(
+                    tag.getId(), tag.getKorName(), tag.getEngName(), tag.getParentId()))
+        .toList();
   }
 
   @Override
@@ -92,6 +103,6 @@ public class InMemoryTastingTagRepository implements TastingTagRepository {
 
   private TastingTagNodeItem toTastingTagNodeItem(TastingTag tag) {
     return TastingTagNodeItem.forList(
-        tag.getId(), tag.getKorName(), tag.getEngName(), tag.getIcon(), tag.getDescription());
+        tag.getId(), tag.getKorName(), tag.getEngName(), tag.getDescription());
   }
 }
