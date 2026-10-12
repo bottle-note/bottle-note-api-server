@@ -21,6 +21,12 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   TASTING_TAG_PARENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 태그를 찾을 수 없습니다."),
   TASTING_TAG_MAX_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "태그 계층 구조는 최대 3단계까지 가능합니다."),
   TASTING_TAG_MAPPING_DUPLICATE(HttpStatus.CONFLICT, "이미 연결된 주류-태그 매핑입니다."),
+  ALCOHOL_ATTRIBUTE_INVALID_KEY(
+      HttpStatus.BAD_REQUEST, "속성 항목은 영문 소문자로 시작하고 소문자·숫자·밑줄만 64자까지 쓸 수 있습니다."),
+  ALCOHOL_ATTRIBUTE_INVALID_VALUE(HttpStatus.BAD_REQUEST, "속성 값이 비어 있거나 입력 형식에 맞지 않습니다."),
+  TASTING_TAG_GROUP_INVALID_CODE(
+      HttpStatus.BAD_REQUEST, "맛 그룹 코드는 영문 대문자로 시작하고 대문자·숫자·밑줄만 64자까지 쓸 수 있습니다."),
+  TASTING_TAG_GROUP_INVALID_NAME(HttpStatus.BAD_REQUEST, "맛 그룹 이름은 비울 수 없고 100자를 넘을 수 없습니다."),
   CURATION_NOT_FOUND(HttpStatus.NOT_FOUND, "큐레이션을 찾을 수 없습니다."),
   CURATION_DUPLICATE_NAME(HttpStatus.CONFLICT, "동일한 이름의 큐레이션이 이미 존재합니다."),
   CURATION_ALCOHOL_NOT_INCLUDED(HttpStatus.BAD_REQUEST, "해당 위스키가 큐레이션에 포함되어 있지 않습니다."),
