@@ -2,7 +2,9 @@ package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
+import app.bottlenote.alcohols.dto.response.TastingTagAlcoholCountItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,4 +44,17 @@ public interface JpaAlcoholsTastingTagsRepository
   @Modifying
   @Query("delete from alcohol_tasting_tags att where att.alcohol.id = :alcoholId")
   void deleteByAlcoholId(@Param("alcoholId") Long alcoholId);
+
+  @Override
+  @Query(
+      """
+      select new app.bottlenote.alcohols.dto.response.TastingTagAlcoholCountItem(
+        att.tastingTag.id, count(att)
+      )
+      from alcohol_tasting_tags att
+      where att.tastingTag.id in :tastingTagIds
+      group by att.tastingTag.id
+      """)
+  List<TastingTagAlcoholCountItem> countAlcoholsByTastingTagIds(
+      @Param("tastingTagIds") Collection<Long> tastingTagIds);
 }

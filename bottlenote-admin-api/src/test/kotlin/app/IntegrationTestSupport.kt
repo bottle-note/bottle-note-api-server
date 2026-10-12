@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.assertj.MockMvcTester
 import org.springframework.test.web.servlet.assertj.MvcTestResult
@@ -81,4 +82,41 @@ abstract class IntegrationTestSupport {
 		val response = parseResponse(result)
 		return mapper.convertValue(response.data, dataType)
 	}
+
+	/**
+	 * 인증 헤더를 붙인 요청 헬퍼. 상태 단언은 하지 않으므로 실패 케이스에도 쓴다.
+	 */
+	protected fun getAs(
+		token: String,
+		uri: String
+	): MvcTestResult = mockMvcTester.get().uri(uri)
+		.header("Authorization", "Bearer $token")
+		.exchange()
+
+	protected fun postAs(
+		token: String,
+		uri: String,
+		body: Any
+	): MvcTestResult = mockMvcTester.post().uri(uri)
+		.header("Authorization", "Bearer $token")
+		.contentType(MediaType.APPLICATION_JSON)
+		.content(mapper.writeValueAsString(body))
+		.exchange()
+
+	protected fun putAs(
+		token: String,
+		uri: String,
+		body: Any
+	): MvcTestResult = mockMvcTester.put().uri(uri)
+		.header("Authorization", "Bearer $token")
+		.contentType(MediaType.APPLICATION_JSON)
+		.content(mapper.writeValueAsString(body))
+		.exchange()
+
+	protected fun deleteAs(
+		token: String,
+		uri: String
+	): MvcTestResult = mockMvcTester.delete().uri(uri)
+		.header("Authorization", "Bearer $token")
+		.exchange()
 }

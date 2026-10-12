@@ -26,6 +26,7 @@ object AdminTastingTagApiDocs {
 			검색어, 정렬 방향, 페이지 번호·크기로 테이스팅 태그 목록을 페이지 단위로 조회합니다.
 
 			keyword를 비우면 전체 태그를 반환하며, 목록 항목의 parent/children 필드는 채우지 않습니다(상세 조회에서만 트리 구조를 반환합니다).
+			목록 항목의 icon은 항상 null입니다. 아이콘은 GET /tasting/tags/{id}/icon 으로 조회합니다.
 			""",
 		responses = [
 			ApiResponse(

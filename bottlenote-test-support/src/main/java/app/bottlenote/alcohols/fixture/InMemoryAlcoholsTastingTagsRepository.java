@@ -1,8 +1,13 @@
 package app.bottlenote.alcohols.fixture;
 
+import app.bottlenote.alcohols.constant.AlcoholType;
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
 import java.util.ArrayList;
+import app.bottlenote.alcohols.dto.response.TastingTagAlcoholCountItem;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -75,6 +80,21 @@ public class InMemoryAlcoholsTastingTagsRepository implements AlcoholsTastingTag
     mappings.removeIf(att -> Objects.equals(att.getAlcohol().getId(), alcoholId));
   }
 
+  /** 테스트 편의: id만 가진 위스키를 만들어 태그와 연결한다 */
+  public void link(long alcoholId, TastingTag tag) {
+    Alcohol alcohol =
+        Alcohol.builder()
+            .korName("위스키" + alcoholId)
+            .engName("whisky" + alcoholId)
+            .type(AlcoholType.WHISKY)
+            .korCategory(AlcoholType.WHISKY.getKorCategory())
+            .engCategory(AlcoholType.WHISKY.getEngCategory())
+            .categoryGroup(AlcoholType.WHISKY.getDefaultCategoryGroup())
+            .build();
+    ReflectionTestUtils.setField(alcohol, "id", alcoholId);
+    saveAll(List.of(AlcoholsTastingTags.of(alcohol, tag)));
+  }
+
   public List<AlcoholsTastingTags> findAll() {
     return List.copyOf(mappings);
   }
@@ -85,5 +105,18 @@ public class InMemoryAlcoholsTastingTagsRepository implements AlcoholsTastingTag
 
   public void clear() {
     mappings.clear();
+  }
+
+  @Override
+  public List<TastingTagAlcoholCountItem> countAlcoholsByTastingTagIds(
+      Collection<Long> tastingTagIds) {
+    Set<Long> ids = Set.copyOf(tastingTagIds);
+    return mappings.stream()
+        .filter(att -> ids.contains(att.getTastingTag().getId()))
+        .collect(Collectors.groupingBy(att -> att.getTastingTag().getId(), Collectors.counting()))
+        .entrySet()
+        .stream()
+        .map(e -> new TastingTagAlcoholCountItem(e.getKey(), e.getValue()))
+        .toList();
   }
 }
