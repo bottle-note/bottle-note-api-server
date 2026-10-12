@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.constant.AttributeDatatype;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -67,7 +68,9 @@ class AlcoholAttributeTest {
       AlcoholAttribute attribute =
           AlcoholAttribute.create(
               1L, "score", AttributeType.POPULARITY, datatype, value, null, null);
-      assertThat(attribute.getAttributeValue()).isEqualTo(value);
+      String expected =
+          datatype.isNumeric() ? new BigDecimal(value).stripTrailingZeros().toPlainString() : value;
+      assertThat(attribute.getAttributeValue()).isEqualTo(expected);
       return;
     }
     assertThatThrownBy(
@@ -87,6 +90,16 @@ class AlcoholAttributeTest {
                     1L, "note", AttributeType.NOTE, AttributeDatatype.STRING, "   ", null, null))
         .isInstanceOf(AlcoholException.class)
         .hasMessage(AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE.getMessage());
+  }
+
+  @Test
+  @DisplayName("소수 끝의 0을 떼어 40.0을 40으로 저장한다")
+  void 숫자_끝의_0을_떼어_저장한다() {
+    AlcoholAttribute attribute =
+        AlcoholAttribute.create(
+            1L, "abv", AttributeType.POPULARITY, AttributeDatatype.DOUBLE, "40.0", null, null);
+
+    assertThat(attribute.getAttributeValue()).isEqualTo("40");
   }
 
   @Test

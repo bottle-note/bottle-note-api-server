@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.presentation.docs.AdminAlcoholAttributeApiDocs
 import app.bottlenote.alcohols.service.AdminAlcoholAttributeService
 import app.bottlenote.global.data.response.GlobalResponse
 import jakarta.validation.Valid
+import org.springdoc.core.annotations.ParameterObject
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -28,13 +29,13 @@ class AdminAlcoholAttributeController(
 	@AdminAlcoholAttributeApiDocs.FindAttributes
 	@GetMapping
 	fun findAttributes(
-		@ModelAttribute @Valid request: AdminAlcoholAttributeSearchRequest
+		@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeSearchRequest
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.findAll(request))
 
 	@AdminAlcoholAttributeApiDocs.SummarizeAttributes
 	@GetMapping("/summary")
 	fun summarizeAttributes(
-		@ModelAttribute @Valid request: AdminAlcoholAttributeSearchRequest
+		@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeSearchRequest
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.summarize(request))
 
 	@AdminAlcoholAttributeApiDocs.CreateAttributes

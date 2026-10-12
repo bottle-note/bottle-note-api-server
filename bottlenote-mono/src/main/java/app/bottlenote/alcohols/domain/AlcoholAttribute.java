@@ -15,6 +15,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -140,6 +141,9 @@ public class AlcoholAttribute extends BaseEntity {
     String value = attributeValue.trim();
     if (value.length() > VALUE_MAX_LENGTH || !datatype.accepts(value)) {
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+    }
+    if (datatype.isNumeric()) {
+      return new BigDecimal(value).stripTrailingZeros().toPlainString();
     }
     return value;
   }
