@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.domain.AlcoholAttributeRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -37,6 +38,23 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
   @Override
   public Optional<AlcoholAttribute> findById(Long id) {
     return rows.stream().filter(row -> Objects.equals(row.getId(), id)).findFirst();
+  }
+
+  @Override
+  public List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return List.of();
+    }
+    Set<Long> targets = new HashSet<>();
+    for (Long id : ids) {
+      if (id != null) {
+        targets.add(id);
+      }
+    }
+    return rows.stream()
+        .filter(row -> targets.contains(row.getId()))
+        .sorted(Comparator.comparing(AlcoholAttribute::getId))
+        .toList();
   }
 
   @Override
