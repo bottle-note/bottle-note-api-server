@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.alcohols.constant.TastingTagGroupRole;
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.TastingTagGroup;
 import app.bottlenote.alcohols.dto.response.AdminCodeLabelItem;
@@ -21,16 +19,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @Tag("unit")
-@DisplayName("AdminTastingTagCatalogService 단위 테스트")
-class AdminTastingTagCatalogServiceTest {
+@DisplayName("테이스팅 태그 경량 조회 어드민 서비스")
+class DefaultAdminTastingTagCatalogServiceTest {
 
-  private InMemoryTastingTagRepository tastingTagRepository;
-  private InMemoryAlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
-  private InMemoryTastingTagGroupRepository tastingTagGroupRepository;
-  private DefaultAdminTastingTagCatalogService service;
+  InMemoryTastingTagRepository tastingTagRepository;
+  InMemoryAlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
+  InMemoryTastingTagGroupRepository tastingTagGroupRepository;
+  DefaultAdminTastingTagCatalogService service;
 
   @BeforeEach
   void setUp() {
@@ -48,9 +45,9 @@ class AdminTastingTagCatalogServiceTest {
     TastingTag later = saveTag("나나", "Nana", null, null);
     TastingTag earlier = saveTag("가나", "Gana", null, null);
     TastingTag child = saveTag("가나다", "Ganada", earlier.getId(), null);
-    link(later, 1L);
-    link(later, 2L);
-    link(child, 3L);
+    alcoholsTastingTagsRepository.link(1L, later);
+    alcoholsTastingTagsRepository.link(2L, later);
+    alcoholsTastingTagsRepository.link(3L, child);
     TastingTagGroup group = TastingTagGroup.create("ALPHA", "알파", "A", null, 1);
     group.putTag(later.getId(), TastingTagGroupRole.CORE);
     tastingTagGroupRepository.save(group);
@@ -95,9 +92,9 @@ class AdminTastingTagCatalogServiceTest {
     TastingTag grouped = saveTag("나나", "Nana", null, null);
     saveTag("가나", "Gana", null, null);
     TastingTag many = saveTag("다다", "Dada", null, null);
-    link(grouped, 1L);
-    link(many, 2L);
-    link(many, 3L);
+    alcoholsTastingTagsRepository.link(1L, grouped);
+    alcoholsTastingTagsRepository.link(2L, many);
+    alcoholsTastingTagsRepository.link(3L, many);
     TastingTagGroup group = TastingTagGroup.create("ALPHA", "알파", "A", null, 0);
     group.putTag(grouped.getId(), TastingTagGroupRole.CORE);
     tastingTagGroupRepository.save(group);
@@ -114,7 +111,7 @@ class AdminTastingTagCatalogServiceTest {
   void 한글_이름_부분_일치로_미소속_태그를_조회할_수_있다() {
     saveTag("가나", "Honey", null, null);
     TastingTag match = saveTag("가나다", "Other", null, null);
-    link(match, 1L);
+    alcoholsTastingTagsRepository.link(1L, match);
 
     assertThat(service.findUngrouped(" 나다 "))
         .extracting(AdminTastingTagCatalogItem::korName)
@@ -162,11 +159,5 @@ class AdminTastingTagCatalogServiceTest {
             .parentId(parentId)
             .icon(icon)
             .build());
-  }
-
-  private void link(TastingTag tag, long alcoholId) {
-    Alcohol alcohol = Alcohol.builder().korName("위스키" + alcoholId).build();
-    ReflectionTestUtils.setField(alcohol, "id", alcoholId);
-    alcoholsTastingTagsRepository.saveAll(List.of(AlcoholsTastingTags.of(alcohol, tag)));
   }
 }

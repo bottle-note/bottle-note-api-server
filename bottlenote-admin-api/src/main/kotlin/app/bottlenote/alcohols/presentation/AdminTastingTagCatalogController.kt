@@ -19,17 +19,17 @@ class AdminTastingTagCatalogController(
 ) {
 	@AdminTastingTagCatalogApiDocs.GetAllTags
 	@GetMapping("/all")
-	fun findAll(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagCatalogService.findAll())
+	fun findAllTags(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagCatalogService.findAll())
 
 	@AdminTastingTagCatalogApiDocs.GetIcon
 	@GetMapping("/{id}/icon")
-	fun findIcon(
+	fun findTagIcon(
 		@PathVariable id: Long
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagCatalogService.findIcon(id))
 
 	@AdminTastingTagCatalogApiDocs.GetUngrouped
 	@GetMapping("/ungrouped")
-	fun findUngrouped(
+	fun findUngroupedTags(
 		@Parameter(description = "한글 이름 부분 일치. 비우면 미소속 태그 전체를 반환합니다.")
 		@RequestParam(required = false) keyword: String?
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagCatalogService.findUngrouped(keyword))

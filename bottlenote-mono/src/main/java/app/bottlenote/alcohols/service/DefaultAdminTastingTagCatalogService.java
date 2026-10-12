@@ -2,7 +2,6 @@ package app.bottlenote.alcohols.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_NOT_FOUND;
 
-import app.bottlenote.alcohols.constant.TastingTagGroupRole;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.TastingTagGroup;
@@ -13,11 +12,9 @@ import app.bottlenote.alcohols.dto.response.AdminCodeLabelItem;
 import app.bottlenote.alcohols.dto.response.AdminTastingTagCatalogItem;
 import app.bottlenote.alcohols.dto.response.AdminTastingTagGroupRefItem;
 import app.bottlenote.alcohols.dto.response.AdminTastingTagIconResponse;
-import app.bottlenote.alcohols.dto.response.TastingTagAlcoholCountItem;
 import app.bottlenote.alcohols.dto.response.TastingTagCatalogSourceItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,7 +46,8 @@ public class DefaultAdminTastingTagCatalogService implements AdminTastingTagCata
   @Override
   @Transactional(readOnly = true)
   public List<AdminTastingTagCatalogItem> findAll() {
-    return toItems(tastingTagRepository.findAllCatalogSources(), groupsByTagId()).stream()
+    return toItems(tastingTagRepository.findAllCatalogSources(), groupsByTagId(allGroups()))
+        .stream()
         .sorted(BY_KOR_NAME)
         .toList();
   }
@@ -68,7 +66,10 @@ public class DefaultAdminTastingTagCatalogService implements AdminTastingTagCata
   @Transactional(readOnly = true)
   public List<AdminTastingTagCatalogItem> findUngrouped(String keyword) {
     String normalized = keyword == null ? "" : keyword.trim();
-    Set<Long> groupedTagIds = groupedTagIds();
+    Set<Long> groupedTagIds = new HashSet<>();
+    for (TastingTagGroup group : allGroups()) {
+      groupedTagIds.addAll(group.tagIds());
+    }
     List<TastingTagCatalogSourceItem> sources =
         tastingTagRepository.findAllCatalogSources().stream()
             .filter(source -> !groupedTagIds.contains(source.id()))
@@ -81,7 +82,9 @@ public class DefaultAdminTastingTagCatalogService implements AdminTastingTagCata
       List<TastingTagCatalogSourceItem> sources,
       Map<Long, List<AdminTastingTagGroupRefItem>> groupsByTagId) {
     Map<Long, Long> alcoholCounts =
-        alcoholCounts(sources.stream().map(TastingTagCatalogSourceItem::id).toList());
+        TastingTagAlcoholCounts.byTagId(
+            alcoholsTastingTagsRepository,
+            sources.stream().map(TastingTagCatalogSourceItem::id).toList());
     return sources.stream()
         .map(
             source ->
@@ -95,48 +98,24 @@ public class DefaultAdminTastingTagCatalogService implements AdminTastingTagCata
         .toList();
   }
 
-  private Map<Long, Long> alcoholCounts(Collection<Long> tagIds) {
-    if (tagIds.isEmpty()) {
-      return Map.of();
-    }
-    Map<Long, Long> counts = new HashMap<>();
-    for (TastingTagAlcoholCountItem count :
-        alcoholsTastingTagsRepository.countAlcoholsByTastingTagIds(tagIds)) {
-      counts.put(count.tastingTagId(), count.alcoholCount());
-    }
-    return counts;
+  private List<TastingTagGroup> allGroups() {
+    return tastingTagGroupRepository.findAllWithTags();
   }
 
-  private Map<Long, List<AdminTastingTagGroupRefItem>> groupsByTagId() {
-    Map<Long, List<AdminTastingTagGroupRefItem>> groups = new HashMap<>();
-    for (TastingTagGroup group : tastingTagGroupRepository.findAllWithTags()) {
+  private Map<Long, List<AdminTastingTagGroupRefItem>> groupsByTagId(List<TastingTagGroup> groups) {
+    Map<Long, List<AdminTastingTagGroupRefItem>> refs = new HashMap<>();
+    for (TastingTagGroup group : groups) {
       for (TastingTagGroupTag tag : group.getTags()) {
-        groups
-            .computeIfAbsent(tag.getTastingTagId(), ignored -> new ArrayList<>())
+        refs.computeIfAbsent(tag.getTastingTagId(), ignored -> new ArrayList<>())
             .add(
                 new AdminTastingTagGroupRefItem(
-                    group.getCode(), group.getName(), label(tag.getRole())));
+                    group.getCode(), group.getName(), AdminCodeLabelItem.of(tag.getRole())));
       }
     }
-    return groups;
-  }
-
-  private Set<Long> groupedTagIds() {
-    Set<Long> tagIds = new HashSet<>();
-    for (TastingTagGroup group : tastingTagGroupRepository.findAllWithTags()) {
-      for (TastingTagGroupTag tag : group.getTags()) {
-        tagIds.add(tag.getTastingTagId());
-      }
-    }
-    return tagIds;
+    return refs;
   }
 
   private static boolean contains(String korName, String keyword) {
     return korName != null && korName.contains(keyword);
-  }
-
-  private static AdminCodeLabelItem label(TastingTagGroupRole role) {
-    return new AdminCodeLabelItem(
-        role.name(), role.getKorName(), role.getEngName(), role.getDescription());
   }
 }
