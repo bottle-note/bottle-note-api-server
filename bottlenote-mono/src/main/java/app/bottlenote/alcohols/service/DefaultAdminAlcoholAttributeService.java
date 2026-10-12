@@ -20,11 +20,11 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeyItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeywordItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
 import app.bottlenote.alcohols.dto.response.AdminAuditPrincipalItem;
 import app.bottlenote.alcohols.dto.response.AdminCodeLabelItem;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.common.domain.AuditPrincipal;
 import app.bottlenote.global.dto.response.AdminResultResponse;
@@ -86,7 +86,8 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   @Transactional
   public AdminAlcoholAttributeCreateResponse create(AdminAlcoholAttributeCreateRequest request) {
     requireAlcohols(request.alcoholIds());
-    Set<String> seen = new HashSet<>();
+    // 한 요청 안에서 key·value는 고정이라 요청 내 중복은 위스키 ID만 보면 된다
+    Set<Long> seenAlcoholIds = new HashSet<>();
     int added = 0;
     int skipped = 0;
     List<Long> createdIds = new ArrayList<>();
@@ -100,8 +101,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
               request.value(),
               request.description(),
               request.basedAt());
-      String token = token(alcoholId, candidate.getAttributeKey(), candidate.getAttributeValue());
-      if (!seen.add(token)
+      if (!seenAlcoholIds.add(alcoholId)
           || attributeRepository.existsByAlcoholIdAndAttributeKeyAndAttributeValue(
               alcoholId, candidate.getAttributeKey(), candidate.getAttributeValue())) {
         skipped++;
@@ -166,21 +166,14 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
 
   @Override
   @Transactional(readOnly = true)
-  public List<AdminAlcoholAttributeKeyItem> findKeys() {
-    return attributeRepository.findKeyStats().stream()
-        .map(
-            item ->
-                new AdminAlcoholAttributeKeyItem(
-                    item.key(), item.type(), item.datatype(), item.count(), item.alcoholCount()))
-        .toList();
+  public List<AlcoholAttributeKeyCountItem> findKeys() {
+    return attributeRepository.findKeyStats();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<AdminAlcoholAttributeKeywordItem> findKeywords() {
-    return attributeRepository.findKeywordStats().stream()
-        .map(item -> new AdminAlcoholAttributeKeywordItem(item.value(), item.alcoholCount()))
-        .toList();
+  public List<AlcoholAttributeKeywordCountItem> findKeywords() {
+    return attributeRepository.findKeywordStats();
   }
 
   @Override
@@ -221,24 +214,16 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   private AdminAlcoholAttributeSummaryItem toSummary(
       SummaryGroupKey key, List<AlcoholAttribute> rows, long selectedCount) {
     boolean numeric = key.datatype().isNumeric();
-    boolean allSame =
-        numeric
-            ? sameNumber(rows)
-            : rows.stream().map(AlcoholAttribute::getAttributeValue).distinct().count() == 1;
     BigDecimal min = null;
     BigDecimal max = null;
     if (numeric) {
-      min =
-          rows.stream()
-              .map(row -> new BigDecimal(row.getAttributeValue()))
-              .min(BigDecimal::compareTo)
-              .orElseThrow();
-      max =
-          rows.stream()
-              .map(row -> new BigDecimal(row.getAttributeValue()))
-              .max(BigDecimal::compareTo)
-              .orElseThrow();
+      List<BigDecimal> numbers =
+          rows.stream().map(row -> new BigDecimal(row.getAttributeValue())).toList();
+      min = numbers.stream().min(BigDecimal::compareTo).orElseThrow();
+      max = numbers.stream().max(BigDecimal::compareTo).orElseThrow();
     }
+    // 비숫자 묶음은 그룹 키에 값이 들어 있어 항상 같은 값이다. 숫자는 min·max가 같으면 같은 값이다
+    boolean allSame = !numeric || min.compareTo(max) == 0;
     String value = !numeric || allSame ? rows.get(0).getAttributeValue() : null;
     List<Long> alcoholIds =
         rows.stream().map(AlcoholAttribute::getAlcoholId).distinct().sorted().toList();
@@ -255,12 +240,6 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
         min,
         max,
         allSame);
-  }
-
-  private boolean sameNumber(List<AlcoholAttribute> rows) {
-    BigDecimal first = new BigDecimal(rows.get(0).getAttributeValue());
-    return rows.stream()
-        .allMatch(row -> first.compareTo(new BigDecimal(row.getAttributeValue())) == 0);
   }
 
   private AdminAlcoholAttributeItem toItem(AlcoholAttribute attribute) {
@@ -285,10 +264,6 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     }
     return new AdminAuditPrincipalItem(
         principal.getId(), principal.getType(), principal.getEmail());
-  }
-
-  private static String token(Long alcoholId, String key, String value) {
-    return alcoholId + "\u0000" + key + "\u0000" + value;
   }
 
   private record SummaryGroupKey(

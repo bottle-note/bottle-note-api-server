@@ -103,7 +103,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
     if (tastingTagGroupRepository.existsByName(group.getName())) {
       throw new AlcoholException(TASTING_TAG_GROUP_DUPLICATE_NAME);
     }
-    TastingTagGroup saved = saveCreated(group);
+    TastingTagGroup saved = saveOrThrowDuplicate(group);
     return AdminResultResponse.of(TASTING_TAG_GROUP_CREATED, saved.getId());
   }
 
@@ -113,7 +113,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
     TastingTagGroup group = requireGroup(code);
     ensureNameAvailable(request.name(), group.getId());
     group.update(request.name(), request.family(), request.description(), request.displayOrder());
-    tastingTagGroupRepository.save(group);
+    saveOrThrowDuplicate(group);
     return AdminResultResponse.of(TASTING_TAG_GROUP_UPDATED, group.getId());
   }
 
@@ -169,8 +169,8 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
     return AdminResultResponse.of(TASTING_TAG_GROUP_TAG_REMOVED, group.getId());
   }
 
-  /** 선검사 뒤의 경합은 유니크 키 이름으로 코드 중복과 이름 중복을 가른다. */
-  private TastingTagGroup saveCreated(TastingTagGroup group) {
+  /** 선검사 뒤의 경합은 유니크 키 이름으로 코드 중복과 이름 중복을 가른다. 저장은 즉시 flush 되어 여기서 잡힌다. */
+  private TastingTagGroup saveOrThrowDuplicate(TastingTagGroup group) {
     try {
       return tastingTagGroupRepository.save(group);
     } catch (DataIntegrityViolationException ex) {

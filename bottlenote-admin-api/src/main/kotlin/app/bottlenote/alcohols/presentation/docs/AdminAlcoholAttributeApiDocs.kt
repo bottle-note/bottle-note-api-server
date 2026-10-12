@@ -3,9 +3,9 @@ package app.bottlenote.alcohols.presentation.docs
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeyItem
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeKeywordItem
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem
 import app.bottlenote.global.dto.response.AdminResultResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -131,7 +131,7 @@ object AdminAlcoholAttributeApiDocs {
 		responseCode = "200",
 		description = "항목 집계",
 		content = [
-			Content(array = ArraySchema(schema = Schema(implementation = AdminAlcoholAttributeKeyItem::class)))
+			Content(array = ArraySchema(schema = Schema(implementation = AlcoholAttributeKeyCountItem::class)))
 		]
 	)
 	annotation class FindAttributeKeys
@@ -146,7 +146,7 @@ object AdminAlcoholAttributeApiDocs {
 		responseCode = "200",
 		description = "키워드 목록",
 		content = [
-			Content(array = ArraySchema(schema = Schema(implementation = AdminAlcoholAttributeKeywordItem::class)))
+			Content(array = ArraySchema(schema = Schema(implementation = AlcoholAttributeKeywordCountItem::class)))
 		]
 	)
 	annotation class FindAttributeKeywords
