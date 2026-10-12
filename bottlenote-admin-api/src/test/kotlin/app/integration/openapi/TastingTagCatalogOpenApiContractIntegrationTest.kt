@@ -1,6 +1,5 @@
 package app.integration.openapi
 
-import com.fasterxml.jackson.databind.JsonNode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
@@ -53,18 +52,5 @@ class TastingTagCatalogOpenApiContractIntegrationTest : OpenApiSpecTestSupport()
 		val legacy = operation(spec, "GET /v1/tasting-tags")
 		val legacyItem = referencedSchema(spec, legacy.successSchema().at("/properties/data/items"))
 		assertThat(propertyNamesOf(legacyItem)).contains("icon")
-	}
-
-	private fun operation(
-		spec: JsonNode,
-		endpoint: String
-	): SpecOperation = operationsOf(spec).first { it.endpoint() == endpoint }
-
-	private fun referencedSchema(
-		spec: JsonNode,
-		schema: JsonNode
-	): JsonNode {
-		val ref = schema.path("\$ref").asText()
-		return if (ref.isBlank()) schema else spec.at(ref.removePrefix("#"))
 	}
 }

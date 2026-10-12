@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 import lombok.Getter;
 
 @Getter
-public enum AttributeDatatype {
+public enum AttributeDatatype implements CodeLabel {
   STRING("텍스트", "string", "자유 문자열", ValueProvider.ANY, ".+"),
   INT("정수", "int", "소수점 없는 정수. 가격처럼 원 단위 값", ValueProvider.ANY, "-?\\d{1,18}"),
   DOUBLE(

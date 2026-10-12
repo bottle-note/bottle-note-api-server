@@ -92,14 +92,6 @@ class AlcoholBulkOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 
 	private fun bulkOperations(spec: JsonNode): List<SpecOperation> = operationsOf(spec).filter { it.endpoint() in BULK_ENDPOINTS }
 
-	private fun referencedSchema(
-		spec: JsonNode,
-		schema: JsonNode
-	): JsonNode {
-		val ref = schema.path("\$ref").asText()
-		return if (ref.isBlank()) schema else spec.at(ref.removePrefix("#"))
-	}
-
 	companion object {
 		private val BULK_ENDPOINTS =
 			setOf("POST /v1/alcohols/bulk/validate", "POST /v1/alcohols/bulk")

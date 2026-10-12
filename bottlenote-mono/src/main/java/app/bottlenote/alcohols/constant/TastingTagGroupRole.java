@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import lombok.Getter;
 
 @Getter
-public enum TastingTagGroupRole {
+public enum TastingTagGroupRole implements CodeLabel {
   CORE("대표 태그", "core", "이 맛을 결정짓는 태그. 추천 점수에 그대로 반영", ValueProvider.ADMIN, "1.0"),
   PERIPHERAL("보조 태그", "peripheral", "같이 나타나는 태그. 추천 점수에 0.4만 반영", ValueProvider.ADMIN, "0.4");
 
