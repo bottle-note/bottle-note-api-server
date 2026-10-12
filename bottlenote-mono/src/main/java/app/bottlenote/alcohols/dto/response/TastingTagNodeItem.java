@@ -23,9 +23,9 @@ public record TastingTagNodeItem(
     return new TastingTagNodeItem(id, korName, engName, icon, description, parent, children);
   }
 
-  /** 목록 조회용 (parent/children = null) */
+  /** 목록 조회용. 아이콘은 내려주지 않고 parent/children도 비운다. */
   public static TastingTagNodeItem forList(
-      Long id, String korName, String engName, String icon, String description) {
-    return new TastingTagNodeItem(id, korName, engName, icon, description, null, null);
+      Long id, String korName, String engName, String description) {
+    return new TastingTagNodeItem(id, korName, engName, null, description, null, null);
   }
 }

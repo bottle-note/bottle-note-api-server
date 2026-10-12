@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.TastingTagRepository;
+import app.bottlenote.alcohols.dto.response.TastingTagCatalogSourceItem;
 import app.bottlenote.alcohols.dto.response.TastingTagNodeItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import java.util.List;
@@ -19,8 +20,18 @@ public interface JpaTastingTagRepository
   @Override
   @Query(
       """
+      select new app.bottlenote.alcohols.dto.response.TastingTagCatalogSourceItem(
+        t.id, t.korName, t.engName, t.parentId
+      )
+      from tasting_tag t
+      """)
+  List<TastingTagCatalogSourceItem> findAllCatalogSources();
+
+  @Override
+  @Query(
+      """
       select new app.bottlenote.alcohols.dto.response.TastingTagNodeItem(
-        t.id, t.korName, t.engName, t.icon, t.description, null, null
+        t.id, t.korName, t.engName, null, t.description, null, null
       )
       from tasting_tag t
       where (:keyword is null or :keyword = ''

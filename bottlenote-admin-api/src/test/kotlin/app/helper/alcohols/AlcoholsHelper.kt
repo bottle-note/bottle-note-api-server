@@ -133,7 +133,6 @@ object AlcoholsHelper {
 			i.toLong(),
 			"태그$i",
 			"Tag$i",
-			"icon$i.png",
 			"테이스팅 태그 설명 $i"
 		)
 	}
