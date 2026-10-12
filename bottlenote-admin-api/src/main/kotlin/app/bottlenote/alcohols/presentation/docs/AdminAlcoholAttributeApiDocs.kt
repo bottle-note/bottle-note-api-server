@@ -49,6 +49,7 @@ object AdminAlcoholAttributeApiDocs {
 			네 병 이상 비교 화면용 집계입니다.
 
 			숫자 형식은 항목(key)별로, 그 외는 항목과 값별로 묶습니다. 숫자 묶음은 최소·최대와 값이 모두 같은지 함께 반환합니다.
+			registeredCount는 묶음에 값이 있는 위스키 수이고, attributeIds는 그 묶음의 속성 행 ID입니다.
 			"""
 	)
 	@ApiResponse(
@@ -75,6 +76,8 @@ object AdminAlcoholAttributeApiDocs {
 		description = "추가 결과",
 		content = [Content(schema = Schema(implementation = AdminAlcoholAttributeCreateResponse::class))]
 	)
+	@ApiResponse(responseCode = "404", description = "위스키가 없습니다")
+	@ApiResponse(responseCode = "409", description = "같은 위스키에 같은 항목과 값이 이미 있습니다")
 	annotation class CreateAttributes
 
 	@Target(AnnotationTarget.FUNCTION)
@@ -88,6 +91,8 @@ object AdminAlcoholAttributeApiDocs {
 		description = "수정 처리 결과",
 		content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
 	)
+	@ApiResponse(responseCode = "404", description = "위스키 속성이 없습니다")
+	@ApiResponse(responseCode = "409", description = "같은 위스키에 같은 항목과 값이 이미 있습니다")
 	annotation class UpdateAttribute
 
 	@Target(AnnotationTarget.FUNCTION)
@@ -98,13 +103,14 @@ object AdminAlcoholAttributeApiDocs {
 		description = "삭제 처리 결과",
 		content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
 	)
+	@ApiResponse(responseCode = "404", description = "위스키 속성이 없습니다")
 	annotation class DeleteAttribute
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(
 		summary = "위스키 속성을 여러 건 삭제한다",
-		description = "요청한 ID 중 실제로 지운 속성 행을 그대로 돌려줍니다. 실행을 취소할 때 이 응답을 다시 넣으면 됩니다."
+		description = "지운 행의 내용을 반환한다. 되살리려면 create로 다시 추가하며 ID와 생성 정보는 새로 생긴다."
 	)
 	@ApiResponse(
 		responseCode = "200",

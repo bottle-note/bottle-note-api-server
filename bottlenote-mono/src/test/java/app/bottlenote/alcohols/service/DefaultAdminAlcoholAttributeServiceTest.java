@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.service;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_DUPLICATE;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_NOT_FOUND;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
@@ -11,6 +12,7 @@ import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.constant.ValueProvider;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.AlcoholAttributeRepository;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
@@ -32,9 +34,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Tag("unit")
-@DisplayName("위스키 속성 어드민 서비스 단위 테스트")
+@DisplayName("위스키 속성 어드민 서비스")
 @SuppressWarnings("NonAsciiCharacters")
 class DefaultAdminAlcoholAttributeServiceTest {
 
@@ -100,6 +103,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
             .findFirst()
             .orElseThrow();
     assertThat(price.alcoholIds()).containsExactly(first.getId(), second.getId(), third.getId());
+    assertThat(price.attributeIds()).hasSize(3);
     assertThat(price.registeredCount()).isEqualTo(3);
     assertThat(price.selectedCount()).isEqualTo(3);
     assertThat(price.min()).isEqualByComparingTo(new BigDecimal("10000"));
@@ -113,6 +117,37 @@ class DefaultAdminAlcoholAttributeServiceTest {
     assertThat(peat.registeredCount()).isEqualTo(2);
     assertThat(peat.allSameValue()).isTrue();
     assertThat(peat.min()).isNull();
+  }
+
+  @Test
+  @DisplayName("한 위스키의 숫자 속성이 여러 행이면 등록 수는 위스키 수이고 행 ID를 모두 담는다")
+  void 같은_숫자_항목의_여러_행을_위스키_수로_묶을_수_있다() {
+    AlcoholAttribute low =
+        saveAttribute(
+            first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
+    AlcoholAttribute high =
+        saveAttribute(
+            first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "25000");
+    AlcoholAttribute other =
+        saveAttribute(
+            second.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "30000");
+
+    List<AdminAlcoholAttributeSummaryItem> summary =
+        service.summarize(
+            new AdminAlcoholAttributeSearchRequest(
+                List.of(first.getId(), second.getId(), third.getId())));
+
+    AdminAlcoholAttributeSummaryItem price =
+        summary.stream()
+            .filter(item -> item.key().equals("price_bottle"))
+            .findFirst()
+            .orElseThrow();
+    assertThat(price.alcoholIds()).containsExactly(first.getId(), second.getId());
+    assertThat(price.attributeIds()).containsExactly(low.getId(), high.getId(), other.getId());
+    assertThat(price.registeredCount()).isEqualTo(2);
+    assertThat(price.selectedCount()).isEqualTo(3);
+    assertThat(price.min()).isEqualByComparingTo(new BigDecimal("10000"));
+    assertThat(price.max()).isEqualByComparingTo(new BigDecimal("30000"));
   }
 
   @Test
@@ -163,6 +198,57 @@ class DefaultAdminAlcoholAttributeServiceTest {
   }
 
   @Test
+  @DisplayName("삭제된 위스키에는 속성을 추가하지 않는다")
+  void 삭제된_위스키에는_속성을_추가할_수_없다() {
+    first.delete();
+
+    assertThatThrownBy(
+            () ->
+                service.create(
+                    new AdminAlcoholAttributeCreateRequest(
+                        List.of(first.getId()),
+                        "keyword",
+                        AttributeType.KEYWORD,
+                        AttributeDatatype.STRING,
+                        "피트",
+                        null,
+                        null)))
+        .isInstanceOf(AlcoholException.class)
+        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
+        .isEqualTo(ALCOHOL_NOT_FOUND);
+    assertThat(attributeRepository.findAll()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("저장 중 유니크 위반이 나면 추가를 409로 바꾼다")
+  void 저장_중_유니크_위반은_추가를_거절한다() {
+    AlcoholAttributeRepository failing =
+        new InMemoryAlcoholAttributeRepository() {
+          @Override
+          public AlcoholAttribute save(AlcoholAttribute attribute) {
+            throw new DataIntegrityViolationException("duplicate");
+          }
+        };
+    DefaultAdminAlcoholAttributeService failingService =
+        new DefaultAdminAlcoholAttributeService(failing, alcoholQueryRepository);
+
+    assertThatThrownBy(
+            () ->
+                failingService.create(
+                    new AdminAlcoholAttributeCreateRequest(
+                        List.of(first.getId()),
+                        "keyword",
+                        AttributeType.KEYWORD,
+                        AttributeDatatype.STRING,
+                        "피트",
+                        null,
+                        null)))
+        .isInstanceOf(AlcoholException.class)
+        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
+        .isEqualTo(ALCOHOL_ATTRIBUTE_DUPLICATE);
+  }
+
+  @Test
   @DisplayName("값 형식이 맞지 않으면 추가를 거부한다")
   void 잘못된_값은_거부할_수_있다() {
     assertThatThrownBy(
@@ -200,6 +286,64 @@ class DefaultAdminAlcoholAttributeServiceTest {
         .isEqualTo("20000");
     assertThat(attributeRepository.findById(saved.getId()).orElseThrow().getAttributeKey())
         .isEqualTo("price_bottle");
+  }
+
+  @Test
+  @DisplayName("같은 위스키의 다른 행과 항목·값이 겹치면 수정하지 않는다")
+  void 같은_항목과_값으로_수정할_수_없다() {
+    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+    AlcoholAttribute target =
+        saveAttribute(
+            first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "과일");
+
+    assertThatThrownBy(
+            () ->
+                service.update(
+                    target.getId(),
+                    new AdminAlcoholAttributeUpdateRequest(
+                        AttributeType.KEYWORD, AttributeDatatype.STRING, "피트", null, null)))
+        .isInstanceOf(AlcoholException.class)
+        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
+        .isEqualTo(ALCOHOL_ATTRIBUTE_DUPLICATE);
+    assertThat(attributeRepository.findById(target.getId()).orElseThrow().getAttributeValue())
+        .isEqualTo("과일");
+  }
+
+  @Test
+  @DisplayName("수정 저장 중 유니크 위반이 나면 409로 바꾼다")
+  void 수정_저장_중_유니크_위반은_409로_바꾼다() {
+    AlcoholAttributeRepository failing =
+        new InMemoryAlcoholAttributeRepository() {
+          @Override
+          public AlcoholAttribute save(AlcoholAttribute attribute) {
+            if ("충돌".equals(attribute.getAttributeValue())) {
+              throw new DataIntegrityViolationException("duplicate");
+            }
+            return super.save(attribute);
+          }
+        };
+    AlcoholAttribute saved =
+        failing.save(
+            AlcoholAttribute.create(
+                first.getId(),
+                "keyword",
+                AttributeType.KEYWORD,
+                AttributeDatatype.STRING,
+                "과일",
+                null,
+                null));
+    DefaultAdminAlcoholAttributeService failingService =
+        new DefaultAdminAlcoholAttributeService(failing, alcoholQueryRepository);
+
+    assertThatThrownBy(
+            () ->
+                failingService.update(
+                    saved.getId(),
+                    new AdminAlcoholAttributeUpdateRequest(
+                        AttributeType.KEYWORD, AttributeDatatype.STRING, "충돌", null, null)))
+        .isInstanceOf(AlcoholException.class)
+        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
+        .isEqualTo(ALCOHOL_ATTRIBUTE_DUPLICATE);
   }
 
   @Test
