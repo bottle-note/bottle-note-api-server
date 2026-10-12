@@ -3,6 +3,8 @@ package app.bottlenote.alcohols.fixture;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
 import java.util.ArrayList;
+import app.bottlenote.alcohols.dto.response.TastingTagAlcoholCountItem;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -85,5 +87,18 @@ public class InMemoryAlcoholsTastingTagsRepository implements AlcoholsTastingTag
 
   public void clear() {
     mappings.clear();
+  }
+
+  @Override
+  public List<TastingTagAlcoholCountItem> countAlcoholsByTastingTagIds(
+      Collection<Long> tastingTagIds) {
+    Set<Long> ids = Set.copyOf(tastingTagIds);
+    return mappings.stream()
+        .filter(att -> ids.contains(att.getTastingTag().getId()))
+        .collect(Collectors.groupingBy(att -> att.getTastingTag().getId(), Collectors.counting()))
+        .entrySet()
+        .stream()
+        .map(e -> new TastingTagAlcoholCountItem(e.getKey(), e.getValue()))
+        .toList();
   }
 }
