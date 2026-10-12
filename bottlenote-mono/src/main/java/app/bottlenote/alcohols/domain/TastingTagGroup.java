@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -126,6 +127,11 @@ public class TastingTagGroup extends BaseEntity {
     return tags.stream()
         .filter(tag -> Objects.equals(tag.getTastingTagId(), tastingTagId))
         .findFirst();
+  }
+
+  /** 역할과 무관하게 들어 있는 태그 ID 전부 */
+  public Set<Long> tagIds() {
+    return tags.stream().map(TastingTagGroupTag::getTastingTagId).collect(Collectors.toSet());
   }
 
   public List<Long> coreTagIds() {

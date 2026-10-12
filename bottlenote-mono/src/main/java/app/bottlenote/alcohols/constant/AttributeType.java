@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum AttributeType {
+public enum AttributeType implements CodeLabel {
   KEYWORD("키워드", "keyword", "추천 필터와 키워드 그래프에 쓰는 라벨", ValueProvider.ANY),
   POPULARITY("대중성 점수", "popularity", "관리자가 시즌에 맞게 조절해서 넣는 대중성 점수", ValueProvider.ANY),
   PRICE("가격", "price", "병·잔 가격. 출처와 기준 시점을 함께 남긴다", ValueProvider.ANY),

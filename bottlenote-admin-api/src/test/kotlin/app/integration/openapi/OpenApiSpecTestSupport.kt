@@ -28,6 +28,21 @@ abstract class OpenApiSpecTestSupport : IntegrationTestSupport() {
 	}
 
 	/** 위반 목록을 실패 메시지에 담을 형태로 잇는다. */
+	/** endpoint 문자열("GET /v1/...")로 operation 하나를 찾는다. 없으면 NoSuchElementException */
+	protected fun operation(
+		spec: JsonNode,
+		endpoint: String
+	): SpecOperation = operationsOf(spec).first { it.endpoint() == endpoint }
+
+	/** $ref 스키마면 components에서 실제 스키마를, 아니면 그대로 돌려준다 */
+	protected fun referencedSchema(
+		spec: JsonNode,
+		schema: JsonNode
+	): JsonNode {
+		val ref = schema.path("\$ref").asText()
+		return if (ref.isBlank()) schema else spec.at(ref.removePrefix("#"))
+	}
+
 	protected fun joined(violations: List<String>): String = violations.joinToString(System.lineSeparator())
 
 	/** 노드의 직접 자식 이름. */
