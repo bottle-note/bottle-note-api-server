@@ -25,6 +25,23 @@ public interface JpaAlcoholAttributeRepository
   @Override
   Optional<AlcoholAttribute> findById(Long id);
 
+  // 빈 id 목록은 IN () SQL이 되지 않게 쿼리를 건너뛴다
+  @Override
+  default List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return List.of();
+    }
+    return selectAllByIdIn(ids);
+  }
+
+  @Query(
+      """
+      select a from alcohol_attribute a
+      where a.id in :ids
+      order by a.id asc
+      """)
+  List<AlcoholAttribute> selectAllByIdIn(@Param("ids") Collection<Long> ids);
+
   @Override
   @Query(
       """

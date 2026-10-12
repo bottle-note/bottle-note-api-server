@@ -16,6 +16,8 @@ public interface AlcoholAttributeRepository {
 
   Optional<AlcoholAttribute> findById(Long id);
 
+  List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids);
+
   List<AlcoholAttribute> findAllByAlcoholIdIn(Collection<Long> alcoholIds);
 
   List<AlcoholAttribute> findAllByAttributeType(AttributeType attributeType);
