@@ -10,11 +10,9 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.constant.TastingTagGroupRole;
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.TastingTag;
+import app.bottlenote.alcohols.domain.TastingTagGroup;
 import app.bottlenote.alcohols.dto.request.AdminTastingTagGroupCreateRequest;
 import app.bottlenote.alcohols.dto.request.AdminTastingTagGroupTagRoleRequest;
 import app.bottlenote.alcohols.dto.request.AdminTastingTagGroupTagsRequest;
@@ -32,7 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Tag("unit")
 @DisplayName("맛 그룹 어드민 서비스")
@@ -57,7 +55,7 @@ class DefaultAdminTastingTagGroupServiceTest {
   @Test
   @DisplayName("그룹이 없을 때 빈 목록과 빈 계열을 돌려준다")
   void 빈_목록을_조회할_수_있다() {
-    AdminTastingTagGroupListResponse response = service.list();
+    AdminTastingTagGroupListResponse response = service.findAll();
 
     assertThat(response.groups()).isEmpty();
     assertThat(response.families()).isEmpty();
@@ -69,8 +67,8 @@ class DefaultAdminTastingTagGroupServiceTest {
     TastingTag peat = saveTag("피트");
     TastingTag vanilla = saveTag("바닐라");
     TastingTag oak = saveTag("오크");
-    linkAlcohol(peat, 1L);
-    linkAlcohol(peat, 2L);
+    alcoholsTastingTagsRepository.link(1L, peat);
+    alcoholsTastingTagsRepository.link(2L, peat);
 
     service.create(createRequest("SCOTCH_LATE", "늦은 스카치", "스카치", null, 2));
     service.addTags(
@@ -85,7 +83,7 @@ class DefaultAdminTastingTagGroupServiceTest {
         "BOURBON", peat.getId(), new AdminTastingTagGroupTagRoleRequest(TastingTagGroupRole.CORE));
     service.create(createRequest("UNGROUPED", "계열 없음", null, null, 0));
 
-    AdminTastingTagGroupListResponse response = service.list();
+    AdminTastingTagGroupListResponse response = service.findAll();
 
     assertThat(response.groups())
         .extracting(AdminTastingTagGroupItem::code)
@@ -115,7 +113,7 @@ class DefaultAdminTastingTagGroupServiceTest {
 
     assertThat(created.code()).isEqualTo("TASTING_TAG_GROUP_CREATED");
     assertThat(created.targetId()).isNotNull();
-    AdminTastingTagGroupItem detail = service.get("PEAT_SMOKY");
+    AdminTastingTagGroupItem detail = service.getDetail("PEAT_SMOKY");
     assertThat(detail.name()).isEqualTo("피트");
     assertThat(detail.family()).isEqualTo("스카치");
     assertThat(detail.description()).isNull();
@@ -139,7 +137,7 @@ class DefaultAdminTastingTagGroupServiceTest {
   @Test
   @DisplayName("없는 그룹을 조회할 때 찾을 수 없다고 한다")
   void 없는_그룹은_조회할_수_없다() {
-    assertThatThrownBy(() -> service.get("NO_SUCH"))
+    assertThatThrownBy(() -> service.getDetail("NO_SUCH"))
         .isInstanceOf(AlcoholException.class)
         .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
         .isEqualTo(TASTING_TAG_GROUP_NOT_FOUND);
@@ -155,7 +153,7 @@ class DefaultAdminTastingTagGroupServiceTest {
         service.update("PEAT", new AdminTastingTagGroupUpdateRequest(" 피트 연기 ", "아일라", null, null));
 
     assertThat(updated.code()).isEqualTo("TASTING_TAG_GROUP_UPDATED");
-    AdminTastingTagGroupItem detail = service.get("PEAT");
+    AdminTastingTagGroupItem detail = service.getDetail("PEAT");
     assertThat(detail.code()).isEqualTo("PEAT");
     assertThat(detail.name()).isEqualTo("피트 연기");
     assertThat(detail.family()).isEqualTo("아일라");
@@ -169,7 +167,7 @@ class DefaultAdminTastingTagGroupServiceTest {
         .isInstanceOf(AlcoholException.class)
         .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
         .isEqualTo(TASTING_TAG_GROUP_DUPLICATE_NAME);
-    assertThat(service.get("PEAT").name()).isEqualTo("피트 연기");
+    assertThat(service.getDetail("PEAT").name()).isEqualTo("피트 연기");
   }
 
   @Test
@@ -208,7 +206,7 @@ class DefaultAdminTastingTagGroupServiceTest {
         .isInstanceOf(AlcoholException.class)
         .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
         .isEqualTo(TASTING_TAG_NOT_FOUND);
-    assertThat(service.get("PEAT").tags()).isEmpty();
+    assertThat(service.getDetail("PEAT").tags()).isEmpty();
 
     service.addTags(
         "PEAT",
@@ -220,8 +218,8 @@ class DefaultAdminTastingTagGroupServiceTest {
                 List.of(peat.getId()), TastingTagGroupRole.PERIPHERAL));
 
     assertThat(changed.code()).isEqualTo("TASTING_TAG_GROUP_TAG_ADDED");
-    assertThat(service.get("PEAT").tags()).hasSize(1);
-    assertThat(service.get("PEAT").tags().get(0).role().code()).isEqualTo("PERIPHERAL");
+    assertThat(service.getDetail("PEAT").tags()).hasSize(1);
+    assertThat(service.getDetail("PEAT").tags().get(0).role().code()).isEqualTo("PERIPHERAL");
   }
 
   @Test
@@ -254,22 +252,54 @@ class DefaultAdminTastingTagGroupServiceTest {
     return new AdminTastingTagGroupCreateRequest(code, name, family, description, displayOrder);
   }
 
+  @Test
+  @DisplayName("저장 중 코드 유니크 키가 겹치면 코드 중복으로 거절한다")
+  void 동시에_코드가_겹치면_중복_코드로_거절한다() {
+    service =
+        new DefaultAdminTastingTagGroupService(
+            new DuplicateOnInsertRepository("uk_tasting_tag_groups_code"),
+            tastingTagRepository,
+            alcoholsTastingTagsRepository);
+
+    assertThatThrownBy(() -> service.create(createRequest("PEAT", "피트", null, null, 0)))
+        .isInstanceOf(AlcoholException.class)
+        .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
+        .isEqualTo(TASTING_TAG_GROUP_DUPLICATE_CODE);
+  }
+
+  @Test
+  @DisplayName("저장 중 이름 유니크 키가 겹치면 이름 중복으로 거절한다")
+  void 동시에_이름이_겹치면_중복_이름으로_거절한다() {
+    service =
+        new DefaultAdminTastingTagGroupService(
+            new DuplicateOnInsertRepository("uk_tasting_tag_groups_name"),
+            tastingTagRepository,
+            alcoholsTastingTagsRepository);
+
+    assertThatThrownBy(() -> service.create(createRequest("PEAT", "피트", null, null, 0)))
+        .isInstanceOf(AlcoholException.class)
+        .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
+        .isEqualTo(TASTING_TAG_GROUP_DUPLICATE_NAME);
+  }
+
   private TastingTag saveTag(String korName) {
     return tastingTagRepository.save(
         TastingTag.builder().korName(korName).engName(korName).build());
   }
 
-  private void linkAlcohol(TastingTag tag, long alcoholId) {
-    Alcohol alcohol =
-        Alcohol.builder()
-            .korName("위스키" + alcoholId)
-            .engName("whisky" + alcoholId)
-            .type(AlcoholType.WHISKY)
-            .korCategory(AlcoholType.WHISKY.getKorCategory())
-            .engCategory(AlcoholType.WHISKY.getEngCategory())
-            .categoryGroup(AlcoholType.WHISKY.getDefaultCategoryGroup())
-            .build();
-    ReflectionTestUtils.setField(alcohol, "id", alcoholId);
-    alcoholsTastingTagsRepository.saveAll(List.of(AlcoholsTastingTags.of(alcohol, tag)));
+  /** 선검사를 통과한 뒤 저장에서만 유니크 위반을 낸다. */
+  private static final class DuplicateOnInsertRepository extends InMemoryTastingTagGroupRepository {
+
+    private final String constraintName;
+
+    private DuplicateOnInsertRepository(String constraintName) {
+      this.constraintName = constraintName;
+    }
+
+    @Override
+    public TastingTagGroup save(TastingTagGroup group) {
+      throw new DataIntegrityViolationException(
+          "could not execute statement [Duplicate entry for key '" + constraintName + "']");
+    }
   }
 }

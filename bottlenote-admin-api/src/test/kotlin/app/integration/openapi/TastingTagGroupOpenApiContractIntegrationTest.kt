@@ -36,32 +36,46 @@ class TastingTagGroupOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 	@DisplayName("목록·상세·쓰기 응답과 요청 본문이 구체 스키마를 가리킨다")
 	fun groupSchemasReferenceConcreteTypes() {
 		val spec = fetchSpec()
-		val operations = operationsOf(spec).associateBy { it.endpoint() }
 
-		assertThat(dataRef(operations.getValue("GET /v1/tasting/groups")))
+		assertThat(dataRef(operation(spec, "GET /v1/tasting/groups")))
 			.endsWith("/AdminTastingTagGroupListResponse")
-		assertThat(dataRef(operations.getValue("GET /v1/tasting/groups/{code}")))
+		assertThat(dataRef(operation(spec, "GET /v1/tasting/groups/{code}")))
 			.endsWith("/AdminTastingTagGroupItem")
-		assertThat(dataRef(operations.getValue("POST /v1/tasting/groups")))
+		assertThat(dataRef(operation(spec, "POST /v1/tasting/groups")))
 			.endsWith("/AdminResultResponse")
-		assertThat(requestRef(operations.getValue("POST /v1/tasting/groups")))
+		assertThat(requestRef(operation(spec, "POST /v1/tasting/groups")))
 			.endsWith("/AdminTastingTagGroupCreateRequest")
-		assertThat(requestRef(operations.getValue("PUT /v1/tasting/groups/{code}")))
+		assertThat(requestRef(operation(spec, "PUT /v1/tasting/groups/{code}")))
 			.endsWith("/AdminTastingTagGroupUpdateRequest")
-		assertThat(requestRef(operations.getValue("POST /v1/tasting/groups/{code}/tags")))
+		assertThat(requestRef(operation(spec, "POST /v1/tasting/groups/{code}/tags")))
 			.endsWith("/AdminTastingTagGroupTagsRequest")
-		assertThat(requestRef(operations.getValue("PUT /v1/tasting/groups/{code}/tags/{tagId}")))
+		assertThat(requestRef(operation(spec, "PUT /v1/tasting/groups/{code}/tags/{tagId}")))
 			.endsWith("/AdminTastingTagGroupTagRoleRequest")
 
-		val tagItem = spec.at("/components/schemas/AdminTastingTagGroupTagItem")
+		val tagItem = referencedSchema(spec, spec.at("/components/schemas/AdminTastingTagGroupTagItem"))
 		assertThat(propertyNamesOf(tagItem))
 			.contains("tastingTagId", "korName", "role", "provider", "alcoholCount")
-		assertThat(tagItem.at("/properties/role/\$ref").asText()).endsWith("/AdminCodeLabelItem")
-		val label = spec.at("/components/schemas/AdminCodeLabelItem")
-		assertThat(propertyNamesOf(label)).containsExactly("code", "korName", "engName", "description")
+		val role = referencedSchema(spec, tagItem.at("/properties/role"))
+		assertThat(propertyNamesOf(role)).containsExactly("code", "korName", "engName", "description")
+	}
+
+	@Test
+	@DisplayName("없는 자원은 404, 중복과 태그 있는 삭제는 409로 문서화된다")
+	fun groupEndpointsDocumentNotFoundAndConflict() {
+		val spec = fetchSpec()
+
+		assertThat(responseCodes(operation(spec, "GET /v1/tasting/groups/{code}"))).contains("404")
+		assertThat(responseCodes(operation(spec, "POST /v1/tasting/groups"))).contains("409")
+		assertThat(responseCodes(operation(spec, "PUT /v1/tasting/groups/{code}"))).contains("404", "409")
+		assertThat(responseCodes(operation(spec, "DELETE /v1/tasting/groups/{code}"))).contains("404", "409")
+		assertThat(responseCodes(operation(spec, "POST /v1/tasting/groups/{code}/tags"))).contains("404")
+		assertThat(responseCodes(operation(spec, "PUT /v1/tasting/groups/{code}/tags/{tagId}"))).contains("404")
+		assertThat(responseCodes(operation(spec, "DELETE /v1/tasting/groups/{code}/tags/{tagId}"))).contains("404")
 	}
 
 	private fun dataRef(operation: SpecOperation): String = operation.successSchema().at("/properties/data/\$ref").asText()
 
 	private fun requestRef(operation: SpecOperation): String = operation.definition.at("/requestBody/content/application~1json/schema/\$ref").asText()
+
+	private fun responseCodes(operation: SpecOperation): List<String> = childNamesOf(operation.definition.path("responses"))
 }

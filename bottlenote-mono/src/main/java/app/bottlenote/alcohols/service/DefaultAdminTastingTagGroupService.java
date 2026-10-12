@@ -14,9 +14,7 @@ import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.TASTING_TAG_GROUP_UPDATED;
 
 import app.bottlenote.alcohols.constant.TastingTagGroupRole;
-import app.bottlenote.alcohols.constant.ValueProvider;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
-import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.TastingTagGroup;
 import app.bottlenote.alcohols.domain.TastingTagGroupRepository;
 import app.bottlenote.alcohols.domain.TastingTagGroupTag;
@@ -29,8 +27,9 @@ import app.bottlenote.alcohols.dto.response.AdminCodeLabelItem;
 import app.bottlenote.alcohols.dto.response.AdminTastingTagGroupItem;
 import app.bottlenote.alcohols.dto.response.AdminTastingTagGroupListResponse;
 import app.bottlenote.alcohols.dto.response.AdminTastingTagGroupTagItem;
-import app.bottlenote.alcohols.dto.response.TastingTagAlcoholCountItem;
+import app.bottlenote.alcohols.dto.response.TastingTagCatalogSourceItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,16 +49,22 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupService {
 
+  private static final String DUPLICATE_NAME_KEY = "uk_tasting_tag_groups_name";
+
   private final TastingTagGroupRepository tastingTagGroupRepository;
   private final TastingTagRepository tastingTagRepository;
   private final AlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
 
   @Override
   @Transactional(readOnly = true)
-  public AdminTastingTagGroupListResponse list() {
+  public AdminTastingTagGroupListResponse findAll() {
     List<TastingTagGroup> groups = tastingTagGroupRepository.findAllWithTags();
-    Map<Long, String> names = tagNames();
-    Map<Long, Long> counts = alcoholCounts(tagIdsOf(groups));
+    Set<Long> tagIds = new HashSet<>();
+    for (TastingTagGroup group : groups) {
+      tagIds.addAll(group.tagIds());
+    }
+    Map<Long, String> names = tagNames(tagIds);
+    Map<Long, Long> counts = TastingTagAlcoholCounts.byTagId(alcoholsTastingTagsRepository, tagIds);
 
     List<AdminTastingTagGroupItem> items = new ArrayList<>();
     LinkedHashSet<String> families = new LinkedHashSet<>();
@@ -73,9 +79,12 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
 
   @Override
   @Transactional(readOnly = true)
-  public AdminTastingTagGroupItem get(String code) {
+  public AdminTastingTagGroupItem getDetail(String code) {
     TastingTagGroup group = requireGroup(code);
-    return toItem(group, tagNames(), alcoholCounts(tagIdsOf(group)));
+    return toItem(
+        group,
+        tagNames(group.tagIds()),
+        TastingTagAlcoholCounts.byTagId(alcoholsTastingTagsRepository, group.tagIds()));
   }
 
   @Override
@@ -94,7 +103,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
     if (tastingTagGroupRepository.existsByName(group.getName())) {
       throw new AlcoholException(TASTING_TAG_GROUP_DUPLICATE_NAME);
     }
-    TastingTagGroup saved = tastingTagGroupRepository.save(group);
+    TastingTagGroup saved = saveCreated(group);
     return AdminResultResponse.of(TASTING_TAG_GROUP_CREATED, saved.getId());
   }
 
@@ -123,7 +132,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
   @Transactional
   public AdminResultResponse addTags(String code, AdminTastingTagGroupTagsRequest request) {
     TastingTagGroup group = requireGroup(code);
-    Set<Long> knownIds = tagNames().keySet();
+    Set<Long> knownIds = allTagNames().keySet();
     for (Long tastingTagId : request.tastingTagIds()) {
       if (!knownIds.contains(tastingTagId)) {
         throw new AlcoholException(TASTING_TAG_NOT_FOUND);
@@ -160,6 +169,27 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
     return AdminResultResponse.of(TASTING_TAG_GROUP_TAG_REMOVED, group.getId());
   }
 
+  /** 선검사 뒤의 경합은 유니크 키 이름으로 코드 중복과 이름 중복을 가른다. */
+  private TastingTagGroup saveCreated(TastingTagGroup group) {
+    try {
+      return tastingTagGroupRepository.save(group);
+    } catch (DataIntegrityViolationException ex) {
+      throw new AlcoholException(duplicateOf(ex));
+    }
+  }
+
+  private static AlcoholExceptionCode duplicateOf(DataIntegrityViolationException ex) {
+    Throwable current = ex;
+    while (current != null) {
+      String message = current.getMessage();
+      if (message != null && message.contains(DUPLICATE_NAME_KEY)) {
+        return TASTING_TAG_GROUP_DUPLICATE_NAME;
+      }
+      current = current.getCause();
+    }
+    return TASTING_TAG_GROUP_DUPLICATE_CODE;
+  }
+
   private TastingTagGroup requireGroup(String code) {
     return tastingTagGroupRepository
         .findByCode(code)
@@ -176,43 +206,24 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
     }
   }
 
-  private Map<Long, String> tagNames() {
+  /** 아직 그룹에 없는 태그도 존재 확인이 필요해서 카탈로그 전체를 본다. */
+  private Map<Long, String> allTagNames() {
+    return tagNames(null);
+  }
+
+  /** ids가 null이면 카탈로그 전체, 아니면 그 ID만 남긴다. 아이콘 컬럼은 읽지 않는다. */
+  private Map<Long, String> tagNames(Collection<Long> ids) {
+    Set<Long> wanted = ids == null ? null : Set.copyOf(ids);
+    if (wanted != null && wanted.isEmpty()) {
+      return Map.of();
+    }
     Map<Long, String> names = new HashMap<>();
-    for (TastingTag tag : tastingTagRepository.findAll()) {
-      if (tag.getId() != null) {
-        names.put(tag.getId(), tag.getKorName());
+    for (TastingTagCatalogSourceItem source : tastingTagRepository.findAllCatalogSources()) {
+      if (source.id() != null && (wanted == null || wanted.contains(source.id()))) {
+        names.put(source.id(), source.korName());
       }
     }
     return names;
-  }
-
-  /** 빈 목록은 IN () SQL을 만들지 않는다. 매핑이 없는 태그는 0으로 채운다. */
-  private Map<Long, Long> alcoholCounts(Collection<Long> tastingTagIds) {
-    if (tastingTagIds == null || tastingTagIds.isEmpty()) {
-      return Map.of();
-    }
-    Map<Long, Long> counts = new HashMap<>();
-    for (TastingTagAlcoholCountItem item :
-        alcoholsTastingTagsRepository.countAlcoholsByTastingTagIds(tastingTagIds)) {
-      counts.put(item.tastingTagId(), item.alcoholCount() == null ? 0L : item.alcoholCount());
-    }
-    return counts;
-  }
-
-  private Set<Long> tagIdsOf(List<TastingTagGroup> groups) {
-    Set<Long> ids = new HashSet<>();
-    for (TastingTagGroup group : groups) {
-      ids.addAll(tagIdsOf(group));
-    }
-    return ids;
-  }
-
-  private Set<Long> tagIdsOf(TastingTagGroup group) {
-    Set<Long> ids = new HashSet<>();
-    for (TastingTagGroupTag tag : group.getTags()) {
-      ids.add(tag.getTastingTagId());
-    }
-    return ids;
   }
 
   private AdminTastingTagGroupItem toItem(
@@ -244,19 +255,9 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
                 new AdminTastingTagGroupTagItem(
                     tag.getTastingTagId(),
                     names.get(tag.getTastingTagId()),
-                    label(tag.getRole()),
-                    label(tag.getRole().getProvider()),
+                    AdminCodeLabelItem.of(tag.getRole()),
+                    AdminCodeLabelItem.of(tag.getRole().getProvider()),
                     counts.getOrDefault(tag.getTastingTagId(), 0L)))
         .toList();
-  }
-
-  private AdminCodeLabelItem label(TastingTagGroupRole role) {
-    return new AdminCodeLabelItem(
-        role.name(), role.getKorName(), role.getEngName(), role.getDescription());
-  }
-
-  private AdminCodeLabelItem label(ValueProvider provider) {
-    return new AdminCodeLabelItem(
-        provider.name(), provider.getKorName(), provider.getEngName(), provider.getDescription());
   }
 }
