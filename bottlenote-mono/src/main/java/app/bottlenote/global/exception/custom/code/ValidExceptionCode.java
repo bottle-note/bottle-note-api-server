@@ -145,7 +145,12 @@ public enum ValidExceptionCode implements ExceptionCode {
   ACCESS_CONTROL_IP_REQUIRED(HttpStatus.BAD_REQUEST, "IP 주소는 필수입니다."),
   ACCESS_CONTROL_BAN_TTL_MINIMUM(HttpStatus.BAD_REQUEST, "ban TTL은 1초 이상이어야 합니다."),
   ACCESS_CONTROL_BAN_TTL_MAXIMUM(HttpStatus.BAD_REQUEST, "ban TTL은 30일(2592000초) 이하여야 합니다."),
-  ACCESS_CONTROL_BAN_REASON_MAX_SIZE(HttpStatus.BAD_REQUEST, "ban 사유는 최대 200자까지 가능합니다.");
+  ACCESS_CONTROL_BAN_REASON_MAX_SIZE(HttpStatus.BAD_REQUEST, "ban 사유는 최대 200자까지 가능합니다."),
+
+  // TASTING TAG GROUP
+  TASTING_TAG_GROUP_TAG_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "맛 그룹에 연결할 태그 ID 목록은 필수입니다."),
+  TASTING_TAG_GROUP_TAG_ID_REQUIRED(HttpStatus.BAD_REQUEST, "태그 ID는 null일 수 없습니다."),
+  TASTING_TAG_GROUP_ROLE_REQUIRED(HttpStatus.BAD_REQUEST, "태그 역할은 필수입니다.");
 
   private final HttpStatus httpStatus;
   private String message;
