@@ -10,9 +10,9 @@ import app.bottlenote.global.dto.response.AdminResultResponse;
 
 public interface AdminTastingTagGroupService {
 
-  AdminTastingTagGroupListResponse list();
+  AdminTastingTagGroupListResponse findAll();
 
-  AdminTastingTagGroupItem get(String code);
+  AdminTastingTagGroupItem getDetail(String code);
 
   AdminResultResponse create(AdminTastingTagGroupCreateRequest request);
 

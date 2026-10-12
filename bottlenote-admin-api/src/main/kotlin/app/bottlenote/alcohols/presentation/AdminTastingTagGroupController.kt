@@ -26,43 +26,43 @@ class AdminTastingTagGroupController(
 ) {
 	@AdminTastingTagGroupApiDocs.ListGroups
 	@GetMapping
-	fun list(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.list())
+	fun findAllGroups(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.findAll())
 
 	@AdminTastingTagGroupApiDocs.GetGroup
 	@GetMapping("/{code}")
-	fun get(
+	fun getGroupDetail(
 		@PathVariable code: String
-	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.get(code))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.getDetail(code))
 
 	@AdminTastingTagGroupApiDocs.CreateGroup
 	@PostMapping
-	fun create(
+	fun createGroup(
 		@RequestBody @Valid request: AdminTastingTagGroupCreateRequest
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.create(request))
 
 	@AdminTastingTagGroupApiDocs.UpdateGroup
 	@PutMapping("/{code}")
-	fun update(
+	fun updateGroup(
 		@PathVariable code: String,
 		@RequestBody @Valid request: AdminTastingTagGroupUpdateRequest
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.update(code, request))
 
 	@AdminTastingTagGroupApiDocs.DeleteGroup
 	@DeleteMapping("/{code}")
-	fun delete(
+	fun deleteGroup(
 		@PathVariable code: String
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.delete(code))
 
 	@AdminTastingTagGroupApiDocs.AddTags
 	@PostMapping("/{code}/tags")
-	fun addTags(
+	fun addGroupTags(
 		@PathVariable code: String,
 		@RequestBody @Valid request: AdminTastingTagGroupTagsRequest
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.addTags(code, request))
 
 	@AdminTastingTagGroupApiDocs.ChangeTagRole
 	@PutMapping("/{code}/tags/{tagId}")
-	fun changeTagRole(
+	fun changeGroupTagRole(
 		@PathVariable code: String,
 		@PathVariable tagId: Long,
 		@RequestBody @Valid request: AdminTastingTagGroupTagRoleRequest
@@ -72,7 +72,7 @@ class AdminTastingTagGroupController(
 
 	@AdminTastingTagGroupApiDocs.RemoveTag
 	@DeleteMapping("/{code}/tags/{tagId}")
-	fun removeTag(
+	fun removeGroupTag(
 		@PathVariable code: String,
 		@PathVariable tagId: Long
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminTastingTagGroupService.removeTag(code, tagId))

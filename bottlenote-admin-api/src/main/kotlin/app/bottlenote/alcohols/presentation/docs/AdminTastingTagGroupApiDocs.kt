@@ -47,7 +47,8 @@ object AdminTastingTagGroupApiDocs {
 				responseCode = "200",
 				description = "맛 그룹 상세",
 				content = [Content(schema = Schema(implementation = AdminTastingTagGroupItem::class))]
-			)
+			),
+			ApiResponse(responseCode = "404", description = "맛 그룹이 없습니다")
 		]
 	)
 	annotation class GetGroup
@@ -66,7 +67,8 @@ object AdminTastingTagGroupApiDocs {
 				responseCode = "200",
 				description = "등록 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
+			),
+			ApiResponse(responseCode = "409", description = "같은 코드 또는 이름의 맛 그룹이 이미 있습니다")
 		]
 	)
 	annotation class CreateGroup
@@ -81,7 +83,9 @@ object AdminTastingTagGroupApiDocs {
 				responseCode = "200",
 				description = "수정 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
+			),
+			ApiResponse(responseCode = "404", description = "맛 그룹이 없습니다"),
+			ApiResponse(responseCode = "409", description = "같은 이름의 맛 그룹이 이미 있습니다")
 		]
 	)
 	annotation class UpdateGroup
@@ -96,7 +100,9 @@ object AdminTastingTagGroupApiDocs {
 				responseCode = "200",
 				description = "삭제 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
+			),
+			ApiResponse(responseCode = "404", description = "맛 그룹이 없습니다"),
+			ApiResponse(responseCode = "409", description = "태그가 연결된 맛 그룹은 삭제할 수 없습니다")
 		]
 	)
 	annotation class DeleteGroup
@@ -115,7 +121,8 @@ object AdminTastingTagGroupApiDocs {
 				responseCode = "200",
 				description = "연결 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
+			),
+			ApiResponse(responseCode = "404", description = "맛 그룹이 없거나 테이스팅 태그가 없습니다")
 		]
 	)
 	annotation class AddTags
@@ -130,7 +137,8 @@ object AdminTastingTagGroupApiDocs {
 				responseCode = "200",
 				description = "역할 변경 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
+			),
+			ApiResponse(responseCode = "404", description = "맛 그룹이 없거나 그룹에 해당 태그가 없습니다")
 		]
 	)
 	annotation class ChangeTagRole
@@ -145,7 +153,8 @@ object AdminTastingTagGroupApiDocs {
 				responseCode = "200",
 				description = "제거 처리 결과",
 				content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-			)
+			),
+			ApiResponse(responseCode = "404", description = "맛 그룹이 없거나 그룹에 해당 태그가 없습니다")
 		]
 	)
 	annotation class RemoveTag
