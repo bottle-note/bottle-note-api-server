@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols
+package app.integration.alcohols
 
 import app.IntegrationTestSupport
 import app.bottlenote.alcohols.constant.TastingTagGroupRole
@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.test.web.servlet.assertj.MvcTestResult
 
 @Tag("admin_integration")
-@DisplayName("[integration] Admin 테이스팅 태그 경량 조회")
+@DisplayName("[integration] 테이스팅 태그 경량 조회 어드민 API")
 class AdminTastingTagCatalogIntegrationTest : IntegrationTestSupport() {
 	@Autowired
 	private lateinit var tastingTagTestFactory: TastingTagTestFactory
@@ -57,7 +57,8 @@ class AdminTastingTagCatalogIntegrationTest : IntegrationTestSupport() {
 		group.putTag(grouped.id, TastingTagGroupRole.CORE)
 		tastingTagGroupRepository.save(group)
 
-		val result = get("/v1/tasting/tags/all")
+		val result = getAs(accessToken, "/v1/tasting/tags/all")
+		assertThat(result).hasStatusOk()
 		val items = extractData(result, Array<AdminTastingTagCatalogItem>::class.java).toList()
 
 		assertThat(result.response.contentAsString).doesNotContain("QUJD")
@@ -87,22 +88,22 @@ class AdminTastingTagCatalogIntegrationTest : IntegrationTestSupport() {
 		group.putTag(grouped.id, TastingTagGroupRole.PERIPHERAL)
 		tastingTagGroupRepository.save(group)
 
-		val allUngrouped = extractData(get("/v1/tasting/tags/ungrouped"), Array<AdminTastingTagCatalogItem>::class.java)
+		val allUngroupedResult = getAs(accessToken, "/v1/tasting/tags/ungrouped")
+		assertThat(allUngroupedResult).hasStatusOk()
+		val allUngrouped = extractData(allUngroupedResult, Array<AdminTastingTagCatalogItem>::class.java)
 		assertThat(allUngrouped.map { it.korName }).containsExactly("다다", "가나", "가나다")
 		assertThat(allUngrouped.map { it.alcoholCount }).containsExactly(1L, 0L, 0L)
 		assertThat(allUngrouped).allSatisfy { item -> assertThat(item.groups).isEmpty() }
 
-		val matched = extractData(
-			get("/v1/tasting/tags/ungrouped?keyword=다"),
-			Array<AdminTastingTagCatalogItem>::class.java
-		)
+		val matchedResult = getAs(accessToken, "/v1/tasting/tags/ungrouped?keyword=다")
+		assertThat(matchedResult).hasStatusOk()
+		val matched = extractData(matchedResult, Array<AdminTastingTagCatalogItem>::class.java)
 		assertThat(matched.map { it.korName }).containsExactly("다다", "가나다")
 		assertThat(child.id).isNotNull()
 
-		val groupedName = extractData(
-			get("/v1/tasting/tags/ungrouped?keyword=나나"),
-			Array<AdminTastingTagCatalogItem>::class.java
-		)
+		val groupedNameResult = getAs(accessToken, "/v1/tasting/tags/ungrouped?keyword=나나")
+		assertThat(groupedNameResult).hasStatusOk()
+		val groupedName = extractData(groupedNameResult, Array<AdminTastingTagCatalogItem>::class.java)
 		assertThat(groupedName).isEmpty()
 	}
 
@@ -114,8 +115,12 @@ class AdminTastingTagCatalogIntegrationTest : IntegrationTestSupport() {
 		tastingTagRepository.save(withIcon)
 		val withoutIcon = tastingTagTestFactory.persistTastingTag("오크", "Oak")
 
-		val icon = extractData(get("/v1/tasting/tags/${withIcon.id}/icon"), AdminTastingTagIconResponse::class.java)
-		val empty = extractData(get("/v1/tasting/tags/${withoutIcon.id}/icon"), AdminTastingTagIconResponse::class.java)
+		val iconResult = getAs(accessToken, "/v1/tasting/tags/${withIcon.id}/icon")
+		val emptyResult = getAs(accessToken, "/v1/tasting/tags/${withoutIcon.id}/icon")
+		assertThat(iconResult).hasStatusOk()
+		assertThat(emptyResult).hasStatusOk()
+		val icon = extractData(iconResult, AdminTastingTagIconResponse::class.java)
+		val empty = extractData(emptyResult, AdminTastingTagIconResponse::class.java)
 
 		assertThat(icon.icon).isEqualTo("QUJD")
 		assertThat(empty.icon).isNull()
@@ -124,8 +129,7 @@ class AdminTastingTagCatalogIntegrationTest : IntegrationTestSupport() {
 	@Test
 	@DisplayName("없는 태그의 아이콘을 조회할 때 404를 반환한다")
 	fun rejectsMissingTagIcon() {
-		assertThat(mockMvcTester.get().uri("/v1/tasting/tags/999999/icon").header("Authorization", "Bearer $accessToken"))
-			.hasStatus(HttpStatus.NOT_FOUND)
+		assertThat(getAs(accessToken, "/v1/tasting/tags/999999/icon")).hasStatus(HttpStatus.NOT_FOUND)
 	}
 
 	@Test
@@ -135,7 +139,8 @@ class AdminTastingTagCatalogIntegrationTest : IntegrationTestSupport() {
 		tag.update("아이콘태그", "Icon Tag", "QUJD", tag.description, null)
 		tastingTagRepository.save(tag)
 
-		val listResult = get("/v1/tasting-tags?keyword=아이콘태그")
+		val listResult = getAs(accessToken, "/v1/tasting-tags?keyword=아이콘태그")
+		assertThat(listResult).hasStatusOk()
 		assertThat(listResult.response.contentAsString).doesNotContain("QUJD")
 		val rows = extractData(listResult, List::class.java)
 		assertThat(rows).hasSize(1)
@@ -143,22 +148,18 @@ class AdminTastingTagCatalogIntegrationTest : IntegrationTestSupport() {
 		assertThat(row["icon"]).isNull()
 		assertThat(row["korName"]).isEqualTo("아이콘태그")
 
-		val detail = get("/v1/tasting-tags/${tag.id}")
+		val detail = getAs(accessToken, "/v1/tasting-tags/${tag.id}")
+		assertThat(detail).hasStatusOk()
 		assertThat(parseResponse(detail).success).isTrue()
 		val detailTag = extractData(detail, Map::class.java)["tag"] as Map<*, *>
 		assertThat(detailTag["icon"]).isEqualTo("QUJD")
 	}
 
 	@Test
-	@DisplayName("인증 없이 경량 조회를 호출할 때 실패한다")
+	@DisplayName("인증 없이 경량 조회를 호출할 때 거절한다")
 	fun rejectsUnauthenticatedCatalogRequest() {
-		assertThat(mockMvcTester.get().uri("/v1/tasting/tags/all")).hasStatus4xxClientError()
-	}
-
-	private fun get(uri: String): MvcTestResult {
-		val result = mockMvcTester.get().uri(uri).header("Authorization", "Bearer $accessToken").exchange()
-		assertThat(result).hasStatusOk()
-		assertThat(parseResponse(result).success).isTrue()
-		return result
+		// admin은 AuthenticationEntryPoint가 없어 무토큰 요청이 403이다
+		val result: MvcTestResult = mockMvcTester.get().uri("/v1/tasting/tags/all").exchange()
+		assertThat(result).hasStatus(HttpStatus.FORBIDDEN)
 	}
 }
