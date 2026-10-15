@@ -1,11 +1,10 @@
 package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AttributeType;
-import app.bottlenote.alcohols.dto.dsl.AlcoholAttributeSearchCondition;
 import lombok.Builder;
 
 /**
- * 속성이 붙은 위스키 목록 요청.
+ * 속성이 붙은 위스키 목록 요청. 비어 있는 조건은 null로 정리해 무시한다.
  *
  * @param keyword 위스키 이름 검색 (한글/영문)
  * @param type 속성 분류
@@ -29,6 +28,10 @@ public record AdminAttributedAlcoholSearchRequest(
 
   @Builder
   public AdminAttributedAlcoholSearchRequest {
+    keyword = blankToNull(keyword);
+    key = blankToNull(key);
+    value = blankToNull(value);
+    missingKey = blankToNull(missingKey);
     page = page != null && page >= 0 ? page : 0;
     if (size == null || size < 1) {
       size = DEFAULT_SIZE;
@@ -37,7 +40,7 @@ public record AdminAttributedAlcoholSearchRequest(
     }
   }
 
-  public AlcoholAttributeSearchCondition toCondition() {
-    return new AlcoholAttributeSearchCondition(keyword, type, key, value, missingKey);
+  private static String blankToNull(String text) {
+    return text == null || text.isBlank() ? null : text.trim();
   }
 }

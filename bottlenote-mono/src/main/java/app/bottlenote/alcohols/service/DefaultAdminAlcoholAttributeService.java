@@ -93,8 +93,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   public Page<AdminAttributedAlcoholItem> searchAlcohols(
       AdminAttributedAlcoholSearchRequest request) {
     Page<Long> page =
-        attributeRepository.findAlcoholIds(
-            request.toCondition(), PageRequest.of(request.page(), request.size()));
+        attributeRepository.findAlcoholIds(request, PageRequest.of(request.page(), request.size()));
     List<Long> alcoholIds = page.getContent();
     if (alcoholIds.isEmpty()) {
       return new PageImpl<>(List.of(), page.getPageable(), page.getTotalElements());

@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.constant.AttributeType;
-import app.bottlenote.alcohols.dto.dsl.AlcoholAttributeSearchCondition;
+import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.common.annotation.DomainRepository;
@@ -28,7 +28,7 @@ public interface AlcoholAttributeRepository {
   List<AlcoholAttribute> findAllByAttributeType(AttributeType attributeType);
 
   /** 조건에 맞는 속성이 하나라도 있는 위스키 ID를 이름순으로 페이지로 돌려준다 */
-  Page<Long> findAlcoholIds(AlcoholAttributeSearchCondition condition, Pageable pageable);
+  Page<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request, Pageable pageable);
 
   List<AlcoholAttributeKeyCountItem> findKeyStats();
 
