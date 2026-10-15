@@ -74,19 +74,24 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
   private final Supplier<Long> userIdSupplier;
   private final Function<HttpServletRequest, String> clientIpResolver;
   private final Clock clock;
+  private final VisitorIdentityResolver identityResolver;
 
   public VisitorTelemetryFilter(
       VisitorTelemetryPublisher publisher,
       Supplier<Long> userIdSupplier,
-      Function<HttpServletRequest, String> clientIpResolver) {
-    this(publisher, userIdSupplier, clientIpResolver, Clock.system(KOREA_ZONE_ID));
+      Function<HttpServletRequest, String> clientIpResolver,
+      VisitorIdentityResolver identityResolver) {
+    this(
+        publisher, userIdSupplier, clientIpResolver, identityResolver, Clock.system(KOREA_ZONE_ID));
   }
 
   VisitorTelemetryFilter(
       VisitorTelemetryPublisher publisher,
       Supplier<Long> userIdSupplier,
       Function<HttpServletRequest, String> clientIpResolver,
+      VisitorIdentityResolver identityResolver,
       Clock clock) {
+    this.identityResolver = identityResolver;
     this.publisher = publisher;
     this.userIdSupplier = userIdSupplier;
     this.clientIpResolver = clientIpResolver;
@@ -105,9 +110,11 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
 
     // 쿠키가 없는 첫 요청에서도 핸들러가 같은 방문자로 기록하도록 처리 전에 식별값을 확정한다.
     Optional<String> existingVisitorId = findVisitorId(request);
-    String visitorId = existingVisitorId.orElseGet(() -> UUID.randomUUID().toString());
-    String hashedVisitorId = digest(visitorId);
     String clientIp = clientIpResolver.apply(request);
+    String visitorId =
+        existingVisitorId.orElseGet(
+            () -> identityResolver.resolve(clientIp, request.getHeader(HttpHeaders.USER_AGENT)));
+    String hashedVisitorId = digest(visitorId);
     ClientInfo clientInfo = parseClientInfo(request.getHeader(HttpHeaders.USER_AGENT));
     request.setAttribute(VISITOR_ID_ATTRIBUTE, hashedVisitorId);
     request.setAttribute(CLIENT_IP_ATTRIBUTE, clientIp);
@@ -225,8 +232,7 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
     } catch (IllegalArgumentException exception) {
       decodedKey = rawKey;
     }
-    String normalizedKey =
-        decodedKey.replaceAll("[^A-Za-z0-9]", "").toLowerCase(Locale.ROOT);
+    String normalizedKey = decodedKey.replaceAll("[^A-Za-z0-9]", "").toLowerCase(Locale.ROOT);
     return SENSITIVE_QUERY_KEYWORDS.stream().anyMatch(normalizedKey::contains);
   }
 
@@ -279,9 +285,7 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
                         ? "Chrome"
                         : userAgent.contains("FxiOS/") || userAgent.contains("Firefox/")
                             ? "Firefox"
-                            : userAgent.contains("Safari/")
-                                ? "Safari"
-                                : webview ? "WebView" : "기타";
+                            : userAgent.contains("Safari/") ? "Safari" : webview ? "WebView" : "기타";
 
     return new ClientInfo(
         deviceType,

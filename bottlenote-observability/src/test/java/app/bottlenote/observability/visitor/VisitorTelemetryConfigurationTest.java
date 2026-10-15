@@ -40,7 +40,10 @@ class VisitorTelemetryConfigurationTest {
             VisitorTelemetryFilter.class,
             () ->
                 new VisitorTelemetryFilter(
-                    telemetry -> {}, () -> null, request -> null))
+                    telemetry -> {},
+                    () -> null,
+                    request -> null,
+                    (ip, ua) -> java.util.UUID.randomUUID().toString()))
         .run(
             context -> {
               assertThat(context).hasSingleBean(VisitorTelemetryFilter.class);
