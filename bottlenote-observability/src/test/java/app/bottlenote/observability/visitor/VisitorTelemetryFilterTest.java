@@ -33,6 +33,8 @@ import org.springframework.web.servlet.HandlerMapping;
 class VisitorTelemetryFilterTest {
 
   private static final String VISITOR_ID = "c74a0e2c-bf9d-4edf-b122-44d42f621d9a";
+  private static final VisitorIdentityResolver IDENTITY_RESOLVER =
+      (ip, ua) -> UUID.randomUUID().toString();
   private static final Clock FIXED_CLOCK =
       Clock.fixed(Instant.parse("2026-07-16T15:00:00Z"), ZoneId.of("Asia/Seoul"));
 
@@ -42,7 +44,7 @@ class VisitorTelemetryFilterTest {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
         new VisitorTelemetryFilter(
-            publisher, () -> 42L, request -> "203.0.113.10", FIXED_CLOCK);
+            publisher, () -> 42L, request -> "203.0.113.10", IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request =
         new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -75,7 +77,7 @@ class VisitorTelemetryFilterTest {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
         new VisitorTelemetryFilter(
-            publisher, () -> null, request -> "203.0.113.10", FIXED_CLOCK);
+            publisher, () -> null, request -> "203.0.113.10", IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request =
         new MockHttpServletRequest("POST", "/api/v1/campaign-contents/mbti/events");
     request.addHeader(
@@ -107,7 +109,7 @@ class VisitorTelemetryFilterTest {
   void 기존_쿠키의_방문자_해시를_요청_속성에_싣는다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request = request("POST", "/api/v1/campaign-contents/mbti/events");
     request.setCookies(new Cookie(VisitorTelemetryFilter.VISITOR_COOKIE_NAME, VISITOR_ID));
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -124,7 +126,7 @@ class VisitorTelemetryFilterTest {
   void 기존_쿠키와_정규화_경로를_발행한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/123");
     request.setCookies(new Cookie(VisitorTelemetryFilter.VISITOR_COOKIE_NAME, VISITOR_ID));
     request.setQueryString(
@@ -163,7 +165,7 @@ class VisitorTelemetryFilterTest {
   void 잘못된_쿠키를_교체하고_발행한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     request.setCookies(
         new Cookie(VisitorTelemetryFilter.VISITOR_COOKIE_NAME, "client-created-value"));
@@ -182,7 +184,7 @@ class VisitorTelemetryFilterTest {
   void 성공하지_않은_응답은_기록하지_않는다(int status) throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     MockHttpServletResponse response = new MockHttpServletResponse();
     FilterChain chain =
@@ -206,7 +208,7 @@ class VisitorTelemetryFilterTest {
   void 수집_대상이_아닌_요청은_기록하지_않는다(String method, String path) throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     filter.doFilter(request(method, path), response, successfulChain());
@@ -222,7 +224,7 @@ class VisitorTelemetryFilterTest {
     // given
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request =
         new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
     request.addHeader(VisitorTelemetryFilter.CALLER_HEADER_NAME, caller);
@@ -245,7 +247,7 @@ class VisitorTelemetryFilterTest {
     // given
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request =
         new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
     if (caller != null) {
@@ -266,7 +268,7 @@ class VisitorTelemetryFilterTest {
   void WebView_요청을_정규화한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest androidRequest = request("GET", "/api/v1/alcohols/explore/standard");
     androidRequest.addHeader(
         HttpHeaders.USER_AGENT,
@@ -303,7 +305,7 @@ class VisitorTelemetryFilterTest {
       String expectedBrowser, String expectedVersion, String userAgent) throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, IDENTITY_RESOLVER, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     request.addHeader(HttpHeaders.USER_AGENT, userAgent);
 
@@ -324,7 +326,8 @@ class VisitorTelemetryFilterTest {
               throw new IllegalStateException("redis down");
             },
             () -> null,
-            request -> null);
+            request -> null,
+            IDENTITY_RESOLVER);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     MockHttpServletResponse response = new MockHttpServletResponse();
     FilterChain chain =

@@ -10,6 +10,7 @@ import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
+import app.bottlenote.observability.visitor.VisitorIdentityResolver;
 import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import app.bottlenote.observability.visitor.VisitorTelemetryPublisher;
 import jakarta.annotation.PostConstruct;
@@ -74,10 +75,12 @@ public class SecurityConfig {
       prefix = "bottlenote.observability.visitor-telemetry",
       name = "enabled",
       havingValue = "true")
-  public static VisitorTelemetryFilter visitorTelemetryFilter(VisitorTelemetryPublisher publisher) {
+  public static VisitorTelemetryFilter visitorTelemetryFilter(
+      VisitorTelemetryPublisher publisher, VisitorIdentityResolver identityResolver) {
     Supplier<Long> userIdSupplier = () -> SecurityContextUtil.getUserIdByContext().orElse(null);
     Function<HttpServletRequest, String> clientIpResolver = ClientIpResolver::resolve;
-    return new VisitorTelemetryFilter(publisher, userIdSupplier, clientIpResolver);
+    return new VisitorTelemetryFilter(
+        publisher, userIdSupplier, clientIpResolver, identityResolver);
   }
 
   /**

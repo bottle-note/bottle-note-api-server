@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+	testImplementation libs.testcontainers.junit
+	testImplementation libs.testcontainers.redis
 	// BOM (Bill of Materials) - 버전 일관성 관리
 	api platform(libs.opentelemetry.bom)
 

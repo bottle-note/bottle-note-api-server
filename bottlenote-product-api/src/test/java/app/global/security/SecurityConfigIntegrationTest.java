@@ -17,6 +17,7 @@ import ch.qos.logback.core.read.ListAppender;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -161,7 +162,14 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
   @DisplayName("VisitorTelemetry는 인증 사용자와 정규화한 클라이언트 IP를 수집한다")
   void VisitorTelemetry_요청_문맥을_수집한다() throws Exception {
     List<VisitorTelemetry> telemetries = new ArrayList<>();
-    VisitorTelemetryFilter filter = SecurityConfig.visitorTelemetryFilter(telemetries::add);
+    List<String> resolvedIps = new ArrayList<>();
+    VisitorTelemetryFilter filter =
+        SecurityConfig.visitorTelemetryFilter(
+            telemetries::add,
+            (ip, ua) -> {
+              resolvedIps.add(ip);
+              return UUID.randomUUID().toString();
+            });
 
     try {
       SecurityContextHolder.getContext()
@@ -210,6 +218,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
       SecurityContextHolder.clearContext();
     }
 
+    assertThat(resolvedIps).containsExactly("203.0.113.10", "2001:db8::1", "198.51.100.7", null);
     assertThat(telemetries).hasSize(4);
     assertThat(telemetries.get(0).userId()).isEqualTo(42L);
     assertThat(telemetries.get(0).ipAddress()).isEqualTo("203.0.113.10");
