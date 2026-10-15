@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 
 	@Test
-	@DisplayName("위스키 속성 9개 엔드포인트가 알코올 태그와 bearer 인증으로 문서화된다")
+	@DisplayName("위스키 속성 10개 엔드포인트가 알코올 태그와 bearer 인증으로 문서화된다")
 	fun attributeEndpointsDocumentPathsTagAndAuthentication() {
 		val operations =
 			operationsOf(fetchSpec()).filter { it.path.startsWith("/v1/alcohols/attributes") }
@@ -19,6 +19,7 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 		assertThat(operations.map { it.endpoint() }).containsExactlyInAnyOrder(
 			"GET /v1/alcohols/attributes",
 			"GET /v1/alcohols/attributes/summary",
+			"GET /v1/alcohols/attributes/alcohols",
 			"POST /v1/alcohols/attributes",
 			"PUT /v1/alcohols/attributes/{id}",
 			"DELETE /v1/alcohols/attributes/{id}",

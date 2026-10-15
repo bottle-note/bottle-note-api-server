@@ -3,7 +3,10 @@ package app.bottlenote.alcohols.fixture;
 import app.bottlenote.alcohols.constant.AttributeDatatype;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholAttributeRepository;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.dto.dsl.AlcoholAttributeSearchCondition;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import java.util.ArrayList;
@@ -17,6 +20,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /** 위스키 속성 포트의 상태 기반 테스트 더블 */
@@ -24,6 +30,13 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
 
   private final List<AlcoholAttribute> rows = new ArrayList<>();
   private final AtomicLong sequence = new AtomicLong();
+  // 이름 검색·정렬은 위스키 저장소가 있어야 한다. 없으면 ID로만 다룬다
+  private AlcoholQueryRepository alcohols;
+
+  public InMemoryAlcoholAttributeRepository withAlcohols(AlcoholQueryRepository alcohols) {
+    this.alcohols = alcohols;
+    return this;
+  }
 
   @Override
   public AlcoholAttribute save(AlcoholAttribute attribute) {
@@ -76,6 +89,55 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
   @Override
   public List<AlcoholAttribute> findAllByAttributeType(AttributeType attributeType) {
     return rows.stream().filter(row -> row.getAttributeType() == attributeType).toList();
+  }
+
+  @Override
+  public Page<Long> findAlcoholIds(AlcoholAttributeSearchCondition condition, Pageable pageable) {
+    List<Long> matched =
+        rows.stream()
+            .filter(row -> condition.type() == null || row.getAttributeType() == condition.type())
+            .filter(row -> condition.key() == null || row.getAttributeKey().equals(condition.key()))
+            .filter(
+                row -> condition.value() == null || row.getAttributeValue().equals(condition.value()))
+            .map(AlcoholAttribute::getAlcoholId)
+            .distinct()
+            .filter(alcoholId -> matchesAlcohol(alcoholId, condition.keyword()))
+            .filter(
+                alcoholId ->
+                    condition.missingKey() == null
+                        || rows.stream()
+                            .noneMatch(
+                                row ->
+                                    Objects.equals(row.getAlcoholId(), alcoholId)
+                                        && row.getAttributeKey().equals(condition.missingKey())))
+            .sorted(Comparator.comparing(this::korNameOf).thenComparing(id -> id))
+            .toList();
+    int from = (int) Math.min(pageable.getOffset(), matched.size());
+    int to = Math.min(from + pageable.getPageSize(), matched.size());
+    return new PageImpl<>(matched.subList(from, to), pageable, matched.size());
+  }
+
+  private boolean matchesAlcohol(Long alcoholId, String keyword) {
+    if (alcohols == null) {
+      return keyword == null;
+    }
+    Alcohol alcohol = alcohols.findById(alcoholId).orElse(null);
+    if (alcohol == null || alcohol.isDeleted()) {
+      return false;
+    }
+    if (keyword == null) {
+      return true;
+    }
+    String lowered = keyword.toLowerCase();
+    return alcohol.getKorName().toLowerCase().contains(lowered)
+        || alcohol.getEngName().toLowerCase().contains(lowered);
+  }
+
+  private String korNameOf(Long alcoholId) {
+    if (alcohols == null) {
+      return "";
+    }
+    return alcohols.findById(alcoholId).map(Alcohol::getKorName).orElse("");
   }
 
   @Override

@@ -17,10 +17,12 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteReque
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
+import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
+import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -35,6 +37,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 
 @Tag("unit")
 @DisplayName("위스키 속성 어드민 서비스")
@@ -50,8 +53,9 @@ class DefaultAdminAlcoholAttributeServiceTest {
 
   @BeforeEach
   void setUp() {
-    attributeRepository = new InMemoryAlcoholAttributeRepository();
     alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
+    attributeRepository =
+        new InMemoryAlcoholAttributeRepository().withAlcohols(alcoholQueryRepository);
     service = new DefaultAdminAlcoholAttributeService(attributeRepository, alcoholQueryRepository);
     first = saveAlcohol("첫 병");
     second = saveAlcohol("둘째 병");
@@ -462,6 +466,83 @@ class DefaultAdminAlcoholAttributeServiceTest {
         .anyMatch(
             item ->
                 item.code().equals(ValueProvider.ADMIN.name()) && item.engName().equals("admin"));
+  }
+
+  @Test
+  @DisplayName("속성이 붙은 위스키를 이름순으로 페이지로 돌려주고 각 줄에 그 위스키의 속성을 담는다")
+  void 속성이_붙은_위스키_목록을_조회할_수_있다() {
+    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+    saveAttribute(
+        first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
+    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+
+    Page<AdminAttributedAlcoholItem> page =
+        service.searchAlcohols(AdminAttributedAlcoholSearchRequest.builder().build());
+
+    // 셋째 병은 속성이 없어 빠지고, 한글 이름순이라 둘째 병이 먼저다
+    assertThat(page.getTotalElements()).isEqualTo(2);
+    assertThat(page.getContent())
+        .extracting(AdminAttributedAlcoholItem::korName)
+        .containsExactly("둘째 병", "첫 병");
+    AdminAttributedAlcoholItem firstItem = page.getContent().get(1);
+    assertThat(firstItem.alcoholId()).isEqualTo(first.getId());
+    assertThat(firstItem.attributes())
+        .extracting(AdminAlcoholAttributeItem::key)
+        .containsExactly("keyword", "price_bottle");
+    assertThat(page.getContent().get(0).attributes()).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("분류·항목·값 조건은 그 행이 있는 위스키만 남기고 missingKey는 그 항목이 없는 위스키만 남긴다")
+  void 속성_조건과_빠진_항목으로_위스키를_거를_수_있다() {
+    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+    saveAttribute(
+        first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
+    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+    saveAttribute(third.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "셰리");
+
+    Page<AdminAttributedAlcoholItem> peat =
+        service.searchAlcohols(
+            AdminAttributedAlcoholSearchRequest.builder().key("keyword").value("피트").build());
+    Page<AdminAttributedAlcoholItem> priced =
+        service.searchAlcohols(
+            AdminAttributedAlcoholSearchRequest.builder().type(AttributeType.PRICE).build());
+    Page<AdminAttributedAlcoholItem> unpriced =
+        service.searchAlcohols(
+            AdminAttributedAlcoholSearchRequest.builder().missingKey("price_bottle").build());
+
+    assertThat(peat.getContent())
+        .extracting(AdminAttributedAlcoholItem::alcoholId)
+        .containsExactly(second.getId(), first.getId());
+    assertThat(priced.getContent())
+        .extracting(AdminAttributedAlcoholItem::alcoholId)
+        .containsExactly(first.getId());
+    assertThat(unpriced.getContent())
+        .extracting(AdminAttributedAlcoholItem::alcoholId)
+        .containsExactly(second.getId(), third.getId());
+  }
+
+  @Test
+  @DisplayName("위스키 이름으로 거르고 page·size로 잘라 준다")
+  void 이름_검색과_페이지로_위스키를_거를_수_있다() {
+    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+    saveAttribute(third.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
+
+    Page<AdminAttributedAlcoholItem> named =
+        service.searchAlcohols(AdminAttributedAlcoholSearchRequest.builder().keyword("첫").build());
+    Page<AdminAttributedAlcoholItem> secondPage =
+        service.searchAlcohols(
+            AdminAttributedAlcoholSearchRequest.builder().page(1).size(2).build());
+
+    assertThat(named.getContent())
+        .extracting(AdminAttributedAlcoholItem::alcoholId)
+        .containsExactly(first.getId());
+    assertThat(secondPage.getTotalElements()).isEqualTo(3);
+    assertThat(secondPage.getTotalPages()).isEqualTo(2);
+    assertThat(secondPage.getContent())
+        .extracting(AdminAttributedAlcoholItem::korName)
+        .containsExactly("첫 병");
   }
 
   private Alcohol saveAlcohol(String name) {
