@@ -6,12 +6,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
 @Slf4j
 public final class RedisVisitorIdentityResolver implements VisitorIdentityResolver {
+  private static final Pattern CANONICAL_UUID =
+      Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
   private static final DefaultRedisScript<String> RESOLVE_SCRIPT =
       new DefaultRedisScript<>(
           """
@@ -36,7 +39,7 @@ public final class RedisVisitorIdentityResolver implements VisitorIdentityResolv
     try {
       String resolved =
           redisTemplate.execute(RESOLVE_SCRIPT, List.of(key(clientIp, userAgent)), candidate);
-      if (resolved != null && UUID.fromString(resolved).toString().equals(resolved)) {
+      if (resolved != null && CANONICAL_UUID.matcher(resolved).matches()) {
         return resolved;
       }
       log.warn("Visitor identity bootstrap returned an invalid result; using a new identity");

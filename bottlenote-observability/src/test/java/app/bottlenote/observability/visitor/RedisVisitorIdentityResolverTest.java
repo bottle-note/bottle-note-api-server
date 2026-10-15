@@ -7,6 +7,9 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -15,7 +18,8 @@ import org.springframework.data.redis.core.script.RedisScript;
 class RedisVisitorIdentityResolverTest {
   @Test
   @DisplayName("Redis가 실패할 때 요청마다 새 UUID로 계속 처리한다")
-  void Redis_실패시_계속_처리한다() {
+  @ExtendWith(OutputCaptureExtension.class)
+  void Redis_실패시_계속_처리한다(CapturedOutput output) {
     var resolver =
         new RedisVisitorIdentityResolver(
             new StringRedisTemplate() {
@@ -27,6 +31,9 @@ class RedisVisitorIdentityResolverTest {
     String first = resolver.resolve("203.0.113.1", "Browser");
     assertThat(UUID.fromString(first).toString()).isEqualTo(first);
     assertThat(resolver.resolve("203.0.113.1", "Browser")).isNotEqualTo(first);
+    assertThat(output.getAll())
+        .contains("bootstrap unavailable (QueryTimeoutException)")
+        .doesNotContain("returned an invalid result");
   }
 
   @Test
@@ -50,8 +57,10 @@ class RedisVisitorIdentityResolverTest {
 
   @Test
   @DisplayName("Redis가 잘못된 값을 반환할 때 새 UUID로 복구한다")
-  void 잘못된_응답을_복구한다() {
-    for (String value : new String[] {null, "invalid", "1-1-1-1-1"}) {
+  @ExtendWith(OutputCaptureExtension.class)
+  void 잘못된_응답을_복구한다(CapturedOutput output) {
+    for (String value :
+        new String[] {null, "invalid", "1-1-1-1-1", "C74A0E2C-BF9D-4EDF-B122-44D42F621D9A"}) {
       var resolver =
           new RedisVisitorIdentityResolver(
               new StringRedisTemplate() {
@@ -63,6 +72,9 @@ class RedisVisitorIdentityResolverTest {
       String result = resolver.resolve("203.0.113.1", "Browser");
       assertThat(UUID.fromString(result).toString()).isEqualTo(result);
     }
+    assertThat(output.getAll())
+        .contains("returned an invalid result")
+        .doesNotContain("bootstrap unavailable");
   }
 
   @Test
