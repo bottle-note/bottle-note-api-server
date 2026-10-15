@@ -17,10 +17,12 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteReque
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
+import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
+import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AdminAuditPrincipalItem;
 import app.bottlenote.alcohols.dto.response.AdminCodeLabelItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
@@ -36,9 +38,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +86,43 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
                     AdminAlcoholAttributeSummaryItem::value,
                     Comparator.nullsFirst(String::compareTo)))
         .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<AdminAttributedAlcoholItem> searchAlcohols(
+      AdminAttributedAlcoholSearchRequest request) {
+    Page<Long> page =
+        attributeRepository.findAlcoholIds(
+            request.toCondition(), PageRequest.of(request.page(), request.size()));
+    List<Long> alcoholIds = page.getContent();
+    if (alcoholIds.isEmpty()) {
+      return new PageImpl<>(List.of(), page.getPageable(), page.getTotalElements());
+    }
+    Map<Long, Alcohol> alcohols =
+        alcoholQueryRepository.findAllByIdIn(alcoholIds).stream()
+            .collect(Collectors.toMap(Alcohol::getId, Function.identity()));
+    Map<Long, List<AdminAlcoholAttributeItem>> rowsByAlcohol =
+        attributeRepository.findAllByAlcoholIdIn(alcoholIds).stream()
+            .collect(
+                Collectors.groupingBy(
+                    AlcoholAttribute::getAlcoholId,
+                    Collectors.mapping(this::toItem, Collectors.toList())));
+    List<AdminAttributedAlcoholItem> content =
+        alcoholIds.stream()
+            .map(
+                alcoholId -> {
+                  Alcohol alcohol = alcohols.get(alcoholId);
+                  return new AdminAttributedAlcoholItem(
+                      alcoholId,
+                      alcohol == null ? null : alcohol.getKorName(),
+                      alcohol == null ? null : alcohol.getEngName(),
+                      alcohol == null ? null : alcohol.getKorCategory(),
+                      alcohol == null ? null : alcohol.getImageUrl(),
+                      rowsByAlcohol.getOrDefault(alcoholId, List.of()));
+                })
+            .toList();
+    return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
   }
 
   @Override

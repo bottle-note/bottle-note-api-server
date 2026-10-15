@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem
+import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem
 import app.bottlenote.global.dto.response.AdminResultResponse
@@ -60,6 +61,25 @@ object AdminAlcoholAttributeApiDocs {
 		]
 	)
 	annotation class SummarizeAttributes
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(
+		summary = "속성이 붙은 위스키 목록을 조회한다",
+		description = """
+			속성이 하나라도 있는 위스키를 한글 이름순으로 페이지로 반환합니다. 각 줄에 그 위스키의 속성 행을 모두 담습니다.
+
+			keyword는 위스키 이름(한글·영문) 검색이고 type·key·value는 속성 행 조건입니다. 셋을 함께 주면 모두 만족하는 행이 있는 위스키만 남습니다.
+			missingKey를 주면 그 항목이 없는 위스키만 반환합니다. 가격이 비어 있는 위스키를 찾을 때 씁니다.
+			page는 0부터, size는 기본 20·최대 100입니다. 페이지 정보는 meta(page, size, totalElements, totalPages, hasNext)에 있습니다.
+			"""
+	)
+	@ApiResponse(
+		responseCode = "200",
+		description = "속성이 붙은 위스키 목록",
+		content = [Content(schema = Schema(implementation = AttributedAlcoholListEnvelope::class))]
+	)
+	annotation class FindAttributedAlcohols
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
@@ -163,4 +183,13 @@ object AdminAlcoholAttributeApiDocs {
 		content = [Content(schema = Schema(implementation = AdminAlcoholAttributeEnumsResponse::class))]
 	)
 	annotation class FindAttributeEnums
+
+	@Schema(name = "AttributedAlcoholListEnvelope")
+	data class AttributedAlcoholListEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: List<AdminAttributedAlcoholItem>,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap()
+	)
 }

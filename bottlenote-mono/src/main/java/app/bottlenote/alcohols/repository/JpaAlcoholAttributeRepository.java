@@ -17,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @JpaRepositoryImpl
 public interface JpaAlcoholAttributeRepository
-    extends AlcoholAttributeRepository, JpaRepository<AlcoholAttribute, Long> {
+    extends AlcoholAttributeRepository,
+        CustomAlcoholAttributeRepository,
+        JpaRepository<AlcoholAttribute, Long> {
 
   // 수정은 커밋 때 flush되므로, 유니크 위반을 저장 호출 안에서 받기 위해 바로 반영한다
   @Override

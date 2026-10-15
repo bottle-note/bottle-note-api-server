@@ -13,6 +13,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem
+import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
@@ -265,6 +266,37 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 		assertThat(labels.types[0].code).isEqualTo("KEYWORD")
 		assertThat(labels.types[0].korName).isEqualTo("키워드")
 		assertThat(labels.providers.first { it.code == "ADMIN" }.engName).isEqualTo("admin")
+	}
+
+	@Test
+	@DisplayName("속성이 붙은 위스키를 이름순 페이지로 반환하고 항목·값·missingKey·이름으로 거른다")
+	fun listsAttributedAlcoholsWithFilters() {
+		val ardbeg = alcoholTestFactory.persistAlcoholWithName("아드벡 10년", "Ardbeg 10")
+		val lagavulin = alcoholTestFactory.persistAlcoholWithName("라가불린 16년", "Lagavulin 16")
+		alcoholTestFactory.persistAlcoholWithName("글렌피딕 12년", "Glenfiddich 12")
+		saveAttribute(ardbeg, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트")
+		saveAttribute(ardbeg, "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "98000")
+		saveAttribute(lagavulin, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트")
+
+		val all = getAs(accessToken, "/v1/alcohols/attributes/alcohols?size=10")
+		assertThat(all).hasStatusOk()
+		val items = extractData(all, Array<AdminAttributedAlcoholItem>::class.java)
+		assertThat(items.map { it.alcoholId }).containsExactly(lagavulin.id, ardbeg.id)
+		assertThat(items[1].korName).isEqualTo("아드벡 10년")
+		assertThat(items[1].attributes.map { it.key }).containsExactly("keyword", "price_bottle")
+		assertThat(items[0].attributes).hasSize(1)
+
+		val unpriced = getAs(accessToken, "/v1/alcohols/attributes/alcohols?missingKey=price_bottle")
+		assertThat(extractData(unpriced, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId })
+			.containsExactly(lagavulin.id)
+
+		val priced = getAs(accessToken, "/v1/alcohols/attributes/alcohols?type=PRICE&key=price_bottle&value=98000")
+		assertThat(extractData(priced, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId })
+			.containsExactly(ardbeg.id)
+
+		val named = getAs(accessToken, "/v1/alcohols/attributes/alcohols?keyword=Ardbeg")
+		assertThat(extractData(named, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId })
+			.containsExactly(ardbeg.id)
 	}
 
 	private fun saveAttribute(

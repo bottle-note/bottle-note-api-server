@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteReque
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest
+import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest
 import app.bottlenote.alcohols.presentation.docs.AdminAlcoholAttributeApiDocs
 import app.bottlenote.alcohols.service.AdminAlcoholAttributeService
 import app.bottlenote.global.data.response.GlobalResponse
@@ -37,6 +38,12 @@ class AdminAlcoholAttributeController(
 	fun summarizeAttributes(
 		@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeSearchRequest
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.summarize(request))
+
+	@AdminAlcoholAttributeApiDocs.FindAttributedAlcohols
+	@GetMapping("/alcohols")
+	fun findAttributedAlcohols(
+		@ParameterObject @ModelAttribute @Valid request: AdminAttributedAlcoholSearchRequest
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.searchAlcohols(request)))
 
 	@AdminAlcoholAttributeApiDocs.CreateAttributes
 	@PostMapping
