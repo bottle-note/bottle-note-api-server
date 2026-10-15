@@ -4,7 +4,7 @@ import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholAttribute.alcoholAttribute;
 
 import app.bottlenote.alcohols.domain.QAlcoholAttribute;
-import app.bottlenote.alcohols.dto.dsl.AlcoholAttributeSearchCondition;
+import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -25,14 +25,14 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
 
   /** 조건에 맞는 속성 행이 있는 위스키를 한글 이름순으로 페이지로 돌려준다. 삭제된 위스키는 뺀다 */
   @Override
-  public Page<Long> findAlcoholIds(AlcoholAttributeSearchCondition condition, Pageable pageable) {
+  public Page<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request, Pageable pageable) {
     BooleanExpression[] where = {
       supporter.isNotDeleted(),
-      supporter.keywordMatch(condition.keyword()),
-      condition.type() == null ? null : alcoholAttribute.attributeType.eq(condition.type()),
-      condition.key() == null ? null : alcoholAttribute.attributeKey.eq(condition.key()),
-      condition.value() == null ? null : alcoholAttribute.attributeValue.eq(condition.value()),
-      notHavingKey(condition.missingKey())
+      supporter.keywordMatch(request.keyword()),
+      request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()),
+      request.key() == null ? null : alcoholAttribute.attributeKey.eq(request.key()),
+      request.value() == null ? null : alcoholAttribute.attributeValue.eq(request.value()),
+      notHavingKey(request.missingKey())
     };
 
     List<Long> content =

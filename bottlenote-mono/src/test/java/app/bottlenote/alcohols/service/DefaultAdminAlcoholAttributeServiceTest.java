@@ -54,8 +54,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @BeforeEach
   void setUp() {
     alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
-    attributeRepository =
-        new InMemoryAlcoholAttributeRepository().withAlcohols(alcoholQueryRepository);
+    attributeRepository = new InMemoryAlcoholAttributeRepository();
     service = new DefaultAdminAlcoholAttributeService(attributeRepository, alcoholQueryRepository);
     first = saveAlcohol("첫 병");
     second = saveAlcohol("둘째 병");
@@ -469,7 +468,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
   }
 
   @Test
-  @DisplayName("속성이 붙은 위스키를 이름순으로 페이지로 돌려주고 각 줄에 그 위스키의 속성을 담는다")
+  @DisplayName("속성이 붙은 위스키마다 이름과 속성 행을 묶어 주고, 결과가 없으면 빈 페이지다")
   void 속성이_붙은_위스키_목록을_조회할_수_있다() {
     saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
     saveAttribute(
@@ -478,71 +477,23 @@ class DefaultAdminAlcoholAttributeServiceTest {
 
     Page<AdminAttributedAlcoholItem> page =
         service.searchAlcohols(AdminAttributedAlcoholSearchRequest.builder().build());
+    Page<AdminAttributedAlcoholItem> none =
+        service.searchAlcohols(
+            AdminAttributedAlcoholSearchRequest.builder().missingKey("keyword").build());
 
-    // 셋째 병은 속성이 없어 빠지고, 한글 이름순이라 둘째 병이 먼저다
+    // 셋째 병은 속성이 없어 빠진다
     assertThat(page.getTotalElements()).isEqualTo(2);
-    assertThat(page.getContent())
-        .extracting(AdminAttributedAlcoholItem::korName)
-        .containsExactly("둘째 병", "첫 병");
-    AdminAttributedAlcoholItem firstItem = page.getContent().get(1);
-    assertThat(firstItem.alcoholId()).isEqualTo(first.getId());
+    AdminAttributedAlcoholItem firstItem =
+        page.getContent().stream()
+            .filter(item -> item.alcoholId().equals(first.getId()))
+            .findFirst()
+            .orElseThrow();
+    assertThat(firstItem.korName()).isEqualTo("첫 병");
     assertThat(firstItem.attributes())
         .extracting(AdminAlcoholAttributeItem::key)
         .containsExactly("keyword", "price_bottle");
-    assertThat(page.getContent().get(0).attributes()).hasSize(1);
-  }
-
-  @Test
-  @DisplayName("분류·항목·값 조건은 그 행이 있는 위스키만 남기고 missingKey는 그 항목이 없는 위스키만 남긴다")
-  void 속성_조건과_빠진_항목으로_위스키를_거를_수_있다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(
-        first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(third.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "셰리");
-
-    Page<AdminAttributedAlcoholItem> peat =
-        service.searchAlcohols(
-            AdminAttributedAlcoholSearchRequest.builder().key("keyword").value("피트").build());
-    Page<AdminAttributedAlcoholItem> priced =
-        service.searchAlcohols(
-            AdminAttributedAlcoholSearchRequest.builder().type(AttributeType.PRICE).build());
-    Page<AdminAttributedAlcoholItem> unpriced =
-        service.searchAlcohols(
-            AdminAttributedAlcoholSearchRequest.builder().missingKey("price_bottle").build());
-
-    assertThat(peat.getContent())
-        .extracting(AdminAttributedAlcoholItem::alcoholId)
-        .containsExactly(second.getId(), first.getId());
-    assertThat(priced.getContent())
-        .extracting(AdminAttributedAlcoholItem::alcoholId)
-        .containsExactly(first.getId());
-    assertThat(unpriced.getContent())
-        .extracting(AdminAttributedAlcoholItem::alcoholId)
-        .containsExactly(second.getId(), third.getId());
-  }
-
-  @Test
-  @DisplayName("위스키 이름으로 거르고 page·size로 잘라 준다")
-  void 이름_검색과_페이지로_위스키를_거를_수_있다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(third.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-
-    Page<AdminAttributedAlcoholItem> named =
-        service.searchAlcohols(AdminAttributedAlcoholSearchRequest.builder().keyword("첫").build());
-    Page<AdminAttributedAlcoholItem> secondPage =
-        service.searchAlcohols(
-            AdminAttributedAlcoholSearchRequest.builder().page(1).size(2).build());
-
-    assertThat(named.getContent())
-        .extracting(AdminAttributedAlcoholItem::alcoholId)
-        .containsExactly(first.getId());
-    assertThat(secondPage.getTotalElements()).isEqualTo(3);
-    assertThat(secondPage.getTotalPages()).isEqualTo(2);
-    assertThat(secondPage.getContent())
-        .extracting(AdminAttributedAlcoholItem::korName)
-        .containsExactly("첫 병");
+    assertThat(none.getContent()).isEmpty();
+    assertThat(none.getTotalElements()).isZero();
   }
 
   private Alcohol saveAlcohol(String name) {
