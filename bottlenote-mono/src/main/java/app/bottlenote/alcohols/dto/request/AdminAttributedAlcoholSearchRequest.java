@@ -1,6 +1,8 @@
 package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AttributeType;
+import app.bottlenote.global.pagination.OffsetPageRequest;
+import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 
 /**
@@ -17,9 +19,10 @@ import lombok.Builder;
 public record AdminAttributedAlcoholSearchRequest(
     String keyword,
     AttributeType type,
-    String key,
+    @Pattern(regexp = "[a-z][a-z0-9_]{0,63}", message = "ALCOHOL_ATTRIBUTE_KEY_INVALID") String key,
     String value,
-    String missingKey,
+    @Pattern(regexp = "[a-z][a-z0-9_]{0,63}", message = "ALCOHOL_ATTRIBUTE_KEY_INVALID")
+        String missingKey,
     Integer page,
     Integer size) {
 
@@ -32,12 +35,9 @@ public record AdminAttributedAlcoholSearchRequest(
     key = blankToNull(key);
     value = blankToNull(value);
     missingKey = blankToNull(missingKey);
-    page = page != null && page >= 0 ? page : 0;
-    if (size == null || size < 1) {
-      size = DEFAULT_SIZE;
-    } else {
-      size = Math.min(size, MAX_SIZE);
-    }
+    var pagination = OffsetPageRequest.of(page, size, DEFAULT_SIZE, MAX_SIZE);
+    page = pagination.page();
+    size = pagination.size();
   }
 
   private static String blankToNull(String text) {

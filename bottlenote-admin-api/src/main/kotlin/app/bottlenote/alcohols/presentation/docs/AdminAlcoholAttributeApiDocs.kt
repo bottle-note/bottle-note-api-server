@@ -1,12 +1,6 @@
 package app.bottlenote.alcohols.presentation.docs
 
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem
-import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem
+import app.bottlenote.alcohols.dto.response.*
 import app.bottlenote.global.dto.response.AdminResultResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -15,9 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 
-/** 위스키 속성 어드민 엔드포인트의 문서 설명. */
 object AdminAlcoholAttributeApiDocs {
-
 	@Target(AnnotationTarget.CLASS)
 	@Retention(AnnotationRetention.RUNTIME)
 	@Tag(name = "알코올")
@@ -25,164 +17,105 @@ object AdminAlcoholAttributeApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "선택한 위스키의 속성을 조회한다",
-		description = """
-			alcoholIds로 고른 위스키들의 속성 행을 모두 반환합니다.
-
-			alcoholIds는 쉼표로 구분합니다. 비어 있으면 실패합니다.
-			"""
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "속성 목록",
-		content = [
-			Content(array = ArraySchema(schema = Schema(implementation = AdminAlcoholAttributeItem::class)))
-		]
-	)
+	@Operation(summary = "공통 속성 사전을 조회한다", description = "미연결 속성도 조회합니다. keyword는 표시명·키 검색, type은 분류, alcoholIds는 연결된 술 필터입니다. page/size로 페이지를 지정합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AttributeListEnvelope::class))])
 	annotation class FindAttributes
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "선택한 위스키의 속성을 묶어 조회한다",
-		description = """
-			네 병 이상 비교 화면용 집계입니다.
-
-			숫자 형식은 항목(key)별로, 그 외는 항목과 값별로 묶습니다. 숫자 묶음은 최소·최대와 값이 모두 같은지 함께 반환합니다.
-			registeredCount는 묶음에 값이 있는 위스키 수이고, attributeIds는 그 묶음의 속성 행 ID입니다.
-			"""
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "속성 묶음",
-		content = [
-			Content(array = ArraySchema(schema = Schema(implementation = AdminAlcoholAttributeSummaryItem::class)))
-		]
-	)
+	@Operation(summary = "선택한 술의 속성 연결을 집계한다", description = "속성 ID별로 연결된 alcoholIds와 mappingIds를 반환합니다. mappingIds는 연결 해제 대상이며 속성 삭제 ID가 아닙니다. alcoholIds가 없으면 빈 목록입니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(array = ArraySchema(schema = Schema(implementation = AdminAlcoholAttributeSummaryItem::class)))])
 	annotation class SummarizeAttributes
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "속성이 붙은 위스키 목록을 조회한다",
-		description = """
-			속성이 하나라도 있는 위스키를 한글 이름순으로 페이지로 반환합니다. 각 줄에 그 위스키의 속성 행을 모두 담습니다.
-
-			keyword는 위스키 이름(한글·영문) 검색이고 type·key·value는 속성 행 조건입니다. 셋을 함께 주면 모두 만족하는 행이 있는 위스키만 남습니다.
-			missingKey를 주면 그 항목이 없는 위스키만 반환합니다. 가격이 비어 있는 위스키를 찾을 때 씁니다.
-			page는 0부터, size는 기본 20·최대 100입니다. 페이지 정보는 meta(page, size, totalElements, totalPages, hasNext)에 있습니다.
-			"""
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "속성이 붙은 위스키 목록",
-		content = [Content(schema = Schema(implementation = AttributedAlcoholListEnvelope::class))]
-	)
+	@Operation(summary = "속성이 연결된 술을 조회한다", description = "keyword는 술 이름, type·key·value는 공통 속성 필터입니다. missingKey는 해당 속성이 연결되지 않은 술을 찾습니다. 속성이 하나 이상 연결된 술을 이름순으로 반환합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AttributedAlcoholListEnvelope::class))])
 	annotation class FindAttributedAlcohols
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "여러 위스키에 속성을 추가한다",
-		description = """
-			각 위스키에 같은 속성을 추가합니다.
-
-			같은 위스키에 같은 항목·값이 이미 있으면 그 위스키는 건너뜁니다. 없는 위스키가 있으면 실패합니다.
-			"""
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "추가 결과",
-		content = [Content(schema = Schema(implementation = AdminAlcoholAttributeCreateResponse::class))]
-	)
-	@ApiResponse(responseCode = "404", description = "위스키가 없습니다")
-	@ApiResponse(responseCode = "409", description = "같은 위스키에 같은 항목과 값이 이미 있습니다")
+	@Operation(summary = "공통 속성 한 건을 생성하거나 갱신한다", description = "key가 같으면 기존 ID와 생성 정보를 유지하고 전체 갱신합니다. 다른 키의 displayName과 충돌하면 409입니다. 변경 후 기존 매핑은 유지합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeItem::class))])
 	annotation class CreateAttributes
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키 속성을 수정한다",
-		description = "분류, 값 형식, 값, 근거, 기준 시점을 수정합니다. 항목(key)은 바꾸지 않습니다."
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "수정 처리 결과",
-		content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-	)
-	@ApiResponse(responseCode = "404", description = "위스키 속성이 없습니다")
-	@ApiResponse(responseCode = "409", description = "같은 위스키에 같은 항목과 값이 이미 있습니다")
+	@Operation(summary = "공통 속성을 수정한다", description = "key는 변경하지 않습니다. 표시명·분류·자료형·비교 조건·값·단위·설명을 수정합니다. 이름 충돌은 409이며 기존 매핑은 유지합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminResultResponse::class))])
 	annotation class UpdateAttribute
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "위스키 속성을 삭제한다", description = "속성 한 건을 삭제합니다.")
-	@ApiResponse(
-		responseCode = "200",
-		description = "삭제 처리 결과",
-		content = [Content(schema = Schema(implementation = AdminResultResponse::class))]
-	)
-	@ApiResponse(responseCode = "404", description = "위스키 속성이 없습니다")
+	@Operation(summary = "공통 속성을 삭제한다", description = "속성 및 그 속성의 모든 술 연결을 함께 삭제합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminResultResponse::class))])
 	annotation class DeleteAttribute
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "위스키 속성을 여러 건 삭제한다",
-		description = "지운 행의 내용을 반환한다. 되살리려면 create로 다시 추가하며 ID와 생성 정보는 새로 생긴다."
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "삭제된 속성 목록",
-		content = [
-			Content(array = ArraySchema(schema = Schema(implementation = AdminAlcoholAttributeItem::class)))
-		]
-	)
+	@Operation(summary = "공통 속성을 일괄 삭제한다", description = "선택한 속성과 관련 매핑을 함께 삭제하고 삭제한 속성을 반환합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(array = ArraySchema(schema = Schema(implementation = AdminAlcoholAttributeItem::class)))])
 	annotation class DeleteAttributes
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "속성 항목별 집계를 조회한다",
-		description = "전체 속성에서 항목·분류·값 형식별 건수와 위스키 수를 반환합니다."
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "항목 집계",
-		content = [
-			Content(array = ArraySchema(schema = Schema(implementation = AlcoholAttributeKeyCountItem::class)))
-		]
-	)
+	@Operation(summary = "속성 키별 사용 현황을 조회한다", description = "미연결 속성도 포함하며 alcoholCount는 실제 연결된 술 수입니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(array = ArraySchema(schema = Schema(implementation = AlcoholAttributeKeyCountItem::class)))])
 	annotation class FindAttributeKeys
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "키워드 속성 값을 조회한다",
-		description = "분류가 KEYWORD인 값을 중복 없이, 사용 위스키가 많은 순으로 반환합니다."
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "키워드 목록",
-		content = [
-			Content(array = ArraySchema(schema = Schema(implementation = AlcoholAttributeKeywordCountItem::class)))
-		]
-	)
+	@Operation(summary = "키워드 속성의 사용 현황을 조회한다", description = "KEYWORD 값별 연결된 술 수를 중복 없이 집계합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(array = ArraySchema(schema = Schema(implementation = AlcoholAttributeKeywordCountItem::class)))])
 	annotation class FindAttributeKeywords
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(
-		summary = "속성 화면 라벨을 조회한다",
-		description = "분류, 값 형식, 값 제공자 코드를 한글 이름·영문 이름·설명과 함께 반환합니다."
-	)
-	@ApiResponse(
-		responseCode = "200",
-		description = "속성 코드 목록",
-		content = [Content(schema = Schema(implementation = AdminAlcoholAttributeEnumsResponse::class))]
-	)
+	@Operation(summary = "속성 입력용 코드와 한글 설명을 조회한다", description = "분류·자료형·제공자·비교 조건의 코드 및 한글 설명을 반환합니다. GTE는 숫자 자료형에만 허용됩니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeEnumsResponse::class))])
 	annotation class FindAttributeEnums
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(summary = "공통 속성을 벌크 생성하거나 갱신한다", description = "items 최대 500개. key 중복은 기존 속성을 덮어쓰고 다른 키의 이름 중복은 409입니다. 요청 내부 동일 key는 400입니다. 오류 시 전체 롤백하며 created·updated·ids를 반환합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeBulkResponse::class))])
+	annotation class UpsertAttributes
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(summary = "술과 속성을 벌크 연결한다", description = "items는 alcoholId·attributeId 쌍이며 최대 500개입니다. 기존 연결과 요청 내 중복은 건너뛰며 감사 정보도 유지합니다. 없거나 삭제된 술·없는 속성은 404이며 요청 전체가 롤백됩니다. 조건으로 자동 연결하지 않습니다. createdIds는 신규 매핑 ID입니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeCreateResponse::class))])
+	annotation class CreateMappings
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(summary = "술과 속성의 연결을 조회한다", description = "alcoholId·attributeId로 필터링합니다. page/size 페이지와 생성·수정 시각 및 작업자 정보를 반환합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = MappingListEnvelope::class))])
+	annotation class FindMappings
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(summary = "술과 속성의 연결을 해제한다", description = "매핑 ID로 연결 한 건을 삭제합니다. 공통 속성은 유지합니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminResultResponse::class))])
+	annotation class DeleteMapping
+
+	@Schema(name = "AttributeListEnvelope")
+	data class AttributeListEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: List<AdminAlcoholAttributeItem>,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap()
+	)
+
+	@Schema(name = "MappingListEnvelope")
+	data class MappingListEnvelope(
+		val success: Boolean,
+		val code: Int,
+		val data: List<AdminAlcoholAttributeMappingItem>,
+		val errors: List<Any> = emptyList(),
+		val meta: Map<String, Any?> = emptyMap()
+	)
 
 	@Schema(name = "AttributedAlcoholListEnvelope")
 	data class AttributedAlcoholListEnvelope(

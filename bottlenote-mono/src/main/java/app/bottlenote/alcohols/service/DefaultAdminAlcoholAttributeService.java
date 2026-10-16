@@ -1,26 +1,33 @@
 package app.bottlenote.alcohols.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_DUPLICATE;
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_NOT_FOUND;
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_ATTRIBUTE_DELETED;
-import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_ATTRIBUTE_UPDATED;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.*;
+import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.*;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
+import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.constant.ValueProvider;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.AlcoholAttributeMapping;
+import app.bottlenote.alcohols.domain.AlcoholAttributeMappingKey;
+import app.bottlenote.alcohols.domain.AlcoholAttributeMappingRepository;
 import app.bottlenote.alcohols.domain.AlcoholAttributeRepository;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingBulkRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeBulkResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeMappingItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
 import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AdminAuditPrincipalItem;
@@ -30,18 +37,15 @@ import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.common.domain.AuditPrincipal;
 import app.bottlenote.global.dto.response.AdminResultResponse;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -51,40 +55,48 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttributeService {
-
   private final AlcoholAttributeRepository attributeRepository;
+  private final AlcoholAttributeMappingRepository mappingRepository;
   private final AlcoholQueryRepository alcoholQueryRepository;
 
   @Override
   @Transactional(readOnly = true)
-  public List<AdminAlcoholAttributeItem> findAll(AdminAlcoholAttributeSearchRequest request) {
-    return attributeRepository.findAllByAlcoholIdIn(request.alcoholIds()).stream()
-        .map(this::toItem)
-        .toList();
+  public Page<AdminAlcoholAttributeItem> findAll(AdminAlcoholAttributeSearchRequest request) {
+    var page = attributeRepository.search(request);
+    return new PageImpl<>(
+        page.content().stream().map(this::toItem).toList(),
+        PageRequest.of(request.page(), request.size()),
+        page.totalElements());
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<AdminAlcoholAttributeSummaryItem> summarize(
-      AdminAlcoholAttributeSearchRequest request) {
+      AdminAlcoholAttributeSummaryRequest request) {
+    if (request.alcoholIds().isEmpty()) return List.of();
+    var mappings = mappingRepository.findAllByAlcoholIdIn(request.alcoholIds());
+    var grouped =
+        mappings.stream().collect(Collectors.groupingBy(AlcoholAttributeMapping::getAttributeId));
+    if (grouped.isEmpty()) return List.of();
     long selectedCount = request.alcoholIds().stream().distinct().count();
-    Map<SummaryGroupKey, List<AlcoholAttribute>> grouped = new LinkedHashMap<>();
-    for (AlcoholAttribute row : attributeRepository.findAllByAlcoholIdIn(request.alcoholIds())) {
-      String valueKey = row.getDatatype().isNumeric() ? null : row.getAttributeValue();
-      SummaryGroupKey groupKey =
-          new SummaryGroupKey(
-              row.getAttributeKey(), row.getAttributeType(), row.getDatatype(), valueKey);
-      grouped.computeIfAbsent(groupKey, key -> new ArrayList<>()).add(row);
-    }
-    return grouped.entrySet().stream()
-        .map(entry -> toSummary(entry.getKey(), entry.getValue(), selectedCount))
-        .sorted(
-            Comparator.comparing(AdminAlcoholAttributeSummaryItem::key)
-                .thenComparing(item -> item.type().name())
-                .thenComparing(item -> item.datatype().name())
-                .thenComparing(
-                    AdminAlcoholAttributeSummaryItem::value,
-                    Comparator.nullsFirst(String::compareTo)))
+    return attributeRepository.findAllByIdIn(grouped.keySet()).stream()
+        .sorted(Comparator.comparing(AlcoholAttribute::getId))
+        .map(
+            a -> {
+              var rows = grouped.get(a.getId());
+              var alcoholIds =
+                  rows.stream()
+                      .map(AlcoholAttributeMapping::getAlcoholId)
+                      .distinct()
+                      .sorted()
+                      .toList();
+              return new AdminAlcoholAttributeSummaryItem(
+                  toItem(a),
+                  alcoholIds,
+                  rows.stream().map(AlcoholAttributeMapping::getId).sorted().toList(),
+                  alcoholIds.size(),
+                  selectedCount);
+            })
         .toList();
   }
 
@@ -92,105 +104,105 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   @Transactional(readOnly = true)
   public Page<AdminAttributedAlcoholItem> searchAlcohols(
       AdminAttributedAlcoholSearchRequest request) {
-    Page<Long> page =
-        attributeRepository.findAlcoholIds(request, PageRequest.of(request.page(), request.size()));
-    List<Long> alcoholIds = page.getContent();
-    if (alcoholIds.isEmpty()) {
-      return new PageImpl<>(List.of(), page.getPageable(), page.getTotalElements());
-    }
-    Map<Long, Alcohol> alcohols =
-        alcoholQueryRepository.findAllByIdIn(alcoholIds).stream()
+    var page = attributeRepository.findAlcoholIds(request);
+    var pageable = PageRequest.of(request.page(), request.size());
+    if (page.content().isEmpty()) return new PageImpl<>(List.of(), pageable, page.totalElements());
+    var alcohols =
+        alcoholQueryRepository.findAllByIdIn(page.content()).stream()
             .collect(Collectors.toMap(Alcohol::getId, Function.identity()));
-    Map<Long, List<AdminAlcoholAttributeItem>> rowsByAlcohol =
-        attributeRepository.findAllByAlcoholIdIn(alcoholIds).stream()
-            .collect(
-                Collectors.groupingBy(
-                    AlcoholAttribute::getAlcoholId,
-                    Collectors.mapping(this::toItem, Collectors.toList())));
-    List<AdminAttributedAlcoholItem> content =
-        alcoholIds.stream()
+    var mappings = mappingRepository.findAllByAlcoholIdIn(page.content());
+    var attributes =
+        attributeRepository
+            .findAllByIdIn(
+                mappings.stream().map(AlcoholAttributeMapping::getAttributeId).distinct().toList())
+            .stream()
+            .collect(Collectors.toMap(AlcoholAttribute::getId, this::toItem));
+    var grouped =
+        mappings.stream().collect(Collectors.groupingBy(AlcoholAttributeMapping::getAlcoholId));
+    var content =
+        page.content().stream()
             .map(
-                alcoholId -> {
-                  Alcohol alcohol = alcohols.get(alcoholId);
+                id -> {
+                  Alcohol a = alcohols.get(id);
                   return new AdminAttributedAlcoholItem(
-                      alcoholId,
-                      alcohol == null ? null : alcohol.getKorName(),
-                      alcohol == null ? null : alcohol.getEngName(),
-                      alcohol == null ? null : alcohol.getKorCategory(),
-                      alcohol == null ? null : alcohol.getImageUrl(),
-                      rowsByAlcohol.getOrDefault(alcoholId, List.of()));
+                      id,
+                      a.getKorName(),
+                      a.getEngName(),
+                      a.getKorCategory(),
+                      a.getImageUrl(),
+                      grouped.getOrDefault(id, List.of()).stream()
+                          .map(m -> attributes.get(m.getAttributeId()))
+                          .filter(Objects::nonNull)
+                          .sorted(Comparator.comparing(AdminAlcoholAttributeItem::id))
+                          .toList());
                 })
             .toList();
-    return new PageImpl<>(content, page.getPageable(), page.getTotalElements());
+    return new PageImpl<>(content, pageable, page.totalElements());
   }
 
   @Override
   @Transactional
-  public AdminAlcoholAttributeCreateResponse create(AdminAlcoholAttributeCreateRequest request) {
-    requireAlcohols(request.alcoholIds());
-    // 한 요청 안에서 key·value는 고정이라 요청 내 중복은 위스키 ID만 보면 된다
-    Set<Long> seenAlcoholIds = new HashSet<>();
-    int added = 0;
-    int skipped = 0;
-    List<Long> createdIds = new ArrayList<>();
-    for (Long alcoholId : request.alcoholIds()) {
-      AlcoholAttribute candidate =
-          AlcoholAttribute.create(
-              alcoholId,
-              request.key(),
-              request.type(),
-              request.datatype(),
-              request.value(),
-              request.description(),
-              request.basedAt());
-      if (!seenAlcoholIds.add(alcoholId)
-          || attributeRepository.existsByAlcoholIdAndAttributeKeyAndAttributeValue(
-              alcoholId, candidate.getAttributeKey(), candidate.getAttributeValue())) {
-        skipped++;
-        continue;
-      }
-      saveUnique(candidate);
-      createdIds.add(candidate.getId());
-      added++;
+  public AdminAlcoholAttributeItem create(AdminAlcoholAttributeCreateRequest request) {
+    var result = upsertBulk(new AdminAlcoholAttributeBulkRequest(List.of(request)));
+    return toItem(requireAttribute(result.ids().getFirst()));
+  }
+
+  @Override
+  @Transactional
+  public AdminAlcoholAttributeBulkResponse upsertBulk(AdminAlcoholAttributeBulkRequest request) {
+    var candidates = request.items().stream().map(this::candidate).toList();
+    Set<String> keys = new HashSet<>();
+    for (var candidate : candidates) {
+      if (!keys.add(candidate.getAttributeKey()))
+        throw new AlcoholException(ALCOHOL_ATTRIBUTE_DUPLICATE_KEY_IN_REQUEST);
     }
-    return new AdminAlcoholAttributeCreateResponse(added, skipped, List.copyOf(createdIds));
+    int created = 0;
+    int updated = 0;
+    List<Long> ids = new ArrayList<>();
+    for (var candidate : candidates) {
+      var existing = attributeRepository.findByAttributeKey(candidate.getAttributeKey());
+      Long id = existing.map(AlcoholAttribute::getId).orElse(null);
+      requireUniqueName(candidate.getDisplayName(), id);
+      AlcoholAttribute target;
+      if (existing.isPresent()) {
+        target = existing.get();
+        target.updateFrom(candidate);
+        updated++;
+      } else {
+        target = candidate;
+        created++;
+      }
+      ids.add(attributeRepository.save(target).getId());
+    }
+    return new AdminAlcoholAttributeBulkResponse(created, updated, List.copyOf(ids));
   }
 
   @Override
   @Transactional
   public AdminResultResponse update(Long id, AdminAlcoholAttributeUpdateRequest request) {
-    AlcoholAttribute attribute = requireAttribute(id);
-    AlcoholAttribute normalized =
+    var target = requireAttribute(id);
+    var candidate =
         AlcoholAttribute.create(
-            attribute.getAlcoholId(),
-            attribute.getAttributeKey(),
+            target.getAttributeKey(),
+            request.displayName(),
             request.type(),
             request.datatype(),
+            request.operator(),
             request.value(),
-            request.description(),
-            request.basedAt());
-    if (attributeRepository.existsByAlcoholIdAndAttributeKeyAndAttributeValueAndIdNot(
-        attribute.getAlcoholId(),
-        normalized.getAttributeKey(),
-        normalized.getAttributeValue(),
-        attribute.getId())) {
-      throw new AlcoholException(ALCOHOL_ATTRIBUTE_DUPLICATE);
-    }
-    attribute.update(
-        request.type(),
-        request.datatype(),
-        request.value(),
-        request.description(),
-        request.basedAt());
-    saveUnique(attribute);
+            request.unit(),
+            request.description());
+    requireUniqueName(candidate.getDisplayName(), id);
+    target.updateFrom(candidate);
+    attributeRepository.save(target);
     return AdminResultResponse.of(ALCOHOL_ATTRIBUTE_UPDATED, id);
   }
 
   @Override
   @Transactional
   public AdminResultResponse delete(Long id) {
-    AlcoholAttribute attribute = requireAttribute(id);
-    attributeRepository.delete(attribute);
+    var target = requireAttribute(id);
+    mappingRepository.deleteAllByAttributeIdIn(List.of(id));
+    attributeRepository.delete(target);
     return AdminResultResponse.of(ALCOHOL_ATTRIBUTE_DELETED, id);
   }
 
@@ -198,12 +210,84 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   @Transactional
   public List<AdminAlcoholAttributeItem> deleteBatch(
       AdminAlcoholAttributeBatchDeleteRequest request) {
-    List<AlcoholAttribute> rows = attributeRepository.findAllByIdIn(request.ids());
-    List<AdminAlcoholAttributeItem> deleted = rows.stream().map(this::toItem).toList();
+    var rows = attributeRepository.findAllByIdIn(request.ids());
+    var result = rows.stream().map(this::toItem).toList();
     if (!rows.isEmpty()) {
-      attributeRepository.deleteAllByIdIn(rows.stream().map(AlcoholAttribute::getId).toList());
+      var ids = rows.stream().map(AlcoholAttribute::getId).toList();
+      mappingRepository.deleteAllByAttributeIdIn(ids);
+      attributeRepository.deleteAllByIdIn(ids);
     }
-    return deleted;
+    return result;
+  }
+
+  @Override
+  @Transactional
+  public AdminAlcoholAttributeCreateResponse mapBulk(
+      AdminAlcoholAttributeMappingBulkRequest request) {
+    var alcoholIds =
+        request.items().stream()
+            .map(AdminAlcoholAttributeMappingBulkRequest.Item::alcoholId)
+            .distinct()
+            .sorted()
+            .toList();
+    var alcohols = mappingRepository.lockAlcohols(alcoholIds);
+    if (alcohols.size() != alcoholIds.size() || alcohols.stream().anyMatch(Alcohol::isDeleted))
+      throw new AlcoholException(ALCOHOL_NOT_FOUND);
+    var attributeIds =
+        request.items().stream()
+            .map(AdminAlcoholAttributeMappingBulkRequest.Item::attributeId)
+            .distinct()
+            .toList();
+    if (attributeRepository.findAllByIdIn(attributeIds).size() != attributeIds.size())
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_NOT_FOUND);
+    Set<AlcoholAttributeMappingKey> existing =
+        new HashSet<>(mappingRepository.findExistingKeys(alcoholIds, attributeIds));
+    List<Long> ids = new ArrayList<>();
+    int skipped = 0;
+    for (var item : request.items()) {
+      if (!existing.add(new AlcoholAttributeMappingKey(item.alcoholId(), item.attributeId()))) {
+        skipped++;
+        continue;
+      }
+      ids.add(
+          mappingRepository
+              .save(AlcoholAttributeMapping.create(item.alcoholId(), item.attributeId()))
+              .getId());
+    }
+    return new AdminAlcoholAttributeCreateResponse(ids.size(), skipped, List.copyOf(ids));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<AdminAlcoholAttributeMappingItem> findMappings(
+      AdminAlcoholAttributeMappingSearchRequest request) {
+    var page = mappingRepository.search(request);
+    return new PageImpl<>(
+        page.content().stream()
+            .map(
+                m ->
+                    new AdminAlcoholAttributeMappingItem(
+                        m.getId(),
+                        m.getAlcoholId(),
+                        m.getAttributeId(),
+                        m.getCreateAt(),
+                        m.getLastModifyAt(),
+                        toPrincipal(m.getCreatePrincipal()),
+                        toPrincipal(m.getLastModifyPrincipal())))
+            .toList(),
+        PageRequest.of(request.page(), request.size()),
+        page.totalElements());
+  }
+
+  @Override
+  @Transactional
+  public AdminResultResponse deleteMapping(Long id) {
+    var mapping =
+        mappingRepository
+            .findById(id)
+            .orElseThrow(() -> new AlcoholException(ALCOHOL_ATTRIBUTE_MAPPING_NOT_FOUND));
+    mappingRepository.delete(mapping);
+    return AdminResultResponse.of(ALCOHOL_ATTRIBUTE_MAPPING_DELETED, id);
   }
 
   @Override
@@ -219,24 +303,24 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   }
 
   @Override
-  @Transactional(readOnly = true)
   public AdminAlcoholAttributeEnumsResponse findEnums() {
     return new AdminAlcoholAttributeEnumsResponse(
         AdminCodeLabelItem.listOf(AttributeType.values()),
         AdminCodeLabelItem.listOf(AttributeDatatype.values()),
-        AdminCodeLabelItem.listOf(ValueProvider.values()));
+        AdminCodeLabelItem.listOf(ValueProvider.values()),
+        AdminCodeLabelItem.listOf(AttributeOperator.values()));
   }
 
-  private void requireAlcohols(List<Long> alcoholIds) {
-    List<Long> distinct = alcoholIds.stream().distinct().toList();
-    Set<Long> found =
-        alcoholQueryRepository.findAllByIdIn(distinct).stream()
-            .filter(alcohol -> !alcohol.isDeleted())
-            .map(Alcohol::getId)
-            .collect(Collectors.toSet());
-    if (found.size() != distinct.size()) {
-      throw new AlcoholException(ALCOHOL_NOT_FOUND);
-    }
+  private AlcoholAttribute candidate(AdminAlcoholAttributeCreateRequest request) {
+    return AlcoholAttribute.create(
+        request.key(),
+        request.displayName(),
+        request.type(),
+        request.datatype(),
+        request.operator(),
+        request.value(),
+        request.unit(),
+        request.description());
   }
 
   private AlcoholAttribute requireAttribute(Long id) {
@@ -245,69 +329,31 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
         .orElseThrow(() -> new AlcoholException(ALCOHOL_ATTRIBUTE_NOT_FOUND));
   }
 
-  private void saveUnique(AlcoholAttribute attribute) {
-    try {
-      attributeRepository.save(attribute);
-    } catch (DataIntegrityViolationException ex) {
+  private void requireUniqueName(String name, Long id) {
+    if (attributeRepository.existsByDisplayNameAndIdNot(name, id))
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_DUPLICATE);
-    }
   }
 
-  private AdminAlcoholAttributeSummaryItem toSummary(
-      SummaryGroupKey key, List<AlcoholAttribute> rows, long selectedCount) {
-    boolean numeric = key.datatype().isNumeric();
-    BigDecimal min = null;
-    BigDecimal max = null;
-    if (numeric) {
-      List<BigDecimal> numbers =
-          rows.stream().map(row -> new BigDecimal(row.getAttributeValue())).toList();
-      min = numbers.stream().min(BigDecimal::compareTo).orElseThrow();
-      max = numbers.stream().max(BigDecimal::compareTo).orElseThrow();
-    }
-    // 비숫자 묶음은 그룹 키에 값이 들어 있어 항상 같은 값이다. 숫자는 min·max가 같으면 같은 값이다
-    boolean allSame = !numeric || min.compareTo(max) == 0;
-    String value = !numeric || allSame ? rows.get(0).getAttributeValue() : null;
-    List<Long> alcoholIds =
-        rows.stream().map(AlcoholAttribute::getAlcoholId).distinct().sorted().toList();
-    List<Long> attributeIds = rows.stream().map(AlcoholAttribute::getId).sorted().toList();
-    return new AdminAlcoholAttributeSummaryItem(
-        key.key(),
-        value,
-        key.type(),
-        key.datatype(),
-        alcoholIds,
-        attributeIds,
-        alcoholIds.size(),
-        selectedCount,
-        min,
-        max,
-        allSame);
-  }
-
-  private AdminAlcoholAttributeItem toItem(AlcoholAttribute attribute) {
+  private AdminAlcoholAttributeItem toItem(AlcoholAttribute a) {
     return new AdminAlcoholAttributeItem(
-        attribute.getId(),
-        attribute.getAlcoholId(),
-        attribute.getAttributeKey(),
-        attribute.getAttributeType(),
-        attribute.getDatatype(),
-        attribute.getAttributeValue(),
-        attribute.getDescription(),
-        attribute.getBasedAt(),
-        attribute.getCreateAt(),
-        attribute.getLastModifyAt(),
-        toPrincipal(attribute.getCreatePrincipal()),
-        toPrincipal(attribute.getLastModifyPrincipal()));
+        a.getId(),
+        a.getAttributeKey(),
+        a.getDisplayName(),
+        a.getAttributeType(),
+        a.getDatatype(),
+        a.getOperator(),
+        a.getAttributeValue(),
+        a.getUnit(),
+        a.getDescription(),
+        a.getCreateAt(),
+        a.getLastModifyAt(),
+        toPrincipal(a.getCreatePrincipal()),
+        toPrincipal(a.getLastModifyPrincipal()));
   }
 
   private AdminAuditPrincipalItem toPrincipal(AuditPrincipal principal) {
-    if (principal == null) {
-      return null;
-    }
-    return new AdminAuditPrincipalItem(
-        principal.getId(), principal.getType(), principal.getEmail());
+    return principal == null
+        ? null
+        : new AdminAuditPrincipalItem(principal.getId(), principal.getType(), principal.getEmail());
   }
-
-  private record SummaryGroupKey(
-      String key, AttributeType type, AttributeDatatype datatype, String value) {}
 }

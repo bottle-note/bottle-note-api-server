@@ -2,30 +2,58 @@ package app.bottlenote.alcohols.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholAttribute.alcoholAttribute;
+import static app.bottlenote.alcohols.domain.QAlcoholAttributeMapping.alcoholAttributeMapping;
 
+import app.bottlenote.alcohols.domain.AlcoholAttribute;
 import app.bottlenote.alcohols.domain.QAlcoholAttribute;
+import app.bottlenote.alcohols.domain.QAlcoholAttributeMapping;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
+import app.bottlenote.global.pagination.OffsetPage;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttributeRepository {
   private final JPAQueryFactory queryFactory;
   private final AlcoholQuerySupporter supporter;
 
-  public CustomAlcoholAttributeRepositoryImpl(
-      JPAQueryFactory queryFactory, AlcoholQuerySupporter supporter) {
-    this.queryFactory = queryFactory;
-    this.supporter = supporter;
+  @Override
+  public OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request) {
+    BooleanExpression[] where = {
+      request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()),
+      keywordMatch(request.keyword()),
+      request.alcoholIds().isEmpty()
+          ? null
+          : JPAExpressions.selectOne()
+              .from(alcoholAttributeMapping)
+              .where(
+                  alcoholAttributeMapping.attributeId.eq(alcoholAttribute.id),
+                  alcoholAttributeMapping.alcoholId.in(request.alcoholIds()))
+              .exists()
+    };
+    List<AlcoholAttribute> content =
+        queryFactory
+            .selectFrom(alcoholAttribute)
+            .where(where)
+            .orderBy(alcoholAttribute.id.asc())
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
+            .fetch();
+    Long total =
+        queryFactory
+            .select(alcoholAttribute.count())
+            .from(alcoholAttribute)
+            .where(where)
+            .fetchOne();
+    return new OffsetPage<>(content, total == null ? 0 : total);
   }
 
-  /** 조건에 맞는 속성 행이 있는 위스키를 한글 이름순으로 페이지로 돌려준다. 삭제된 위스키는 뺀다 */
   @Override
-  public Page<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request, Pageable pageable) {
+  public OffsetPage<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request) {
     BooleanExpression[] where = {
       supporter.isNotDeleted(),
       supporter.keywordMatch(request.keyword()),
@@ -34,40 +62,51 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
       request.value() == null ? null : alcoholAttribute.attributeValue.eq(request.value()),
       notHavingKey(request.missingKey())
     };
-
     List<Long> content =
         queryFactory
-            .select(alcoholAttribute.alcoholId)
-            .from(alcoholAttribute)
+            .select(alcohol.id)
+            .from(alcoholAttributeMapping)
             .join(alcohol)
-            .on(alcohol.id.eq(alcoholAttribute.alcoholId))
+            .on(alcohol.id.eq(alcoholAttributeMapping.alcoholId))
+            .join(alcoholAttribute)
+            .on(alcoholAttribute.id.eq(alcoholAttributeMapping.attributeId))
             .where(where)
-            .groupBy(alcoholAttribute.alcoholId, alcohol.korName)
-            .orderBy(alcohol.korName.asc(), alcoholAttribute.alcoholId.asc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
+            .groupBy(alcohol.id, alcohol.korName)
+            .orderBy(alcohol.korName.asc(), alcohol.id.asc())
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
             .fetch();
-
     Long total =
         queryFactory
-            .select(alcoholAttribute.alcoholId.countDistinct())
-            .from(alcoholAttribute)
+            .select(alcohol.id.countDistinct())
+            .from(alcoholAttributeMapping)
             .join(alcohol)
-            .on(alcohol.id.eq(alcoholAttribute.alcoholId))
+            .on(alcohol.id.eq(alcoholAttributeMapping.alcoholId))
+            .join(alcoholAttribute)
+            .on(alcoholAttribute.id.eq(alcoholAttributeMapping.attributeId))
             .where(where)
             .fetchOne();
-
-    return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    return new OffsetPage<>(content, total == null ? 0 : total);
   }
 
-  private BooleanExpression notHavingKey(String missingKey) {
-    if (missingKey == null) {
-      return null;
-    }
+  private BooleanExpression keywordMatch(String keyword) {
+    if (keyword == null) return null;
+    var name = alcoholAttribute.displayName.containsIgnoreCase(keyword);
+    // ASCII 키 컬럼에는 한글을 비교하지 않아 MySQL collation 오류를 방지한다.
+    return keyword.chars().allMatch(c -> c < 128)
+        ? name.or(alcoholAttribute.attributeKey.containsIgnoreCase(keyword))
+        : name;
+  }
+
+  private BooleanExpression notHavingKey(String key) {
+    if (key == null) return null;
     QAlcoholAttribute other = new QAlcoholAttribute("missingAttribute");
+    QAlcoholAttributeMapping mapping = new QAlcoholAttributeMapping("missingMapping");
     return JPAExpressions.selectOne()
-        .from(other)
-        .where(other.alcoholId.eq(alcoholAttribute.alcoholId), other.attributeKey.eq(missingKey))
+        .from(mapping)
+        .join(other)
+        .on(other.id.eq(mapping.attributeId))
+        .where(mapping.alcoholId.eq(alcohol.id), other.attributeKey.eq(key))
         .notExists();
   }
 }

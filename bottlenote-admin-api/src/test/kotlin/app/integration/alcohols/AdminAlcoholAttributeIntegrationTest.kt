@@ -1,311 +1,199 @@
 package app.integration.alcohols
 
 import app.IntegrationTestSupport
-import app.bottlenote.alcohols.constant.AttributeDatatype
-import app.bottlenote.alcohols.constant.AttributeType
-import app.bottlenote.alcohols.domain.Alcohol
-import app.bottlenote.alcohols.domain.AlcoholAttribute
-import app.bottlenote.alcohols.domain.AlcoholAttributeRepository
-import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteRequest
-import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest
-import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem
-import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem
+import app.bottlenote.alcohols.constant.*
+import app.bottlenote.alcohols.domain.*
+import app.bottlenote.alcohols.dto.request.*
+import app.bottlenote.alcohols.dto.response.*
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
-import app.bottlenote.global.dto.response.AdminResultResponse
+import app.bottlenote.alcohols.service.AdminAlcoholAttributeService
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @Tag("admin_integration")
-@DisplayName("[integration] 위스키 속성 어드민 API")
+@DisplayName("[integration] 공통 속성과 매핑 API")
 class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
-	@Autowired
-	private lateinit var alcoholTestFactory: AlcoholTestFactory
+	@Autowired private lateinit var alcoholTestFactory: AlcoholTestFactory
 
-	@Autowired
-	private lateinit var alcoholAttributeRepository: AlcoholAttributeRepository
+	@Autowired private lateinit var attributes: AlcoholAttributeRepository
 
-	private lateinit var accessToken: String
+	@Autowired private lateinit var mappings: AlcoholAttributeMappingRepository
 
-	@BeforeEach
-	fun setUp() {
-		val admin = adminUserTestFactory.persistRootAdmin()
-		accessToken = getAccessToken(admin)
+	@Autowired private lateinit var service: AdminAlcoholAttributeService
+	private lateinit var token: String
+	private val base = "/v1/alcohols/attributes"
+
+	@BeforeEach fun setUp() {
+		token = getAccessToken(adminUserTestFactory.persistRootAdmin())
+	}
+	private fun request(key: String, name: String, value: String = "15000") = AdminAlcoholAttributeCreateRequest(key, name, AttributeType.PRICE, AttributeDatatype.INT, AttributeOperator.EQ, value, "원", "등록 기준")
+	private fun create(key: String = "price", name: String = "15,000원"): AdminAlcoholAttributeItem {
+		val response = postAs(token, base, request(key, name))
+		assertThat(response).hasStatusOk()
+		return extractData(response, AdminAlcoholAttributeItem::class.java)
+	}
+	private fun mapRequest(alcoholId: Long, attributeId: Long) = AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcoholId, attributeId)))
+
+	@Test
+	@DisplayName("기존 매핑 조회는 요청한 술과 속성의 ID 쌍만 반환한다")
+	fun existingMappingsOnlyIncludeRequestedIds() {
+		val first = alcoholTestFactory.persistAlcohol()
+		val other = alcoholTestFactory.persistAlcohol()
+		val a = create("first", "첫 속성")
+		val b = create("second", "둘째 속성")
+		listOf(first.id to a.id(), first.id to b.id(), other.id to a.id()).forEach { (alcoholId, attributeId) ->
+			assertThat(postAs(token, "$base/mappings/batch", mapRequest(alcoholId, attributeId))).hasStatusOk()
+		}
+		assertThat(mappings.findExistingKeys(listOf(first.id), listOf(a.id())))
+			.containsExactly(AlcoholAttributeMappingKey(first.id, a.id()))
 	}
 
 	@Test
-	@DisplayName("alcoholIds를 쉼표로 넘기면 속성 컨트롤러가 그 병들의 속성을 반환한다")
-	fun listsAttributesForCommaSeparatedAlcoholIds() {
-		val first = alcoholTestFactory.persistAlcohol()
-		val second = alcoholTestFactory.persistAlcohol()
-		saveAttribute(first, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트")
-		saveAttribute(second, "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "58000")
-
-		val result = getAs(accessToken, "/v1/alcohols/attributes?alcoholIds=${first.id},${second.id}")
-
+	@DisplayName("벌크 생성할 때 미연결 속성을 표시명으로 검색하고 감사 정보를 반환한다")
+	fun createsDictionaryWithAudit() {
+		val response = postAs(token, "$base/batch", AdminAlcoholAttributeBulkRequest(listOf(request("eq", "15,000원"), request("gte", "15,000원 이상"))))
+		assertThat(response).hasStatusOk()
+		val created = extractData(response, AdminAlcoholAttributeBulkResponse::class.java)
+		assertThat(created.created()).isEqualTo(2)
+		val result = getAs(token, "$base?keyword=이상")
 		assertThat(result).hasStatusOk()
 		val items = extractData(result, Array<AdminAlcoholAttributeItem>::class.java)
-		assertThat(items).hasSize(2)
-		assertThat(items[0].key).isEqualTo("keyword")
-		assertThat(items[1].value).isEqualTo("58000")
+		assertThat(items).hasSize(1)
+		assertThat(items[0].displayName()).isEqualTo("15,000원 이상")
+		assertThat(items[0].createAt()).isNotNull()
+		assertThat(items[0].createPrincipal().type.name).isEqualTo("ADMIN")
+		assertThat(items[0].lastModifyPrincipal().id).isNotNull()
 	}
 
 	@Test
-	@DisplayName("위스키 상세 경로는 그대로 위스키 조회다")
-	fun alcoholDetailRouteStaysOnAlcoholController() {
+	@DisplayName("같은 키를 갱신할 때 ID와 생성 감사 정보를 보존하고 수정 작업자를 기록한다")
+	fun upsertsWithoutRecreatingMapping() {
+		val a = create()
 		val alcohol = alcoholTestFactory.persistAlcohol()
-
-		val result = getAs(accessToken, "/v1/alcohols/${alcohol.id}")
-
-		assertThat(result).hasStatusOk()
-		val detail = extractData(result, Map::class.java)
-		assertThat(detail["korName"]).isEqualTo(alcohol.korName)
+		assertThat(postAs(token, "$base/mappings/batch", mapRequest(alcohol.id, a.id()))).hasStatusOk()
+		val before = service.findMappings(AdminAlcoholAttributeMappingSearchRequest(alcohol.id, a.id(), 0, 20)).content.single()
+		val otherToken = getAccessToken(adminUserTestFactory.persistRootAdmin())
+		val update = postAs(otherToken, "$base/batch", AdminAlcoholAttributeBulkRequest(listOf(request("price", "30,000원", "30000"))))
+		assertThat(update).hasStatusOk()
+		assertThat(extractData(update, AdminAlcoholAttributeBulkResponse::class.java).ids()).containsExactly(a.id())
+		val after = attributes.findById(a.id()).orElseThrow()
+		assertThat(after.createAt).isEqualTo(a.createAt())
+		assertThat(after.createPrincipal.id).isEqualTo(a.createPrincipal().id)
+		assertThat(after.lastModifyPrincipal.id).isNotEqualTo(a.createPrincipal().id)
+		val mapping = service.findMappings(AdminAlcoholAttributeMappingSearchRequest(alcohol.id, a.id(), 0, 20)).content.single()
+		assertThat(mapping).isEqualTo(before)
 	}
 
 	@Test
-	@DisplayName("alcoholIds가 없으면 400이다")
-	fun rejectsMissingAlcoholIds() {
-		assertThat(getAs(accessToken, "/v1/alcohols/attributes")).hasStatus(HttpStatus.BAD_REQUEST)
+	@DisplayName("벌크 중 이름이 충돌할 때 앞선 저장도 롤백한다")
+	fun rollsBackBatchOnNameConflict() {
+		create("original", "Price")
+		val response = postAs(token, "$base/batch", AdminAlcoholAttributeBulkRequest(listOf(request("new_key", "새 이름"), request("other", "price"))))
+		assertThat(response).hasStatus(HttpStatus.CONFLICT)
+		assertThat(attributes.findByAttributeKey("new_key")).isEmpty()
+		assertThat(attributes.findByAttributeKey("original").orElseThrow().displayName).isEqualTo("Price")
 	}
 
 	@Test
-	@DisplayName("alcoholIds가 숫자가 아니면 400이다")
-	fun rejectsNonNumericAlcoholIds() {
-		assertThat(getAs(accessToken, "/v1/alcohols/attributes?alcoholIds=abc"))
-			.hasStatus(HttpStatus.BAD_REQUEST)
+	@DisplayName("요청에 중복 키나 null 항목이 있을 때 400으로 거부한다")
+	fun rejectsDuplicateKeysAndNullItems() {
+		assertThat(postAs(token, "$base/batch", AdminAlcoholAttributeBulkRequest(listOf(request("same", "하나"), request(" same ", "둘"))))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(postAs(token, "$base/batch", mapOf("items" to listOf(null)))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(postAs(token, "$base/mappings/batch", mapOf("items" to listOf(null)))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(getAs(token, "$base?alcoholIds=abc")).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(service.findAll(AdminAlcoholAttributeSearchRequest(null, null, null, 0, 20)).totalElements).isZero()
 	}
 
 	@Test
-	@DisplayName("인증 없이 조회하면 403이다")
-	fun rejectsUnauthenticatedRequest() {
-		assertThat(mockMvcTester.get().uri("/v1/alcohols/attributes/enums")).hasStatus(HttpStatus.FORBIDDEN)
-	}
-
-	@Test
-	@DisplayName("속성을 추가하고 같은 값과 대소문자만 다른 값은 건너뛴다")
-	fun createsAndSkipsDuplicate() {
+	@DisplayName("매핑이 중복될 때 건너뛰고 감사 정보까지 유지한다")
+	fun skipsDuplicateMappingWithoutAuditing() {
+		val a = create()
 		val alcohol = alcoholTestFactory.persistAlcohol()
-		saveAttribute(alcohol, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "Smoky")
-		val request =
-			AdminAlcoholAttributeCreateRequest(
-				listOf(alcohol.id),
-				"keyword",
-				AttributeType.KEYWORD,
-				AttributeDatatype.STRING,
-				"smoky",
-				"추천 필터",
-				LocalDateTime.of(2026, 10, 12, 9, 0)
-			)
-
-		val skipped = postAs(accessToken, "/v1/alcohols/attributes", request)
-
-		assertThat(skipped).hasStatusOk()
-		val body = extractData(skipped, AdminAlcoholAttributeCreateResponse::class.java)
-		assertThat(body.added).isEqualTo(0)
-		assertThat(body.skipped).isEqualTo(1)
-
-		val created =
-			postAs(
-				accessToken,
-				"/v1/alcohols/attributes",
-				AdminAlcoholAttributeCreateRequest(
-					listOf(alcohol.id),
-					"keyword",
-					AttributeType.KEYWORD,
-					AttributeDatatype.STRING,
-					"피트",
-					"추천 필터",
-					LocalDateTime.of(2026, 10, 12, 9, 0)
-				)
-			)
-		assertThat(created).hasStatusOk()
-		assertThat(extractData(created, AdminAlcoholAttributeCreateResponse::class.java).added).isEqualTo(1)
+		val request = mapRequest(alcohol.id, a.id())
+		assertThat(postAs(token, "$base/mappings/batch", request)).hasStatusOk()
+		val before = service.findMappings(AdminAlcoholAttributeMappingSearchRequest(alcohol.id, a.id(), 0, 20)).content.single()
+		val response = postAs(token, "$base/mappings/batch", AdminAlcoholAttributeMappingBulkRequest(request.items() + request.items()))
+		assertThat(response).hasStatusOk()
+		val result = extractData(response, AdminAlcoholAttributeCreateResponse::class.java)
+		assertThat(result.added()).isZero()
+		assertThat(result.skipped()).isEqualTo(2)
+		val after = service.findMappings(AdminAlcoholAttributeMappingSearchRequest(alcohol.id, a.id(), 0, 20)).content.single()
+		assertThat(after).isEqualTo(before)
+		assertThat(after.createPrincipal().type.name).isEqualTo("ADMIN")
 	}
 
 	@Test
-	@DisplayName("없는 위스키에 속성을 추가하면 404이다")
-	fun missingAlcoholIsNotFound() {
-		val request =
-			AdminAlcoholAttributeCreateRequest(
-				listOf(999999L),
-				"keyword",
-				AttributeType.KEYWORD,
-				AttributeDatatype.STRING,
-				"피트",
-				null,
-				null
-			)
-
-		assertThat(postAs(accessToken, "/v1/alcohols/attributes", request)).hasStatus(HttpStatus.NOT_FOUND)
-	}
-
-	@Test
-	@DisplayName("같은 항목과 값으로 고치면 409이고 한 건을 지우면 행이 없다")
-	fun updatesAndDeletesAttributes() {
+	@DisplayName("같은 연결을 동시에 등록할 때 한 건만 생성하고 나머지는 건너뛴다")
+	fun handlesConcurrentMapping() {
+		val a = create()
 		val alcohol = alcoholTestFactory.persistAlcohol()
-		val kept =
-			saveAttribute(alcohol, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "Smoky")
-		val attribute =
-			saveAttribute(alcohol, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "Peat")
+		val request = mapRequest(alcohol.id, a.id())
+		val start = CountDownLatch(1)
+		val futures = (1..2).map {
+			CompletableFuture.supplyAsync {
+				start.await()
+				service.mapBulk(request)
+			}
+		}
+		start.countDown()
+		val results = futures.map { it.get(20, TimeUnit.SECONDS) }
+		assertThat(results.sumOf { it.added() }).isEqualTo(1)
+		assertThat(results.sumOf { it.skipped() }).isEqualTo(1)
+		assertThat(mappings.findAllByAlcoholIdIn(listOf(alcohol.id))).hasSize(1)
+	}
 
-		val conflict =
-			putAs(
-				accessToken,
-				"/v1/alcohols/attributes/${attribute.id}",
-				AdminAlcoholAttributeUpdateRequest(
-					AttributeType.KEYWORD,
-					AttributeDatatype.STRING,
-					"smoky",
-					null,
-					null
-				)
-			)
-		assertThat(conflict).hasStatus(HttpStatus.CONFLICT)
-		assertThat(alcoholAttributeRepository.findById(attribute.id).orElseThrow().attributeValue).isEqualTo("Peat")
+	@Test
+	@DisplayName("벌크 매핑 대상이 없을 때 요청 전체를 거부한다")
+	fun rejectsMissingMappingTarget() {
+		val a = create()
+		val alcohol = alcoholTestFactory.persistAlcohol()
+		val request = AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, a.id()), AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, Long.MAX_VALUE)))
+		assertThat(postAs(token, "$base/mappings/batch", request)).hasStatus(HttpStatus.NOT_FOUND)
+		assertThat(mappings.findAllByAlcoholIdIn(listOf(alcohol.id))).isEmpty()
+	}
 
-		val price =
-			saveAttribute(alcohol, "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000")
-		val updated =
-			putAs(
-				accessToken,
-				"/v1/alcohols/attributes/${price.id}",
-				AdminAlcoholAttributeUpdateRequest(
-					AttributeType.PRICE,
-					AttributeDatatype.INT,
-					"20000",
-					"시세",
-					null
-				)
-			)
-		assertThat(updated).hasStatusOk()
-		assertThat(extractData(updated, AdminResultResponse::class.java).code)
-			.isEqualTo("ALCOHOL_ATTRIBUTE_UPDATED")
+	@Test
+	@DisplayName("연결을 해제할 때 사전은 유지하고 속성을 삭제할 때 관련 연결도 삭제한다")
+	fun separatesMappingAndAttributeDeletion() {
+		val a = create()
+		val alcohol = alcoholTestFactory.persistAlcohol()
+		val request = mapRequest(alcohol.id, a.id())
+		val added = postAs(token, "$base/mappings/batch", request)
+		assertThat(added).hasStatusOk()
+		val id = extractData(added, AdminAlcoholAttributeCreateResponse::class.java).createdIds().single()
+		assertThat(deleteAs(token, "$base/mappings/$id")).hasStatusOk()
+		assertThat(attributes.findById(a.id())).isPresent()
+		assertThat(postAs(token, "$base/mappings/batch", request)).hasStatusOk()
+		assertThat(deleteAs(token, "$base/${a.id()}")).hasStatusOk()
+		assertThat(mappings.findAllByAlcoholIdIn(listOf(alcohol.id))).isEmpty()
+	}
 
-		val summary = getAs(accessToken, "/v1/alcohols/attributes/summary?alcoholIds=${alcohol.id}")
+	@Test
+	@DisplayName("속성 조회와 집계를 요청할 때 매핑을 기준으로 술을 반환한다")
+	fun queriesDictionaryMappingsAndStats() {
+		val a = create()
+		val alcohol = alcoholTestFactory.persistAlcohol()
+		assertThat(postAs(token, "$base/mappings/batch", mapRequest(alcohol.id, a.id()))).hasStatusOk()
+		val query = getAs(token, "$base/alcohols?key=price")
+		assertThat(query).hasStatusOk()
+		assertThat(extractData(query, Array<AdminAttributedAlcoholItem>::class.java).single().alcoholId()).isEqualTo(alcohol.id)
+		val summary = getAs(token, "$base/summary?alcoholIds=${alcohol.id}")
 		assertThat(summary).hasStatusOk()
-		val priceSummary =
-			extractData(summary, Array<AdminAlcoholAttributeSummaryItem>::class.java)
-				.first { it.key == "price_bottle" }
-		assertThat(priceSummary.min).isEqualByComparingTo(BigDecimal("20000"))
-		assertThat(priceSummary.allSameValue).isTrue()
-		assertThat(priceSummary.attributeIds).contains(price.id)
-		assertThat(priceSummary.registeredCount).isEqualTo(1)
-
-		val removed = deleteAs(accessToken, "/v1/alcohols/attributes/${price.id}")
-		assertThat(removed).hasStatusOk()
-		assertThat(extractData(removed, AdminResultResponse::class.java).code)
-			.isEqualTo("ALCOHOL_ATTRIBUTE_DELETED")
-		assertThat(alcoholAttributeRepository.findById(price.id)).isEmpty()
-		assertThat(alcoholAttributeRepository.findById(kept.id)).isPresent()
-
-		val missing =
-			putAs(
-				accessToken,
-				"/v1/alcohols/attributes/404",
-				AdminAlcoholAttributeUpdateRequest(
-					AttributeType.NOTE,
-					AttributeDatatype.STRING,
-					"메모",
-					null,
-					null
-				)
-			)
-		assertThat(missing).hasStatus(HttpStatus.NOT_FOUND)
+		assertThat(extractData(summary, Array<AdminAlcoholAttributeSummaryItem>::class.java).single().registeredCount()).isEqualTo(1)
+		assertThat(getAs(token, "$base/keys")).hasStatusOk()
+		assertThat(getAs(token, "$base/keywords")).hasStatusOk()
+		assertThat(getAs(token, "$base/mappings?attributeId=${a.id()}")).hasStatusOk()
+		assertThat(getAs(token, "/v1/alcohols/${alcohol.id}")).hasStatusOk()
 	}
 
 	@Test
-	@DisplayName("일괄 삭제는 지운 행을 돌려주고 집계와 라벨을 조회할 수 있다")
-	fun batchDeletesAndReadsAggregates() {
-		val first = alcoholTestFactory.persistAlcohol()
-		val second = alcoholTestFactory.persistAlcohol()
-		saveAttribute(first, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트")
-		saveAttribute(second, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트")
-		val price = saveAttribute(first, "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000")
-
-		val deleted =
-			postAs(
-				accessToken,
-				"/v1/alcohols/attributes/batch/delete",
-				AdminAlcoholAttributeBatchDeleteRequest(listOf(price.id, 999999L))
-			)
-		assertThat(deleted).hasStatusOk()
-		val deletedRows = extractData(deleted, Array<AdminAlcoholAttributeItem>::class.java)
-		assertThat(deletedRows).hasSize(1)
-		assertThat(deletedRows[0].id).isEqualTo(price.id)
-		assertThat(deletedRows[0].value).isEqualTo("10000")
-		assertThat(alcoholAttributeRepository.findById(price.id)).isEmpty()
-
-		val keys = getAs(accessToken, "/v1/alcohols/attributes/keys")
-		assertThat(keys).hasStatusOk()
-		val keyItems = extractData(keys, Array<AlcoholAttributeKeyCountItem>::class.java)
-		val keyword = keyItems.first { it.key == "keyword" }
-		assertThat(keyword.count).isEqualTo(2)
-		assertThat(keyItems.none { it.key == "price_bottle" }).isTrue()
-
-		val keywords = getAs(accessToken, "/v1/alcohols/attributes/keywords")
-		assertThat(keywords).hasStatusOk()
-		val keywordItems = extractData(keywords, Array<AlcoholAttributeKeywordCountItem>::class.java)
-		assertThat(keywordItems[0].value).isEqualTo("피트")
-		assertThat(keywordItems[0].alcoholCount).isEqualTo(2)
-
-		val enums = getAs(accessToken, "/v1/alcohols/attributes/enums")
-		assertThat(enums).hasStatusOk()
-		val labels = extractData(enums, AdminAlcoholAttributeEnumsResponse::class.java)
-		assertThat(labels.types[0].code).isEqualTo("KEYWORD")
-		assertThat(labels.types[0].korName).isEqualTo("키워드")
-		assertThat(labels.providers.first { it.code == "ADMIN" }.engName).isEqualTo("admin")
+	@DisplayName("인증 없이 요청할 때 접근을 거부한다")
+	fun requiresAuthentication() {
+		assertThat(mockMvcTester.get().uri("$base/enums")).hasStatus(HttpStatus.FORBIDDEN)
 	}
-
-	@Test
-	@DisplayName("속성이 붙은 위스키를 이름순 페이지로 반환하고 항목·값·missingKey·이름으로 거른다")
-	fun listsAttributedAlcoholsWithFilters() {
-		val ardbeg = alcoholTestFactory.persistAlcoholWithName("아드벡 10년", "Ardbeg 10")
-		val lagavulin = alcoholTestFactory.persistAlcoholWithName("라가불린 16년", "Lagavulin 16")
-		alcoholTestFactory.persistAlcoholWithName("글렌피딕 12년", "Glenfiddich 12")
-		saveAttribute(ardbeg, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트")
-		saveAttribute(ardbeg, "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "98000")
-		saveAttribute(lagavulin, "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트")
-
-		val all = getAs(accessToken, "/v1/alcohols/attributes/alcohols?size=10")
-		assertThat(all).hasStatusOk()
-		val items = extractData(all, Array<AdminAttributedAlcoholItem>::class.java)
-		assertThat(items.map { it.alcoholId }).containsExactly(lagavulin.id, ardbeg.id)
-		assertThat(items[1].korName).isEqualTo("아드벡 10년")
-		assertThat(items[1].attributes.map { it.key }).containsExactly("keyword", "price_bottle")
-		assertThat(items[0].attributes).hasSize(1)
-
-		val unpriced = getAs(accessToken, "/v1/alcohols/attributes/alcohols?missingKey=price_bottle")
-		assertThat(extractData(unpriced, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId })
-			.containsExactly(lagavulin.id)
-
-		val priced = getAs(accessToken, "/v1/alcohols/attributes/alcohols?type=PRICE&key=price_bottle&value=98000")
-		assertThat(extractData(priced, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId })
-			.containsExactly(ardbeg.id)
-
-		val named = getAs(accessToken, "/v1/alcohols/attributes/alcohols?keyword=Ardbeg")
-		assertThat(extractData(named, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId })
-			.containsExactly(ardbeg.id)
-	}
-
-	private fun saveAttribute(
-		alcohol: Alcohol,
-		key: String,
-		type: AttributeType,
-		datatype: AttributeDatatype,
-		value: String
-	): AlcoholAttribute = alcoholAttributeRepository.save(
-		AlcoholAttribute.create(alcohol.id, key, type, datatype, value, null, null)
-	)
 }
