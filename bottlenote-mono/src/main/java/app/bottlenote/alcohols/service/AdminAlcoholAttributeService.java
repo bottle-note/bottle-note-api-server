@@ -10,9 +10,9 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeBulkResponse;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeMappingBulkResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeMappingItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
 import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
@@ -45,7 +45,7 @@ public interface AdminAlcoholAttributeService {
 
   AdminAlcoholAttributeEnumsResponse findEnums();
 
-  AdminAlcoholAttributeCreateResponse mapBulk(AdminAlcoholAttributeMappingBulkRequest request);
+  AdminAlcoholAttributeMappingBulkResponse mapBulk(AdminAlcoholAttributeMappingBulkRequest request);
 
   Page<AdminAlcoholAttributeMappingItem> findMappings(
       AdminAlcoholAttributeMappingSearchRequest request);

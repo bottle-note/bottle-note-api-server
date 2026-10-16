@@ -84,7 +84,7 @@ object AdminAlcoholAttributeApiDocs {
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(summary = "술과 속성을 벌크 연결한다", description = "items는 alcoholId·attributeId 쌍이며 최대 500개입니다. 기존 연결과 요청 내 중복은 건너뛰며 감사 정보도 유지합니다. 없거나 삭제된 술·없는 속성은 404이며 요청 전체가 롤백됩니다. 조건으로 자동 연결하지 않습니다. createdIds는 신규 매핑 ID입니다.")
-	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeCreateResponse::class))])
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeMappingBulkResponse::class))])
 	annotation class CreateMappings
 
 	@Target(AnnotationTarget.FUNCTION)

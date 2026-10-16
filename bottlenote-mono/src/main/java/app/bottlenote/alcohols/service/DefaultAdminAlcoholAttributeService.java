@@ -24,9 +24,9 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeBulkResponse;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeMappingBulkResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeMappingItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
 import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
@@ -222,7 +222,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
 
   @Override
   @Transactional
-  public AdminAlcoholAttributeCreateResponse mapBulk(
+  public AdminAlcoholAttributeMappingBulkResponse mapBulk(
       AdminAlcoholAttributeMappingBulkRequest request) {
     var alcoholIds =
         request.items().stream()
@@ -254,7 +254,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
               .save(AlcoholAttributeMapping.create(item.alcoholId(), item.attributeId()))
               .getId());
     }
-    return new AdminAlcoholAttributeCreateResponse(ids.size(), skipped, List.copyOf(ids));
+    return new AdminAlcoholAttributeMappingBulkResponse(ids.size(), skipped, List.copyOf(ids));
   }
 
   @Override
