@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AttributeType;
-import app.bottlenote.global.pagination.OffsetPageRequest;
+import app.bottlenote.global.dto.request.OffsetPageRequest;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 

@@ -303,6 +303,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   }
 
   @Override
+  @Transactional(readOnly = true)
   public AdminAlcoholAttributeEnumsResponse findEnums() {
     return new AdminAlcoholAttributeEnumsResponse(
         AdminCodeLabelItem.listOf(AttributeType.values()),
