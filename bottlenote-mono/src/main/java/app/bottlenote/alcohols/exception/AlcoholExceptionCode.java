@@ -25,7 +25,9 @@ public enum AlcoholExceptionCode implements ExceptionCode {
       HttpStatus.BAD_REQUEST, "속성 항목은 영문 소문자로 시작하고 소문자·숫자·밑줄만 64자까지 쓸 수 있습니다."),
   ALCOHOL_ATTRIBUTE_INVALID_VALUE(HttpStatus.BAD_REQUEST, "속성 값이 비어 있거나 입력 형식에 맞지 않습니다."),
   ALCOHOL_ATTRIBUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "위스키 속성을 찾을 수 없습니다."),
-  ALCOHOL_ATTRIBUTE_DUPLICATE(HttpStatus.CONFLICT, "같은 위스키에 같은 항목과 값이 이미 있습니다."),
+  ALCOHOL_ATTRIBUTE_DUPLICATE_KEY_IN_REQUEST(HttpStatus.BAD_REQUEST, "요청 안에 같은 속성 키가 있습니다."),
+  ALCOHOL_ATTRIBUTE_MAPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "주류 속성 연결을 찾을 수 없습니다."),
+  ALCOHOL_ATTRIBUTE_DUPLICATE(HttpStatus.CONFLICT, "속성 키 또는 이름이 이미 사용 중입니다."),
   TASTING_TAG_GROUP_INVALID_CODE(
       HttpStatus.BAD_REQUEST, "맛 그룹 코드는 영문 대문자로 시작하고 대문자·숫자·밑줄만 64자까지 쓸 수 있습니다."),
   TASTING_TAG_GROUP_INVALID_NAME(HttpStatus.BAD_REQUEST, "맛 그룹 이름은 비울 수 없고 100자를 넘을 수 없습니다."),

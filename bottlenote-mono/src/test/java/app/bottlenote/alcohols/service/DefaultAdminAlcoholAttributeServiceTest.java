@@ -1,508 +1,219 @@
 package app.bottlenote.alcohols.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_DUPLICATE;
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE;
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_NOT_FOUND;
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
+import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
-import app.bottlenote.alcohols.constant.ValueProvider;
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholAttribute;
-import app.bottlenote.alcohols.domain.AlcoholAttributeRepository;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeCreateResponse;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
-import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeMappingRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
-import app.bottlenote.global.dto.response.AdminResultResponse;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @Tag("unit")
-@DisplayName("위스키 속성 어드민 서비스")
-@SuppressWarnings("NonAsciiCharacters")
+@DisplayName("공통 속성 어드민 서비스")
 class DefaultAdminAlcoholAttributeServiceTest {
-
-  InMemoryAlcoholAttributeRepository attributeRepository;
-  InMemoryAlcoholQueryRepository alcoholQueryRepository;
+  InMemoryAlcoholQueryRepository alcohols;
+  InMemoryAlcoholAttributeMappingRepository mappings;
+  InMemoryAlcoholAttributeRepository attributes;
   DefaultAdminAlcoholAttributeService service;
   Alcohol first;
   Alcohol second;
-  Alcohol third;
 
   @BeforeEach
   void setUp() {
-    alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
-    attributeRepository = new InMemoryAlcoholAttributeRepository();
-    service = new DefaultAdminAlcoholAttributeService(attributeRepository, alcoholQueryRepository);
-    first = saveAlcohol("첫 병");
-    second = saveAlcohol("둘째 병");
-    third = saveAlcohol("셋째 병");
+    alcohols = new InMemoryAlcoholQueryRepository();
+    mappings = new InMemoryAlcoholAttributeMappingRepository(alcohols);
+    attributes = new InMemoryAlcoholAttributeRepository(mappings, alcohols);
+    service = new DefaultAdminAlcoholAttributeService(attributes, mappings, alcohols);
+    first = alcohols.save(Alcohol.builder().korName("가나다").engName("Alpha").build());
+    second = alcohols.save(Alcohol.builder().korName("라마바").engName("Beta").build());
+  }
+
+  private AdminAlcoholAttributeCreateRequest request(String key, String name, String value) {
+    return new AdminAlcoholAttributeCreateRequest(
+        key,
+        name,
+        AttributeType.PRICE,
+        AttributeDatatype.INT,
+        AttributeOperator.EQ,
+        value,
+        "원",
+        "설명");
+  }
+
+  private void map(Long alcoholId, Long attributeId) {
+    service.mapBulk(
+        new AdminAlcoholAttributeMappingBulkRequest(
+            List.of(new AdminAlcoholAttributeMappingBulkRequest.Item(alcoholId, attributeId))));
   }
 
   @Test
-  @DisplayName("위스키를 고르면 그 병들의 속성만 반환한다")
-  void 선택한_위스키의_속성을_조회할_수_있다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(
-        second.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "58000");
-    saveAttribute(third.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "과일");
-
-    List<AdminAlcoholAttributeItem> items =
-        service.findAll(
-            new AdminAlcoholAttributeSearchRequest(List.of(first.getId(), second.getId())));
-
-    assertThat(items)
-        .extracting(AdminAlcoholAttributeItem::alcoholId)
-        .containsExactly(first.getId(), second.getId());
-    assertThat(items.get(0).key()).isEqualTo("keyword");
-    assertThat(items.get(0).value()).isEqualTo("피트");
-    assertThat(items.get(0).type()).isEqualTo(AttributeType.KEYWORD);
-    assertThat(items.get(0).createPrincipal()).isNull();
+  @DisplayName("같은 키를 벌크 등록할 때 ID와 매핑을 보존하고 덮어쓴다")
+  void 같은_키를_갱신한다() {
+    var a = service.create(request("price", "1만원", "10000"));
+    map(first.getId(), a.id());
+    var response =
+        service.upsertBulk(
+            new AdminAlcoholAttributeBulkRequest(List.of(request("price", "2만원", "20000"))));
+    assertThat(response.updated()).isEqualTo(1);
+    assertThat(response.created()).isZero();
+    assertThat(response.ids()).containsExactly(a.id());
+    assertThat(attributes.findById(a.id()).orElseThrow().getAttributeValue()).isEqualTo("20000");
+    assertThat(mappings.findAll())
+        .singleElement()
+        .satisfies(m -> assertThat(m.getAttributeId()).isEqualTo(a.id()));
   }
 
   @Test
-  @DisplayName("숫자 속성은 항목별로 묶고 그 외는 값까지 나눠 집계한다")
-  void 선택한_위스키_속성을_묶어_조회할_수_있다() {
-    saveAttribute(
-        first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-    saveAttribute(
-        second.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "30000");
-    saveAttribute(
-        third.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(third.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "과일");
-
-    List<AdminAlcoholAttributeSummaryItem> summary =
-        service.summarize(
-            new AdminAlcoholAttributeSearchRequest(
-                List.of(first.getId(), second.getId(), third.getId(), first.getId())));
-
-    AdminAlcoholAttributeSummaryItem price =
-        summary.stream()
-            .filter(item -> item.key().equals("price_bottle"))
-            .findFirst()
-            .orElseThrow();
-    assertThat(price.alcoholIds()).containsExactly(first.getId(), second.getId(), third.getId());
-    assertThat(price.attributeIds()).hasSize(3);
-    assertThat(price.registeredCount()).isEqualTo(3);
-    assertThat(price.selectedCount()).isEqualTo(3);
-    assertThat(price.min()).isEqualByComparingTo(new BigDecimal("10000"));
-    assertThat(price.max()).isEqualByComparingTo(new BigDecimal("30000"));
-    assertThat(price.allSameValue()).isFalse();
-    assertThat(price.value()).isNull();
-
-    AdminAlcoholAttributeSummaryItem peat =
-        summary.stream().filter(item -> "피트".equals(item.value())).findFirst().orElseThrow();
-    assertThat(peat.alcoholIds()).containsExactly(first.getId(), second.getId());
-    assertThat(peat.registeredCount()).isEqualTo(2);
-    assertThat(peat.allSameValue()).isTrue();
-    assertThat(peat.min()).isNull();
+  @DisplayName("다른 키에서 같은 표시명을 사용할 때 충돌로 처리한다")
+  void 이름_중복을_거부한다() {
+    service.create(request("one", "Price", "1"));
+    assertThatThrownBy(() -> service.create(request("two", "price", "2")))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(attributes.findAll()).hasSize(1);
   }
 
   @Test
-  @DisplayName("한 위스키의 숫자 속성이 여러 행이면 등록 수는 위스키 수이고 행 ID를 모두 담는다")
-  void 같은_숫자_항목의_여러_행을_위스키_수로_묶을_수_있다() {
-    AlcoholAttribute low =
-        saveAttribute(
-            first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-    AlcoholAttribute high =
-        saveAttribute(
-            first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "25000");
-    AlcoholAttribute other =
-        saveAttribute(
-            second.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "30000");
-
-    List<AdminAlcoholAttributeSummaryItem> summary =
-        service.summarize(
-            new AdminAlcoholAttributeSearchRequest(
-                List.of(first.getId(), second.getId(), third.getId())));
-
-    AdminAlcoholAttributeSummaryItem price =
-        summary.stream()
-            .filter(item -> item.key().equals("price_bottle"))
-            .findFirst()
-            .orElseThrow();
-    assertThat(price.alcoholIds()).containsExactly(first.getId(), second.getId());
-    assertThat(price.attributeIds()).containsExactly(low.getId(), high.getId(), other.getId());
-    assertThat(price.registeredCount()).isEqualTo(2);
-    assertThat(price.selectedCount()).isEqualTo(3);
-    assertThat(price.min()).isEqualByComparingTo(new BigDecimal("10000"));
-    assertThat(price.max()).isEqualByComparingTo(new BigDecimal("30000"));
-  }
-
-  @Test
-  @DisplayName("같은 항목과 값이 이미 있으면 그 위스키는 건너뛴다")
-  void 같은_항목과_값이_있으면_추가를_건너뛸_수_있다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-
-    AdminAlcoholAttributeCreateResponse response =
-        service.create(
-            new AdminAlcoholAttributeCreateRequest(
-                List.of(first.getId(), second.getId(), first.getId()),
-                " keyword ",
-                AttributeType.KEYWORD,
-                AttributeDatatype.STRING,
-                " 피트 ",
-                " 추천 ",
-                LocalDateTime.of(2026, 10, 12, 0, 0)));
-
-    assertThat(response.added()).isEqualTo(1);
-    assertThat(response.skipped()).isEqualTo(2);
-    assertThat(response.createdIds()).hasSize(1);
-    assertThat(attributeRepository.findAll()).hasSize(2);
-    AlcoholAttribute created =
-        attributeRepository.findById(response.createdIds().get(0)).orElseThrow();
-    assertThat(created.getAttributeKey()).isEqualTo("keyword");
-    assertThat(created.getAttributeValue()).isEqualTo("피트");
-    assertThat(created.getDescription()).isEqualTo("추천");
-  }
-
-  @Test
-  @DisplayName("없는 위스키가 있으면 속성을 추가하지 않는다")
-  void 없는_위스키에는_속성을_추가할_수_없다() {
+  @DisplayName("요청 내부에 같은 정규화 키가 있을 때 저장 전에 거부한다")
+  void 요청_중복_키를_거부한다() {
     assertThatThrownBy(
             () ->
-                service.create(
-                    new AdminAlcoholAttributeCreateRequest(
-                        List.of(first.getId(), 999L),
-                        "keyword",
-                        AttributeType.KEYWORD,
-                        AttributeDatatype.STRING,
-                        "피트",
-                        null,
-                        null)))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_NOT_FOUND);
-    assertThat(attributeRepository.findAll()).isEmpty();
+                service.upsertBulk(
+                    new AdminAlcoholAttributeBulkRequest(
+                        List.of(request("one", "하나", "1"), request(" one ", "둘", "2")))))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(attributes.findAll()).isEmpty();
   }
 
   @Test
-  @DisplayName("삭제된 위스키에는 속성을 추가하지 않는다")
-  void 삭제된_위스키에는_속성을_추가할_수_없다() {
+  @DisplayName("기존 연결과 요청 중복을 등록할 때 건너뛰고 수정 시각을 유지한다")
+  void 중복_매핑은_변경하지_않는다() {
+    var a = service.create(request("one", "하나", "1"));
+    map(first.getId(), a.id());
+    var m = mappings.findAll().getFirst();
+    var time = LocalDateTime.of(2026, 10, 16, 0, 0);
+    ReflectionTestUtils.setField(m, "lastModifyAt", time);
+    var item = new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id());
+    var result =
+        service.mapBulk(
+            new AdminAlcoholAttributeMappingBulkRequest(
+                List.of(
+                    item,
+                    item,
+                    new AdminAlcoholAttributeMappingBulkRequest.Item(second.getId(), a.id()))));
+    assertThat(result.added()).isEqualTo(1);
+    assertThat(result.skipped()).isEqualTo(2);
+    assertThat(m.getLastModifyAt()).isEqualTo(time);
+    assertThat(mappings.findAll()).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("없는 술이나 속성을 연결할 때 아무 연결도 만들지 않는다")
+  void 없는_대상을_검증한다() {
+    var a = service.create(request("one", "하나", "1"));
+    assertThatThrownBy(() -> map(9999L, a.id())).isInstanceOf(AlcoholException.class);
+    assertThatThrownBy(() -> map(first.getId(), 9999L)).isInstanceOf(AlcoholException.class);
+    assertThat(mappings.findAll()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("삭제된 술을 연결할 때 거부한다")
+  void 삭제된_술을_거부한다() {
+    var a = service.create(request("one", "하나", "1"));
     first.delete();
-
-    assertThatThrownBy(
-            () ->
-                service.create(
-                    new AdminAlcoholAttributeCreateRequest(
-                        List.of(first.getId()),
-                        "keyword",
-                        AttributeType.KEYWORD,
-                        AttributeDatatype.STRING,
-                        "피트",
-                        null,
-                        null)))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_NOT_FOUND);
-    assertThat(attributeRepository.findAll()).isEmpty();
+    assertThatThrownBy(() -> map(first.getId(), a.id())).isInstanceOf(AlcoholException.class);
   }
 
   @Test
-  @DisplayName("저장 중 유니크 위반이 나면 추가를 409로 바꾼다")
-  void 저장_중_유니크_위반은_추가를_거절한다() {
-    AlcoholAttributeRepository failing =
-        new InMemoryAlcoholAttributeRepository() {
-          @Override
-          public AlcoholAttribute save(AlcoholAttribute attribute) {
-            throw new DataIntegrityViolationException("duplicate");
-          }
-        };
-    DefaultAdminAlcoholAttributeService failingService =
-        new DefaultAdminAlcoholAttributeService(failing, alcoholQueryRepository);
-
-    assertThatThrownBy(
-            () ->
-                failingService.create(
-                    new AdminAlcoholAttributeCreateRequest(
-                        List.of(first.getId()),
-                        "keyword",
-                        AttributeType.KEYWORD,
-                        AttributeDatatype.STRING,
-                        "피트",
-                        null,
-                        null)))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_ATTRIBUTE_DUPLICATE);
+  @DisplayName("사전을 조회할 때 미연결 속성을 포함하고 이름으로 검색한다")
+  void 사전과_연결을_분리해_조회한다() {
+    var a = service.create(request("one", "1만원", "10000"));
+    service.create(request("two", "2만원", "20000"));
+    map(first.getId(), a.id());
+    assertThat(
+            service
+                .findAll(new AdminAlcoholAttributeSearchRequest(null, null, null, 0, 20))
+                .getTotalElements())
+        .isEqualTo(2);
+    assertThat(
+            service
+                .findAll(
+                    new AdminAlcoholAttributeSearchRequest(
+                        List.of(first.getId()), null, null, 0, 20))
+                .getContent())
+        .singleElement()
+        .satisfies(i -> assertThat(i.id()).isEqualTo(a.id()));
+    assertThat(
+            service
+                .findAll(new AdminAlcoholAttributeSearchRequest(null, "2만원", null, 0, 20))
+                .getContent())
+        .singleElement()
+        .satisfies(i -> assertThat(i.key()).isEqualTo("two"));
   }
 
   @Test
-  @DisplayName("값 형식이 맞지 않으면 추가를 거부한다")
-  void 잘못된_값은_거부할_수_있다() {
-    assertThatThrownBy(
-            () ->
-                service.create(
-                    new AdminAlcoholAttributeCreateRequest(
-                        List.of(first.getId()),
-                        "price_bottle",
-                        AttributeType.PRICE,
-                        AttributeDatatype.INT,
-                        "58000.5",
-                        null,
-                        null)))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+  @DisplayName("같은 속성을 여러 술에 연결할 때 속성 ID별로 집계한다")
+  void 연결을_집계한다() {
+    var a = service.create(request("one", "하나", "1"));
+    map(first.getId(), a.id());
+    map(second.getId(), a.id());
+    var summaries =
+        service.summarize(
+            new AdminAlcoholAttributeSummaryRequest(List.of(first.getId(), second.getId())));
+    assertThat(summaries)
+        .singleElement()
+        .satisfies(
+            s -> {
+              assertThat(s.registeredCount()).isEqualTo(2);
+              assertThat(s.mappingIds()).hasSize(2);
+              assertThat(s.attribute().id()).isEqualTo(a.id());
+            });
   }
 
   @Test
-  @DisplayName("속성 한 건의 값과 분류를 수정한다")
-  void 속성을_수정할_수_있다() {
-    AlcoholAttribute saved =
-        saveAttribute(
-            first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-
-    AdminResultResponse response =
-        service.update(
-            saved.getId(),
-            new AdminAlcoholAttributeUpdateRequest(
-                AttributeType.PRICE, AttributeDatatype.INT, " 20000 ", "시세", null));
-
-    assertThat(response.code()).isEqualTo("ALCOHOL_ATTRIBUTE_UPDATED");
-    assertThat(response.targetId()).isEqualTo(saved.getId());
-    assertThat(attributeRepository.findById(saved.getId()).orElseThrow().getAttributeValue())
-        .isEqualTo("20000");
-    assertThat(attributeRepository.findById(saved.getId()).orElseThrow().getAttributeKey())
-        .isEqualTo("price_bottle");
+  @DisplayName("연결을 해제할 때 속성은 남기고 속성을 삭제할 때 연결도 삭제한다")
+  void 삭제_범위를_구분한다() {
+    var a = service.create(request("one", "하나", "1"));
+    map(first.getId(), a.id());
+    service.deleteMapping(mappings.findAll().getFirst().getId());
+    assertThat(attributes.findById(a.id())).isPresent();
+    map(second.getId(), a.id());
+    service.deleteBatch(new AdminAlcoholAttributeBatchDeleteRequest(List.of(a.id())));
+    assertThat(attributes.findAll()).isEmpty();
+    assertThat(mappings.findAll()).isEmpty();
   }
 
   @Test
-  @DisplayName("같은 위스키의 다른 행과 항목·값이 겹치면 수정하지 않는다")
-  void 같은_항목과_값으로_수정할_수_없다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    AlcoholAttribute target =
-        saveAttribute(
-            first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "과일");
-
-    assertThatThrownBy(
-            () ->
-                service.update(
-                    target.getId(),
-                    new AdminAlcoholAttributeUpdateRequest(
-                        AttributeType.KEYWORD, AttributeDatatype.STRING, "피트", null, null)))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_ATTRIBUTE_DUPLICATE);
-    assertThat(attributeRepository.findById(target.getId()).orElseThrow().getAttributeValue())
-        .isEqualTo("과일");
-  }
-
-  @Test
-  @DisplayName("수정 저장 중 유니크 위반이 나면 409로 바꾼다")
-  void 수정_저장_중_유니크_위반은_409로_바꾼다() {
-    AlcoholAttributeRepository failing =
-        new InMemoryAlcoholAttributeRepository() {
-          @Override
-          public AlcoholAttribute save(AlcoholAttribute attribute) {
-            if ("충돌".equals(attribute.getAttributeValue())) {
-              throw new DataIntegrityViolationException("duplicate");
-            }
-            return super.save(attribute);
-          }
-        };
-    AlcoholAttribute saved =
-        failing.save(
-            AlcoholAttribute.create(
-                first.getId(),
-                "keyword",
-                AttributeType.KEYWORD,
-                AttributeDatatype.STRING,
-                "과일",
-                null,
-                null));
-    DefaultAdminAlcoholAttributeService failingService =
-        new DefaultAdminAlcoholAttributeService(failing, alcoholQueryRepository);
-
-    assertThatThrownBy(
-            () ->
-                failingService.update(
-                    saved.getId(),
-                    new AdminAlcoholAttributeUpdateRequest(
-                        AttributeType.KEYWORD, AttributeDatatype.STRING, "충돌", null, null)))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_ATTRIBUTE_DUPLICATE);
-  }
-
-  @Test
-  @DisplayName("없는 속성은 수정할 수 없다")
-  void 없는_속성을_수정할_수_없다() {
-    assertThatThrownBy(
-            () ->
-                service.update(
-                    404L,
-                    new AdminAlcoholAttributeUpdateRequest(
-                        AttributeType.NOTE, AttributeDatatype.STRING, "메모", null, null)))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_ATTRIBUTE_NOT_FOUND);
-  }
-
-  @Test
-  @DisplayName("속성 한 건을 삭제한다")
-  void 속성을_삭제할_수_있다() {
-    AlcoholAttribute saved =
-        saveAttribute(
-            first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-
-    AdminResultResponse response = service.delete(saved.getId());
-
-    assertThat(response.code()).isEqualTo("ALCOHOL_ATTRIBUTE_DELETED");
-    assertThat(attributeRepository.findById(saved.getId())).isEmpty();
-  }
-
-  @Test
-  @DisplayName("없는 속성은 삭제할 수 없다")
-  void 없는_속성을_삭제할_수_없다() {
-    assertThatThrownBy(() -> service.delete(404L))
-        .isInstanceOf(AlcoholException.class)
-        .extracting(exception -> ((AlcoholException) exception).getExceptionCode())
-        .isEqualTo(ALCOHOL_ATTRIBUTE_NOT_FOUND);
-  }
-
-  @Test
-  @DisplayName("여러 속성을 지우고 지운 행을 그대로 돌려준다")
-  void 여러_속성을_지우고_지운_행을_돌려줄_수_있다() {
-    AlcoholAttribute kept =
-        saveAttribute(
-            first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    AlcoholAttribute removed =
-        saveAttribute(
-            second.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-
-    List<AdminAlcoholAttributeItem> deleted =
-        service.deleteBatch(
-            new AdminAlcoholAttributeBatchDeleteRequest(List.of(removed.getId(), 999L)));
-
-    assertThat(deleted).extracting(AdminAlcoholAttributeItem::id).containsExactly(removed.getId());
-    assertThat(deleted.get(0).value()).isEqualTo("10000");
-    assertThat(attributeRepository.findById(removed.getId())).isEmpty();
-    assertThat(attributeRepository.findById(kept.getId())).isPresent();
-  }
-
-  @Test
-  @DisplayName("없는 ID만 지우면 빈 목록을 돌려준다")
-  void 없는_속성만_지우면_빈_목록을_돌려줄_수_있다() {
-    List<AdminAlcoholAttributeItem> deleted =
-        service.deleteBatch(new AdminAlcoholAttributeBatchDeleteRequest(List.of()));
-
-    assertThat(deleted).isEmpty();
-  }
-
-  @Test
-  @DisplayName("전체 속성에서 항목별 건수와 위스키 수를 센다")
-  void 키별_집계를_조회할_수_있다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "과일");
-    saveAttribute(
-        first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-
-    List<AlcoholAttributeKeyCountItem> keys = service.findKeys();
-
-    AlcoholAttributeKeyCountItem keyword =
-        keys.stream().filter(item -> item.key().equals("keyword")).findFirst().orElseThrow();
-    assertThat(keyword.type()).isEqualTo(AttributeType.KEYWORD);
-    assertThat(keyword.datatype()).isEqualTo(AttributeDatatype.STRING);
-    assertThat(keyword.count()).isEqualTo(2);
-    assertThat(keyword.alcoholCount()).isEqualTo(2);
-    assertThat(keys).extracting(AlcoholAttributeKeyCountItem::key).contains("price_bottle");
-  }
-
-  @Test
-  @DisplayName("키워드 값은 위스키가 많은 순으로 반환한다")
-  void 키워드를_많은_순으로_조회할_수_있다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(third.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "과일");
-    saveAttribute(
-        first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-
-    List<AlcoholAttributeKeywordCountItem> keywords = service.findKeywords();
-
-    assertThat(keywords)
-        .extracting(AlcoholAttributeKeywordCountItem::value)
-        .containsExactly("피트", "과일");
-    assertThat(keywords.get(0).alcoholCount()).isEqualTo(2);
-    assertThat(keywords.get(1).alcoholCount()).isEqualTo(1);
-  }
-
-  @Test
-  @DisplayName("분류와 값 형식, 값 제공자의 화면 라벨을 반환한다")
-  void 화면_라벨용_코드를_조회할_수_있다() {
-    AdminAlcoholAttributeEnumsResponse enums = service.findEnums();
-
-    assertThat(enums.types()).hasSize(AttributeType.values().length);
-    assertThat(enums.datatypes()).hasSize(AttributeDatatype.values().length);
-    assertThat(enums.providers()).hasSize(ValueProvider.values().length);
-    assertThat(enums.types().get(0).code()).isEqualTo(AttributeType.KEYWORD.name());
-    assertThat(enums.types().get(0).korName()).isEqualTo(AttributeType.KEYWORD.getKorName());
-    assertThat(enums.providers())
-        .anyMatch(
-            item ->
-                item.code().equals(ValueProvider.ADMIN.name()) && item.engName().equals("admin"));
-  }
-
-  @Test
-  @DisplayName("속성이 붙은 위스키마다 이름과 속성 행을 묶어 주고, 결과가 없으면 빈 페이지다")
-  void 속성이_붙은_위스키_목록을_조회할_수_있다() {
-    saveAttribute(first.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-    saveAttribute(
-        first.getId(), "price_bottle", AttributeType.PRICE, AttributeDatatype.INT, "10000");
-    saveAttribute(second.getId(), "keyword", AttributeType.KEYWORD, AttributeDatatype.STRING, "피트");
-
-    Page<AdminAttributedAlcoholItem> page =
-        service.searchAlcohols(AdminAttributedAlcoholSearchRequest.builder().build());
-    Page<AdminAttributedAlcoholItem> none =
+  @DisplayName("속성으로 술을 조회할 때 매핑 기준으로 검색하고 페이징한다")
+  void 매핑으로_술을_검색한다() {
+    var a = service.create(request("one", "하나", "1"));
+    map(first.getId(), a.id());
+    map(second.getId(), a.id());
+    var page =
         service.searchAlcohols(
-            AdminAttributedAlcoholSearchRequest.builder().missingKey("keyword").build());
-
-    // 셋째 병은 속성이 없어 빠진다
+            new AdminAttributedAlcoholSearchRequest(null, null, "one", null, null, 0, 1));
     assertThat(page.getTotalElements()).isEqualTo(2);
-    AdminAttributedAlcoholItem firstItem =
-        page.getContent().stream()
-            .filter(item -> item.alcoholId().equals(first.getId()))
-            .findFirst()
-            .orElseThrow();
-    assertThat(firstItem.korName()).isEqualTo("첫 병");
-    assertThat(firstItem.attributes())
-        .extracting(AdminAlcoholAttributeItem::key)
-        .containsExactly("keyword", "price_bottle");
-    assertThat(none.getContent()).isEmpty();
-    assertThat(none.getTotalElements()).isZero();
-  }
-
-  private Alcohol saveAlcohol(String name) {
-    return alcoholQueryRepository.save(Alcohol.builder().korName(name).engName(name).build());
-  }
-
-  private AlcoholAttribute saveAttribute(
-      Long alcoholId, String key, AttributeType type, AttributeDatatype datatype, String value) {
-    return attributeRepository.save(
-        AlcoholAttribute.create(alcoholId, key, type, datatype, value, null, null));
+    assertThat(page.getContent())
+        .singleElement()
+        .satisfies(i -> assertThat(i.alcoholId()).isEqualTo(first.getId()));
+    assertThat(service.findKeys())
+        .singleElement()
+        .satisfies(i -> assertThat(i.alcoholCount()).isEqualTo(2));
   }
 }

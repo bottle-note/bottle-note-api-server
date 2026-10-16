@@ -6,4 +6,5 @@ import java.util.List;
 public record AdminAlcoholAttributeEnumsResponse(
     List<AdminCodeLabelItem> types,
     List<AdminCodeLabelItem> datatypes,
-    List<AdminCodeLabelItem> providers) {}
+    List<AdminCodeLabelItem> providers,
+    List<AdminCodeLabelItem> operators) {}

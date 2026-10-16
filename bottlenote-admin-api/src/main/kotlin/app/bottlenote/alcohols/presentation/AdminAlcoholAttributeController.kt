@@ -1,8 +1,12 @@
 package app.bottlenote.alcohols.presentation
 
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteRequest
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBulkRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingBulkRequest
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest
 import app.bottlenote.alcohols.presentation.docs.AdminAlcoholAttributeApiDocs
@@ -31,12 +35,12 @@ class AdminAlcoholAttributeController(
 	@GetMapping
 	fun findAttributes(
 		@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeSearchRequest
-	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.findAll(request))
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.findAll(request)))
 
 	@AdminAlcoholAttributeApiDocs.SummarizeAttributes
 	@GetMapping("/summary")
 	fun summarizeAttributes(
-		@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeSearchRequest
+		@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeSummaryRequest
 	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.summarize(request))
 
 	@AdminAlcoholAttributeApiDocs.FindAttributedAlcohols
@@ -81,4 +85,20 @@ class AdminAlcoholAttributeController(
 	@AdminAlcoholAttributeApiDocs.FindAttributeEnums
 	@GetMapping("/enums")
 	fun findAttributeEnums(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.findEnums())
+
+	@AdminAlcoholAttributeApiDocs.UpsertAttributes
+	@PostMapping("/batch")
+	fun upsertAttributes(@RequestBody @Valid request: AdminAlcoholAttributeBulkRequest): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.upsertBulk(request))
+
+	@AdminAlcoholAttributeApiDocs.CreateMappings
+	@PostMapping("/mappings/batch")
+	fun createMappings(@RequestBody @Valid request: AdminAlcoholAttributeMappingBulkRequest): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.mapBulk(request))
+
+	@AdminAlcoholAttributeApiDocs.FindMappings
+	@GetMapping("/mappings")
+	fun findMappings(@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeMappingSearchRequest): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.findMappings(request)))
+
+	@AdminAlcoholAttributeApiDocs.DeleteMapping
+	@DeleteMapping("/mappings/{id}")
+	fun deleteMapping(@PathVariable id: Long): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.deleteMapping(id))
 }

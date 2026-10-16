@@ -1,11 +1,12 @@
 package app.bottlenote.alcohols.repository;
 
+import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import app.bottlenote.global.pagination.OffsetPage;
 
-/** 위스키 속성의 QueryDSL 조회 조각. */
 public interface CustomAlcoholAttributeRepository {
+  OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request);
 
-  Page<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request, Pageable pageable);
+  OffsetPage<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request);
 }

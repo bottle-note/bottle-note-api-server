@@ -1,136 +1,145 @@
 package app.bottlenote.alcohols.domain;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
+import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @Tag("unit")
-@DisplayName("위스키 속성 도메인 단위 테스트")
-@SuppressWarnings("NonAsciiCharacters")
+@DisplayName("공통 속성")
 class AlcoholAttributeTest {
+  private AlcoholAttribute price(String value) {
+    return AlcoholAttribute.create(
+        "price_gte",
+        "15,000원 이상",
+        AttributeType.PRICE,
+        AttributeDatatype.DOUBLE,
+        AttributeOperator.GTE,
+        value,
+        "원",
+        "기준");
+  }
 
   @Test
-  @DisplayName("항목과 값을 다듬어 속성을 만든다")
-  void 속성을_만들_수_있다() {
-    AlcoholAttribute attribute =
+  @DisplayName("가격을 생성할 때 숫자를 정규화하고 비교 조건을 저장한다")
+  void 가격을_정규화한다() {
+    var a = price(" 15000.00 ");
+    assertThat(a.getAttributeValue()).isEqualTo("15000");
+    assertThat(a.getOperator()).isEqualTo(AttributeOperator.GTE);
+    assertThat(a.getDisplayName()).isEqualTo("15,000원 이상");
+  }
+
+  @Test
+  @DisplayName("속성을 수정할 때 키를 보존하고 선택 필드를 지운다")
+  void 키를_보존한다() {
+    var a = price("15000");
+    a.update(
+        "변경", AttributeType.NOTE, AttributeDatatype.STRING, AttributeOperator.EQ, "메모", null, null);
+    assertThat(a.getAttributeKey()).isEqualTo("price_gte");
+    assertThat(a.getUnit()).isNull();
+    assertThat(a.getDescription()).isNull();
+  }
+
+  @Test
+  @DisplayName("검증된 속성으로 갱신할 때 기존 키를 유지하고 모든 변경 가능 필드를 적용한다")
+  void 검증된_값을_적용한다() {
+    var target = price("15000");
+    var candidate =
         AlcoholAttribute.create(
-            247L,
-            " keyword ",
-            AttributeType.KEYWORD,
+            "other_key",
+            "메모 속성",
+            AttributeType.NOTE,
             AttributeDatatype.STRING,
-            " 입문 ",
-            "  추천 필터 ",
+            AttributeOperator.EQ,
+            "변경 내용",
+            null,
             null);
-
-    assertThat(attribute.getAlcoholId()).isEqualTo(247L);
-    assertThat(attribute.getAttributeKey()).isEqualTo("keyword");
-    assertThat(attribute.getAttributeValue()).isEqualTo("입문");
-    assertThat(attribute.getDescription()).isEqualTo("추천 필터");
-    assertThat(attribute.hasSameKeyAndValue("keyword", "입문")).isTrue();
+    target.updateFrom(candidate);
+    assertThat(target.getAttributeKey()).isEqualTo("price_gte");
+    assertThat(target.getDisplayName()).isEqualTo("메모 속성");
+    assertThat(target.getAttributeType()).isEqualTo(AttributeType.NOTE);
+    assertThat(target.getDatatype()).isEqualTo(AttributeDatatype.STRING);
+    assertThat(target.getOperator()).isEqualTo(AttributeOperator.EQ);
+    assertThat(target.getAttributeValue()).isEqualTo("변경 내용");
+    assertThat(target.getUnit()).isNull();
+    assertThat(target.getDescription()).isNull();
   }
 
-  @ParameterizedTest(name = "key=\"{0}\"")
-  @CsvSource({"Keyword", "1abc", "price-bottle", "''", "' '"})
-  @DisplayName("항목이 영문 소문자·숫자·밑줄 형식이 아니면 거부한다")
-  void 잘못된_항목은_거부한다(String key) {
+  @ParameterizedTest
+  @ValueSource(strings = {"", " ", "1e5", "NaN", "15000원", "1.1234567"})
+  @DisplayName("숫자 값이 형식에 맞지 않을 때 거부한다")
+  void 잘못된_숫자를_거부한다(String value) {
+    assertThatThrownBy(() -> price(value)).isInstanceOf(AlcoholException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"UPPER", "a-b", "1start", ""})
+  @DisplayName("키가 규칙에 맞지 않을 때 거부한다")
+  void 잘못된_키를_거부한다(String key) {
     assertThatThrownBy(
             () ->
                 AlcoholAttribute.create(
-                    1L, key, AttributeType.KEYWORD, AttributeDatatype.STRING, "값", null, null))
-        .isInstanceOf(AlcoholException.class)
-        .hasMessage(AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_KEY.getMessage());
-  }
-
-  @ParameterizedTest(name = "{0} <- \"{1}\"")
-  @CsvSource({
-    "INT, 58000, true",
-    "INT, 58000.5, false",
-    "DOUBLE, 86.50, true",
-    "DOUBLE, abc, false",
-    "BOOLEAN, true, true",
-    "BOOLEAN, yes, false",
-    "STRING, 60도 이상, true"
-  })
-  @DisplayName("값은 입력 형식에 맞을 때만 받는다")
-  void 값은_형식에_맞아야_한다(AttributeDatatype datatype, String value, boolean accepted) {
-    if (accepted) {
-      AlcoholAttribute attribute =
-          AlcoholAttribute.create(
-              1L, "score", AttributeType.POPULARITY, datatype, value, null, null);
-      String expected =
-          datatype.isNumeric() ? new BigDecimal(value).stripTrailingZeros().toPlainString() : value;
-      assertThat(attribute.getAttributeValue()).isEqualTo(expected);
-      return;
-    }
-    assertThatThrownBy(
-            () ->
-                AlcoholAttribute.create(
-                    1L, "score", AttributeType.POPULARITY, datatype, value, null, null))
-        .isInstanceOf(AlcoholException.class)
-        .hasMessage(AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE.getMessage());
-  }
-
-  @Test
-  @DisplayName("빈 값은 형식과 무관하게 거부한다")
-  void 빈_값은_거부한다() {
-    assertThatThrownBy(
-            () ->
-                AlcoholAttribute.create(
-                    1L, "note", AttributeType.NOTE, AttributeDatatype.STRING, "   ", null, null))
-        .isInstanceOf(AlcoholException.class)
-        .hasMessage(AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE.getMessage());
-  }
-
-  @Test
-  @DisplayName("소수 끝의 0을 떼어 40.0을 40으로 저장한다")
-  void 숫자_끝의_0을_떼어_저장한다() {
-    AlcoholAttribute attribute =
-        AlcoholAttribute.create(
-            1L, "abv", AttributeType.POPULARITY, AttributeDatatype.DOUBLE, "40.0", null, null);
-
-    assertThat(attribute.getAttributeValue()).isEqualTo("40");
-  }
-
-  @Test
-  @DisplayName("수정은 항목을 두고 분류·형식·값·근거·기준 시점만 바꾼다")
-  void 수정하면_항목은_유지된다() {
-    AlcoholAttribute attribute =
-        AlcoholAttribute.create(
-            1L, "score", AttributeType.POPULARITY, AttributeDatatype.DOUBLE, "80", "초기", null);
-    LocalDateTime basedAt = LocalDateTime.of(2026, 9, 28, 0, 0);
-
-    attribute.update(AttributeType.POPULARITY, AttributeDatatype.DOUBLE, "86.5", "데일리샷", basedAt);
-
-    assertThat(attribute.getAttributeKey()).isEqualTo("score");
-    assertThat(attribute.getAttributeValue()).isEqualTo("86.5");
-    assertThat(attribute.getDescription()).isEqualTo("데일리샷");
-    assertThat(attribute.getBasedAt()).isEqualTo(basedAt);
-  }
-
-  @Test
-  @DisplayName("수정 값이 형식에 맞지 않으면 기존 값을 유지한다")
-  void 수정_실패_시_기존_값을_유지한다() {
-    AlcoholAttribute attribute =
-        AlcoholAttribute.create(
-            1L, "score", AttributeType.POPULARITY, AttributeDatatype.DOUBLE, "80", null, null);
-
-    assertThatThrownBy(
-            () ->
-                attribute.update(
-                    AttributeType.POPULARITY, AttributeDatatype.INT, "8.5", null, null))
+                    key,
+                    "이름",
+                    AttributeType.KEYWORD,
+                    AttributeDatatype.STRING,
+                    AttributeOperator.EQ,
+                    "smoky",
+                    null,
+                    null))
         .isInstanceOf(AlcoholException.class);
-    assertThat(attribute.getAttributeValue()).isEqualTo("80");
-    assertThat(attribute.getDatatype()).isEqualTo(AttributeDatatype.DOUBLE);
+  }
+
+  @Test
+  @DisplayName("문자 속성에 이상 조건을 지정할 때 거부한다")
+  void 문자_범위_조건을_거부한다() {
+    assertThatThrownBy(
+            () ->
+                AlcoholAttribute.create(
+                    "smoky",
+                    "스모키",
+                    AttributeType.KEYWORD,
+                    AttributeDatatype.STRING,
+                    AttributeOperator.GTE,
+                    "smoky",
+                    null,
+                    null))
+        .isInstanceOf(AlcoholException.class);
+  }
+
+  @Test
+  @DisplayName("이름과 단위가 최대 길이를 넘을 때 거부한다")
+  void 길이를_검증한다() {
+    var a = price("15000");
+    assertThatThrownBy(
+            () ->
+                a.update(
+                    "x".repeat(101),
+                    AttributeType.PRICE,
+                    AttributeDatatype.INT,
+                    AttributeOperator.EQ,
+                    "1",
+                    null,
+                    null))
+        .isInstanceOf(AlcoholException.class);
+    assertThatThrownBy(
+            () ->
+                a.update(
+                    "이름",
+                    AttributeType.PRICE,
+                    AttributeDatatype.INT,
+                    AttributeOperator.EQ,
+                    "1",
+                    "x".repeat(21),
+                    null))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(a.getAttributeValue()).isEqualTo("15000");
   }
 }

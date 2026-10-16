@@ -1,20 +1,24 @@
 package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
+import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.List;
+import jakarta.validation.constraints.Size;
 
-/** 여러 위스키에 같은 속성을 추가하는 요청. 항목·값 형식은 도메인이 검증한다. */
 public record AdminAlcoholAttributeCreateRequest(
-    @NotEmpty(message = "ALCOHOL_ID_REQUIRED")
-        List<@NotNull(message = "ALCOHOL_ID_REQUIRED") Long> alcoholIds,
-    @NotBlank(message = "ALCOHOL_ATTRIBUTE_KEY_REQUIRED") String key,
+    @NotBlank(message = "ALCOHOL_ATTRIBUTE_KEY_REQUIRED")
+        @Size(max = 64, message = "ALCOHOL_ATTRIBUTE_FIELD_LENGTH_INVALID")
+        String key,
+    @NotBlank(message = "ALCOHOL_ATTRIBUTE_NAME_REQUIRED")
+        @Size(max = 100, message = "ALCOHOL_ATTRIBUTE_FIELD_LENGTH_INVALID")
+        String displayName,
     @NotNull(message = "ALCOHOL_ATTRIBUTE_TYPE_REQUIRED") AttributeType type,
     @NotNull(message = "ALCOHOL_ATTRIBUTE_DATATYPE_REQUIRED") AttributeDatatype datatype,
-    @NotBlank(message = "ALCOHOL_ATTRIBUTE_VALUE_REQUIRED") String value,
-    String description,
-    LocalDateTime basedAt) {}
+    @NotNull(message = "ALCOHOL_ATTRIBUTE_OPERATOR_REQUIRED") AttributeOperator operator,
+    @NotBlank(message = "ALCOHOL_ATTRIBUTE_VALUE_REQUIRED")
+        @Size(max = 255, message = "ALCOHOL_ATTRIBUTE_FIELD_LENGTH_INVALID")
+        String value,
+    @Size(max = 20, message = "ALCOHOL_ATTRIBUTE_FIELD_LENGTH_INVALID") String unit,
+    @Size(max = 500, message = "ALCOHOL_ATTRIBUTE_FIELD_LENGTH_INVALID") String description) {}

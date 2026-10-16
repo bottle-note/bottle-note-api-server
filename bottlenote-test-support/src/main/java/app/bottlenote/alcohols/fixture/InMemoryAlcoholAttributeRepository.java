@@ -1,190 +1,199 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.constant.AttributeDatatype;
 import app.bottlenote.alcohols.constant.AttributeType;
+import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.AlcoholAttributeMapping;
 import app.bottlenote.alcohols.domain.AlcoholAttributeRepository;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
-import java.util.ArrayList;
+import app.bottlenote.global.pagination.OffsetPage;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import java.util.TreeMap;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
-/** 위스키 속성 포트의 상태 기반 테스트 더블 */
 public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepository {
+  private final Map<Long, AlcoholAttribute> rows = new LinkedHashMap<>();
+  private final InMemoryAlcoholAttributeMappingRepository mappings;
+  private final AlcoholQueryRepository alcohols;
+  private long sequence;
 
-  private final List<AlcoholAttribute> rows = new ArrayList<>();
-  private final AtomicLong sequence = new AtomicLong();
-  @Override
-  public AlcoholAttribute save(AlcoholAttribute attribute) {
-    if (attribute.getId() == null) {
-      ReflectionTestUtils.setField(attribute, "id", sequence.incrementAndGet());
-    }
-    rows.removeIf(row -> Objects.equals(row.getId(), attribute.getId()));
-    rows.add(attribute);
-    return attribute;
+  public InMemoryAlcoholAttributeRepository(
+      InMemoryAlcoholAttributeMappingRepository mappings, AlcoholQueryRepository alcohols) {
+    this.mappings = mappings;
+    this.alcohols = alcohols;
   }
 
   @Override
-  public List<AlcoholAttribute> saveAll(Collection<AlcoholAttribute> attributes) {
-    return attributes.stream().map(this::save).toList();
+  public AlcoholAttribute save(AlcoholAttribute a) {
+    if (rows.values().stream()
+        .anyMatch(
+            other ->
+                !Objects.equals(other.getId(), a.getId())
+                    && other.getAttributeKey().equals(a.getAttributeKey())))
+      throw new DataIntegrityViolationException("uk_alcohol_attributes_key");
+    if (existsByDisplayNameAndIdNot(a.getDisplayName(), a.getId()))
+      throw new DataIntegrityViolationException("uk_alcohol_attributes_display_name");
+    if (a.getId() == null) ReflectionTestUtils.setField(a, "id", ++sequence);
+    rows.put(a.getId(), a);
+    return a;
   }
 
   @Override
   public Optional<AlcoholAttribute> findById(Long id) {
-    return rows.stream().filter(row -> Objects.equals(row.getId(), id)).findFirst();
+    return Optional.ofNullable(rows.get(id));
+  }
+
+  @Override
+  public Optional<AlcoholAttribute> findByAttributeKey(String key) {
+    return rows.values().stream().filter(a -> a.getAttributeKey().equals(key)).findFirst();
   }
 
   @Override
   public List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids) {
-    if (ids == null || ids.isEmpty()) {
-      return List.of();
-    }
-    Set<Long> targets = new HashSet<>();
-    for (Long id : ids) {
-      if (id != null) {
-        targets.add(id);
-      }
-    }
-    return rows.stream()
-        .filter(row -> targets.contains(row.getId()))
-        .sorted(Comparator.comparing(AlcoholAttribute::getId))
-        .toList();
+    return rows.values().stream().filter(a -> ids.contains(a.getId())).toList();
   }
 
   @Override
-  public List<AlcoholAttribute> findAllByAlcoholIdIn(Collection<Long> alcoholIds) {
-    Set<Long> ids = Set.copyOf(alcoholIds);
-    return rows.stream()
-        .filter(row -> ids.contains(row.getAlcoholId()))
-        .sorted(
-            Comparator.comparing(AlcoholAttribute::getAlcoholId)
-                .thenComparing(AlcoholAttribute::getId))
-        .toList();
+  public boolean existsByDisplayNameAndIdNot(String name, Long id) {
+    return rows.values().stream()
+        .anyMatch(
+            a -> !Objects.equals(a.getId(), id) && folded(a.getDisplayName()).equals(folded(name)));
+  }
+
+  private String folded(String text) {
+    return java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
+        .replaceAll("\\p{M}", "")
+        .toLowerCase(Locale.ROOT);
   }
 
   @Override
-  public List<AlcoholAttribute> findAllByAttributeType(AttributeType attributeType) {
-    return rows.stream().filter(row -> row.getAttributeType() == attributeType).toList();
-  }
-
-  /** 행 조건과 missingKey만 지원한다. 이름 검색·이름순 정렬은 위스키 표가 필요해 통합 테스트에서 본다 */
-  @Override
-  public Page<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request, Pageable pageable) {
-    List<Long> matched =
-        rows.stream()
-            .filter(row -> request.type() == null || row.getAttributeType() == request.type())
-            .filter(row -> request.key() == null || row.getAttributeKey().equals(request.key()))
-            .filter(row -> request.value() == null || row.getAttributeValue().equals(request.value()))
-            .map(AlcoholAttribute::getAlcoholId)
-            .distinct()
-            .filter(alcoholId -> request.missingKey() == null || !hasKey(alcoholId, request.missingKey()))
-            .sorted()
+  public OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request) {
+    Set<Long> ids =
+        mappings.findAllByAlcoholIdIn(request.alcoholIds()).stream()
+            .map(AlcoholAttributeMapping::getAttributeId)
+            .collect(java.util.stream.Collectors.toSet());
+    var matched =
+        rows.values().stream()
+            .filter(a -> request.type() == null || a.getAttributeType() == request.type())
+            .filter(
+                a ->
+                    request.keyword() == null
+                        || folded(a.getDisplayName()).contains(folded(request.keyword()))
+                        || folded(a.getAttributeKey()).contains(folded(request.keyword())))
+            .filter(a -> request.alcoholIds().isEmpty() || ids.contains(a.getId()))
             .toList();
-    int from = (int) Math.min(pageable.getOffset(), matched.size());
-    int to = Math.min(from + pageable.getPageSize(), matched.size());
-    return new PageImpl<>(matched.subList(from, to), pageable, matched.size());
+    return new OffsetPage<>(
+        matched.stream()
+            .skip((long) request.page() * request.size())
+            .limit(request.size())
+            .toList(),
+        matched.size());
   }
 
-  private boolean hasKey(Long alcoholId, String key) {
-    return rows.stream()
-        .anyMatch(row -> Objects.equals(row.getAlcoholId(), alcoholId) && row.getAttributeKey().equals(key));
+  @Override
+  public OffsetPage<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request) {
+    var matched =
+        alcohols.findAll().stream()
+            .filter(a -> !a.isDeleted())
+            .filter(
+                a ->
+                    request.keyword() == null
+                        || folded(a.getKorName()).contains(folded(request.keyword()))
+                        || folded(a.getEngName()).contains(folded(request.keyword())))
+            .filter(
+                a ->
+                    mappings.findAllByAlcoholIdIn(List.of(a.getId())).stream()
+                        .map(m -> rows.get(m.getAttributeId()))
+                        .filter(Objects::nonNull)
+                        .anyMatch(
+                            v ->
+                                (request.type() == null || v.getAttributeType() == request.type())
+                                    && (request.key() == null
+                                        || v.getAttributeKey().equals(request.key()))
+                                    && (request.value() == null
+                                        || v.getAttributeValue().equals(request.value()))))
+            .filter(
+                a ->
+                    request.missingKey() == null
+                        || mappings.findAllByAlcoholIdIn(List.of(a.getId())).stream()
+                            .map(m -> rows.get(m.getAttributeId()))
+                            .filter(Objects::nonNull)
+                            .noneMatch(v -> v.getAttributeKey().equals(request.missingKey())))
+            .sorted(Comparator.comparing(Alcohol::getKorName).thenComparing(Alcohol::getId))
+            .map(Alcohol::getId)
+            .toList();
+    return new OffsetPage<>(
+        matched.stream()
+            .skip((long) request.page() * request.size())
+            .limit(request.size())
+            .toList(),
+        matched.size());
   }
 
   @Override
   public List<AlcoholAttributeKeyCountItem> findKeyStats() {
-    Map<KeyGroup, List<AlcoholAttribute>> grouped = new HashMap<>();
-    for (AlcoholAttribute row : rows) {
-      grouped
-          .computeIfAbsent(
-              new KeyGroup(row.getAttributeKey(), row.getAttributeType(), row.getDatatype()),
-              key -> new ArrayList<>())
-          .add(row);
-    }
-    return grouped.entrySet().stream()
+    return rows.values().stream()
+        .sorted(Comparator.comparing(AlcoholAttribute::getAttributeKey))
         .map(
-            entry ->
+            a ->
                 new AlcoholAttributeKeyCountItem(
-                    entry.getKey().key(),
-                    entry.getKey().type(),
-                    entry.getKey().datatype(),
-                    (long) entry.getValue().size(),
-                    entry.getValue().stream().map(AlcoholAttribute::getAlcoholId).distinct().count()))
-        .sorted(
-            Comparator.comparing(AlcoholAttributeKeyCountItem::key)
-                .thenComparing(item -> item.type().name())
-                .thenComparing(item -> item.datatype().name()))
+                    a.getAttributeKey(),
+                    a.getAttributeType(),
+                    a.getDatatype(),
+                    1L,
+                    mappings.findAll().stream()
+                        .filter(m -> m.getAttributeId().equals(a.getId()))
+                        .map(AlcoholAttributeMapping::getAlcoholId)
+                        .distinct()
+                        .count()))
         .toList();
   }
 
   @Override
   public List<AlcoholAttributeKeywordCountItem> findKeywordStats() {
-    Map<String, Set<Long>> alcoholsByValue = new HashMap<>();
-    for (AlcoholAttribute row : rows) {
-      if (row.getAttributeType() != AttributeType.KEYWORD) {
-        continue;
+    Map<String, Set<Long>> grouped = new TreeMap<>();
+    for (var a : rows.values())
+      if (a.getAttributeType() == AttributeType.KEYWORD) {
+        var ids = grouped.computeIfAbsent(a.getAttributeValue(), k -> new HashSet<>());
+        mappings.findAll().stream()
+            .filter(m -> m.getAttributeId().equals(a.getId()))
+            .forEach(m -> ids.add(m.getAlcoholId()));
       }
-      alcoholsByValue
-          .computeIfAbsent(row.getAttributeValue(), value -> new HashSet<>())
-          .add(row.getAlcoholId());
-    }
-    return alcoholsByValue.entrySet().stream()
-        .map(entry -> new AlcoholAttributeKeywordCountItem(entry.getKey(), (long) entry.getValue().size()))
+    return grouped.entrySet().stream()
+        .map(e -> new AlcoholAttributeKeywordCountItem(e.getKey(), (long) e.getValue().size()))
         .sorted(
-            Comparator.comparingLong(AlcoholAttributeKeywordCountItem::alcoholCount)
+            Comparator.comparing(AlcoholAttributeKeywordCountItem::alcoholCount)
                 .reversed()
                 .thenComparing(AlcoholAttributeKeywordCountItem::value))
         .toList();
   }
 
   @Override
-  public boolean existsByAlcoholIdAndAttributeKeyAndAttributeValue(
-      Long alcoholId, String attributeKey, String attributeValue) {
-    return rows.stream()
-        .anyMatch(
-            row ->
-                Objects.equals(row.getAlcoholId(), alcoholId)
-                    && row.hasSameKeyAndValue(attributeKey, attributeValue));
-  }
-
-  @Override
-  public boolean existsByAlcoholIdAndAttributeKeyAndAttributeValueAndIdNot(
-      Long alcoholId, String attributeKey, String attributeValue, Long id) {
-    return rows.stream()
-        .anyMatch(
-            row ->
-                !Objects.equals(row.getId(), id)
-                    && Objects.equals(row.getAlcoholId(), alcoholId)
-                    && row.hasSameKeyAndValue(attributeKey, attributeValue));
-  }
-
-  @Override
-  public void delete(AlcoholAttribute attribute) {
-    rows.removeIf(row -> Objects.equals(row.getId(), attribute.getId()));
+  public void delete(AlcoholAttribute a) {
+    deleteAllByIdIn(List.of(a.getId()));
   }
 
   @Override
   public void deleteAllByIdIn(Collection<Long> ids) {
-    Set<Long> targets = Set.copyOf(ids);
-    rows.removeIf(row -> targets.contains(row.getId()));
+    ids.forEach(rows::remove);
+    mappings.deleteAllByAttributeIdIn(ids);
   }
 
   public List<AlcoholAttribute> findAll() {
-    return List.copyOf(rows);
+    return List.copyOf(rows.values());
   }
-
-  private record KeyGroup(String key, AttributeType type, AttributeDatatype datatype) {}
 }
