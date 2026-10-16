@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.dto.request;
 
-import app.bottlenote.global.pagination.OffsetPageRequest;
+import app.bottlenote.global.dto.request.OffsetPageRequest;
 import jakarta.validation.constraints.Positive;
 
 public record AdminAlcoholAttributeMappingSearchRequest(

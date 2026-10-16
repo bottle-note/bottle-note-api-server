@@ -1,4 +1,4 @@
-package app.bottlenote.global.pagination;
+package app.bottlenote.global.dto.request;
 
 public record OffsetPageRequest(int page, int size) {
   public static OffsetPageRequest of(Integer page, Integer size, int defaultSize, int maxSize) {
