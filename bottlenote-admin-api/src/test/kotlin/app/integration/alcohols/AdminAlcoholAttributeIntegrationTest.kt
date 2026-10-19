@@ -31,13 +31,13 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 	@BeforeEach fun setUp() {
 		token = getAccessToken(adminUserTestFactory.persistRootAdmin())
 	}
-	private fun request(key: String, name: String, value: String = "15000") = AdminAlcoholAttributeCreateRequest(key, name, AttributeType.PRICE, AttributeDatatype.INT, AttributeOperator.EQ, value, "원", "등록 기준")
+	private fun request(key: String, name: String) = AdminAlcoholAttributeCreateRequest(key, name, AttributeType.PRICE, AttributeDatatype.INT, "원", "등록 기준")
 	private fun create(key: String = "price", name: String = "15,000원"): AdminAlcoholAttributeItem {
 		val response = postAs(token, base, request(key, name))
 		assertThat(response).hasStatusOk()
 		return extractData(response, AdminAlcoholAttributeItem::class.java)
 	}
-	private fun mapRequest(alcoholId: Long, attributeId: Long) = AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcoholId, attributeId)))
+	private fun mapRequest(alcoholId: Long, attributeId: Long) = AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcoholId, attributeId, "15000")))
 
 	@Test
 	@DisplayName("기존 매핑 조회는 요청한 술과 속성의 ID 쌍만 반환한다")
@@ -79,7 +79,7 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 		val before = service.findMappings(AdminAlcoholAttributeMappingSearchRequest(alcohol.id, a.id(), 0, 20)).content.single()
 		val persistedCreateAt = attributes.findById(a.id()).orElseThrow().createAt
 		val otherToken = getAccessToken(adminUserTestFactory.persistRootAdmin())
-		val update = postAs(otherToken, "$base/batch", AdminAlcoholAttributeBulkRequest(listOf(request("price", "30,000원", "30000"))))
+		val update = postAs(otherToken, "$base/batch", AdminAlcoholAttributeBulkRequest(listOf(request("price", "병 참고 가격"))))
 		assertThat(update).hasStatusOk()
 		assertThat(extractData(update, AdminAlcoholAttributeBulkResponse::class.java).ids()).containsExactly(a.id())
 		val after = attributes.findById(a.id()).orElseThrow()
@@ -153,7 +153,7 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 	fun rejectsMissingMappingTarget() {
 		val a = create()
 		val alcohol = alcoholTestFactory.persistAlcohol()
-		val request = AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, a.id()), AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, Long.MAX_VALUE)))
+		val request = AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, a.id(), "15000"), AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, Long.MAX_VALUE, "15000")))
 		assertThat(postAs(token, "$base/mappings/batch", request)).hasStatus(HttpStatus.NOT_FOUND)
 		assertThat(mappings.findAllByAlcoholIdIn(listOf(alcohol.id))).isEmpty()
 	}
@@ -190,6 +190,120 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 		assertThat(getAs(token, "$base/keywords")).hasStatusOk()
 		assertThat(getAs(token, "$base/mappings?attributeId=${a.id()}")).hasStatusOk()
 		assertThat(getAs(token, "/v1/alcohols/${alcohol.id}")).hasStatusOk()
+	}
+
+	@Test
+	@DisplayName("술마다 다른 값을 저장하고 수정·검색·집계에 반영한다")
+	fun managesValuesPerAlcohol() {
+		val a = create("price", "병 참고 가격")
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		val payload = AdminAlcoholAttributeMappingBulkRequest(
+			listOf(
+				AdminAlcoholAttributeMappingBulkRequest.Item(first.id, a.id(), "44000"),
+				AdminAlcoholAttributeMappingBulkRequest.Item(second.id, a.id(), "65000")
+			)
+		)
+		assertThat(postAs(token, "$base/mappings/batch", payload)).hasStatusOk()
+		val before = service.findMappings(AdminAlcoholAttributeMappingSearchRequest(first.id, a.id(), 0, 20)).content.single()
+		val editor = getAccessToken(adminUserTestFactory.persistRootAdmin())
+		val modified = putAs(editor, "$base/mappings/${before.id()}", AdminAlcoholAttributeMappingUpdateRequest("50000"))
+		assertThat(modified).hasStatusOk()
+		val after = extractData(modified, AdminAlcoholAttributeMappingItem::class.java)
+		assertThat(after.value()).isEqualTo("50000")
+		assertThat(after.createAt()).isEqualTo(before.createAt())
+		assertThat(after.createPrincipal()).isEqualTo(before.createPrincipal())
+		assertThat(after.lastModifyPrincipal().type.name).isEqualTo("ADMIN")
+		assertThat(after.lastModifyPrincipal().id).isNotEqualTo(before.lastModifyPrincipal().id)
+		assertThat(service.findMappings(AdminAlcoholAttributeMappingSearchRequest(second.id, a.id(), 0, 20)).content.single().value()).isEqualTo("65000")
+		val search = getAs(token, "$base/alcohols?key=price&value=60000&operator=GTE")
+		assertThat(search).hasStatusOk()
+		val row = extractData(search, Array<AdminAttributedAlcoholItem>::class.java).single()
+		assertThat(row.alcoholId()).isEqualTo(second.id)
+		assertThat(row.attributes().single().value()).isEqualTo("65000")
+		assertThat(row.attributes().single().attribute().id()).isEqualTo(a.id())
+		val exact = getAs(token, "$base/alcohols?key=price&value=050000")
+		assertThat(extractData(exact, Array<AdminAttributedAlcoholItem>::class.java).single().alcoholId()).isEqualTo(first.id)
+		val summary = service.summarize(AdminAlcoholAttributeSummaryRequest(listOf(first.id, second.id))).single()
+		assertThat(summary.mappings().map { it.value() }).containsExactlyInAnyOrder("50000", "65000")
+	}
+
+	@Test
+	@DisplayName("자료형과 다른 값·누락 값·연결된 자료형 변경을 거부한다")
+	fun rejectsInvalidValuesAndDatatypeChanges() {
+		val a = create()
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		val payload = AdminAlcoholAttributeMappingBulkRequest(
+			listOf(
+				AdminAlcoholAttributeMappingBulkRequest.Item(first.id, a.id(), "44000"),
+				AdminAlcoholAttributeMappingBulkRequest.Item(second.id, a.id(), "invalid")
+			)
+		)
+		assertThat(postAs(token, "$base/mappings/batch", payload)).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(mappings.findAllByAlcoholIdIn(listOf(first.id, second.id))).isEmpty()
+		assertThat(postAs(token, "$base/mappings/batch", mapOf("items" to listOf(mapOf("alcoholId" to first.id, "attributeId" to a.id()))))).hasStatus(HttpStatus.BAD_REQUEST)
+		service.mapBulk(mapRequest(first.id, a.id()))
+		val mapping = mappings.findAllByAlcoholIdIn(listOf(first.id)).single()
+		assertThat(putAs(token, "$base/mappings/${mapping.id}", AdminAlcoholAttributeMappingUpdateRequest("invalid"))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(mappings.findById(mapping.id).orElseThrow().attributeValue).isEqualTo("15000")
+		assertThat(putAs(token, "$base/${a.id()}", AdminAlcoholAttributeUpdateRequest(a.displayName(), AttributeType.PRICE, AttributeDatatype.STRING, "원", null))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(postAs(token, "$base/batch", AdminAlcoholAttributeBulkRequest(listOf(AdminAlcoholAttributeCreateRequest(a.key(), a.displayName(), AttributeType.PRICE, AttributeDatatype.STRING, "원", null))))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(getAs(token, "$base/alcohols?value=100&operator=GTE")).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(putAs(token, "$base/mappings/${Long.MAX_VALUE}", AdminAlcoholAttributeMappingUpdateRequest("1"))).hasStatus(HttpStatus.NOT_FOUND)
+	}
+
+	@Test
+	@DisplayName("소수점 여섯 자리와 큰 정수를 숫자로 비교한다")
+	fun numericSearchPreservesPrecision() {
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		val decimal = service.create(AdminAlcoholAttributeCreateRequest("decimal", "소수 점수", AttributeType.POPULARITY, AttributeDatatype.DOUBLE, null, null))
+		service.mapBulk(
+			AdminAlcoholAttributeMappingBulkRequest(
+				listOf(
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, decimal.id(), "1.123456"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(second.id, decimal.id(), "1.123455")
+				)
+			)
+		)
+		val result = getAs(token, "$base/alcohols?key=decimal&value=1.123456&operator=GTE")
+		assertThat(result).hasStatusOk()
+		assertThat(extractData(result, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId() }).containsExactly(first.id)
+		val integer = create("large", "큰 정수")
+		service.mapBulk(
+			AdminAlcoholAttributeMappingBulkRequest(
+				listOf(
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, integer.id(), "999999999999999999"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(second.id, integer.id(), "100000000000000000")
+				)
+			)
+		)
+		val large = getAs(token, "$base/alcohols?key=large&value=999999999999999998&operator=GTE")
+		assertThat(large).hasStatusOk()
+		assertThat(extractData(large, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId() }).containsExactly(first.id)
+	}
+
+	@Test
+	@DisplayName("키워드 집계는 술별 값을 기준으로 하며 문자열 범위 검색은 거부한다")
+	fun aggregatesMappingKeywords() {
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		val a = service.create(AdminAlcoholAttributeCreateRequest("style", "스타일", AttributeType.KEYWORD, AttributeDatatype.STRING, null, null))
+		service.mapBulk(
+			AdminAlcoholAttributeMappingBulkRequest(
+				listOf(
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, a.id(), "smoky"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(second.id, a.id(), "fruity")
+				)
+			)
+		)
+		val result = getAs(token, "$base/keywords")
+		assertThat(result).hasStatusOk()
+		val values = extractData(result, Array<AlcoholAttributeKeywordCountItem>::class.java)
+		assertThat(values.map { it.value() }).containsExactlyInAnyOrder("smoky", "fruity")
+		assertThat(values.map { it.alcoholCount() }).containsOnly(1L)
+		assertThat(getAs(token, "$base/alcohols?key=style&value=smoky&operator=GTE")).hasStatus(HttpStatus.BAD_REQUEST)
 	}
 
 	@Test

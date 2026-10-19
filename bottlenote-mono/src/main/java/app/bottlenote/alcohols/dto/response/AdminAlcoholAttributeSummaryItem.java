@@ -6,5 +6,6 @@ public record AdminAlcoholAttributeSummaryItem(
     AdminAlcoholAttributeItem attribute,
     List<Long> alcoholIds,
     List<Long> mappingIds,
+    List<AdminAlcoholAttributeMappingItem> mappings,
     long registeredCount,
     long selectedCount) {}

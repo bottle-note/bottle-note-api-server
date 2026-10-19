@@ -8,11 +8,13 @@ import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import jakarta.persistence.LockModeType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,6 +47,16 @@ public interface JpaAlcoholAttributeRepository
   List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids);
 
   @Override
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select a from alcohol_attribute a where a.attributeKey in :keys order by a.id")
+  List<AlcoholAttribute> lockByKeys(@Param("keys") Collection<String> keys);
+
+  @Override
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select a from alcohol_attribute a where a.id in :ids order by a.id")
+  List<AlcoholAttribute> lockByIds(@Param("ids") Collection<Long> ids);
+
+  @Override
   @Query(
       "select (count(a) > 0) from alcohol_attribute a where a.displayName = :name and (:id is null or a.id <> :id)")
   boolean existsByDisplayNameAndIdNot(@Param("name") String name, @Param("id") Long id);
@@ -67,10 +79,10 @@ public interface JpaAlcoholAttributeRepository
   @Query(
       """
       select new app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem(
-        a.attributeValue, count(distinct m.alcoholId))
-      from alcohol_attribute a left join alcohol_attribute_mapping m on m.attributeId = a.id
-      where a.attributeType = :type group by a.attributeValue
-      order by count(distinct m.alcoholId) desc, a.attributeValue
+        m.attributeValue, count(distinct m.alcoholId))
+      from alcohol_attribute a join alcohol_attribute_mapping m on m.attributeId = a.id
+      where a.attributeType = :type group by m.attributeValue
+      order by count(distinct m.alcoholId) desc, m.attributeValue
       """)
   List<AlcoholAttributeKeywordCountItem> selectKeywordStats(@Param("type") AttributeType type);
 

@@ -1,5 +1,7 @@
 package app.bottlenote.alcohols.fixture;
 
+import java.math.BigDecimal;
+import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
@@ -68,6 +70,16 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
   }
 
   @Override
+  public List<AlcoholAttribute> lockByKeys(Collection<String> keys) {
+    return rows.values().stream().filter(a -> keys.contains(a.getAttributeKey())).toList();
+  }
+
+  @Override
+  public List<AlcoholAttribute> lockByIds(Collection<Long> ids) {
+    return findAllByIdIn(ids);
+  }
+
+  @Override
   public boolean existsByDisplayNameAndIdNot(String name, Long id) {
     return rows.values().stream()
         .anyMatch(
@@ -117,15 +129,16 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
             .filter(
                 a ->
                     mappings.findAllByAlcoholIdIn(List.of(a.getId())).stream()
-                        .map(m -> rows.get(m.getAttributeId()))
-                        .filter(Objects::nonNull)
+                        .filter(m -> rows.containsKey(m.getAttributeId()))
                         .anyMatch(
-                            v ->
+                            m -> { var v = rows.get(m.getAttributeId()); return
                                 (request.type() == null || v.getAttributeType() == request.type())
                                     && (request.key() == null
                                         || v.getAttributeKey().equals(request.key()))
                                     && (request.value() == null
-                                        || v.getAttributeValue().equals(request.value()))))
+                                        || (request.operator() == AttributeOperator.GTE
+                                            ? new BigDecimal(m.getAttributeValue()).compareTo(new BigDecimal(request.value())) >= 0
+                                            : m.getAttributeValue().equals(request.value()))); }))
             .filter(
                 a ->
                     request.missingKey() == null
@@ -166,13 +179,11 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
   @Override
   public List<AlcoholAttributeKeywordCountItem> findKeywordStats() {
     Map<String, Set<Long>> grouped = new TreeMap<>();
-    for (var a : rows.values())
-      if (a.getAttributeType() == AttributeType.KEYWORD) {
-        var ids = grouped.computeIfAbsent(a.getAttributeValue(), k -> new HashSet<>());
-        mappings.findAll().stream()
-            .filter(m -> m.getAttributeId().equals(a.getId()))
-            .forEach(m -> ids.add(m.getAlcoholId()));
-      }
+    for (var m : mappings.findAll()) {
+      var a = rows.get(m.getAttributeId());
+      if (a != null && a.getAttributeType() == AttributeType.KEYWORD)
+        grouped.computeIfAbsent(m.getAttributeValue(), k -> new HashSet<>()).add(m.getAlcoholId());
+    }
     return grouped.entrySet().stream()
         .map(e -> new AlcoholAttributeKeywordCountItem(e.getKey(), (long) e.getValue().size()))
         .sorted(

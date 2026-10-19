@@ -1,5 +1,9 @@
 package app.bottlenote.alcohols.domain;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE;
+
+import app.bottlenote.alcohols.constant.AttributeDatatype;
+import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,10 +32,30 @@ public class AlcoholAttributeMapping extends BaseEntity {
   @Column(name = "attribute_id", nullable = false)
   private Long attributeId;
 
-  public static AlcoholAttributeMapping create(Long alcoholId, Long attributeId) {
+  @Column(name = "attribute_value", nullable = false, length = 255)
+  private String attributeValue;
+
+  public static AlcoholAttributeMapping create(
+      Long alcoholId, AlcoholAttribute attribute, String value) {
     AlcoholAttributeMapping mapping = new AlcoholAttributeMapping();
     mapping.alcoholId = Objects.requireNonNull(alcoholId, "alcoholId");
-    mapping.attributeId = Objects.requireNonNull(attributeId, "attributeId");
+    mapping.attributeId = Objects.requireNonNull(attribute.getId(), "attributeId");
+    mapping.updateValue(attribute.getDatatype(), value);
     return mapping;
+  }
+
+  public void updateValue(AttributeDatatype datatype, String value) {
+    this.attributeValue = normalizeValue(datatype, value);
+  }
+
+  public static String normalizeValue(AttributeDatatype datatype, String raw) {
+    if (datatype == null || raw == null)
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+    String value = raw.trim();
+    if (value.length() > 255 || !datatype.accepts(value))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+    return datatype.isNumeric()
+        ? new BigDecimal(value).stripTrailingZeros().toPlainString()
+        : value;
   }
 }

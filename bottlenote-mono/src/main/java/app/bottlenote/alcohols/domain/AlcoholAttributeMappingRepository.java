@@ -16,6 +16,8 @@ public interface AlcoholAttributeMappingRepository {
 
   Optional<AlcoholAttributeMapping> findById(Long id);
 
+  boolean existsByAttributeId(Long attributeId);
+
   List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids);
 
   OffsetPage<AlcoholAttributeMapping> search(AdminAlcoholAttributeMappingSearchRequest request);

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.constant.AttributeDatatype;
-import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.domain.AlcoholAttributeMappingRepository;
 import app.bottlenote.alcohols.domain.AlcoholAttributeRepository;
@@ -28,31 +27,30 @@ class AlcoholAttributePersistenceIntegrationTest extends IntegrationTestSupport 
   @Autowired private AdminAlcoholAttributeService service;
 
   @Test
-  @DisplayName("한 속성을 여러 술에 연결할 때 공통 값과 독립된 감사 정보를 저장한다")
+  @DisplayName("한 속성을 여러 술에 연결할 때 술별 값과 독립된 감사 정보를 저장한다")
   void 공통_속성과_매핑을_저장한다() {
     var first = alcoholTestFactory.persistAlcohol();
     var second = alcoholTestFactory.persistAlcohol();
     var a =
         service.create(
             new AdminAlcoholAttributeCreateRequest(
-                "price_gte",
-                "15,000원 이상",
+                "bottle_price",
+                "병 참고 가격",
                 AttributeType.PRICE,
                 AttributeDatatype.INT,
-                AttributeOperator.GTE,
-                "15000",
                 "원",
                 "등록 기준"));
     service.mapBulk(
         new AdminAlcoholAttributeMappingBulkRequest(
             List.of(
-                new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id()),
-                new AdminAlcoholAttributeMappingBulkRequest.Item(second.getId(), a.id()))));
+                new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id(), "15000"),
+                new AdminAlcoholAttributeMappingBulkRequest.Item(
+                    second.getId(), a.id(), "65000"))));
     assertThat(attributes.findById(a.id()))
         .get()
         .satisfies(
             row -> {
-              assertThat(row.getOperator()).isEqualTo(AttributeOperator.GTE);
+              assertThat(row.getDatatype()).isEqualTo(AttributeDatatype.INT);
               assertThat(row.getCreateAt()).isNotNull();
             });
     assertThat(mappings.findAllByAlcoholIdIn(List.of(first.getId(), second.getId())))
@@ -62,6 +60,9 @@ class AlcoholAttributePersistenceIntegrationTest extends IntegrationTestSupport 
               assertThat(row.getAttributeId()).isEqualTo(a.id());
               assertThat(row.getCreateAt()).isNotNull();
             });
+    assertThat(mappings.findAllByAlcoholIdIn(List.of(first.getId(), second.getId())))
+        .extracting(m -> m.getAttributeValue())
+        .containsExactlyInAnyOrder("15000", "65000");
     service.deleteBatch(new AdminAlcoholAttributeBatchDeleteRequest(List.of(a.id())));
     assertThat(mappings.findAllByAlcoholIdIn(List.of(first.getId(), second.getId()))).isEmpty();
   }

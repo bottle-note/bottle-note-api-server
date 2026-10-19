@@ -10,8 +10,10 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteReque
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingBulkRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeMappingRepository;
@@ -45,36 +47,30 @@ class DefaultAdminAlcoholAttributeServiceTest {
     second = alcohols.save(Alcohol.builder().korName("라마바").engName("Beta").build());
   }
 
-  private AdminAlcoholAttributeCreateRequest request(String key, String name, String value) {
+  private AdminAlcoholAttributeCreateRequest request(String key, String name) {
     return new AdminAlcoholAttributeCreateRequest(
-        key,
-        name,
-        AttributeType.PRICE,
-        AttributeDatatype.INT,
-        AttributeOperator.EQ,
-        value,
-        "원",
-        "설명");
+        key, name, AttributeType.PRICE, AttributeDatatype.INT, "원", "설명");
   }
 
   private void map(Long alcoholId, Long attributeId) {
     service.mapBulk(
         new AdminAlcoholAttributeMappingBulkRequest(
-            List.of(new AdminAlcoholAttributeMappingBulkRequest.Item(alcoholId, attributeId))));
+            List.of(
+                new AdminAlcoholAttributeMappingBulkRequest.Item(
+                    alcoholId, attributeId, "10000"))));
   }
 
   @Test
   @DisplayName("같은 키를 벌크 등록할 때 ID와 매핑을 보존하고 덮어쓴다")
   void 같은_키를_갱신한다() {
-    var a = service.create(request("price", "1만원", "10000"));
+    var a = service.create(request("price", "1만원"));
     map(first.getId(), a.id());
     var response =
-        service.upsertBulk(
-            new AdminAlcoholAttributeBulkRequest(List.of(request("price", "2만원", "20000"))));
+        service.upsertBulk(new AdminAlcoholAttributeBulkRequest(List.of(request("price", "2만원"))));
     assertThat(response.updated()).isEqualTo(1);
     assertThat(response.created()).isZero();
     assertThat(response.ids()).containsExactly(a.id());
-    assertThat(attributes.findById(a.id()).orElseThrow().getAttributeValue()).isEqualTo("20000");
+    assertThat(attributes.findById(a.id()).orElseThrow().getDisplayName()).isEqualTo("2만원");
     assertThat(mappings.findAll())
         .singleElement()
         .satisfies(m -> assertThat(m.getAttributeId()).isEqualTo(a.id()));
@@ -83,8 +79,8 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @Test
   @DisplayName("다른 키에서 같은 표시명을 사용할 때 충돌로 처리한다")
   void 이름_중복을_거부한다() {
-    service.create(request("one", "Price", "1"));
-    assertThatThrownBy(() -> service.create(request("two", "price", "2")))
+    service.create(request("one", "Price"));
+    assertThatThrownBy(() -> service.create(request("two", "price")))
         .isInstanceOf(AlcoholException.class);
     assertThat(attributes.findAll()).hasSize(1);
   }
@@ -96,7 +92,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
             () ->
                 service.upsertBulk(
                     new AdminAlcoholAttributeBulkRequest(
-                        List.of(request("one", "하나", "1"), request(" one ", "둘", "2")))))
+                        List.of(request("one", "하나"), request(" one ", "둘")))))
         .isInstanceOf(AlcoholException.class);
     assertThat(attributes.findAll()).isEmpty();
   }
@@ -104,29 +100,31 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @Test
   @DisplayName("기존 연결과 요청 중복을 등록할 때 건너뛰고 수정 시각을 유지한다")
   void 중복_매핑은_변경하지_않는다() {
-    var a = service.create(request("one", "하나", "1"));
+    var a = service.create(request("one", "하나"));
     map(first.getId(), a.id());
     var m = mappings.findAll().getFirst();
     var time = LocalDateTime.of(2026, 10, 16, 0, 0);
     ReflectionTestUtils.setField(m, "lastModifyAt", time);
-    var item = new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id());
+    var item = new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id(), "9999");
     var result =
         service.mapBulk(
             new AdminAlcoholAttributeMappingBulkRequest(
                 List.of(
                     item,
                     item,
-                    new AdminAlcoholAttributeMappingBulkRequest.Item(second.getId(), a.id()))));
+                    new AdminAlcoholAttributeMappingBulkRequest.Item(
+                        second.getId(), a.id(), "20000"))));
     assertThat(result.added()).isEqualTo(1);
     assertThat(result.skipped()).isEqualTo(2);
     assertThat(m.getLastModifyAt()).isEqualTo(time);
+    assertThat(m.getAttributeValue()).isEqualTo("10000");
     assertThat(mappings.findAll()).hasSize(2);
   }
 
   @Test
   @DisplayName("없는 술이나 속성을 연결할 때 아무 연결도 만들지 않는다")
   void 없는_대상을_검증한다() {
-    var a = service.create(request("one", "하나", "1"));
+    var a = service.create(request("one", "하나"));
     assertThatThrownBy(() -> map(9999L, a.id())).isInstanceOf(AlcoholException.class);
     assertThatThrownBy(() -> map(first.getId(), 9999L)).isInstanceOf(AlcoholException.class);
     assertThat(mappings.findAll()).isEmpty();
@@ -135,7 +133,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @Test
   @DisplayName("삭제된 술을 연결할 때 거부한다")
   void 삭제된_술을_거부한다() {
-    var a = service.create(request("one", "하나", "1"));
+    var a = service.create(request("one", "하나"));
     first.delete();
     assertThatThrownBy(() -> map(first.getId(), a.id())).isInstanceOf(AlcoholException.class);
   }
@@ -143,8 +141,8 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @Test
   @DisplayName("사전을 조회할 때 미연결 속성을 포함하고 이름으로 검색한다")
   void 사전과_연결을_분리해_조회한다() {
-    var a = service.create(request("one", "1만원", "10000"));
-    service.create(request("two", "2만원", "20000"));
+    var a = service.create(request("one", "1만원"));
+    service.create(request("two", "2만원"));
     map(first.getId(), a.id());
     assertThat(
             service
@@ -170,7 +168,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @Test
   @DisplayName("같은 속성을 여러 술에 연결할 때 속성 ID별로 집계한다")
   void 연결을_집계한다() {
-    var a = service.create(request("one", "하나", "1"));
+    var a = service.create(request("one", "하나"));
     map(first.getId(), a.id());
     map(second.getId(), a.id());
     var summaries =
@@ -189,7 +187,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @Test
   @DisplayName("연결을 해제할 때 속성은 남기고 속성을 삭제할 때 연결도 삭제한다")
   void 삭제_범위를_구분한다() {
-    var a = service.create(request("one", "하나", "1"));
+    var a = service.create(request("one", "하나"));
     map(first.getId(), a.id());
     service.deleteMapping(mappings.findAll().getFirst().getId());
     assertThat(attributes.findById(a.id())).isPresent();
@@ -202,12 +200,12 @@ class DefaultAdminAlcoholAttributeServiceTest {
   @Test
   @DisplayName("속성으로 술을 조회할 때 매핑 기준으로 검색하고 페이징한다")
   void 매핑으로_술을_검색한다() {
-    var a = service.create(request("one", "하나", "1"));
+    var a = service.create(request("one", "하나"));
     map(first.getId(), a.id());
     map(second.getId(), a.id());
     var page =
         service.searchAlcohols(
-            new AdminAttributedAlcoholSearchRequest(null, null, "one", null, null, 0, 1));
+            new AdminAttributedAlcoholSearchRequest(null, null, "one", null, null, null, 0, 1));
     assertThat(page.getTotalElements()).isEqualTo(2);
     assertThat(page.getContent())
         .singleElement()
@@ -215,5 +213,106 @@ class DefaultAdminAlcoholAttributeServiceTest {
     assertThat(service.findKeys())
         .singleElement()
         .satisfies(i -> assertThat(i.alcoholCount()).isEqualTo(2));
+  }
+
+  @Test
+  void 술별_값을_수정하고_조회한다() {
+    var a = service.create(request("price", "병 가격"));
+    map(first.getId(), a.id());
+    map(second.getId(), a.id());
+    var mapping = mappings.findAll().getFirst();
+    var result =
+        service.updateMapping(
+            mapping.getId(), new AdminAlcoholAttributeMappingUpdateRequest("65000"));
+    assertThat(result.value()).isEqualTo("65000");
+    assertThat(mappings.findAll().get(1).getAttributeValue()).isEqualTo("10000");
+    var page =
+        service.searchAlcohols(
+            new AdminAttributedAlcoholSearchRequest(
+                null, null, "price", "60000", AttributeOperator.GTE, null, 0, 20));
+    assertThat(page.getContent())
+        .singleElement()
+        .satisfies(
+            row -> {
+              assertThat(row.alcoholId()).isEqualTo(first.getId());
+              assertThat(row.attributes().getFirst().value()).isEqualTo("65000");
+              assertThat(row.attributes().getFirst().mappingId()).isEqualTo(mapping.getId());
+            });
+    assertThat(
+            service
+                .summarize(
+                    new AdminAlcoholAttributeSummaryRequest(List.of(first.getId(), second.getId())))
+                .getFirst()
+                .mappings())
+        .extracting(m -> m.value())
+        .containsExactlyInAnyOrder("65000", "10000");
+  }
+
+  @Test
+  void 잘못된_벌크_값은_저장_전에_거부한다() {
+    var a = service.create(request("price", "병 가격"));
+    assertThatThrownBy(
+            () ->
+                service.mapBulk(
+                    new AdminAlcoholAttributeMappingBulkRequest(
+                        List.of(
+                            new AdminAlcoholAttributeMappingBulkRequest.Item(
+                                first.getId(), a.id(), "10000"),
+                            new AdminAlcoholAttributeMappingBulkRequest.Item(
+                                second.getId(), a.id(), "wrong")))))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(mappings.findAll()).isEmpty();
+  }
+
+  @Test
+  void 연결된_자료형_변경을_거부한다() {
+    var a = service.create(request("price", "병 가격"));
+    map(first.getId(), a.id());
+    var updated =
+        new AdminAlcoholAttributeUpdateRequest(
+            "병 가격", AttributeType.PRICE, AttributeDatatype.STRING, "원", null);
+    assertThatThrownBy(() -> service.update(a.id(), updated)).isInstanceOf(AlcoholException.class);
+    assertThatThrownBy(
+            () ->
+                service.create(
+                    new AdminAlcoholAttributeCreateRequest(
+                        "price", "병 가격", AttributeType.PRICE, AttributeDatatype.STRING, "원", null)))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(attributes.findById(a.id()).orElseThrow().getDatatype())
+        .isEqualTo(AttributeDatatype.INT);
+    service.deleteMapping(mappings.findAll().getFirst().getId());
+    service.update(a.id(), updated);
+    assertThat(attributes.findById(a.id()).orElseThrow().getDatatype())
+        .isEqualTo(AttributeDatatype.STRING);
+  }
+
+  @Test
+  void 잘못된_수정값과_없는_연결을_거부한다() {
+    var a = service.create(request("price", "병 가격"));
+    map(first.getId(), a.id());
+    var mapping = mappings.findAll().getFirst();
+    assertThatThrownBy(
+            () ->
+                service.updateMapping(
+                    mapping.getId(),
+                    new app.bottlenote.alcohols.dto.request
+                        .AdminAlcoholAttributeMappingUpdateRequest("bad")))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(mapping.getAttributeValue()).isEqualTo("10000");
+    assertThatThrownBy(
+            () ->
+                service.updateMapping(
+                    999L,
+                    new app.bottlenote.alcohols.dto.request
+                        .AdminAlcoholAttributeMappingUpdateRequest("1")))
+        .isInstanceOf(AlcoholException.class);
+    first.delete();
+    assertThatThrownBy(
+            () ->
+                service.updateMapping(
+                    mapping.getId(),
+                    new app.bottlenote.alcohols.dto.request
+                        .AdminAlcoholAttributeMappingUpdateRequest("1")))
+        .isInstanceOf(AlcoholException.class);
   }
 }

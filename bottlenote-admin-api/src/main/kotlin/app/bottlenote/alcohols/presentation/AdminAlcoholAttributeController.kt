@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBulkRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingBulkRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingSearchRequest
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingUpdateRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest
@@ -97,6 +98,10 @@ class AdminAlcoholAttributeController(
 	@AdminAlcoholAttributeApiDocs.FindMappings
 	@GetMapping("/mappings")
 	fun findMappings(@ParameterObject @ModelAttribute @Valid request: AdminAlcoholAttributeMappingSearchRequest): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.findMappings(request)))
+
+	@AdminAlcoholAttributeApiDocs.UpdateMapping
+	@PutMapping("/mappings/{id}")
+	fun updateMapping(@PathVariable id: Long, @RequestBody @Valid request: AdminAlcoholAttributeMappingUpdateRequest): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeService.updateMapping(id, request))
 
 	@AdminAlcoholAttributeApiDocs.DeleteMapping
 	@DeleteMapping("/mappings/{id}")

@@ -9,4 +9,6 @@ public record AdminAttributedAlcoholItem(
     String engName,
     String korCategory,
     String imageUrl,
-    List<AdminAlcoholAttributeItem> attributes) {}
+    List<AttributeValue> attributes) {
+  public record AttributeValue(Long mappingId, String value, AdminAlcoholAttributeItem attribute) {}
+}
