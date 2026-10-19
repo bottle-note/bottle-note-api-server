@@ -13,7 +13,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	// Admin operation은 대부분 GlobalResponse 공통 형식을 쓴다.
 	// 템플릿 다운로드(GET /v1/alcohols/excel/template)는 XLSX binary 응답이라 예외다.
-	private val expectedOperationCount = 126
+	private val expectedOperationCount = 127
 	private val binaryDownloadOperations = setOf("GET /v1/alcohols/excel/template")
 
 	@Test
@@ -46,7 +46,7 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 126개 operation이 누락 없이 포함된다")
+	@DisplayName("문서에는 127개 operation이 누락 없이 포함된다")
 	fun openApiSpecContainsExpectedOperations() {
 		val operations = operationsOf(fetchSpec())
 
