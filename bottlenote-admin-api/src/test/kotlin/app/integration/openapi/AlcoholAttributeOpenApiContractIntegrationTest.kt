@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 
 	@Test
-	@DisplayName("위스키 속성 14개 엔드포인트가 알코올 태그와 bearer 인증으로 문서화된다")
+	@DisplayName("위스키 속성 15개 엔드포인트가 알코올 태그와 bearer 인증으로 문서화된다")
 	fun attributeEndpointsDocumentPathsTagAndAuthentication() {
 		val operations =
 			operationsOf(fetchSpec()).filter { it.path.startsWith("/v1/alcohols/attributes") }
@@ -30,7 +30,8 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 			"POST /v1/alcohols/attributes/batch",
 			"POST /v1/alcohols/attributes/mappings/batch",
 			"GET /v1/alcohols/attributes/mappings",
-			"DELETE /v1/alcohols/attributes/mappings/{id}"
+			"DELETE /v1/alcohols/attributes/mappings/{id}",
+			"PUT /v1/alcohols/attributes/mappings/{id}"
 		)
 		operations.forEach { operation ->
 			assertThat(operation.tag()).isEqualTo("알코올")
@@ -63,8 +64,8 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 		assertThat(propertyNamesOf(summary)).contains("mappingIds", "registeredCount", "alcoholIds", "attribute")
 
 		val item = spec.at("/components/schemas/AdminAlcoholAttributeItem")
-		assertThat(propertyNamesOf(item)).contains("displayName", "operator", "unit", "createPrincipal", "lastModifyPrincipal")
-		assertThat(propertyNamesOf(item)).doesNotContain("alcoholId", "basedAt")
+		assertThat(propertyNamesOf(item)).contains("displayName", "unit", "createPrincipal", "lastModifyPrincipal")
+		assertThat(propertyNamesOf(item)).doesNotContain("alcoholId", "basedAt", "operator", "value")
 		assertThat(requestRef(operations.getValue("POST /v1/alcohols/attributes/batch"))).endsWith("/AdminAlcoholAttributeBulkRequest")
 		assertThat(requestRef(operations.getValue("POST /v1/alcohols/attributes/mappings/batch"))).endsWith("/AdminAlcoholAttributeMappingBulkRequest")
 		assertThat(dataRef(operations.getValue("POST /v1/alcohols/attributes/mappings/batch")))
@@ -80,6 +81,24 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 		val operation = operationsOf(fetchSpec()).first { it.endpoint() == "GET /v1/alcohols/attributes/summary" }
 		val names = operation.definition.path("parameters").map { it.path("name").asText() }
 		assertThat(names).containsExactly("alcoholIds")
+	}
+
+	@Test
+	@DisplayName("정의에는 값이 없고 연결 생성·수정·응답에는 값이 있다")
+	fun mappingOwnsValueContract() {
+		val spec = fetchSpec()
+		for (name in listOf("AdminAlcoholAttributeCreateRequest", "AdminAlcoholAttributeUpdateRequest", "AdminAlcoholAttributeItem")) {
+			assertThat(propertyNamesOf(spec.at("/components/schemas/$name"))).doesNotContain("value", "operator")
+		}
+		assertThat(propertyNamesOf(spec.at("/components/schemas/AdminAlcoholAttributeMappingItem"))).contains("value", "attributeId", "alcoholId")
+		val update = spec.at("/components/schemas/AdminAlcoholAttributeMappingUpdateRequest")
+		assertThat(propertyNamesOf(update)).containsExactly("value")
+		assertThat(update.path("required").map { it.asText() }).contains("value")
+		val operations = operationsOf(spec).associateBy { it.endpoint() }
+		assertThat(requestRef(operations.getValue("PUT /v1/alcohols/attributes/mappings/{id}"))).endsWith("/AdminAlcoholAttributeMappingUpdateRequest")
+		assertThat(dataRef(operations.getValue("PUT /v1/alcohols/attributes/mappings/{id}"))).endsWith("/AdminAlcoholAttributeMappingItem")
+		val operator = queryParameter(spec, operations.getValue("GET /v1/alcohols/attributes/alcohols"), "operator")
+		assertThat(operator).isNotNull()
 	}
 
 	private fun dataRef(operation: SpecOperation): String = operation.successSchema().at("/properties/data/\$ref").asText()

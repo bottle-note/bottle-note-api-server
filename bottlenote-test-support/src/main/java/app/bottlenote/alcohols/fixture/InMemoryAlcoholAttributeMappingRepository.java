@@ -55,6 +55,11 @@ public class InMemoryAlcoholAttributeMappingRepository
   }
 
   @Override
+  public boolean existsByAttributeId(Long attributeId) {
+    return rows.values().stream().anyMatch(m -> m.getAttributeId().equals(attributeId));
+  }
+
+  @Override
   public List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids) {
     return rows.values().stream().filter(m -> ids.contains(m.getAlcoholId())).toList();
   }

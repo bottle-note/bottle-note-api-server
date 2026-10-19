@@ -4,7 +4,6 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATT
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
-import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.common.domain.BaseEntity;
@@ -16,7 +15,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -24,7 +22,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 /**
- * 여러 술이 공유하는 속성 사전. 값과 비교 조건은 속성 자체가 소유한다.
+ * 여러 술이 공유하는 속성 정의. 실제 값은 술별 연결이 소유한다.
  *
  * <p>키는 갱신 기준이고 표시명은 관리자용 이름이다. 술과의 연결은 별도 매핑이 소유한다.
  */
@@ -35,7 +33,6 @@ import org.hibernate.annotations.Comment;
 public class AlcoholAttribute extends BaseEntity {
 
   private static final Pattern KEY_PATTERN = Pattern.compile("[a-z][a-z0-9_]{0,63}");
-  private static final int VALUE_MAX_LENGTH = 255;
   private static final int DESCRIPTION_MAX_LENGTH = 500;
 
   @Id
@@ -61,18 +58,9 @@ public class AlcoholAttribute extends BaseEntity {
   @Column(name = "datatype", nullable = false, length = 10)
   private AttributeDatatype datatype;
 
-  @Comment("값. datatype에 따라 애플리케이션이 변환")
-  @Column(name = "attribute_value", nullable = false, length = VALUE_MAX_LENGTH)
-  private String attributeValue;
-
   @Comment("속성의 의미와 관리자 입력 기준")
   @Column(name = "description", length = DESCRIPTION_MAX_LENGTH)
   private String description;
-
-  @Comment("비교 의미. 실제 연결은 관리자가 등록한다")
-  @Enumerated(EnumType.STRING)
-  @Column(name = "`operator`", nullable = false, length = 10)
-  private AttributeOperator operator;
 
   @Comment("표시 단위. 원, 점 등")
   @Column(name = "unit", length = 20)
@@ -83,14 +71,11 @@ public class AlcoholAttribute extends BaseEntity {
       String displayName,
       AttributeType attributeType,
       AttributeDatatype datatype,
-      AttributeOperator operator,
-      String attributeValue,
       String unit,
       String description) {
     AlcoholAttribute attribute = new AlcoholAttribute();
     attribute.attributeKey = normalizeKey(attributeKey);
-    attribute.update(
-        displayName, attributeType, datatype, operator, attributeValue, unit, description);
+    attribute.update(displayName, attributeType, datatype, unit, description);
     return attribute;
   }
 
@@ -98,25 +83,17 @@ public class AlcoholAttribute extends BaseEntity {
       String displayName,
       AttributeType attributeType,
       AttributeDatatype datatype,
-      AttributeOperator operator,
-      String attributeValue,
       String unit,
       String description) {
-    if (attributeType == null
-        || datatype == null
-        || operator == null
-        || (operator == AttributeOperator.GTE && !datatype.isNumeric())) {
+    if (attributeType == null || datatype == null) {
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
     }
     String name = normalizeText(displayName, 100, false);
-    String value = normalizeValue(datatype, attributeValue);
     String normalizedUnit = normalizeText(unit, 20, true);
     String normalizedDescription = normalizeText(description, DESCRIPTION_MAX_LENGTH, true);
     this.displayName = name;
     this.attributeType = attributeType;
     this.datatype = datatype;
-    this.operator = operator;
-    this.attributeValue = value;
     this.unit = normalizedUnit;
     this.description = normalizedDescription;
   }
@@ -125,8 +102,6 @@ public class AlcoholAttribute extends BaseEntity {
     this.displayName = validated.displayName;
     this.attributeType = validated.attributeType;
     this.datatype = validated.datatype;
-    this.operator = validated.operator;
-    this.attributeValue = validated.attributeValue;
     this.unit = validated.unit;
     this.description = validated.description;
   }
@@ -150,19 +125,5 @@ public class AlcoholAttribute extends BaseEntity {
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_KEY);
     }
     return key;
-  }
-
-  private static String normalizeValue(AttributeDatatype datatype, String attributeValue) {
-    if (attributeValue == null) {
-      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
-    }
-    String value = attributeValue.trim();
-    if (value.length() > VALUE_MAX_LENGTH || !datatype.accepts(value)) {
-      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
-    }
-    if (datatype.isNumeric()) {
-      return new BigDecimal(value).stripTrailingZeros().toPlainString();
-    }
-    return value;
   }
 }

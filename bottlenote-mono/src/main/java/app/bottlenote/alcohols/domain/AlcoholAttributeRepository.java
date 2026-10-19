@@ -20,6 +20,10 @@ public interface AlcoholAttributeRepository {
 
   List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids);
 
+  List<AlcoholAttribute> lockByKeys(Collection<String> keys);
+
+  List<AlcoholAttribute> lockByIds(Collection<Long> ids);
+
   boolean existsByDisplayNameAndIdNot(String name, Long id);
 
   OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request);

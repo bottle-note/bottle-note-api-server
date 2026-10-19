@@ -4,6 +4,7 @@ import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholAttribute.alcoholAttribute;
 import static app.bottlenote.alcohols.domain.QAlcoholAttributeMapping.alcoholAttributeMapping;
 
+import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
 import app.bottlenote.alcohols.domain.QAlcoholAttribute;
 import app.bottlenote.alcohols.domain.QAlcoholAttributeMapping;
@@ -11,8 +12,10 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.global.pagination.OffsetPage;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -59,7 +62,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
       supporter.keywordMatch(request.keyword()),
       request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()),
       request.key() == null ? null : alcoholAttribute.attributeKey.eq(request.key()),
-      request.value() == null ? null : alcoholAttribute.attributeValue.eq(request.value()),
+      valueMatch(request),
       notHavingKey(request.missingKey())
     };
     List<Long> content =
@@ -87,6 +90,17 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
             .where(where)
             .fetchOne();
     return new OffsetPage<>(content, total == null ? 0 : total);
+  }
+
+  private BooleanExpression valueMatch(AdminAttributedAlcoholSearchRequest request) {
+    if (request.value() == null) return null;
+    if (request.operator() == AttributeOperator.EQ)
+      return alcoholAttributeMapping.attributeValue.eq(request.value());
+    return Expressions.numberTemplate(
+            BigDecimal.class,
+            "cast({0} as BigDecimal(24,6))",
+            alcoholAttributeMapping.attributeValue)
+        .goe(new BigDecimal(request.value()));
   }
 
   private BooleanExpression keywordMatch(String keyword) {

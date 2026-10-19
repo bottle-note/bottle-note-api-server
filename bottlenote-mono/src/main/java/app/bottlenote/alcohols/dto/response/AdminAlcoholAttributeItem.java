@@ -1,7 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
-import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import java.time.LocalDateTime;
 
@@ -11,8 +10,6 @@ public record AdminAlcoholAttributeItem(
     String displayName,
     AttributeType type,
     AttributeDatatype datatype,
-    AttributeOperator operator,
-    String value,
     String unit,
     String description,
     LocalDateTime createAt,

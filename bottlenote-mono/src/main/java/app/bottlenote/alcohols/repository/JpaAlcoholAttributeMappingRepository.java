@@ -25,6 +25,11 @@ import org.springframework.data.repository.query.Param;
 public interface JpaAlcoholAttributeMappingRepository
     extends AlcoholAttributeMappingRepository, JpaRepository<AlcoholAttributeMapping, Long> {
   @Override
+  default AlcoholAttributeMapping save(AlcoholAttributeMapping mapping) {
+    return saveAndFlush(mapping);
+  }
+
+  @Override
   @Query(
       """
       select new app.bottlenote.alcohols.domain.AlcoholAttributeMappingKey(m.alcoholId, m.attributeId)
@@ -39,6 +44,8 @@ public interface JpaAlcoholAttributeMappingRepository
   Optional<AlcoholAttributeMapping> findById(Long id);
 
   @Override
+  boolean existsByAttributeId(Long attributeId);
+
   List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids);
 
   @Override

@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingSearchRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
@@ -49,6 +50,9 @@ public interface AdminAlcoholAttributeService {
 
   Page<AdminAlcoholAttributeMappingItem> findMappings(
       AdminAlcoholAttributeMappingSearchRequest request);
+
+  AdminAlcoholAttributeMappingItem updateMapping(
+      Long id, AdminAlcoholAttributeMappingUpdateRequest request);
 
   AdminResultResponse deleteMapping(Long id);
 }
