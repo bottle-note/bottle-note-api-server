@@ -1,6 +1,10 @@
 package app.bottlenote.alcohols.fixture;
 
 import java.math.BigDecimal;
+import app.bottlenote.alcohols.constant.AttributeMatch;
+import app.bottlenote.alcohols.constant.AttributeSearchOperator;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCondition;
 import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.domain.Alcohol;
@@ -155,6 +159,39 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
             .limit(request.size())
             .toList(),
         matched.size());
+  }
+
+  @Override
+  public OffsetPage<Long> findAlcoholIds(AdminAlcoholCompoundSearchRequest request) {
+    var matched = alcohols.findAll().stream().filter(a -> !a.isDeleted())
+        .filter(a -> request.keyword() == null || folded(a.getKorName()).contains(folded(request.keyword()))
+            || (a.getEngName() != null && folded(a.getEngName()).contains(folded(request.keyword()))))
+        .filter(a -> {
+          var values = mappings.findAllByAlcoholIdIn(List.of(a.getId())).stream()
+              .filter(m -> rows.containsKey(m.getAttributeId())).toList();
+          if ((request.linkedOnly() || request.type() != null) && values.stream()
+              .noneMatch(m -> request.type() == null || rows.get(m.getAttributeId()).getAttributeType() == request.type())) return false;
+          return request.conditions().isEmpty() || (request.match() == AttributeMatch.AND
+              ? request.conditions().stream().allMatch(c -> conditionMatches(values, c))
+              : request.conditions().stream().anyMatch(c -> conditionMatches(values, c)));
+        }).sorted(Comparator.comparing(Alcohol::getKorName).thenComparing(Alcohol::getId)).map(Alcohol::getId).toList();
+    return new OffsetPage<>(matched.stream().skip((long) request.page() * request.size()).limit(request.size()).toList(), matched.size());
+  }
+
+  private boolean conditionMatches(List<AlcoholAttributeMapping> values, AdminAlcoholAttributeCondition condition) {
+    var matching = values.stream().filter(m -> rows.get(m.getAttributeId()).getAttributeKey().equals(condition.key())).toList();
+    if (condition.operator() == AttributeSearchOperator.NOT_EXISTS) return matching.isEmpty();
+    if (condition.operator() == AttributeSearchOperator.EXISTS) return !matching.isEmpty();
+    return matching.stream().anyMatch(m -> switch (condition.operator()) {
+      case EQ -> folded(m.getAttributeValue()).equals(folded(condition.value()));
+      case NE -> !folded(m.getAttributeValue()).equals(folded(condition.value()));
+      case CONTAINS -> folded(m.getAttributeValue()).contains(folded(condition.value()));
+      case GT -> new BigDecimal(m.getAttributeValue()).compareTo(new BigDecimal(condition.value())) > 0;
+      case GTE -> new BigDecimal(m.getAttributeValue()).compareTo(new BigDecimal(condition.value())) >= 0;
+      case LT -> new BigDecimal(m.getAttributeValue()).compareTo(new BigDecimal(condition.value())) < 0;
+      case LTE -> new BigDecimal(m.getAttributeValue()).compareTo(new BigDecimal(condition.value())) <= 0;
+      default -> false;
+    });
   }
 
   @Override

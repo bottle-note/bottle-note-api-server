@@ -35,6 +35,12 @@ object AdminAlcoholAttributeApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(summary = "여러 속성 조건으로 술을 검색한다", description = "conditions는 key·operator·value 조건 배열(최대 20개)이며 match는 AND(기본) 또는 OR입니다. 같은 key를 반복해 범위를 지정할 수 있습니다. EQ·NE는 값 비교, GT·GTE·LT·LTE는 숫자 전용, CONTAINS는 문자열 부분 검색입니다. EXISTS·NOT_EXISTS는 value를 생략합니다. NE는 연결된 값이 다른 술만, NOT_EXISTS는 연결이 없는 술을 반환합니다. keyword(술 이름), type(속성 분류), linkedOnly(기본 false)는 조건 배열과 AND로 적용합니다. 빈 배열은 조건 제한 없음이며 미연결 술도 포함합니다. 삭제된 술은 제외하고 이름·ID순으로 중복 없이 페이징하며 응답은 술의 전체 속성을 포함합니다. 없는 key는 404, 잘못된 값·자료형·조건은 400입니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AttributedAlcoholListEnvelope::class))])
+	annotation class SearchAttributedAlcohols
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(summary = "공통 속성 한 건을 생성하거나 갱신한다", description = "key가 같으면 기존 ID와 생성 정보를 유지하고 전체 갱신합니다. 다른 키의 displayName과 충돌하면 409입니다. 변경 후 기존 매핑은 유지합니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeItem::class))])
 	annotation class CreateAttributes

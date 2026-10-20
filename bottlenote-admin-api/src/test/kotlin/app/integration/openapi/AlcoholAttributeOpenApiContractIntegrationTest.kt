@@ -11,7 +11,21 @@ import org.junit.jupiter.api.Test
 class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 
 	@Test
-	@DisplayName("위스키 속성 15개 엔드포인트가 알코올 태그와 bearer 인증으로 문서화된다")
+	@DisplayName("복합 검색은 조건 배열과 연산자 및 AND OR를 문서화한다")
+	fun compoundSearchDocumentsConditions() {
+		val spec = fetchSpec()
+		val operation = operationsOf(spec).first { it.endpoint() == "POST /v1/alcohols/attributes/alcohols/search" }
+		assertThat(requestRef(operation)).endsWith("/AdminAlcoholCompoundSearchRequest")
+		val request = spec.at("/components/schemas/AdminAlcoholCompoundSearchRequest")
+		assertThat(request.at("/properties/conditions/maxItems").asInt()).isEqualTo(20)
+		assertThat(request.at("/properties/match/enum").map { it.asText() }).containsExactly("AND", "OR")
+		val condition = spec.at("/components/schemas/AdminAlcoholAttributeCondition")
+		assertThat(condition.path("required").map { it.asText() }).contains("key")
+		assertThat(condition.at("/properties/operator/enum").map { it.asText() }).containsExactlyInAnyOrder("EQ", "NE", "GT", "GTE", "LT", "LTE", "CONTAINS", "EXISTS", "NOT_EXISTS")
+	}
+
+	@Test
+	@DisplayName("위스키 속성 16개 엔드포인트가 알코올 태그와 bearer 인증으로 문서화된다")
 	fun attributeEndpointsDocumentPathsTagAndAuthentication() {
 		val operations =
 			operationsOf(fetchSpec()).filter { it.path.startsWith("/v1/alcohols/attributes") }
@@ -20,6 +34,7 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 			"GET /v1/alcohols/attributes",
 			"GET /v1/alcohols/attributes/summary",
 			"GET /v1/alcohols/attributes/alcohols",
+			"POST /v1/alcohols/attributes/alcohols/search",
 			"POST /v1/alcohols/attributes",
 			"PUT /v1/alcohols/attributes/{id}",
 			"DELETE /v1/alcohols/attributes/{id}",

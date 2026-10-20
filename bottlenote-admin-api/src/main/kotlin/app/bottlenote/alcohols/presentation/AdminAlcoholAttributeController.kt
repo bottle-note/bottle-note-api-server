@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingUpdateReq
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest
+import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest
 import app.bottlenote.alcohols.presentation.docs.AdminAlcoholAttributeApiDocs
 import app.bottlenote.alcohols.service.AdminAlcoholAttributeService
@@ -48,6 +49,12 @@ class AdminAlcoholAttributeController(
 	@GetMapping("/alcohols")
 	fun findAttributedAlcohols(
 		@ParameterObject @ModelAttribute @Valid request: AdminAttributedAlcoholSearchRequest
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.searchAlcohols(request)))
+
+	@AdminAlcoholAttributeApiDocs.SearchAttributedAlcohols
+	@PostMapping("/alcohols/search")
+	fun searchAttributedAlcohols(
+		@RequestBody @Valid request: AdminAlcoholCompoundSearchRequest
 	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.searchAlcohols(request)))
 
 	@AdminAlcoholAttributeApiDocs.CreateAttributes

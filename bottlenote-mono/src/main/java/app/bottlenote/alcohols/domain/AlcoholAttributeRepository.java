@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
@@ -29,6 +30,8 @@ public interface AlcoholAttributeRepository {
   OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request);
 
   OffsetPage<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request);
+
+  OffsetPage<Long> findAlcoholIds(AdminAlcoholCompoundSearchRequest request);
 
   List<AlcoholAttributeKeyCountItem> findKeyStats();
 
