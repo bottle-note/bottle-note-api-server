@@ -40,6 +40,15 @@ public class AlcoholAttribute extends BaseEntity {
   @Column(name = "id")
   private Long id;
 
+  @Column(name = "group_id")
+  private Long groupId;
+
+  public void changeGroup(Long groupId) {
+    if (groupId != null && groupId <= 0)
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+    this.groupId = groupId;
+  }
+
   @Comment("관리자가 보는 고유 속성 이름")
   @Column(name = "display_name", nullable = false, length = 100)
   private String displayName;

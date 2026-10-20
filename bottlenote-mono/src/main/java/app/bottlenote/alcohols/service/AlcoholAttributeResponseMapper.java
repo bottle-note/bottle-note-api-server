@@ -11,6 +11,7 @@ final class AlcoholAttributeResponseMapper {
   static AdminAlcoholAttributeItem toItem(AlcoholAttribute a) {
     return new AdminAlcoholAttributeItem(
         a.getId(),
+        a.getGroupId(),
         a.getAttributeKey(),
         a.getDisplayName(),
         a.getAttributeType(),

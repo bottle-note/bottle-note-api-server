@@ -32,6 +32,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
   public OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request) {
     BooleanExpression[] where = {
       request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()),
+      request.groupIds().isEmpty() ? null : alcoholAttribute.groupId.in(request.groupIds()),
       keywordMatch(request.keyword()),
       request.alcoholIds().isEmpty()
           ? null
@@ -65,6 +66,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
       supporter.isNotDeleted(),
       supporter.keywordMatch(request.keyword()),
       request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()),
+      request.groupIds().isEmpty() ? null : alcoholAttribute.groupId.in(request.groupIds()),
       request.key() == null ? null : alcoholAttribute.attributeKey.eq(request.key()),
       valueMatch(request),
       notHavingKey(request.missingKey())
@@ -97,10 +99,13 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
   }
 
   @Override
-  public OffsetPage<Long> findAlcoholIds(AdminAlcoholCompoundSearchRequest request) {
+  public OffsetPage<Long> findAlcoholIds(
+      AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
     BooleanExpression combined = null;
     for (int i = 0; i < request.conditions().size(); i++) {
-      var predicate = conditionMatch(request.conditions().get(i), i);
+      var predicate =
+          conditionMatch(
+              request.conditions().get(i), i, attributeIds.get(request.conditions().get(i).key()));
       combined =
           combined == null
               ? predicate
@@ -109,7 +114,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
                   : combined.or(predicate);
     }
     BooleanExpression linked = null;
-    if (request.linkedOnly() || request.type() != null) {
+    if (request.linkedOnly() || request.type() != null || !request.groupIds().isEmpty()) {
       linked =
           JPAExpressions.selectOne()
               .from(alcoholAttributeMapping)
@@ -117,7 +122,10 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
               .on(alcoholAttribute.id.eq(alcoholAttributeMapping.attributeId))
               .where(
                   alcoholAttributeMapping.alcoholId.eq(alcohol.id),
-                  request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()))
+                  request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()),
+                  request.groupIds().isEmpty()
+                      ? null
+                      : alcoholAttribute.groupId.in(request.groupIds()))
               .exists();
     }
     BooleanExpression[] where = {
@@ -137,8 +145,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
   }
 
   private BooleanExpression conditionMatch(
-      AdminAlcoholAttributeConditionRequest condition, int index) {
-    var definition = new QAlcoholAttribute("conditionAttribute" + index);
+      AdminAlcoholAttributeConditionRequest condition, int index, Long attributeId) {
     var mapping = new QAlcoholAttributeMapping("conditionMapping" + index);
     BooleanExpression value = null;
     if (condition.operator().requiresValue()) {
@@ -168,12 +175,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
     var query =
         JPAExpressions.selectOne()
             .from(mapping)
-            .join(definition)
-            .on(definition.id.eq(mapping.attributeId))
-            .where(
-                mapping.alcoholId.eq(alcohol.id),
-                definition.attributeKey.eq(condition.key()),
-                value);
+            .where(mapping.alcoholId.eq(alcohol.id), mapping.attributeId.eq(attributeId), value);
     return condition.operator() == AttributeSearchOperator.NOT_EXISTS
         ? query.notExists()
         : query.exists();

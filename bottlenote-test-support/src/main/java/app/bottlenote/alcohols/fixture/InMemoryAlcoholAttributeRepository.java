@@ -69,6 +69,16 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
   }
 
   @Override
+  public List<AlcoholAttribute> findAllByAttributeKeyIn(Collection<String> keys) {
+    return rows.values().stream().filter(a -> keys.contains(a.getAttributeKey())).toList();
+  }
+
+  @Override
+  public boolean existsByGroupId(Long groupId) {
+    return rows.values().stream().anyMatch(a -> Objects.equals(a.getGroupId(), groupId));
+  }
+
+  @Override
   public List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids) {
     return rows.values().stream().filter(a -> ids.contains(a.getId())).toList();
   }
@@ -105,6 +115,7 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
     var matched =
         rows.values().stream()
             .filter(a -> request.type() == null || a.getAttributeType() == request.type())
+            .filter(a -> request.groupIds().isEmpty() || request.groupIds().contains(a.getGroupId()))
             .filter(
                 a ->
                     request.keyword() == null
@@ -137,6 +148,7 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
                         .anyMatch(
                             m -> { var v = rows.get(m.getAttributeId()); return
                                 (request.type() == null || v.getAttributeType() == request.type())
+                                    && (request.groupIds().isEmpty() || request.groupIds().contains(v.getGroupId()))
                                     && (request.key() == null
                                         || v.getAttributeKey().equals(request.key()))
                                     && (request.value() == null
@@ -162,24 +174,25 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
   }
 
   @Override
-  public OffsetPage<Long> findAlcoholIds(AdminAlcoholCompoundSearchRequest request) {
+  public OffsetPage<Long> findAlcoholIds(AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
     var matched = alcohols.findAll().stream().filter(a -> !a.isDeleted())
         .filter(a -> request.keyword() == null || folded(a.getKorName()).contains(folded(request.keyword()))
             || (a.getEngName() != null && folded(a.getEngName()).contains(folded(request.keyword()))))
         .filter(a -> {
           var values = mappings.findAllByAlcoholIdIn(List.of(a.getId())).stream()
               .filter(m -> rows.containsKey(m.getAttributeId())).toList();
-          if ((request.linkedOnly() || request.type() != null) && values.stream()
-              .noneMatch(m -> request.type() == null || rows.get(m.getAttributeId()).getAttributeType() == request.type())) return false;
+          if ((request.linkedOnly() || request.type() != null || !request.groupIds().isEmpty()) && values.stream()
+              .noneMatch(m -> (request.type() == null || rows.get(m.getAttributeId()).getAttributeType() == request.type())
+                  && (request.groupIds().isEmpty() || request.groupIds().contains(rows.get(m.getAttributeId()).getGroupId())))) return false;
           return request.conditions().isEmpty() || (request.match() == AttributeMatch.AND
-              ? request.conditions().stream().allMatch(c -> conditionMatches(values, c))
-              : request.conditions().stream().anyMatch(c -> conditionMatches(values, c)));
+              ? request.conditions().stream().allMatch(c -> conditionMatches(values, c, attributeIds.get(c.key())))
+              : request.conditions().stream().anyMatch(c -> conditionMatches(values, c, attributeIds.get(c.key()))));
         }).sorted(Comparator.comparing(Alcohol::getKorName).thenComparing(Alcohol::getId)).map(Alcohol::getId).toList();
     return new OffsetPage<>(matched.stream().skip((long) request.page() * request.size()).limit(request.size()).toList(), matched.size());
   }
 
-  private boolean conditionMatches(List<AlcoholAttributeMapping> values, AdminAlcoholAttributeConditionRequest condition) {
-    var matching = values.stream().filter(m -> rows.get(m.getAttributeId()).getAttributeKey().equals(condition.key())).toList();
+  private boolean conditionMatches(List<AlcoholAttributeMapping> values, AdminAlcoholAttributeConditionRequest condition, Long attributeId) {
+    var matching = values.stream().filter(m -> m.getAttributeId().equals(attributeId)).toList();
     if (condition.operator() == AttributeSearchOperator.NOT_EXISTS) return matching.isEmpty();
     if (condition.operator() == AttributeSearchOperator.EXISTS) return !matching.isEmpty();
     return matching.stream().anyMatch(m -> switch (condition.operator()) {

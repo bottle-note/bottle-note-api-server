@@ -19,6 +19,10 @@ public interface AlcoholAttributeRepository {
 
   Optional<AlcoholAttribute> findByAttributeKey(String key);
 
+  List<AlcoholAttribute> findAllByAttributeKeyIn(Collection<String> keys);
+
+  boolean existsByGroupId(Long groupId);
+
   List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids);
 
   List<AlcoholAttribute> lockByKeys(Collection<String> keys);
@@ -31,7 +35,8 @@ public interface AlcoholAttributeRepository {
 
   OffsetPage<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request);
 
-  OffsetPage<Long> findAlcoholIds(AdminAlcoholCompoundSearchRequest request);
+  OffsetPage<Long> findAlcoholIds(
+      AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds);
 
   List<AlcoholAttributeKeyCountItem> findKeyStats();
 

@@ -16,6 +16,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeGroupRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeMappingRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
@@ -43,7 +44,9 @@ class DefaultAdminAlcoholAttributeServiceTest {
     alcohols = new InMemoryAlcoholQueryRepository();
     mappings = new InMemoryAlcoholAttributeMappingRepository(alcohols);
     attributes = new InMemoryAlcoholAttributeRepository(mappings, alcohols);
-    service = new DefaultAdminAlcoholAttributeService(attributes, mappings);
+    service =
+        new DefaultAdminAlcoholAttributeService(
+            attributes, mappings, new InMemoryAlcoholAttributeGroupRepository());
     searchService = new DefaultAdminAlcoholAttributeSearchService(attributes, mappings, alcohols);
     first = alcohols.save(Alcohol.builder().korName("가나다").engName("Alpha").build());
     second = alcohols.save(Alcohol.builder().korName("라마바").engName("Beta").build());

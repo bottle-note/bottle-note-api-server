@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public record AdminAlcoholAttributeItem(
     Long id,
+    Long groupId,
     String key,
     String displayName,
     AttributeType type,
