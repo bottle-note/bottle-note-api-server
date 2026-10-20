@@ -14,8 +14,10 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
 import app.bottlenote.global.pagination.OffsetPage;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -101,6 +103,57 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
   @Override
   public OffsetPage<Long> findAlcoholIds(
       AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
+    var where = compoundWhere(request, attributeIds);
+    var content =
+        queryFactory
+            .select(alcohol.id)
+            .from(alcohol)
+            .where(where)
+            .orderBy(alcohol.korName.asc(), alcohol.id.asc())
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
+            .fetch();
+    var total = queryFactory.select(alcohol.count()).from(alcohol).where(where).fetchOne();
+    return new OffsetPage<>(content, total == null ? 0 : total);
+  }
+
+  @Override
+  public List<AlcoholAttributeFacetCount> findFacets(
+      AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
+    var mapping = new QAlcoholAttributeMapping("facetMapping");
+    var where = compoundWhere(request, attributeIds);
+    var count =
+        where[3] == null
+            ? alcohol.id.countDistinct()
+            : new CaseBuilder()
+                .when(where[3])
+                .then(alcohol.id)
+                .otherwise((Long) null)
+                .countDistinct();
+    // 조건 적용 전 후보를 유지해 교집합이 0인 값도 반환한다.
+    return queryFactory
+        .select(mapping.attributeId, mapping.attributeValue, count)
+        .from(alcohol)
+        .join(mapping)
+        .on(mapping.alcoholId.eq(alcohol.id))
+        .join(alcoholAttribute)
+        .on(alcoholAttribute.id.eq(mapping.attributeId))
+        .where(where[0], where[1], where[2])
+        .groupBy(mapping.attributeId, mapping.attributeValue)
+        .orderBy(count.desc(), mapping.attributeId.asc(), mapping.attributeValue.asc())
+        .offset((long) request.page() * request.size())
+        .limit(request.size() + 1L)
+        .fetch()
+        .stream()
+        .map(
+            row ->
+                new AlcoholAttributeFacetCount(
+                    row.get(mapping.attributeId), row.get(mapping.attributeValue), row.get(count)))
+        .toList();
+  }
+
+  private BooleanExpression[] compoundWhere(
+      AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
     BooleanExpression combined = null;
     for (int i = 0; i < request.conditions().size(); i++) {
       var predicate =
@@ -115,33 +168,23 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
     }
     BooleanExpression linked = null;
     if (request.linkedOnly() || request.type() != null || !request.groupIds().isEmpty()) {
+      var linkedAttribute = new QAlcoholAttribute("linkedAttribute");
       linked =
           JPAExpressions.selectOne()
               .from(alcoholAttributeMapping)
-              .join(alcoholAttribute)
-              .on(alcoholAttribute.id.eq(alcoholAttributeMapping.attributeId))
+              .join(linkedAttribute)
+              .on(linkedAttribute.id.eq(alcoholAttributeMapping.attributeId))
               .where(
                   alcoholAttributeMapping.alcoholId.eq(alcohol.id),
-                  request.type() == null ? null : alcoholAttribute.attributeType.eq(request.type()),
+                  request.type() == null ? null : linkedAttribute.attributeType.eq(request.type()),
                   request.groupIds().isEmpty()
                       ? null
-                      : alcoholAttribute.groupId.in(request.groupIds()))
+                      : linkedAttribute.groupId.in(request.groupIds()))
               .exists();
     }
-    BooleanExpression[] where = {
+    return new BooleanExpression[] {
       supporter.isNotDeleted(), supporter.keywordMatch(request.keyword()), linked, combined
     };
-    var content =
-        queryFactory
-            .select(alcohol.id)
-            .from(alcohol)
-            .where(where)
-            .orderBy(alcohol.korName.asc(), alcohol.id.asc())
-            .offset((long) request.page() * request.size())
-            .limit(request.size())
-            .fetch();
-    var total = queryFactory.select(alcohol.count()).from(alcohol).where(where).fetchOne();
-    return new OffsetPage<>(content, total == null ? 0 : total);
   }
 
   private BooleanExpression conditionMatch(

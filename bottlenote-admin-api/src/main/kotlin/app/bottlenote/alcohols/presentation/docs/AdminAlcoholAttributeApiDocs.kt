@@ -41,6 +41,12 @@ object AdminAlcoholAttributeApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
+	@Operation(summary = "속성 값별 검색 결과 교집합을 집계한다", description = "검색 API와 동일한 조건을 적용합니다. keyword/type/groupIds/linkedOnly 범위 안에서 조건 적용 전의 모든 연결 값을 후보로 유지하고, 현재 조건을 만족하는 술을 값별로 중복 없이 집계합니다. 다른 그룹의 속성도 후보에 포함합니다. 0개 후보도 반환합니다. page/size는 술이 아닌 후보 페이지이며 최대 100개, hasNext로 다음 페이지를 확인합니다. 개수 내림차순, 속성 ID와 값 오름차순입니다.")
+	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeFacets::class))])
+	annotation class AttributeFacets
+
+	@Target(AnnotationTarget.FUNCTION)
+	@Retention(AnnotationRetention.RUNTIME)
 	@Operation(summary = "공통 속성 한 건을 생성하거나 갱신한다", description = "key가 같으면 기존 ID와 생성 정보를 유지하고 전체 갱신합니다. 다른 키의 displayName과 충돌하면 409입니다. groupId 생략 시 기존 소속을 유지하고 null이면 해제합니다. 새 속성의 기본값은 미분류이며 없는 그룹 ID는 404입니다. 변경 후 기존 매핑은 유지합니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeItem::class))])
 	annotation class CreateAttributes

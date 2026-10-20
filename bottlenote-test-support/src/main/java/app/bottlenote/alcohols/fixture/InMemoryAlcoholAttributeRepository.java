@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.fixture;
 
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
 import java.math.BigDecimal;
 import app.bottlenote.alcohols.constant.AttributeMatch;
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
@@ -189,6 +190,31 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
               : request.conditions().stream().anyMatch(c -> conditionMatches(values, c, attributeIds.get(c.key()))));
         }).sorted(Comparator.comparing(Alcohol::getKorName).thenComparing(Alcohol::getId)).map(Alcohol::getId).toList();
     return new OffsetPage<>(matched.stream().skip((long) request.page() * request.size()).limit(request.size()).toList(), matched.size());
+  }
+
+  @Override
+  public List<AlcoholAttributeFacetCount> findFacets(AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
+    var base = new AdminAlcoholCompoundSearchRequest(request.keyword(), request.match(), List.of(), request.type(), request.linkedOnly(), 0, 100, request.groupIds());
+    var universe = allSearchIds(base, attributeIds);
+    var matched = allSearchIds(request, attributeIds);
+    record Key(Long id, String value) {}
+    return mappings.findAllByAlcoholIdIn(universe).stream().filter(m -> rows.containsKey(m.getAttributeId()))
+        .collect(java.util.stream.Collectors.groupingBy(m -> new Key(m.getAttributeId(), m.getAttributeValue())))
+        .entrySet().stream().map(e -> new AlcoholAttributeFacetCount(e.getKey().id(), e.getKey().value(),
+            e.getValue().stream().map(AlcoholAttributeMapping::getAlcoholId).filter(matched::contains).distinct().count()))
+        .sorted(Comparator.comparingLong(AlcoholAttributeFacetCount::alcoholCount).reversed()
+            .thenComparing(AlcoholAttributeFacetCount::attributeId)
+            .thenComparing(AlcoholAttributeFacetCount::value))
+        .skip((long) request.page() * request.size()).limit(request.size() + 1L).toList();
+  }
+
+  private java.util.Set<Long> allSearchIds(AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
+    var result = new java.util.HashSet<Long>();
+    for (int page = 0; ; page++) {
+      var found = findAlcoholIds(new AdminAlcoholCompoundSearchRequest(request.keyword(), request.match(), request.conditions(), request.type(), request.linkedOnly(), page, 100, request.groupIds()), attributeIds);
+      result.addAll(found.content());
+      if (result.size() >= found.totalElements()) return result;
+    }
   }
 
   private boolean conditionMatches(List<AlcoholAttributeMapping> values, AdminAlcoholAttributeConditionRequest condition, Long attributeId) {
