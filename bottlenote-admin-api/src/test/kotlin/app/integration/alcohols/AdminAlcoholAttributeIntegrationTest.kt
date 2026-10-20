@@ -40,6 +40,103 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 	private fun mapRequest(alcoholId: Long, attributeId: Long) = AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcoholId, attributeId, "15000")))
 
 	@Test
+	@DisplayName("비교 연산과 기본값 및 문자열 포함 검색은 자료형과 미연결 여부를 보존한다")
+	fun compoundOperatorsPreserveValueSemantics() {
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		val unmapped = alcoholTestFactory.persistAlcohol()
+		val price = create("price", "가격")
+		val note = service.create(AdminAlcoholAttributeCreateRequest("note", "메모", AttributeType.NOTE, AttributeDatatype.STRING, null, null))
+		val flag = service.create(AdminAlcoholAttributeCreateRequest("flag", "추천", AttributeType.FLAG, AttributeDatatype.BOOLEAN, null, null))
+		service.mapBulk(
+			AdminAlcoholAttributeMappingBulkRequest(
+				listOf(
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, price.id(), "9007199254740993"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(second.id, price.id(), "9007199254740994"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, note.id(), "추천 100%_한정"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(second.id, note.id(), "추천 1000한정"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, flag.id(), "true")
+				)
+			)
+		)
+		fun ids(body: Map<String, Any>): List<Long> {
+			val response = postAs(token, "$base/alcohols/search", body)
+			assertThat(response).hasStatusOk()
+			return extractData(response, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId() }
+		}
+		fun condition(key: String, op: String, value: String) = mapOf("conditions" to listOf(mapOf("key" to key, "operator" to op, "value" to value)))
+		assertThat(ids(condition("price", "GT", "9007199254740993"))).containsExactly(second.id)
+		assertThat(ids(condition("price", "LT", "9007199254740994"))).containsExactly(first.id)
+		assertThat(ids(condition("price", "NE", "9007199254740993"))).containsExactly(second.id)
+		assertThat(ids(condition("price", "EQ", "09007199254740993"))).containsExactly(first.id)
+		assertThat(ids(condition("note", "CONTAINS", "%_"))).containsExactly(first.id)
+		assertThat(ids(condition("flag", "EQ", "true"))).containsExactly(first.id)
+		assertThat(ids(mapOf("conditions" to listOf(mapOf("key" to "price", "operator" to "EXISTS"))))).containsExactlyInAnyOrder(first.id, second.id)
+		assertThat(ids(mapOf("match" to "OR", "conditions" to emptyList<Any>()))).contains(first.id, second.id, unmapped.id)
+		assertThat(ids(mapOf("linkedOnly" to true))).containsExactlyInAnyOrder(first.id, second.id)
+		assertThat(ids(mapOf("type" to "FLAG"))).containsExactly(first.id)
+		assertThat(postAs(token, "$base/alcohols/search", condition("missing", "EQ", "1"))).hasStatus(HttpStatus.NOT_FOUND)
+	}
+
+	@Test
+	@DisplayName("조건 배열로 가격 범위와 다른 속성을 조합하고 미연결 술을 검색한다")
+	fun compoundSearchCombinesIndependentMappings() {
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		val unmapped = alcoholTestFactory.persistAlcohol()
+		val price = create("price", "가격")
+		val score = create("score", "점수")
+		service.mapBulk(
+			AdminAlcoholAttributeMappingBulkRequest(
+				listOf(
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, price.id(), "150000"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(first.id, score.id(), "80"),
+					AdminAlcoholAttributeMappingBulkRequest.Item(second.id, price.id(), "250000")
+				)
+			)
+		)
+		val conditions = listOf(
+			mapOf("key" to "price", "operator" to "GTE", "value" to "100000"),
+			mapOf("key" to "price", "operator" to "LTE", "value" to "200000"),
+			mapOf("key" to "score", "operator" to "EQ", "value" to "80")
+		)
+		fun search(match: String, rows: List<Map<String, String>>, page: Int = 0) = postAs(token, "$base/alcohols/search", mapOf("match" to match, "conditions" to rows, "page" to page, "size" to 1))
+		val and = search("AND", conditions)
+		assertThat(and).hasStatusOk()
+		assertThat(extractData(and, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId() }).containsExactly(first.id)
+		val or = search("OR", conditions)
+		assertThat(or).hasStatusOk()
+		assertThat(mapper.readTree(or.response.contentAsString).at("/meta/totalElements").asInt()).isEqualTo(2)
+		val secondPage = search("OR", conditions, 1)
+		val ids = extractData(or, Array<AdminAttributedAlcoholItem>::class.java).toList() + extractData(secondPage, Array<AdminAttributedAlcoholItem>::class.java).toList()
+		assertThat(ids.map { it.alcoholId() }).containsExactlyInAnyOrder(first.id, second.id)
+		val missing = postAs(token, "$base/alcohols/search", mapOf("conditions" to listOf(mapOf("key" to "price", "operator" to "NOT_EXISTS"))))
+		assertThat(missing).hasStatusOk()
+		assertThat(extractData(missing, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId() }).containsExactly(unmapped.id)
+	}
+
+	@Test
+	@DisplayName("복합 검색에서 잘못된 조건과 자료형을 거부한다")
+	fun compoundSearchRejectsInvalidConditions() {
+		create("price", "가격")
+		service.create(AdminAlcoholAttributeCreateRequest("note", "메모", AttributeType.NOTE, AttributeDatatype.STRING, null, null))
+		val invalid = listOf(
+			mapOf("key" to "price", "operator" to "GTE"),
+			mapOf("key" to "price", "operator" to "EQ", "value" to "abc"),
+			mapOf("key" to "note", "operator" to "GTE", "value" to "10"),
+			mapOf("key" to "price", "operator" to "CONTAINS", "value" to "10"),
+			mapOf("key" to "price", "operator" to "EXISTS", "value" to "10"),
+			mapOf("operator" to "EXISTS")
+		)
+		invalid.forEach { condition ->
+			assertThat(postAs(token, "$base/alcohols/search", mapOf("conditions" to listOf(condition)))).hasStatus(HttpStatus.BAD_REQUEST)
+		}
+		assertThat(postAs(token, "$base/alcohols/search", mapOf("conditions" to List(21) { mapOf("key" to "price", "operator" to "EXISTS") }))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(postAs(token, "$base/alcohols/search", mapOf("conditions" to listOf(null)))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(mockMvcTester.post().uri("$base/alcohols/search").contentType(org.springframework.http.MediaType.APPLICATION_JSON).content("{}")).hasStatus(HttpStatus.FORBIDDEN)
+	}
+
+	@Test
 	@DisplayName("기존 매핑 조회는 요청한 술과 속성의 ID 쌍만 반환한다")
 	fun existingMappingsOnlyIncludeRequestedIds() {
 		val first = alcoholTestFactory.persistAlcohol()
