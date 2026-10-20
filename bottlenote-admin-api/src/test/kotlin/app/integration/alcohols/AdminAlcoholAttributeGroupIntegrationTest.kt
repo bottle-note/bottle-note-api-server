@@ -8,10 +8,12 @@ import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 
+@Tag("admin_integration")
 class AdminAlcoholAttributeGroupIntegrationTest : IntegrationTestSupport() {
 	@Autowired private lateinit var alcoholFactory: AlcoholTestFactory
 
