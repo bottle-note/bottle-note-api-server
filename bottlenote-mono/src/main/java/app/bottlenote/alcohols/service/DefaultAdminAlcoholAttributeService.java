@@ -121,11 +121,9 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
             .distinct()
             .sorted()
             .toList());
-    var groupsSpecified =
+    var requestsByKey =
         request.items().stream()
-            .filter(AdminAlcoholAttributeCreateRequest::groupIdPresent)
-            .map(r -> r.key().trim())
-            .collect(Collectors.toSet());
+            .collect(Collectors.toMap(r -> r.key().trim(), Function.identity()));
     var existingAttributes =
         attributeRepository.lockByKeys(keys).stream()
             .collect(Collectors.toMap(AlcoholAttribute::getAttributeKey, Function.identity()));
@@ -140,8 +138,13 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
       if (existing.isPresent()) {
         target = existing.get();
         requireCompatibleDatatype(target, candidate);
+        var item = requestsByKey.get(candidate.getAttributeKey());
+        candidate.changeStringRules(
+            item.allowedValuesPresent() ? item.allowedValues() : target.getAllowedValues(),
+            item.patternPresent() ? item.pattern() : target.getPattern());
+        requireCompatibleRules(target, candidate);
         target.updateFrom(candidate);
-        if (groupsSpecified.contains(candidate.getAttributeKey()))
+        if (requestsByKey.get(candidate.getAttributeKey()).groupIdPresent())
           target.changeGroup(candidate.getGroupId());
         updated++;
       } else {
@@ -166,8 +169,12 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
             request.datatype(),
             request.unit(),
             request.description());
-    requireUniqueName(candidate.getDisplayName(), id);
     requireCompatibleDatatype(target, candidate);
+    candidate.changeStringRules(
+        request.allowedValuesPresent() ? request.allowedValues() : target.getAllowedValues(),
+        request.patternPresent() ? request.pattern() : target.getPattern());
+    requireUniqueName(candidate.getDisplayName(), id);
+    requireCompatibleRules(target, candidate);
     target.updateFrom(candidate);
     if (request.groupIdPresent()) target.changeGroup(request.groupId());
     attributeRepository.save(target);
@@ -266,7 +273,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     var alcohols = mappingRepository.lockAlcohols(List.of(mapping.getAlcoholId()));
     if (alcohols.isEmpty() || alcohols.getFirst().isDeleted())
       throw new AlcoholException(ALCOHOL_NOT_FOUND);
-    mapping.updateValue(attribute.getDatatype(), request.value());
+    mapping.updateValue(attribute, request.value());
     return toMappingItem(mappingRepository.save(mapping));
   }
 
@@ -312,6 +319,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
             request.datatype(),
             request.unit(),
             request.description());
+    candidate.changeStringRules(request.allowedValues(), request.pattern());
     if (request.groupIdPresent()) candidate.changeGroup(request.groupId());
     return candidate;
   }
@@ -345,6 +353,19 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     if (target.getDatatype() != candidate.getDatatype()
         && mappingRepository.existsByAttributeId(target.getId()))
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_DATATYPE_IN_USE);
+  }
+
+  private void requireCompatibleRules(AlcoholAttribute target, AlcoholAttribute candidate) {
+    if ((java.util.Objects.equals(target.getAllowedValues(), candidate.getAllowedValues())
+            && java.util.Objects.equals(target.getPattern(), candidate.getPattern()))
+        || (candidate.getAllowedValues() == null && candidate.getPattern() == null)) return;
+    for (String value : mappingRepository.findValuesByAttributeId(target.getId())) {
+      try {
+        candidate.validateValue(value);
+      } catch (AlcoholException e) {
+        throw new AlcoholException(ALCOHOL_ATTRIBUTE_RULE_IN_USE);
+      }
+    }
   }
 
   private AdminAlcoholAttributeMappingItem toMappingItem(AlcoholAttributeMapping m) {

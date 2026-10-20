@@ -1,12 +1,14 @@
 package app.bottlenote.alcohols.domain;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_KEY;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_RULE;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.common.domain.BaseEntity;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,11 +17,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.Type;
 
 /**
  * 여러 술이 공유하는 속성 정의. 실제 값은 술별 연결이 소유한다.
@@ -75,6 +81,61 @@ public class AlcoholAttribute extends BaseEntity {
   @Column(name = "unit", length = 20)
   private String unit;
 
+  @Type(JsonType.class)
+  @Column(name = "allowed_values", columnDefinition = "json")
+  private List<String> allowedValues;
+
+  @Column(name = "value_pattern", length = 500)
+  private String pattern;
+
+  public List<String> getAllowedValues() {
+    return allowedValues == null ? null : List.copyOf(allowedValues);
+  }
+
+  public void changeStringRules(List<String> allowedValues, String pattern) {
+    if (datatype != AttributeDatatype.STRING && (allowedValues != null || pattern != null))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
+    Pattern compiled = compileRule(pattern);
+    List<String> values = null;
+    if (allowedValues != null) {
+      if (allowedValues.isEmpty() || allowedValues.size() > 100)
+        throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
+      values =
+          allowedValues.stream()
+              .map(
+                  value -> {
+                    if (value == null || value.isBlank() || value.trim().length() > 255)
+                      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
+                    String normalized = value.trim();
+                    if (compiled != null && !compiled.matcher(normalized).matches())
+                      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
+                    return normalized;
+                  })
+              .toList();
+      if (new HashSet<>(values).size() != values.size())
+        throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
+    }
+    this.allowedValues = values;
+    this.pattern = pattern;
+  }
+
+  public void validateValue(String value) {
+    if ((allowedValues != null && !allowedValues.contains(value))
+        || (pattern != null && !Pattern.matches(pattern, value)))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+  }
+
+  private static Pattern compileRule(String pattern) {
+    if (pattern == null) return null;
+    if (pattern.isBlank() || pattern.length() > 500)
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
+    try {
+      return Pattern.compile(pattern);
+    } catch (PatternSyntaxException e) {
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
+    }
+  }
+
   public static AlcoholAttribute create(
       String attributeKey,
       String displayName,
@@ -100,6 +161,8 @@ public class AlcoholAttribute extends BaseEntity {
     String name = normalizeText(displayName, 100, false);
     String normalizedUnit = normalizeText(unit, 20, true);
     String normalizedDescription = normalizeText(description, DESCRIPTION_MAX_LENGTH, true);
+    if (datatype != AttributeDatatype.STRING && (allowedValues != null || pattern != null))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_RULE);
     this.displayName = name;
     this.attributeType = attributeType;
     this.datatype = datatype;
@@ -113,6 +176,8 @@ public class AlcoholAttribute extends BaseEntity {
     this.datatype = validated.datatype;
     this.unit = validated.unit;
     this.description = validated.description;
+    this.allowedValues = validated.getAllowedValues();
+    this.pattern = validated.pattern;
   }
 
   private static String normalizeText(String text, int maxLength, boolean optional) {

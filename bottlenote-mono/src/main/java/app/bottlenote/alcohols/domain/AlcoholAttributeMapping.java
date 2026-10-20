@@ -40,12 +40,14 @@ public class AlcoholAttributeMapping extends BaseEntity {
     AlcoholAttributeMapping mapping = new AlcoholAttributeMapping();
     mapping.alcoholId = Objects.requireNonNull(alcoholId, "alcoholId");
     mapping.attributeId = Objects.requireNonNull(attribute.getId(), "attributeId");
-    mapping.updateValue(attribute.getDatatype(), value);
+    mapping.updateValue(attribute, value);
     return mapping;
   }
 
-  public void updateValue(AttributeDatatype datatype, String value) {
-    this.attributeValue = normalizeValue(datatype, value);
+  public void updateValue(AlcoholAttribute attribute, String value) {
+    String normalized = normalizeValue(attribute.getDatatype(), value);
+    attribute.validateValue(normalized);
+    this.attributeValue = normalized;
   }
 
   public static String normalizeValue(AttributeDatatype datatype, String raw) {

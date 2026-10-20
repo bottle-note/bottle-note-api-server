@@ -24,6 +24,8 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   ALCOHOL_ATTRIBUTE_INVALID_KEY(
       HttpStatus.BAD_REQUEST, "속성 항목은 영문 소문자로 시작하고 소문자·숫자·밑줄만 64자까지 쓸 수 있습니다."),
   ALCOHOL_ATTRIBUTE_INVALID_VALUE(HttpStatus.BAD_REQUEST, "속성 값이 비어 있거나 입력 형식에 맞지 않습니다."),
+  ALCOHOL_ATTRIBUTE_INVALID_RULE(HttpStatus.BAD_REQUEST, "STRING 속성의 허용값 목록 또는 정규식이 올바르지 않습니다."),
+  ALCOHOL_ATTRIBUTE_RULE_IN_USE(HttpStatus.CONFLICT, "기존 매핑 값과 충돌하는 속성 규칙으로 변경할 수 없습니다."),
   ALCOHOL_ATTRIBUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "위스키 속성을 찾을 수 없습니다."),
   ALCOHOL_ATTRIBUTE_DUPLICATE_KEY_IN_REQUEST(HttpStatus.BAD_REQUEST, "요청 안에 같은 속성 키가 있습니다."),
   ALCOHOL_ATTRIBUTE_DATATYPE_IN_USE(HttpStatus.CONFLICT, "연결된 속성의 자료형은 변경할 수 없습니다."),

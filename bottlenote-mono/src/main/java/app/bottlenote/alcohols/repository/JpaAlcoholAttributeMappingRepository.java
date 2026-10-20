@@ -46,6 +46,11 @@ public interface JpaAlcoholAttributeMappingRepository
   @Override
   boolean existsByAttributeId(Long attributeId);
 
+  @Override
+  @Query(
+      "select m.attributeValue from alcohol_attribute_mapping m where m.attributeId = :attributeId")
+  List<String> findValuesByAttributeId(@Param("attributeId") Long attributeId);
+
   List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids);
 
   @Override

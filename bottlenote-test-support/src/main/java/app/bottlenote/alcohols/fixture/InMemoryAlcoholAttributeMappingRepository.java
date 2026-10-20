@@ -60,6 +60,15 @@ public class InMemoryAlcoholAttributeMappingRepository
   }
 
   @Override
+  public List<String> findValuesByAttributeId(Long attributeId) {
+    return rows.values().stream()
+        .filter(m -> m.getAttributeId().equals(attributeId))
+        .map(AlcoholAttributeMapping::getAttributeValue)
+        .distinct()
+        .toList();
+  }
+
+  @Override
   public List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids) {
     return rows.values().stream().filter(m -> ids.contains(m.getAlcoholId())).toList();
   }

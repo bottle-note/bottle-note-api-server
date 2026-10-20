@@ -408,4 +408,76 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 	fun requiresAuthentication() {
 		assertThat(mockMvcTester.get().uri("$base/enums")).hasStatus(HttpStatus.FORBIDDEN)
 	}
+
+	@Test
+	@DisplayName("문자열 규칙을 저장할 때 조회에 반영하고 매핑 생성·수정에 적용한다")
+	fun stringRulesPersistAndValidateMappings() {
+		val payload = mapOf("key" to "taste", "displayName" to "맛 평가", "type" to "KEYWORD", "datatype" to "STRING", "allowedValues" to listOf("맛있음", "적당함", "맛없음"), "pattern" to ".*(음|함)")
+		val created = postAs(token, base, payload)
+		assertThat(created).hasStatusOk()
+		val attribute = extractData(created, AdminAlcoholAttributeItem::class.java)
+		assertThat(attribute.allowedValues()).containsExactly("맛있음", "적당함", "맛없음")
+		assertThat(attribute.pattern()).isEqualTo(".*(음|함)")
+		val listed = extractData(getAs(token, base), Array<AdminAlcoholAttributeItem>::class.java).single()
+		assertThat(listed.allowedValues()).isEqualTo(attribute.allowedValues())
+		assertThat(listed.pattern()).isEqualTo(attribute.pattern())
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		fun item(id: Long, value: String) = AdminAlcoholAttributeMappingBulkRequest.Item(id, attribute.id(), value)
+		val invalidBatch = AdminAlcoholAttributeMappingBulkRequest(listOf(item(first.id, "맛있음"), item(second.id, "기타")))
+		assertThat(postAs(token, "$base/mappings/batch", invalidBatch)).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(mappings.findAllByAlcoholIdIn(listOf(first.id, second.id))).isEmpty()
+		val mapped = postAs(token, "$base/mappings/batch", AdminAlcoholAttributeMappingBulkRequest(listOf(item(first.id, "맛있음"))))
+		assertThat(mapped).hasStatusOk()
+		val mappingId = extractData(mapped, AdminAlcoholAttributeMappingBulkResponse::class.java).createdIds().single()
+		assertThat(putAs(token, "$base/mappings/$mappingId", mapOf("value" to "기타"))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(mappings.findById(mappingId).orElseThrow().attributeValue).isEqualTo("맛있음")
+		assertThat(putAs(token, "$base/mappings/$mappingId", mapOf("value" to "적당함"))).hasStatusOk()
+	}
+
+	@Test
+	@DisplayName("규칙 변경이 기존 값과 충돌할 때 롤백하고 생략·null을 구분한다")
+	fun stringRuleUpdatesPreserveCompatibilityAndPresence() {
+		val payload = mapOf("key" to "taste", "displayName" to "맛 평가", "type" to "KEYWORD", "datatype" to "STRING")
+		val attribute = extractData(postAs(token, base, payload), AdminAlcoholAttributeItem::class.java)
+		val alcohol = alcoholTestFactory.persistAlcohol()
+		service.mapBulk(AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, attribute.id(), "맛있음"))))
+		assertThat(putAs(token, "$base/${attribute.id()}", payload + mapOf("allowedValues" to listOf("적당함")))).hasStatus(HttpStatus.CONFLICT)
+		val other = mapOf("key" to "other", "displayName" to "다른 속성", "type" to "NOTE", "datatype" to "STRING")
+		assertThat(postAs(token, "$base/batch", mapOf("items" to listOf(other, payload + mapOf("pattern" to "[A-Z]+"))))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(attributes.findByAttributeKey("other")).isEmpty()
+		assertThat(putAs(token, "$base/${attribute.id()}", payload + mapOf("allowedValues" to listOf("맛있음"), "pattern" to ".*음"))).hasStatusOk()
+		assertThat(putAs(token, "$base/${attribute.id()}", payload)).hasStatusOk()
+		assertThat(postAs(token, "$base/batch", mapOf("items" to listOf(payload)))).hasStatusOk()
+		val preserved = extractData(getAs(token, base), Array<AdminAlcoholAttributeItem>::class.java).single()
+		assertThat(preserved.allowedValues()).containsExactly("맛있음")
+		assertThat(preserved.pattern()).isEqualTo(".*음")
+		assertThat(putAs(token, "$base/${attribute.id()}", payload + mapOf("allowedValues" to null))).hasStatusOk()
+		assertThat(attributes.findById(attribute.id()).orElseThrow().allowedValues).isNull()
+		assertThat(attributes.findById(attribute.id()).orElseThrow().pattern).isEqualTo(".*음")
+		assertThat(postAs(token, "$base/batch", mapOf("items" to listOf(payload + mapOf("pattern" to null))))).hasStatusOk()
+		assertThat(attributes.findById(attribute.id()).orElseThrow().pattern).isNull()
+	}
+
+	@Test
+	@DisplayName("잘못된 선택값과 정규식 및 숫자 속성의 문자열 규칙을 400으로 거부한다")
+	fun rejectsInvalidStringRules() {
+		val payload = mapOf("key" to "taste", "displayName" to "맛 평가", "type" to "KEYWORD", "datatype" to "STRING")
+		val invalidRules = listOf(mapOf("allowedValues" to emptyList<String>()), mapOf("allowedValues" to listOf("a", " a ")), mapOf("allowedValues" to listOf(null)), mapOf("allowedValues" to listOf("x".repeat(256))), mapOf("allowedValues" to List(101) { it.toString() }), mapOf("pattern" to "*"), mapOf("pattern" to ""), mapOf("pattern" to "x".repeat(501)), mapOf("allowedValues" to listOf("맛있음"), "pattern" to "[A-Z]+"), mapOf("datatype" to "INT", "pattern" to ".*"))
+		invalidRules.forEach { rule -> assertThat(postAs(token, base, payload + rule)).hasStatus(HttpStatus.BAD_REQUEST) }
+		assertThat(attributes.findByAttributeKey("taste")).isEmpty()
+	}
+
+	@Test
+	@DisplayName("대소문자만 다른 기존 값도 모두 검사하여 규칙 충돌을 거부한다")
+	fun validatesEveryStoredValueRegardlessOfDatabaseCollation() {
+		val attribute = service.create(AdminAlcoholAttributeCreateRequest("code", "코드", AttributeType.IDENTITY, AttributeDatatype.STRING, null, null))
+		val first = alcoholTestFactory.persistAlcohol()
+		val second = alcoholTestFactory.persistAlcohol()
+		service.mapBulk(AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(first.id, attribute.id(), "good"), AdminAlcoholAttributeMappingBulkRequest.Item(second.id, attribute.id(), "GOOD"))))
+		val payload = mapOf("displayName" to "코드", "type" to "IDENTITY", "datatype" to "STRING", "allowedValues" to listOf("good"))
+		assertThat(putAs(token, "$base/${attribute.id()}", payload)).hasStatus(HttpStatus.CONFLICT)
+		assertThat(putAs(token, "$base/${attribute.id()}", payload + mapOf("allowedValues" to listOf("GOOD")))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(attributes.findById(attribute.id()).orElseThrow().allowedValues).isNull()
+	}
 }
