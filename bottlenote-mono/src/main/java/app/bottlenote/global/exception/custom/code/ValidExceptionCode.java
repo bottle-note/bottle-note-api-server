@@ -34,6 +34,8 @@ public enum ValidExceptionCode implements ExceptionCode {
   ALCOHOL_BULK_ROW_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 행은 null일 수 없습니다."),
   ALCOHOL_ID_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 식별자는 필수입니다."),
   ALCOHOL_ID_MINIMUM(HttpStatus.BAD_REQUEST, "알코올 식별자는 최소 1 이상 이어야 합니다."),
+  ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE(HttpStatus.BAD_REQUEST, "속성 그룹 입력값이 올바르지 않습니다."),
+  ALCOHOL_ATTRIBUTE_GROUP_IDS_SIZE_INVALID(HttpStatus.BAD_REQUEST, "그룹 ID는 최대 100개까지 검색할 수 있습니다."),
   ALCOHOL_ATTRIBUTE_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "속성 표시명은 필수입니다."),
   ALCOHOL_ATTRIBUTE_OPERATOR_REQUIRED(HttpStatus.BAD_REQUEST, "속성 비교 조건은 필수입니다."),
   ALCOHOL_ATTRIBUTE_FIELD_LENGTH_INVALID(HttpStatus.BAD_REQUEST, "속성 필드의 최대 길이를 초과했습니다."),

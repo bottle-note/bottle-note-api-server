@@ -20,6 +20,7 @@ public record AdminResultResponse(String code, String message, Long targetId, St
     ALCOHOL_CREATED("위스키가 등록되었습니다."),
     ALCOHOL_UPDATED("위스키가 수정되었습니다."),
     ALCOHOL_DELETED("위스키가 삭제되었습니다."),
+    ALCOHOL_ATTRIBUTE_GROUP_DELETED("속성 그룹이 삭제되었습니다."),
     ALCOHOL_ATTRIBUTE_UPDATED("위스키 속성이 수정되었습니다."),
     ALCOHOL_ATTRIBUTE_MAPPING_DELETED("주류 속성 연결이 해제되었습니다."),
     ALCOHOL_ATTRIBUTE_DELETED("위스키 속성이 삭제되었습니다."),

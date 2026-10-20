@@ -43,6 +43,10 @@ public interface JpaAlcoholAttributeRepository
   @Override
   Optional<AlcoholAttribute> findByAttributeKey(String key);
 
+  List<AlcoholAttribute> findAllByAttributeKeyIn(Collection<String> keys);
+
+  boolean existsByGroupId(Long groupId);
+
   @Override
   List<AlcoholAttribute> findAllByIdIn(Collection<Long> ids);
 

@@ -60,7 +60,8 @@ public class DefaultAdminAlcoholAttributeSearchService
               request.operator(),
               request.missingKey(),
               request.page(),
-              request.size());
+              request.size(),
+              request.groupIds());
     }
     var page = attributeRepository.findAlcoholIds(request);
     return toAlcoholPage(page, request.page(), request.size());
@@ -72,23 +73,28 @@ public class DefaultAdminAlcoholAttributeSearchService
       AdminAlcoholCompoundSearchRequest request) {
     if (request.conditions().size() > 20)
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
-    var definitions = new java.util.HashMap<String, AlcoholAttribute>();
+    for (var condition : request.conditions()) {
+      if (condition == null
+          || condition.key() == null
+          || !condition.key().matches("[a-z][a-z0-9_]{0,63}"))
+        throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+    }
+    var keys =
+        request.conditions().stream()
+            .map(AdminAlcoholAttributeConditionRequest::key)
+            .distinct()
+            .toList();
+    var definitions =
+        keys.isEmpty()
+            ? java.util.Map.<String, AlcoholAttribute>of()
+            : attributeRepository.findAllByAttributeKeyIn(keys).stream()
+                .collect(Collectors.toMap(AlcoholAttribute::getAttributeKey, Function.identity()));
     var conditions =
         request.conditions().stream()
             .map(
                 condition -> {
-                  if (condition == null
-                      || condition.key() == null
-                      || !condition.key().matches("[a-z][a-z0-9_]{0,63}"))
-                    throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
-                  var definition =
-                      definitions.computeIfAbsent(
-                          condition.key(),
-                          key ->
-                              attributeRepository
-                                  .findByAttributeKey(key)
-                                  .orElseThrow(
-                                      () -> new AlcoholException(ALCOHOL_ATTRIBUTE_NOT_FOUND)));
+                  var definition = definitions.get(condition.key());
+                  if (definition == null) throw new AlcoholException(ALCOHOL_ATTRIBUTE_NOT_FOUND);
                   var operator = condition.operator();
                   if (!operator.requiresValue()) {
                     if (condition.value() != null)
@@ -115,9 +121,17 @@ public class DefaultAdminAlcoholAttributeSearchService
             request.type(),
             request.linkedOnly(),
             request.page(),
-            request.size());
+            request.size(),
+            request.groupIds());
     return toAlcoholPage(
-        attributeRepository.findAlcoholIds(normalized), request.page(), request.size());
+        attributeRepository.findAlcoholIds(
+            normalized,
+            definitions.entrySet().stream()
+                .collect(
+                    Collectors.toMap(
+                        java.util.Map.Entry::getKey, entry -> entry.getValue().getId()))),
+        request.page(),
+        request.size());
   }
 
   private Page<AdminAttributedAlcoholItem> toAlcoholPage(

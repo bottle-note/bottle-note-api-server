@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.constant.ValueProvider;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.AlcoholAttributeGroupRepository;
 import app.bottlenote.alcohols.domain.AlcoholAttributeMapping;
 import app.bottlenote.alcohols.domain.AlcoholAttributeMappingKey;
 import app.bottlenote.alcohols.domain.AlcoholAttributeMappingRepository;
@@ -53,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttributeService {
   private final AlcoholAttributeRepository attributeRepository;
   private final AlcoholAttributeMappingRepository mappingRepository;
+  private final AlcoholAttributeGroupRepository groupRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -112,6 +114,18 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
       if (!keys.add(candidate.getAttributeKey()))
         throw new AlcoholException(ALCOHOL_ATTRIBUTE_DUPLICATE_KEY_IN_REQUEST);
     }
+    requireGroups(
+        request.items().stream()
+            .map(AdminAlcoholAttributeCreateRequest::groupId)
+            .filter(java.util.Objects::nonNull)
+            .distinct()
+            .sorted()
+            .toList());
+    var groupsSpecified =
+        request.items().stream()
+            .filter(AdminAlcoholAttributeCreateRequest::groupIdPresent)
+            .map(r -> r.key().trim())
+            .collect(Collectors.toSet());
     var existingAttributes =
         attributeRepository.lockByKeys(keys).stream()
             .collect(Collectors.toMap(AlcoholAttribute::getAttributeKey, Function.identity()));
@@ -127,6 +141,8 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
         target = existing.get();
         requireCompatibleDatatype(target, candidate);
         target.updateFrom(candidate);
+        if (groupsSpecified.contains(candidate.getAttributeKey()))
+          target.changeGroup(candidate.getGroupId());
         updated++;
       } else {
         target = candidate;
@@ -140,6 +156,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   @Override
   @Transactional
   public AdminResultResponse update(Long id, AdminAlcoholAttributeUpdateRequest request) {
+    if (request.groupId() != null) requireGroups(List.of(request.groupId()));
     var target = requireLockedAttribute(id);
     var candidate =
         AlcoholAttribute.create(
@@ -152,6 +169,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     requireUniqueName(candidate.getDisplayName(), id);
     requireCompatibleDatatype(target, candidate);
     target.updateFrom(candidate);
+    if (request.groupIdPresent()) target.changeGroup(request.groupId());
     attributeRepository.save(target);
     return AdminResultResponse.of(ALCOHOL_ATTRIBUTE_UPDATED, id);
   }
@@ -286,13 +304,24 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   }
 
   private AlcoholAttribute candidate(AdminAlcoholAttributeCreateRequest request) {
-    return AlcoholAttribute.create(
-        request.key(),
-        request.displayName(),
-        request.type(),
-        request.datatype(),
-        request.unit(),
-        request.description());
+    var candidate =
+        AlcoholAttribute.create(
+            request.key(),
+            request.displayName(),
+            request.type(),
+            request.datatype(),
+            request.unit(),
+            request.description());
+    if (request.groupIdPresent()) candidate.changeGroup(request.groupId());
+    return candidate;
+  }
+
+  private void requireGroups(List<Long> ids) {
+    if (ids.isEmpty()) return;
+    if (ids.stream().anyMatch(id -> id <= 0))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE);
+    if (groupRepository.lockByIds(ids).size() != ids.size())
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_GROUP_NOT_FOUND);
   }
 
   private AlcoholAttribute requireAttribute(Long id) {

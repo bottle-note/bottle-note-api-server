@@ -3,7 +3,11 @@ package app.bottlenote.alcohols.dto.request;
 import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.global.dto.request.OffsetPageRequest;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.Builder;
 
 /**
@@ -27,13 +31,23 @@ public record AdminAttributedAlcoholSearchRequest(
     @Pattern(regexp = "[a-z][a-z0-9_]{0,63}", message = "ALCOHOL_ATTRIBUTE_KEY_INVALID")
         String missingKey,
     Integer page,
-    Integer size) {
+    Integer size,
+    @Size(max = 100, message = "ALCOHOL_ATTRIBUTE_GROUP_IDS_SIZE_INVALID")
+        List<
+                @NotNull(message = "ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE")
+                @Positive(message = "ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE") Long>
+            groupIds) {
 
   public static final int DEFAULT_SIZE = 20;
   public static final int MAX_SIZE = 100;
 
   @Builder
+  @org.springframework.beans.factory.annotation.Autowired
   public AdminAttributedAlcoholSearchRequest {
+    groupIds =
+        groupIds == null
+            ? List.of()
+            : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(groupIds));
     operator = operator == null ? AttributeOperator.EQ : operator;
     keyword = blankToNull(keyword);
     key = blankToNull(key);
@@ -46,5 +60,17 @@ public record AdminAttributedAlcoholSearchRequest(
 
   private static String blankToNull(String text) {
     return text == null || text.isBlank() ? null : text.trim();
+  }
+
+  public AdminAttributedAlcoholSearchRequest(
+      String keyword,
+      AttributeType type,
+      String key,
+      String value,
+      AttributeOperator operator,
+      String missingKey,
+      Integer page,
+      Integer size) {
+    this(keyword, type, key, value, operator, missingKey, page, size, List.of());
   }
 }

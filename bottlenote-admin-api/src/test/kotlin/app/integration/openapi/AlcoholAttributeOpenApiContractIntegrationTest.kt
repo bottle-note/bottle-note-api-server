@@ -116,6 +116,36 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 		assertThat(operator).isNotNull()
 	}
 
+	@Test
+	fun groupOperationsAndFiltersHaveConcreteContracts() {
+		val spec = fetchSpec()
+		val operations = operationsOf(spec).associateBy { it.endpoint() }
+		val groupOperations = operations.values.filter { it.path.startsWith("/v1/alcohols/attribute-groups") }
+		assertThat(groupOperations.map { it.endpoint() }).containsExactlyInAnyOrder(
+			"GET /v1/alcohols/attribute-groups",
+			"POST /v1/alcohols/attribute-groups",
+			"PUT /v1/alcohols/attribute-groups/{id}",
+			"DELETE /v1/alcohols/attribute-groups/{id}"
+		)
+		groupOperations.forEach {
+			assertThat(it.tag()).isEqualTo("알코올")
+			assertThat(it.security().any { item -> item.has("bearerAuth") }).isTrue()
+			assertThat(it.hasEmptyDataSchema()).isFalse()
+		}
+		assertThat(itemsRef(operations.getValue("GET /v1/alcohols/attribute-groups"))).endsWith("/AdminAlcoholAttributeGroupItem")
+		for (name in listOf("AdminAlcoholAttributeCreateRequest", "AdminAlcoholAttributeUpdateRequest", "AdminAlcoholAttributeItem")) {
+			assertThat(propertyNamesOf(spec.at("/components/schemas/$name"))).contains("groupId").doesNotContain("groupIdPresent")
+			assertThat(spec.at("/components/schemas/$name/required").map { it.asText() }).doesNotContain("groupId")
+			assertThat(spec.at("/components/schemas/$name/properties/groupId/type").map { it.asText() }).containsExactlyInAnyOrder("integer", "null")
+		}
+		assertThat(spec.at("/components/schemas/AdminAlcoholCompoundSearchRequest/properties/groupIds/type").asText()).isEqualTo("array")
+		assertThat(spec.at("/components/schemas/AdminAlcoholCompoundSearchRequest/properties/groupIds/maxItems").asInt()).isEqualTo(100)
+		for (endpoint in listOf("GET /v1/alcohols/attributes", "GET /v1/alcohols/attributes/alcohols")) {
+			val parameter = queryParameter(spec, operations.getValue(endpoint), "groupIds")
+			assertThat(referencedSchema(spec, parameter.path("schema")).path("type").asText()).isEqualTo("array")
+		}
+	}
+
 	private fun dataRef(operation: SpecOperation): String = operation.successSchema().at("/properties/data/\$ref").asText()
 
 	private fun itemsRef(operation: SpecOperation): String = operation.successSchema().at("/properties/data/items/\$ref").asText()

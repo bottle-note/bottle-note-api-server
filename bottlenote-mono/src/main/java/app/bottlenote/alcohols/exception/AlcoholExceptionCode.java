@@ -28,6 +28,11 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   ALCOHOL_ATTRIBUTE_DUPLICATE_KEY_IN_REQUEST(HttpStatus.BAD_REQUEST, "요청 안에 같은 속성 키가 있습니다."),
   ALCOHOL_ATTRIBUTE_DATATYPE_IN_USE(HttpStatus.CONFLICT, "연결된 속성의 자료형은 변경할 수 없습니다."),
   ALCOHOL_ATTRIBUTE_MAPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "주류 속성 연결을 찾을 수 없습니다."),
+  ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE(
+      HttpStatus.BAD_REQUEST, "속성 그룹의 이름, 설명 또는 정렬 순서가 올바르지 않습니다."),
+  ALCOHOL_ATTRIBUTE_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "속성 그룹을 찾을 수 없습니다."),
+  ALCOHOL_ATTRIBUTE_GROUP_DUPLICATE(HttpStatus.CONFLICT, "동일한 이름의 속성 그룹이 이미 존재합니다."),
+  ALCOHOL_ATTRIBUTE_GROUP_IN_USE(HttpStatus.CONFLICT, "속성이 소속된 그룹은 삭제할 수 없습니다."),
   ALCOHOL_ATTRIBUTE_DUPLICATE(HttpStatus.CONFLICT, "속성 키 또는 이름이 이미 사용 중입니다."),
   TASTING_TAG_GROUP_INVALID_CODE(
       HttpStatus.BAD_REQUEST, "맛 그룹 코드는 영문 대문자로 시작하고 대문자·숫자·밑줄만 64자까지 쓸 수 있습니다."),

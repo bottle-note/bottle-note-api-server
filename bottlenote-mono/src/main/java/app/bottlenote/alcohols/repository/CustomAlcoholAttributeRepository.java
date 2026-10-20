@@ -11,5 +11,6 @@ public interface CustomAlcoholAttributeRepository {
 
   OffsetPage<Long> findAlcoholIds(AdminAttributedAlcoholSearchRequest request);
 
-  OffsetPage<Long> findAlcoholIds(AdminAlcoholCompoundSearchRequest request);
+  OffsetPage<Long> findAlcoholIds(
+      AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds);
 }
