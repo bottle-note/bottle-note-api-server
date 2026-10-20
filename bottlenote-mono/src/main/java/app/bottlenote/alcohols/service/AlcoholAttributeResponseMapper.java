@@ -18,6 +18,8 @@ final class AlcoholAttributeResponseMapper {
         a.getDatatype(),
         a.getUnit(),
         a.getDescription(),
+        a.getAllowedValues(),
+        a.getPattern(),
         a.getCreateAt(),
         a.getLastModifyAt(),
         toPrincipal(a.getCreatePrincipal()),

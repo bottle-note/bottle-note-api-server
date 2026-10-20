@@ -320,4 +320,112 @@ class DefaultAdminAlcoholAttributeServiceTest {
                         .AdminAlcoholAttributeMappingUpdateRequest("1")))
         .isInstanceOf(AlcoholException.class);
   }
+
+  private AdminAlcoholAttributeCreateRequest stringRequest() {
+    return new AdminAlcoholAttributeCreateRequest(
+        "taste", "맛 평가", AttributeType.KEYWORD, AttributeDatatype.STRING, null, null);
+  }
+
+  private void mapString(Long attributeId, String value) {
+    service.mapBulk(
+        new AdminAlcoholAttributeMappingBulkRequest(
+            List.of(
+                new AdminAlcoholAttributeMappingBulkRequest.Item(
+                    first.getId(), attributeId, value))));
+  }
+
+  @Test
+  @DisplayName("문자열 규칙을 생성하고 변경할 때 응답에 반영하고 기존 매핑과 충돌하면 거부한다")
+  void 문자열_규칙_변경과_충돌을_검증한다() {
+    var request = stringRequest();
+    request.setAllowedValues(List.of("맛있음", "적당함", "맛없음"));
+    request.setPattern(".*(음|함)");
+    var attribute = service.create(request);
+    assertThat(attribute.allowedValues()).containsExactly("맛있음", "적당함", "맛없음");
+    assertThat(attribute.pattern()).isEqualTo(".*(음|함)");
+    mapString(attribute.id(), "맛있음");
+    var update =
+        new AdminAlcoholAttributeUpdateRequest(
+            "맛 평가", AttributeType.KEYWORD, AttributeDatatype.STRING, null, null);
+    update.setAllowedValues(List.of("적당함"));
+    assertThatThrownBy(() -> service.update(attribute.id(), update))
+        .isInstanceOfSatisfying(
+            AlcoholException.class,
+            e ->
+                assertThat(e.getExceptionCode())
+                    .isEqualTo(
+                        app.bottlenote.alcohols.exception.AlcoholExceptionCode
+                            .ALCOHOL_ATTRIBUTE_RULE_IN_USE));
+    assertThat(attributes.findById(attribute.id()).orElseThrow().getAllowedValues())
+        .containsExactly("맛있음", "적당함", "맛없음");
+    update.setAllowedValues(List.of("맛있음"));
+    service.update(attribute.id(), update);
+    assertThat(attributes.findById(attribute.id()).orElseThrow().getAllowedValues())
+        .containsExactly("맛있음");
+  }
+
+  @Test
+  @DisplayName("단건·벌크 갱신에서 규칙을 생략하면 유지하고 null을 전달하면 해제한다")
+  void 생략과_null_규칙을_구분한다() {
+    var request = stringRequest();
+    request.setAllowedValues(List.of("맛있음"));
+    request.setPattern(".*음");
+    var attribute = service.create(request);
+    var update =
+        new AdminAlcoholAttributeUpdateRequest(
+            "맛 평가", AttributeType.KEYWORD, AttributeDatatype.STRING, null, null);
+    service.update(attribute.id(), update);
+    var preserved = service.create(stringRequest());
+    assertThat(preserved.allowedValues()).containsExactly("맛있음");
+    assertThat(preserved.pattern()).isEqualTo(".*음");
+    var clear = stringRequest();
+    clear.setAllowedValues(null);
+    service.create(clear);
+    assertThat(attributes.findById(attribute.id()).orElseThrow().getAllowedValues()).isNull();
+    assertThat(attributes.findById(attribute.id()).orElseThrow().getPattern()).isEqualTo(".*음");
+    update.setPattern(null);
+    service.update(attribute.id(), update);
+    mapString(attribute.id(), "기타");
+  }
+
+  @Test
+  @DisplayName("정규식만 강화할 때 기존 매핑과 충돌하면 단건·벌크 모두 거부한다")
+  void 기존_값과_충돌하는_정규식을_거부한다() {
+    var attribute = service.create(stringRequest());
+    mapString(attribute.id(), "맛있음");
+    var update =
+        new AdminAlcoholAttributeUpdateRequest(
+            "맛 평가", AttributeType.KEYWORD, AttributeDatatype.STRING, null, null);
+    update.setPattern("[A-Z]+");
+    assertThatThrownBy(() -> service.update(attribute.id(), update))
+        .isInstanceOf(AlcoholException.class);
+    var request = stringRequest();
+    request.setPattern("[A-Z]+");
+    assertThatThrownBy(() -> service.create(request)).isInstanceOf(AlcoholException.class);
+    assertThat(attributes.findById(attribute.id()).orElseThrow().getPattern()).isNull();
+  }
+
+  @Test
+  @DisplayName("선택값 밖의 매핑을 생성하거나 수정할 때 기존 데이터를 유지한다")
+  void 매핑_입력_규칙을_검증한다() {
+    var request = stringRequest();
+    request.setAllowedValues(List.of("맛있음", "적당함"));
+    var attribute = service.create(request);
+    assertThatThrownBy(() -> mapString(attribute.id(), "맛없음")).isInstanceOf(AlcoholException.class);
+    assertThat(mappings.findAll()).isEmpty();
+    mapString(attribute.id(), "맛있음");
+    var mapping = mappings.findAll().getFirst();
+    assertThatThrownBy(
+            () ->
+                service.updateMapping(
+                    mapping.getId(), new AdminAlcoholAttributeMappingUpdateRequest("기타")))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(mapping.getAttributeValue()).isEqualTo("맛있음");
+    assertThat(
+            service
+                .updateMapping(
+                    mapping.getId(), new AdminAlcoholAttributeMappingUpdateRequest("적당함"))
+                .value())
+        .isEqualTo("적당함");
+  }
 }

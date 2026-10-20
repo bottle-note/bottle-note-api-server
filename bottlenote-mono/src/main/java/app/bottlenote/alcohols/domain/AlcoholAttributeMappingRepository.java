@@ -18,6 +18,8 @@ public interface AlcoholAttributeMappingRepository {
 
   boolean existsByAttributeId(Long attributeId);
 
+  List<String> findValuesByAttributeId(Long attributeId);
+
   List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids);
 
   OffsetPage<AlcoholAttributeMapping> search(AdminAlcoholAttributeMappingSearchRequest request);

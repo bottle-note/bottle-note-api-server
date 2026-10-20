@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.constant.AttributeDatatype;
 import app.bottlenote.alcohols.constant.AttributeType;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.*;
+import java.util.List;
 
 public final class AdminAlcoholAttributeCreateRequest {
   @JsonProperty
@@ -35,6 +36,54 @@ public final class AdminAlcoholAttributeCreateRequest {
   @Positive(message = "ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE")
   @JsonPropertyDescription("소속 그룹 ID. 생략하면 기존 소속 유지, null이면 소속 해제")
   private Long groupId;
+
+  @JsonPropertyDescription(
+      "STRING 선택값 목록. 최대 100개, 값당 255자. 생략은 기존 규칙 유지, null은 제한 해제. 빈 목록은 허용하지 않음")
+  @Size(min = 1, max = 100, message = "ALCOHOL_ATTRIBUTE_INVALID_RULE")
+  private List<
+          @NotBlank(message = "ALCOHOL_ATTRIBUTE_INVALID_RULE")
+          @Size(max = 255, message = "ALCOHOL_ATTRIBUTE_INVALID_RULE") String>
+      allowedValues;
+
+  @JsonPropertyDescription(
+      "STRING 전체 값에 적용하는 Java 정규식. 최대 500자. 생략은 기존 규칙 유지, null은 제한 해제. allowedValues와 함께 설정하면 모두 만족해야 함")
+  @Size(max = 500, message = "ALCOHOL_ATTRIBUTE_INVALID_RULE")
+  private String pattern;
+
+  private boolean allowedValuesPresent;
+  private boolean patternPresent;
+
+  @JsonGetter("allowedValues")
+  public List<String> allowedValues() {
+    return allowedValues;
+  }
+
+  @JsonSetter("allowedValues")
+  public void setAllowedValues(List<String> allowedValues) {
+    this.allowedValues = allowedValues;
+    this.allowedValuesPresent = true;
+  }
+
+  @JsonGetter("pattern")
+  public String pattern() {
+    return pattern;
+  }
+
+  @JsonSetter("pattern")
+  public void setPattern(String pattern) {
+    this.pattern = pattern;
+    this.patternPresent = true;
+  }
+
+  @JsonIgnore
+  public boolean allowedValuesPresent() {
+    return allowedValuesPresent;
+  }
+
+  @JsonIgnore
+  public boolean patternPresent() {
+    return patternPresent;
+  }
 
   private boolean groupIdPresent;
 

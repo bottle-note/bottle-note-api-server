@@ -8,7 +8,10 @@ import org.springframework.stereotype.Component
 class AlcoholAttributeSchemaCustomizer : OpenApiCustomizer {
 	override fun customise(openApi: OpenAPI) {
 		listOf("AdminAlcoholAttributeCreateRequest", "AdminAlcoholAttributeUpdateRequest", "AdminAlcoholAttributeItem").forEach { name ->
-			openApi.components?.schemas?.get(name)?.properties?.get("groupId")?.types = setOf("integer", "null")
+			val properties = openApi.components?.schemas?.get(name)?.properties
+			properties?.get("groupId")?.types = setOf("integer", "null")
+			properties?.get("allowedValues")?.types = setOf("array", "null")
+			properties?.get("pattern")?.types = setOf("string", "null")
 		}
 	}
 }

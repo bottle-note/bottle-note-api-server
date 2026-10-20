@@ -171,4 +171,20 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 		}
 		return parameters.first { it.path("name").asText() == name }
 	}
+
+	@Test
+	@DisplayName("문자열 규칙을 생성·수정·조회 스키마에 선택 가능한 nullable 필드로 노출한다")
+	fun stringRulesHaveNullableContracts() {
+		val spec = fetchSpec()
+		for (name in listOf("AdminAlcoholAttributeCreateRequest", "AdminAlcoholAttributeUpdateRequest", "AdminAlcoholAttributeItem")) {
+			val schema = spec.at("/components/schemas/$name")
+			assertThat(propertyNamesOf(schema)).contains("allowedValues", "pattern")
+			assertThat(schema.path("required").map { it.asText() }).doesNotContain("allowedValues", "pattern")
+			assertThat(schema.at("/properties/allowedValues/type").map { it.asText() }).containsExactlyInAnyOrder("array", "null")
+			assertThat(schema.at("/properties/pattern/type").map { it.asText() }).containsExactlyInAnyOrder("string", "null")
+		}
+		val create = spec.at("/components/schemas/AdminAlcoholAttributeCreateRequest")
+		assertThat(create.at("/properties/allowedValues/maxItems").asInt()).isEqualTo(100)
+		assertThat(create.at("/properties/pattern/maxLength").asInt()).isEqualTo(500)
+	}
 }
