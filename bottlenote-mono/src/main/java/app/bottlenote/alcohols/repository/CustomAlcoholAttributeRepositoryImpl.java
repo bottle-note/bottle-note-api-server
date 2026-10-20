@@ -10,7 +10,7 @@ import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
 import app.bottlenote.alcohols.domain.QAlcoholAttribute;
 import app.bottlenote.alcohols.domain.QAlcoholAttributeMapping;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCondition;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
@@ -136,7 +136,8 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
     return new OffsetPage<>(content, total == null ? 0 : total);
   }
 
-  private BooleanExpression conditionMatch(AdminAlcoholAttributeCondition condition, int index) {
+  private BooleanExpression conditionMatch(
+      AdminAlcoholAttributeConditionRequest condition, int index) {
     var definition = new QAlcoholAttribute("conditionAttribute" + index);
     var mapping = new QAlcoholAttributeMapping("conditionMapping" + index);
     BooleanExpression value = null;

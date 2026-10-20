@@ -19,7 +19,7 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 		val request = spec.at("/components/schemas/AdminAlcoholCompoundSearchRequest")
 		assertThat(request.at("/properties/conditions/maxItems").asInt()).isEqualTo(20)
 		assertThat(request.at("/properties/match/enum").map { it.asText() }).containsExactly("AND", "OR")
-		val condition = spec.at("/components/schemas/AdminAlcoholAttributeCondition")
+		val condition = spec.at("/components/schemas/AdminAlcoholAttributeConditionRequest")
 		assertThat(condition.path("required").map { it.asText() }).contains("key")
 		assertThat(condition.at("/properties/operator/enum").map { it.asText() }).containsExactlyInAnyOrder("EQ", "NE", "GT", "GTE", "LT", "LTE", "CONTAINS", "EXISTS", "NOT_EXISTS")
 	}

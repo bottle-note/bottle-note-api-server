@@ -9,15 +9,12 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeMappingUpdateReq
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
-import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeBulkResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeEnumsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeMappingBulkResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeMappingItem;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeSummaryItem;
-import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.global.dto.response.AdminResultResponse;
@@ -28,10 +25,6 @@ public interface AdminAlcoholAttributeService {
   Page<AdminAlcoholAttributeItem> findAll(AdminAlcoholAttributeSearchRequest request);
 
   List<AdminAlcoholAttributeSummaryItem> summarize(AdminAlcoholAttributeSummaryRequest request);
-
-  Page<AdminAttributedAlcoholItem> searchAlcohols(AdminAttributedAlcoholSearchRequest request);
-
-  Page<AdminAttributedAlcoholItem> searchAlcohols(AdminAlcoholCompoundSearchRequest request);
 
   AdminAlcoholAttributeItem create(AdminAlcoholAttributeCreateRequest request);
 

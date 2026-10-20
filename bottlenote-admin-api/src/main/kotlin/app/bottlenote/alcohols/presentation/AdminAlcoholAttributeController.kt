@@ -12,6 +12,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest
 import app.bottlenote.alcohols.presentation.docs.AdminAlcoholAttributeApiDocs
+import app.bottlenote.alcohols.service.AdminAlcoholAttributeSearchService
 import app.bottlenote.alcohols.service.AdminAlcoholAttributeService
 import app.bottlenote.global.data.response.GlobalResponse
 import jakarta.validation.Valid
@@ -31,7 +32,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/alcohols/attributes")
 @AdminAlcoholAttributeApiDocs.ApiTag
 class AdminAlcoholAttributeController(
-	private val adminAlcoholAttributeService: AdminAlcoholAttributeService
+	private val adminAlcoholAttributeService: AdminAlcoholAttributeService,
+	private val adminAlcoholAttributeSearchService: AdminAlcoholAttributeSearchService
 ) {
 	@AdminAlcoholAttributeApiDocs.FindAttributes
 	@GetMapping
@@ -49,13 +51,13 @@ class AdminAlcoholAttributeController(
 	@GetMapping("/alcohols")
 	fun findAttributedAlcohols(
 		@ParameterObject @ModelAttribute @Valid request: AdminAttributedAlcoholSearchRequest
-	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.searchAlcohols(request)))
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeSearchService.searchAlcohols(request)))
 
 	@AdminAlcoholAttributeApiDocs.SearchAttributedAlcohols
 	@PostMapping("/alcohols/search")
 	fun searchAttributedAlcohols(
 		@RequestBody @Valid request: AdminAlcoholCompoundSearchRequest
-	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeService.searchAlcohols(request)))
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeSearchService.searchAlcohols(request)))
 
 	@AdminAlcoholAttributeApiDocs.CreateAttributes
 	@PostMapping
