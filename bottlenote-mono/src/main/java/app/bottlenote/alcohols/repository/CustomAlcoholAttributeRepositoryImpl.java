@@ -14,7 +14,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCountItem;
 import app.bottlenote.global.pagination.OffsetPage;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -118,7 +118,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
   }
 
   @Override
-  public List<AlcoholAttributeFacetCount> findFacets(
+  public List<AlcoholAttributeFacetCountItem> findFacets(
       AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
     var mapping = new QAlcoholAttributeMapping("facetMapping");
     var where = compoundWhere(request, attributeIds);
@@ -147,7 +147,7 @@ public class CustomAlcoholAttributeRepositoryImpl implements CustomAlcoholAttrib
         .stream()
         .map(
             row ->
-                new AlcoholAttributeFacetCount(
+                new AlcoholAttributeFacetCountItem(
                     row.get(mapping.attributeId), row.get(mapping.attributeValue), row.get(count)))
         .toList();
   }

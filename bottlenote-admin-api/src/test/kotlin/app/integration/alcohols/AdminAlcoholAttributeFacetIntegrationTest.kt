@@ -1,7 +1,7 @@
 package app.integration.alcohols
 
 import app.IntegrationTestSupport
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeFacets
+import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeFacetsResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeItem
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import org.assertj.core.api.Assertions.assertThat
@@ -33,10 +33,10 @@ class AdminAlcoholAttributeFacetIntegrationTest : IntegrationTestSupport() {
 		mapping(second.id, score, "10")
 		mapping(third.id, score, "20")
 		val conditions = listOf(mapOf("key" to "price", "operator" to "EQ", "value" to "100"))
-		fun facets(extra: Map<String, Any> = emptyMap()): AdminAlcoholAttributeFacets {
+		fun facets(extra: Map<String, Any> = emptyMap()): AdminAlcoholAttributeFacetsResponse {
 			val response = postAs(token, "$base/alcohols/facets", mapOf("conditions" to conditions, "linkedOnly" to true) + extra)
 			assertThat(response).hasStatusOk()
-			return extractData(response, AdminAlcoholAttributeFacets::class.java)
+			return extractData(response, AdminAlcoholAttributeFacetsResponse::class.java)
 		}
 		val rows = facets().items()
 		assertThat(rows.single { it.attribute().id() == score && it.value() == "10" }.alcoholCount()).isEqualTo(2)

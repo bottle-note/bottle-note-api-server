@@ -15,9 +15,9 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeFacets;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeFacetsResponse;
 import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCountItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.pagination.OffsetPage;
 import java.util.Comparator;
@@ -82,22 +82,22 @@ public class DefaultAdminAlcoholAttributeSearchService
 
   @Override
   @Transactional(readOnly = true)
-  public AdminAlcoholAttributeFacets facets(AdminAlcoholCompoundSearchRequest request) {
+  public AdminAlcoholAttributeFacetsResponse facets(AdminAlcoholCompoundSearchRequest request) {
     var search = normalize(request);
     var rows = attributeRepository.findFacets(search.request(), search.ids());
     var definitions =
         attributeRepository
             .findAllByIdIn(
-                rows.stream().map(AlcoholAttributeFacetCount::attributeId).distinct().toList())
+                rows.stream().map(AlcoholAttributeFacetCountItem::attributeId).distinct().toList())
             .stream()
             .collect(
                 Collectors.toMap(AlcoholAttribute::getId, AlcoholAttributeResponseMapper::toItem));
-    return new AdminAlcoholAttributeFacets(
+    return new AdminAlcoholAttributeFacetsResponse(
         rows.stream()
             .limit(request.size())
             .map(
                 row ->
-                    new AdminAlcoholAttributeFacets.AdminAlcoholAttributeFacetItem(
+                    new AdminAlcoholAttributeFacetsResponse.AdminAlcoholAttributeFacetItem(
                         definitions.get(row.attributeId()), row.value(), row.alcoholCount()))
             .toList(),
         rows.size() > request.size());

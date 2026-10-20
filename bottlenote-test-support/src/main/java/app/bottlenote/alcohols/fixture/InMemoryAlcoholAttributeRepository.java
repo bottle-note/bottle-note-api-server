@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCountItem;
 import java.math.BigDecimal;
 import app.bottlenote.alcohols.constant.AttributeMatch;
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
@@ -193,18 +193,18 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
   }
 
   @Override
-  public List<AlcoholAttributeFacetCount> findFacets(AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
+  public List<AlcoholAttributeFacetCountItem> findFacets(AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds) {
     var base = new AdminAlcoholCompoundSearchRequest(request.keyword(), request.match(), List.of(), request.type(), request.linkedOnly(), 0, 100, request.groupIds());
     var universe = allSearchIds(base, attributeIds);
     var matched = allSearchIds(request, attributeIds);
     record Key(Long id, String value) {}
     return mappings.findAllByAlcoholIdIn(universe).stream().filter(m -> rows.containsKey(m.getAttributeId()))
         .collect(java.util.stream.Collectors.groupingBy(m -> new Key(m.getAttributeId(), m.getAttributeValue())))
-        .entrySet().stream().map(e -> new AlcoholAttributeFacetCount(e.getKey().id(), e.getKey().value(),
+        .entrySet().stream().map(e -> new AlcoholAttributeFacetCountItem(e.getKey().id(), e.getKey().value(),
             e.getValue().stream().map(AlcoholAttributeMapping::getAlcoholId).filter(matched::contains).distinct().count()))
-        .sorted(Comparator.comparingLong(AlcoholAttributeFacetCount::alcoholCount).reversed()
-            .thenComparing(AlcoholAttributeFacetCount::attributeId)
-            .thenComparing(AlcoholAttributeFacetCount::value))
+        .sorted(Comparator.comparingLong(AlcoholAttributeFacetCountItem::alcoholCount).reversed()
+            .thenComparing(AlcoholAttributeFacetCountItem::attributeId)
+            .thenComparing(AlcoholAttributeFacetCountItem::value))
         .skip((long) request.page() * request.size()).limit(request.size() + 1L).toList();
   }
 

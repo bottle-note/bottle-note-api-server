@@ -4,12 +4,12 @@ import app.bottlenote.alcohols.domain.AlcoholAttribute;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCountItem;
 import app.bottlenote.global.pagination.OffsetPage;
 import java.util.List;
 
 public interface CustomAlcoholAttributeRepository {
-  List<AlcoholAttributeFacetCount> findFacets(
+  List<AlcoholAttributeFacetCountItem> findFacets(
       AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds);
 
   OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request);
