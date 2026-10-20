@@ -4,12 +4,14 @@ import app.IntegrationTestSupport
 import jakarta.persistence.EntityManagerFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.SessionFactory
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
 
 @EnabledIfEnvironmentVariable(named = "ATTRIBUTE_SEARCH_BENCHMARK", matches = "true")
+@Tag("admin_integration")
 class AdminAlcoholAttributeSearchPerformanceTest : IntegrationTestSupport() {
 	@Autowired private lateinit var jdbc: JdbcTemplate
 
