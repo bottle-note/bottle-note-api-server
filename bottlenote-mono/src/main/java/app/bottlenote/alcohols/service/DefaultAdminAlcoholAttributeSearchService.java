@@ -15,7 +15,9 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeFacets;
 import app.bottlenote.alcohols.dto.response.AdminAttributedAlcoholItem;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.pagination.OffsetPage;
 import java.util.Comparator;
@@ -71,6 +73,40 @@ public class DefaultAdminAlcoholAttributeSearchService
   @Transactional(readOnly = true)
   public Page<AdminAttributedAlcoholItem> searchAlcohols(
       AdminAlcoholCompoundSearchRequest request) {
+    var search = normalize(request);
+    return toAlcoholPage(
+        attributeRepository.findAlcoholIds(search.request(), search.ids()),
+        request.page(),
+        request.size());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public AdminAlcoholAttributeFacets facets(AdminAlcoholCompoundSearchRequest request) {
+    var search = normalize(request);
+    var rows = attributeRepository.findFacets(search.request(), search.ids());
+    var definitions =
+        attributeRepository
+            .findAllByIdIn(
+                rows.stream().map(AlcoholAttributeFacetCount::attributeId).distinct().toList())
+            .stream()
+            .collect(
+                Collectors.toMap(AlcoholAttribute::getId, AlcoholAttributeResponseMapper::toItem));
+    return new AdminAlcoholAttributeFacets(
+        rows.stream()
+            .limit(request.size())
+            .map(
+                row ->
+                    new AdminAlcoholAttributeFacets.AdminAlcoholAttributeFacetItem(
+                        definitions.get(row.attributeId()), row.value(), row.alcoholCount()))
+            .toList(),
+        rows.size() > request.size());
+  }
+
+  private record NormalizedSearch(
+      AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> ids) {}
+
+  private NormalizedSearch normalize(AdminAlcoholCompoundSearchRequest request) {
     if (request.conditions().size() > 20)
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
     for (var condition : request.conditions()) {
@@ -123,15 +159,11 @@ public class DefaultAdminAlcoholAttributeSearchService
             request.page(),
             request.size(),
             request.groupIds());
-    return toAlcoholPage(
-        attributeRepository.findAlcoholIds(
-            normalized,
-            definitions.entrySet().stream()
-                .collect(
-                    Collectors.toMap(
-                        java.util.Map.Entry::getKey, entry -> entry.getValue().getId()))),
-        request.page(),
-        request.size());
+    return new NormalizedSearch(
+        normalized,
+        definitions.entrySet().stream()
+            .collect(
+                Collectors.toMap(java.util.Map.Entry::getKey, entry -> entry.getValue().getId())));
   }
 
   private Page<AdminAttributedAlcoholItem> toAlcoholPage(

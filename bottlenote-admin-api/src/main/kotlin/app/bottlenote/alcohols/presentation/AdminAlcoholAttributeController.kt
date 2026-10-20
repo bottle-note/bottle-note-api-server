@@ -59,6 +59,10 @@ class AdminAlcoholAttributeController(
 		@RequestBody @Valid request: AdminAlcoholCompoundSearchRequest
 	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(GlobalResponse.fromPage(adminAlcoholAttributeSearchService.searchAlcohols(request)))
 
+	@AdminAlcoholAttributeApiDocs.AttributeFacets
+	@PostMapping("/alcohols/facets")
+	fun attributeFacets(@RequestBody @Valid request: AdminAlcoholCompoundSearchRequest): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholAttributeSearchService.facets(request))
+
 	@AdminAlcoholAttributeApiDocs.CreateAttributes
 	@PostMapping
 	fun createAttributes(
