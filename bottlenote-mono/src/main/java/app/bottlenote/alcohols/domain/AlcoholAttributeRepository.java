@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.domain;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCount;
+import app.bottlenote.alcohols.dto.response.AlcoholAttributeFacetCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeyCountItem;
 import app.bottlenote.alcohols.dto.response.AlcoholAttributeKeywordCountItem;
 import app.bottlenote.common.annotation.DomainRepository;
@@ -32,7 +32,7 @@ public interface AlcoholAttributeRepository {
 
   boolean existsByDisplayNameAndIdNot(String name, Long id);
 
-  List<AlcoholAttributeFacetCount> findFacets(
+  List<AlcoholAttributeFacetCountItem> findFacets(
       AdminAlcoholCompoundSearchRequest request, java.util.Map<String, Long> attributeIds);
 
   OffsetPage<AlcoholAttribute> search(AdminAlcoholAttributeSearchRequest request);
