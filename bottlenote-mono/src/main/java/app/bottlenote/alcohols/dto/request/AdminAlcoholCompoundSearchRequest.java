@@ -16,7 +16,7 @@ public record AdminAlcoholCompoundSearchRequest(
     @Size(max = 20, message = "ALCOHOL_ATTRIBUTE_BATCH_SIZE_INVALID")
         List<
                 @NotNull(message = "ALCOHOL_ATTRIBUTE_INVALID_VALUE") @Valid
-                AdminAlcoholAttributeCondition>
+                AdminAlcoholAttributeConditionRequest>
             conditions,
     AttributeType type,
     Boolean linkedOnly,

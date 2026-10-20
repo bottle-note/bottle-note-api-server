@@ -34,6 +34,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
   InMemoryAlcoholAttributeMappingRepository mappings;
   InMemoryAlcoholAttributeRepository attributes;
   DefaultAdminAlcoholAttributeService service;
+  DefaultAdminAlcoholAttributeSearchService searchService;
   Alcohol first;
   Alcohol second;
 
@@ -42,7 +43,8 @@ class DefaultAdminAlcoholAttributeServiceTest {
     alcohols = new InMemoryAlcoholQueryRepository();
     mappings = new InMemoryAlcoholAttributeMappingRepository(alcohols);
     attributes = new InMemoryAlcoholAttributeRepository(mappings, alcohols);
-    service = new DefaultAdminAlcoholAttributeService(attributes, mappings, alcohols);
+    service = new DefaultAdminAlcoholAttributeService(attributes, mappings);
+    searchService = new DefaultAdminAlcoholAttributeSearchService(attributes, mappings, alcohols);
     first = alcohols.save(Alcohol.builder().korName("가나다").engName("Alpha").build());
     second = alcohols.save(Alcohol.builder().korName("라마바").engName("Beta").build());
   }
@@ -204,7 +206,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
     map(first.getId(), a.id());
     map(second.getId(), a.id());
     var page =
-        service.searchAlcohols(
+        searchService.searchAlcohols(
             new AdminAttributedAlcoholSearchRequest(null, null, "one", null, null, null, 0, 1));
     assertThat(page.getTotalElements()).isEqualTo(2);
     assertThat(page.getContent())
@@ -227,7 +229,7 @@ class DefaultAdminAlcoholAttributeServiceTest {
     assertThat(result.value()).isEqualTo("65000");
     assertThat(mappings.findAll().get(1).getAttributeValue()).isEqualTo("10000");
     var page =
-        service.searchAlcohols(
+        searchService.searchAlcohols(
             new AdminAttributedAlcoholSearchRequest(
                 null, null, "price", "60000", AttributeOperator.GTE, null, 0, 20));
     assertThat(page.getContent())

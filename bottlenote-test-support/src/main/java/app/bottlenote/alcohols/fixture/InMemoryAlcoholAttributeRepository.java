@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import app.bottlenote.alcohols.constant.AttributeMatch;
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCondition;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest;
 import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.domain.Alcohol;
@@ -178,7 +178,7 @@ public class InMemoryAlcoholAttributeRepository implements AlcoholAttributeRepos
     return new OffsetPage<>(matched.stream().skip((long) request.page() * request.size()).limit(request.size()).toList(), matched.size());
   }
 
-  private boolean conditionMatches(List<AlcoholAttributeMapping> values, AdminAlcoholAttributeCondition condition) {
+  private boolean conditionMatches(List<AlcoholAttributeMapping> values, AdminAlcoholAttributeConditionRequest condition) {
     var matching = values.stream().filter(m -> rows.get(m.getAttributeId()).getAttributeKey().equals(condition.key())).toList();
     if (condition.operator() == AttributeSearchOperator.NOT_EXISTS) return matching.isEmpty();
     if (condition.operator() == AttributeSearchOperator.EXISTS) return !matching.isEmpty();
