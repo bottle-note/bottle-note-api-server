@@ -1,8 +1,4 @@
 bottlenote:
-  pagination:
-    cursor:
-      current-key-id: v1
-      current-secret: test-candidate-cursor-signing-key
   statistics:
     exclusion:
       device-types: [봇, 도구]

@@ -1,12 +1,16 @@
 package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.alcohols.constant.*;
-import app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest.Source;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.Source;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record AlcoholCandidateResponse(
-    CandidateGroup group, List<CandidateItem> items, long totalCount, CandidateFacets facets) {
+public record AdminAlcoholCandidateResponse(
+    CandidateGroup group,
+    List<CandidateAttributeDefinition> attributeDefinitions,
+    List<CandidateItem> items,
+    long totalCount,
+    CandidateFacets facets) {
   public record CandidateGroup(Long id, String name) {}
 
   public record CandidateNamedItem(Long id, String korName, String engName) {}
@@ -33,7 +37,9 @@ public record AlcoholCandidateResponse(
 
   public record CandidateTag(Long id, String korName, String engName, Long parentId) {}
 
-  public record CandidateAttributeValues(
+  public record CandidateAttributeValues(Long attributeId, List<String> values) {}
+
+  public record CandidateAttributeDefinition(
       Long attributeId,
       String key,
       String displayName,
@@ -41,8 +47,7 @@ public record AlcoholCandidateResponse(
       AttributeDatatype datatype,
       String unit,
       boolean allowMultipleValues,
-      List<String> allowedValues,
-      List<String> values) {}
+      List<String> allowedValues) {}
 
   public record CandidateFacets(
       Source source,

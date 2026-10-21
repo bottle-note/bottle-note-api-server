@@ -5,6 +5,7 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATT
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ATTRIBUTE_INVALID_VALUE;
 
 import app.bottlenote.alcohols.constant.AttributeDatatype;
+import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.common.domain.BaseEntity;
@@ -207,5 +208,17 @@ public class AlcoholAttribute extends BaseEntity {
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_KEY);
     }
     return key;
+  }
+
+  public String normalizeSearchValue(AttributeSearchOperator operator, String value) {
+    if (!operator.requiresValue()) {
+      if (value != null) throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+      return null;
+    }
+    if (value == null
+        || (operator.isNumericComparison() && !datatype.isNumeric())
+        || (operator == AttributeSearchOperator.CONTAINS && datatype != AttributeDatatype.STRING))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
+    return AlcoholAttributeMapping.normalizeValue(datatype, value);
   }
 }

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /** 그룹 후보 필터. include는 AND, exclude는 하나라도 만족하면 술 전체 제외. */
-public record AlcoholCandidateRequest(
+public record AdminAlcoholCandidateRequest(
     @Size(max = 200) String keyword,
     @Size(max = 20) List<@NotNull @Valid Condition> include,
     @Size(max = 20) List<@NotNull @Valid Condition> exclude,
@@ -17,17 +17,17 @@ public record AlcoholCandidateRequest(
     @DecimalMin("0") @DecimalMax("100") BigDecimal abvTo,
     @Size(max = 20) List<@NotBlank @Size(max = 64) String> tastingGroupCodes,
     @Valid NextQuestion nextQuestion,
-    @Size(max = 4096) String cursor,
+    @Min(0) Integer page,
     @Min(1) @Max(100) Integer size) {
 
-  public AlcoholCandidateRequest {
+  public AdminAlcoholCandidateRequest {
     include = include == null ? List.of() : List.copyOf(include);
     exclude = exclude == null ? List.of() : List.copyOf(exclude);
     categoryGroups = categoryGroups == null ? List.of() : List.copyOf(categoryGroups);
     tastingGroupCodes = tastingGroupCodes == null ? List.of() : List.copyOf(tastingGroupCodes);
     size = size == null ? 25 : size;
     keyword = keyword == null || keyword.isBlank() ? null : keyword.trim();
-    cursor = cursor == null || cursor.isBlank() ? null : cursor;
+    page = page == null ? 0 : page;
   }
 
   public record Condition(

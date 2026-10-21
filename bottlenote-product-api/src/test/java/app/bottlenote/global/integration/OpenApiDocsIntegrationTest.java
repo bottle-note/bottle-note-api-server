@@ -30,6 +30,13 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
       List.of("success", "code", "data", "errors", "meta");
 
   @Test
+  @DisplayName("어드민 전용 후보 API는 프로덕트 문서에 노출하지 않는다")
+  void 어드민_후보_API는_프로덕트에_노출하지_않는다() {
+    assertThat(fetchSpec().path("paths").has("/api/v1/attribute/groups/{groupId}/candidates"))
+        .isFalse();
+  }
+
+  @Test
   @DisplayName("인증 없이 스펙 문서를 조회할 수 있다")
   void 인증_없이_스펙_문서를_조회할_수_있다() {
     assertThat(mockMvcTester.get().uri(specPath))

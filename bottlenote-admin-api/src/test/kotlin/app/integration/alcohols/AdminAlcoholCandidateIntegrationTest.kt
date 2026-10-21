@@ -47,21 +47,51 @@ class AdminAlcoholCandidateIntegrationTest : IntegrationTestSupport() {
 	}
 	private fun condition(id: Long, operator: String, value: String? = null) = mapOf("attributeId" to id, "operator" to operator, "value" to value)
 
-	@Test fun cursorPagesDoNotRepeatAndFacetsCountAllCandidates() {
+	@Test fun offsetPagesDoNotRepeatAndFacetsCountAllCandidates() {
 		val token = seed()
 		val first = query(token, mapOf("size" to 1, "nextQuestion" to mapOf("source" to "ATTRIBUTE", "attributeId" to experience)))
 		assertThat(first.at("/data/totalCount").asLong()).isEqualTo(3)
 		assertThat(first.at("/data/items").size()).isEqualTo(1)
 		assertThat(first.at("/data/facets/options").first { it["value"].asText() == "경험 있음" }["count"].asLong()).isEqualTo(3)
 		assertThat(first.at("/data/items/0/attributes").first { it["attributeId"].asLong() == experience }["values"].size()).isEqualTo(2)
-		val cursor = first.at("/meta/pagination/nextCursor").asText()
-		val next = query(token, mapOf("size" to 2, "cursor" to cursor))
-		assertThat(next.at("/data/items").map { it["alcoholId"].asLong() }).containsExactly(800002L, 800003L)
-		assertThat(next.at("/meta/pagination/hasNext").asBoolean()).isFalse()
-		assertThat(next.at("/meta/pagination/nextCursor").isNull).isTrue()
+		assertThat(first.at("/meta/page").asInt()).isZero()
+		assertThat(first.at("/meta/totalElements").asLong()).isEqualTo(3)
+		assertThat(first.at("/meta/totalPages").asInt()).isEqualTo(3)
+		assertThat(first.at("/meta/hasNext").asBoolean()).isTrue()
+		val next = query(token, mapOf("size" to 1, "page" to 1))
+		assertThat(next.at("/data/items").map { it["alcoholId"].asLong() }).containsExactly(800002L)
+		val last = query(token, mapOf("size" to 1, "page" to 2))
+		assertThat(last.at("/data/items").map { it["alcoholId"].asLong() }).containsExactly(800003L)
+		assertThat(last.at("/meta/hasNext").asBoolean()).isFalse()
 		assertThat(next.at("/data/facets").isNull).isTrue()
-		assertThat(postAs(token, endpoint, mapOf("cursor" to cursor, "include" to listOf(condition(experience, "EQ", "처음"))))).hasStatus(HttpStatus.BAD_REQUEST)
-		assertThat(postAs(token, endpoint, mapOf("cursor" to "tampered"))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(next.at("/meta/pagination").isMissingNode).isTrue()
+		val empty = query(token, mapOf("page" to 10))
+		assertThat(empty.at("/data/items").size()).isZero()
+		assertThat(empty.at("/data/totalCount").asLong()).isEqualTo(3)
+		assertThat(postAs(token, endpoint, mapOf("page" to -1))).hasStatus(HttpStatus.BAD_REQUEST)
+	}
+
+	@Test fun returnsDefinitionsOnceAndKeepsOnlyValuesOnEachCandidate() {
+		val result = query(seed())
+		val definitions = result.at("/data/attributeDefinitions")
+		assertThat(definitions.map { it["attributeId"].asLong() }).containsExactly(experience, price)
+		assertThat(definitions.first()["displayName"].asText()).isEqualTo("경험")
+		result.at("/data/items").forEach { item ->
+			item["attributes"].forEach { attribute ->
+				assertThat(attribute.fieldNames().asSequence().toList()).containsExactlyInAnyOrder("attributeId", "values")
+			}
+		}
+	}
+
+	@Test fun matchingOptionsAreNotHiddenByHundredUnmatchedValues() {
+		val token = seed(105)
+		jdbc.update("UPDATE alcohol_attribute_mappings SET attribute_value=CONCAT('option_', alcohol_id) WHERE attribute_id=? AND attribute_value='경험 있음'", experience)
+		val result = query(token, mapOf("include" to listOf(condition(price, "EQ", "1050000")), "nextQuestion" to mapOf("source" to "ATTRIBUTE", "attributeId" to experience)))
+		val options = result.at("/data/facets/options")
+		assertThat(options.size()).isEqualTo(100)
+		assertThat(options.first()["value"].asText()).isEqualTo("option_800105")
+		assertThat(options.first()["count"].asLong()).isEqualTo(1)
+		assertThat(result.at("/data/facets/hasMoreOptions").asBoolean()).isTrue()
 	}
 
 	@Test fun excludesWholeWhiskyEvenWithAnotherValueAndKeepsZeroOptions() {
@@ -116,41 +146,32 @@ class AdminAlcoholCandidateIntegrationTest : IntegrationTestSupport() {
 		assertThat(query(token, mapOf("abvFrom" to 0)).at("/data/totalCount").asLong()).isEqualTo(2)
 	}
 
-	@Test fun measuresSixHundredCandidatesAndQueryCountDoesNotGrowWithPageSize() {
-		val token = seed(600)
+	@Test fun queryCountDoesNotGrowWithPageSize() {
+		val token = seed(101)
 		val stats = emf.unwrap(SessionFactory::class.java).statistics
+		val wasEnabled = stats.isStatisticsEnabled
 		stats.isStatisticsEnabled = true
 		try {
 			val body = mapOf("include" to listOf(condition(price, "GTE", "10000")), "nextQuestion" to mapOf("source" to "ATTRIBUTE", "attributeId" to experience), "size" to 25)
-			repeat(3) { query(token, body) }
-			val timings = (1..20).map {
-				val start = System.nanoTime()
-				val result = query(token, body)
-				assertThat(result.at("/data/totalCount").asLong()).isEqualTo(600)
-				assertThat(result.at("/data/items").size()).isEqualTo(25)
-				(System.nanoTime() - start) / 1_000_000.0
-			}.sorted()
 			stats.clear()
-			query(token, body)
+			val smallResult = query(token, body)
 			val small = stats.prepareStatementCount
 			stats.clear()
-			query(token, body + ("size" to 100))
-			val large = stats.prepareStatementCount
-			assertThat(large).isEqualTo(small)
-			println("CANDIDATE_BENCHMARK candidates=600 samples=20 medianMs=${timings[10]} p95Ms=${timings[18]} sqlPerRequest=$small")
-			val mixed = body + mapOf("exclude" to listOf(condition(experience, "EQ", "처음")), "categoryGroups" to listOf("SINGLE_MALT"), "abvFrom" to 40, "abvTo" to 50, "nextQuestion" to mapOf("source" to "ABV", "ranges" to listOf(mapOf("key" to "light", "from" to 40, "to" to 43))))
-			repeat(3) { query(token, mixed) }
-			val mixedTimes = (1..20).map {
-				val start = System.nanoTime()
-				val response = query(token, mixed)
-				assertThat(response.at("/data/totalCount").asLong()).isEqualTo(598)
-				assertThat(response.at("/data/facets/options/0/count").asLong()).isEqualTo(598)
-				(System.nanoTime() - start) / 1_000_000.0
-			}.sorted()
-			println("CANDIDATE_BENCHMARK mixed=true candidates=600 samples=20 medianMs=${mixedTimes[10]} p95Ms=${mixedTimes[18]}")
+			val largeResult = query(token, body + ("size" to 100))
+			assertThat(stats.prepareStatementCount).isEqualTo(small)
+			assertThat(smallResult.at("/data/items").size()).isEqualTo(25)
+			assertThat(largeResult.at("/data/items").size()).isEqualTo(100)
+			assertThat(largeResult.at("/data/totalCount").asLong()).isEqualTo(101)
 		} finally {
-			stats.isStatisticsEnabled = false
+			stats.isStatisticsEnabled = wasEnabled
 		}
+	}
+
+	@Test fun combinesExclusionCategoryAndAbvWithWholeResultFacets() {
+		val token = seed(4)
+		val result = query(token, mapOf("include" to listOf(condition(price, "GTE", "10000")), "exclude" to listOf(condition(experience, "EQ", "처음")), "categoryGroups" to listOf("SINGLE_MALT"), "abvFrom" to 40, "abvTo" to 50, "nextQuestion" to mapOf("source" to "ABV", "ranges" to listOf(mapOf("key" to "light", "from" to 40, "to" to 43)))))
+		assertThat(result.at("/data/items").map { it["alcoholId"].asLong() }).containsExactly(800002L, 800004L)
+		assertThat(result.at("/data/facets/options/0/count").asLong()).isEqualTo(2)
 	}
 
 	@Test fun numericBoundsMustMatchTheSameMappedValue() {

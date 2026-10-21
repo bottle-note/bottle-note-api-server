@@ -10,9 +10,9 @@ import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
-import app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest.Condition;
-import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.CandidateGroup;
-import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.CandidateTag;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.Condition;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholCandidateResponse.CandidateGroup;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholCandidateResponse.CandidateTag;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -58,16 +58,17 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
   }
 
   @Override
-  public List<Alcohol> findPage(AlcoholCandidateCriteria query, Long afterId, int limit) {
+  public List<Alcohol> findPage(AlcoholCandidateCriteria query) {
     return factory
         .selectFrom(alcohol)
         .leftJoin(alcohol.region)
         .fetchJoin()
         .leftJoin(alcohol.distillery)
         .fetchJoin()
-        .where(predicate(query), afterId == null ? null : alcohol.id.gt(afterId))
+        .where(predicate(query))
         .orderBy(alcohol.id.asc())
-        .limit(limit)
+        .offset((long) query.request().page() * query.request().size())
+        .limit(query.request().size())
         .fetch();
   }
 
@@ -130,7 +131,7 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
     var next = query.request().nextQuestion();
     var where = predicate(query);
     if (next.source()
-        == app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest.Source.ATTRIBUTE) {
+        == app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.Source.ATTRIBUTE) {
       query.request().include().stream()
           .filter(
               c -> c.attributeId().equals(next.attributeId()) && c.operator().isNumericComparison())

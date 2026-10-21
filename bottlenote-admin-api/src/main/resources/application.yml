@@ -42,10 +42,6 @@ spring:
     time-zone: Asia/Seoul
 
 bottlenote:
-  pagination:
-    cursor:
-      current-key-id: v1
-      current-secret: ${PAGINATION_CURSOR_SECRET}
   statistics:
     exclusion:
       device-types: [봇, 도구]
