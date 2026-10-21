@@ -1,7 +1,7 @@
-package app.bottlenote.alcohols.dto.candidate;
+package app.bottlenote.alcohols.dto.dsl;
 
 import app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest;
 import java.util.List;
 
-public record AlcoholCandidateQuery(
+public record AlcoholCandidateCriteria(
     Long groupId, AlcoholCandidateRequest request, List<Long> tastingTagIds) {}

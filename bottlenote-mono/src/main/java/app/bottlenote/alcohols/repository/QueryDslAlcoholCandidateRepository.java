@@ -9,7 +9,7 @@ import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import app.bottlenote.alcohols.domain.*;
-import app.bottlenote.alcohols.dto.candidate.AlcoholCandidateQuery;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest.Condition;
 import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.CandidateGroup;
 import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.CandidateTag;
@@ -51,14 +51,14 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
   }
 
   @Override
-  public long count(AlcoholCandidateQuery query) {
+  public long count(AlcoholCandidateCriteria query) {
     Long count =
         factory.select(alcohol.id.count()).from(alcohol).where(predicate(query)).fetchOne();
     return count == null ? 0 : count;
   }
 
   @Override
-  public List<Alcohol> findPage(AlcoholCandidateQuery query, Long afterId, int limit) {
+  public List<Alcohol> findPage(AlcoholCandidateCriteria query, Long afterId, int limit) {
     return factory
         .selectFrom(alcohol)
         .leftJoin(alcohol.region)
@@ -126,7 +126,7 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
   }
 
   @Override
-  public List<FacetRow> findFacetRows(AlcoholCandidateQuery query) {
+  public List<FacetRow> findFacetRows(AlcoholCandidateCriteria query) {
     var next = query.request().nextQuestion();
     var where = predicate(query);
     if (next.source()
@@ -188,7 +188,7 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
                 .exists());
   }
 
-  private BooleanBuilder predicate(AlcoholCandidateQuery query) {
+  private BooleanBuilder predicate(AlcoholCandidateCriteria query) {
     var r = query.request();
     var where = new BooleanBuilder(scope(query.groupId()));
     if (r.keyword() != null)

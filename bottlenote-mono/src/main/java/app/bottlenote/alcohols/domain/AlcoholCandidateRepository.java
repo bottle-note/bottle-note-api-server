@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
-import app.bottlenote.alcohols.dto.candidate.AlcoholCandidateQuery;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.CandidateGroup;
 import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.CandidateTag;
 import java.util.List;
@@ -11,15 +11,15 @@ public interface AlcoholCandidateRepository {
 
   List<AlcoholAttribute> findAttributes(Long groupId);
 
-  long count(AlcoholCandidateQuery query);
+  long count(AlcoholCandidateCriteria query);
 
-  List<Alcohol> findPage(AlcoholCandidateQuery query, Long afterId, int limit);
+  List<Alcohol> findPage(AlcoholCandidateCriteria query, Long afterId, int limit);
 
   List<AlcoholAttributeMapping> findMappings(Long groupId, List<Long> alcoholIds);
 
   List<TagRow> findTags(List<Long> alcoholIds);
 
-  List<FacetRow> findFacetRows(AlcoholCandidateQuery query);
+  List<FacetRow> findFacetRows(AlcoholCandidateCriteria query);
 
   List<String> findAttributeOptions(Long groupId, Long attributeId, int limit);
 

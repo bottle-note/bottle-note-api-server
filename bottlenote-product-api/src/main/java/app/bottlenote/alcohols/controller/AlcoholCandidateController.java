@@ -35,7 +35,7 @@ public class AlcoholCandidateController {
       responseCode = "200",
       description = "후보 목록과 집계",
       content = @Content(schema = @Schema(implementation = AlcoholCandidateResponse.class)))
-  public ResponseEntity<GlobalResponse> candidates(
+  public ResponseEntity<GlobalResponse> getCandidates(
       @PathVariable Long groupId, @RequestBody @Valid AlcoholCandidateRequest request) {
     var result = service.findCandidates(groupId, request);
     return GlobalResponse.ok(

@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.service;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.domain.AlcoholCandidateRepository.FacetRow;
-import app.bottlenote.alcohols.dto.candidate.AlcoholCandidateQuery;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest.Source;
 import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.*;
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ final class AlcoholCandidateFacets {
   private AlcoholCandidateFacets() {}
 
   static CandidateFacets create(
-      AlcoholCandidateQuery query,
+      AlcoholCandidateCriteria query,
       long total,
       AlcoholCandidateRepository repository,
       Map<Long, AlcoholAttribute> definitions,

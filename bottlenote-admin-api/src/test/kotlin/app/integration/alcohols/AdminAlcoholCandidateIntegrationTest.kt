@@ -6,12 +6,14 @@ import jakarta.persistence.EntityManagerFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.SessionFactory
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 
 @DisplayName("속성 그룹 후보를 조회할 때 필터·청크·집계를 함께 검증한다")
+@Tag("admin_integration")
 class AdminAlcoholCandidateIntegrationTest : IntegrationTestSupport() {
 	@Autowired private lateinit var jdbc: JdbcTemplate
 

@@ -1,8 +1,10 @@
 package app.integration.openapi
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("admin_integration")
 class AlcoholCandidateOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 	@Test fun documentsCandidateBodyPaginationAndConcreteResponse() {
 		val spec = fetchSpec()

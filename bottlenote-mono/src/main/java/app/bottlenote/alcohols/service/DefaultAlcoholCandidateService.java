@@ -4,15 +4,13 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.*;
 
 import app.bottlenote.alcohols.constant.*;
 import app.bottlenote.alcohols.domain.*;
-import app.bottlenote.alcohols.dto.candidate.AlcoholCandidateQuery;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholCandidateRequest.*;
 import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholCandidateResponse.*;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.pagination.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
@@ -27,7 +25,7 @@ public class DefaultAlcoholCandidateService implements AlcoholCandidateService {
   private final AlcoholCandidateRepository repository;
   private final TastingTagGroupRepository tastingGroupRepository;
   private final HmacCursorCodec cursorCodec;
-  private final ObjectMapper mapper;
+  private final AlcoholCandidateCursorContext cursorContext;
 
   @Override
   @Transactional(readOnly = true)
@@ -50,8 +48,8 @@ public class DefaultAlcoholCandidateService implements AlcoholCandidateService {
             .map(TastingTagGroupTag::getTastingTagId)
             .distinct()
             .toList();
-    var query = new AlcoholCandidateQuery(groupId, normalized, tags);
-    String context = context(groupId, normalized);
+    var query = new AlcoholCandidateCriteria(groupId, normalized, tags);
+    String context = cursorContext.context(groupId, normalized);
     Long afterId =
         normalized.cursor() == null
             ? null
@@ -182,34 +180,6 @@ public class DefaultAlcoholCandidateService implements AlcoholCandidateService {
     if (attribute == null) throw new AlcoholException(ALCOHOL_ATTRIBUTE_NOT_FOUND);
     return attribute;
   }
-
-  private String context(Long groupId, AlcoholCandidateRequest r) {
-    try {
-      return "alcohol.candidates:"
-          + mapper.writeValueAsString(
-              new FilterContext(
-                  groupId,
-                  r.keyword(),
-                  r.include(),
-                  r.exclude(),
-                  r.categoryGroups(),
-                  r.abvFrom(),
-                  r.abvTo(),
-                  r.tastingGroupCodes()));
-    } catch (JsonProcessingException e) {
-      throw new IllegalStateException("Cannot serialize candidate filter context", e);
-    }
-  }
-
-  private record FilterContext(
-      Long groupId,
-      String keyword,
-      List<Condition> include,
-      List<Condition> exclude,
-      List<AlcoholCategoryGroup> categoryGroups,
-      BigDecimal abvFrom,
-      BigDecimal abvTo,
-      List<String> tastingGroupCodes) {}
 
   private static AlcoholException invalid() {
     return new AlcoholException(ALCOHOL_ATTRIBUTE_INVALID_VALUE);
