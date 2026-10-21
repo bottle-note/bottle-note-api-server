@@ -6,6 +6,10 @@ import app.bottlenote.alcohols.constant.AttributeDatatype;
 import app.bottlenote.alcohols.constant.AttributeOperator;
 import app.bottlenote.alcohols.constant.AttributeType;
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.AlcoholAttributeMapping;
+import app.bottlenote.alcohols.domain.AlcoholCandidateRepository;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBatchDeleteRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeBulkRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeCreateRequest;
@@ -15,13 +19,16 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeSummaryRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeUpdateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholCandidateResponse.CandidateGroup;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeGroupRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeMappingRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholAttributeRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
+import app.bottlenote.alcohols.fixture.InMemoryTastingTagGroupRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -47,7 +54,13 @@ class DefaultAdminAlcoholAttributeServiceTest {
     service =
         new DefaultAdminAlcoholAttributeService(
             attributes, mappings, new InMemoryAlcoholAttributeGroupRepository());
-    searchService = new DefaultAdminAlcoholAttributeSearchService(attributes, mappings, alcohols);
+    searchService =
+        new DefaultAdminAlcoholAttributeSearchService(
+            attributes,
+            mappings,
+            alcohols,
+            new UnusedCandidateRepository(),
+            new InMemoryTastingTagGroupRepository());
     first = alcohols.save(Alcohol.builder().korName("가나다").engName("Alpha").build());
     second = alcohols.save(Alcohol.builder().korName("라마바").engName("Beta").build());
   }
@@ -497,5 +510,52 @@ class DefaultAdminAlcoholAttributeServiceTest {
             a.displayName(), a.type(), a.datatype(), a.unit(), null));
     assertThat(attributes.findById(a.id()).orElseThrow().isAllowMultipleValues()).isTrue();
     assertThat(service.create(request("multiple", "복수 값")).allowMultipleValues()).isTrue();
+  }
+
+  /** 기존 속성 검색은 후보 전용 저장소를 호출하지 않아야 한다. */
+  private static final class UnusedCandidateRepository implements AlcoholCandidateRepository {
+    @Override
+    public Optional<CandidateGroup> findGroup(Long id) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<AlcoholAttribute> findAttributes(Long groupId) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public long count(AlcoholCandidateCriteria query) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<Alcohol> findPage(AlcoholCandidateCriteria query) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<AlcoholAttributeMapping> findMappings(Long groupId, List<Long> alcoholIds) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<TagRow> findTags(List<Long> alcoholIds) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<FacetRow> findFacetRows(AlcoholCandidateCriteria query) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<String> findAttributeOptions(Long groupId, Long attributeId, int limit) {
+      throw unexpectedCall();
+    }
+
+    private AssertionError unexpectedCall() {
+      return new AssertionError("기존 속성 검색에서 후보 저장소를 호출했습니다");
+    }
   }
 }
