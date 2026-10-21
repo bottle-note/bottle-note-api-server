@@ -480,4 +480,74 @@ class AdminAlcoholAttributeIntegrationTest : IntegrationTestSupport() {
 		assertThat(putAs(token, "$base/${attribute.id()}", payload + mapOf("allowedValues" to listOf("GOOD")))).hasStatus(HttpStatus.CONFLICT)
 		assertThat(attributes.findById(attribute.id()).orElseThrow().allowedValues).isNull()
 	}
+
+	@Test
+	@DisplayName("복수 값 정책과 DB 중복 비교 및 검색·집계·설정 변경을 함께 검증한다")
+	fun multipleValuesPolicyAndQueries() {
+		val first = alcoholTestFactory.persistAlcohol()
+		val body = mapOf("key" to "experience", "displayName" to "경험", "type" to "KEYWORD", "datatype" to "STRING", "allowMultipleValues" to true)
+		val a = extractData(postAs(token, base, body), AdminAlcoholAttributeItem::class.java)
+		assertThat(a.allowMultipleValues()).isTrue()
+		fun batch(vararg values: String) = postAs(token, "$base/mappings/batch", AdminAlcoholAttributeMappingBulkRequest(values.map { AdminAlcoholAttributeMappingBulkRequest.Item(first.id, a.id(), it) }))
+		val added = extractData(batch("beginner", "experienced", "BEGINNER"), AdminAlcoholAttributeMappingBulkResponse::class.java)
+		assertThat(added.added()).isEqualTo(2)
+		assertThat(added.skipped()).isEqualTo(1)
+		val summary = service.summarize(AdminAlcoholAttributeSummaryRequest(listOf(first.id))).single()
+		assertThat(summary.registeredCount()).isEqualTo(1)
+		assertThat(summary.mappings()).hasSize(2)
+		assertThat(batch("beginner")).hasStatusOk()
+		assertThat(putAs(token, "$base/mappings/${added.createdIds().first()}", mapOf("value" to "EXPERIENCED"))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(putAs(token, "$base/${a.id()}", body + ("allowMultipleValues" to false))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(postAs(token, "$base/batch", mapOf("items" to listOf(body + ("allowMultipleValues" to false))))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(putAs(token, "$base/${a.id()}", body - "allowMultipleValues")).hasStatusOk()
+		assertThat(service.create(AdminAlcoholAttributeCreateRequest("experience", "경험", AttributeType.KEYWORD, AttributeDatatype.STRING, null, null)).allowMultipleValues()).isTrue()
+		val conditions = listOf("beginner", "experienced").map { mapOf("key" to "experience", "operator" to "EQ", "value" to it) }
+		val search = postAs(token, "$base/alcohols/search", mapOf("match" to "AND", "conditions" to conditions))
+		assertThat(search).hasStatusOk()
+		val rows = extractData(search, Array<AdminAttributedAlcoholItem>::class.java)
+		assertThat(rows).hasSize(1)
+		assertThat(rows.single().attributes()).hasSize(2)
+		assertThat(mapper.readTree(search.response.contentAsString).at("/meta/totalElements").asInt()).isEqualTo(1)
+		val facets = postAs(token, "$base/alcohols/facets", mapOf("conditions" to conditions.take(1)))
+		assertThat(facets).hasStatusOk()
+		val facetData = extractData(facets, AdminAlcoholAttributeFacetsResponse::class.java)
+		assertThat(facetData.items().map { it.alcoholCount() }).containsExactly(1L, 1L)
+		val ne = postAs(token, "$base/alcohols/search", mapOf("conditions" to listOf(mapOf("key" to "experience", "operator" to "NE", "value" to "beginner"))))
+		assertThat(extractData(ne, Array<AdminAttributedAlcoholItem>::class.java).map { it.alcoholId() }).containsExactly(first.id)
+		assertThat(deleteAs(token, "$base/mappings/${added.createdIds().last()}")).hasStatusOk()
+		assertThat(putAs(token, "$base/${a.id()}", body + ("allowMultipleValues" to false))).hasStatusOk()
+		val skipped = extractData(batch("experienced"), AdminAlcoholAttributeMappingBulkResponse::class.java)
+		assertThat(skipped.added()).isZero()
+		assertThat(skipped.skipped()).isEqualTo(1)
+	}
+
+	@Test
+	@DisplayName("복수 값 허용 설정의 생략 기본값과 null 거절을 검증한다")
+	fun multipleValuesDefaultAndNull() {
+		val body = mapOf("key" to "experience", "displayName" to "경험", "type" to "KEYWORD", "datatype" to "STRING")
+		val a = extractData(postAs(token, base, body), AdminAlcoholAttributeItem::class.java)
+		assertThat(a.allowMultipleValues()).isFalse()
+		assertThat(putAs(token, "$base/${a.id()}", body + ("allowMultipleValues" to null))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(postAs(token, base, body + ("allowMultipleValues" to null))).hasStatus(HttpStatus.BAD_REQUEST)
+	}
+
+	@Test
+	@DisplayName("동시 복수 값 등록은 서로 다른 값은 보존하고 같은 값은 건너뛴다")
+	fun concurrentMultipleValues() {
+		val alcohol = alcoholTestFactory.persistAlcohol()
+		val request = request("multi", "복수 값").also { it.setAllowMultipleValues(true) }
+		val a = service.create(request)
+		val start = CountDownLatch(1)
+		val futures = listOf("100", "200", "0100").map { value ->
+			CompletableFuture.supplyAsync {
+				start.await()
+				service.mapBulk(AdminAlcoholAttributeMappingBulkRequest(listOf(AdminAlcoholAttributeMappingBulkRequest.Item(alcohol.id, a.id(), value))))
+			}
+		}
+		start.countDown()
+		val results = futures.map { it.get(20, TimeUnit.SECONDS) }
+		assertThat(results.sumOf { it.added() }).isEqualTo(2)
+		assertThat(results.sumOf { it.skipped() }).isEqualTo(1)
+		assertThat(mappings.findAllByAlcoholIdIn(listOf(alcohol.id)).map { it.attributeValue }).containsExactlyInAnyOrder("100", "200")
+	}
 }

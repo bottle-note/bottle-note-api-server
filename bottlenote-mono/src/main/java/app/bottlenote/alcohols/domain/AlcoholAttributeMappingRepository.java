@@ -18,6 +18,10 @@ public interface AlcoholAttributeMappingRepository {
 
   boolean existsByAttributeId(Long attributeId);
 
+  boolean hasMultipleValues(Long attributeId);
+
+  boolean existsEquivalentMapping(Long alcoholId, Long attributeId, String value, Long excludedId);
+
   List<String> findValuesByAttributeId(Long attributeId);
 
   List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids);

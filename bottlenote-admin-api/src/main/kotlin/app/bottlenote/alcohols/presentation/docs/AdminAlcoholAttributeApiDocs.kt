@@ -47,13 +47,13 @@ object AdminAlcoholAttributeApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "공통 속성 한 건을 생성하거나 갱신한다", description = "key가 같으면 기존 ID와 생성 정보를 유지하고 전체 갱신합니다. 다른 키의 displayName과 충돌하면 409입니다. groupId 생략 시 기존 소속을 유지하고 null이면 해제합니다. 새 속성의 기본값은 미분류이며 없는 그룹 ID는 404입니다. 변경 후 기존 매핑은 유지합니다. STRING은 allowedValues(1~100개, 값당 최대 255자)와 pattern(최대 500자 Java 정규식)으로 입력을 제한합니다. 두 규칙은 AND이며 정규식은 전체 값에 적용합니다. 규칙 필드 생략은 유지, null은 해제입니다. 잘못된 규칙은 400, 기존 매핑 값과 충돌하는 변경은 409입니다.")
+	@Operation(summary = "공통 속성 한 건을 생성하거나 갱신한다", description = "key가 같으면 기존 ID와 생성 정보를 유지하고 전체 갱신합니다. 다른 키의 displayName과 충돌하면 409입니다. groupId 생략 시 기존 소속을 유지하고 null이면 해제합니다. 새 속성의 기본값은 미분류이며 없는 그룹 ID는 404입니다. 변경 후 기존 매핑은 유지합니다. STRING은 allowedValues(1~100개, 값당 최대 255자)와 pattern(최대 500자 Java 정규식)으로 입력을 제한합니다. 두 규칙은 AND이며 정규식은 전체 값에 적용합니다. 규칙 필드 생략은 유지, null은 해제입니다. allowMultipleValues는 생성 시 기본 false, 갱신 시 생략하면 유지하며 null은 400입니다. 복수 값이 남으면 false 전환은 409입니다. 잘못된 규칙은 400, 기존 매핑 값과 충돌하는 변경은 409입니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeItem::class))])
 	annotation class CreateAttributes
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "공통 속성을 수정한다", description = "key는 변경하지 않습니다. 표시명·분류·자료형·단위·설명을 수정합니다. 연결된 속성의 자료형 변경은 409입니다. groupId 생략은 유지, null은 해제, 양수 ID는 그룹 이동입니다. 없는 그룹은 404입니다. 이름 충돌은 409이며 기존 매핑은 유지합니다. STRING은 allowedValues(1~100개, 값당 최대 255자)와 pattern(최대 500자 Java 정규식)으로 입력을 제한합니다. 두 규칙은 AND이며 정규식은 전체 값에 적용합니다. 규칙 필드 생략은 유지, null은 해제입니다. 잘못된 규칙은 400, 기존 매핑 값과 충돌하는 변경은 409입니다.")
+	@Operation(summary = "공통 속성을 수정한다", description = "key는 변경하지 않습니다. 표시명·분류·자료형·단위·설명을 수정합니다. 연결된 속성의 자료형 변경은 409입니다. groupId 생략은 유지, null은 해제, 양수 ID는 그룹 이동입니다. 없는 그룹은 404입니다. 이름 충돌은 409이며 기존 매핑은 유지합니다. STRING은 allowedValues(1~100개, 값당 최대 255자)와 pattern(최대 500자 Java 정규식)으로 입력을 제한합니다. 두 규칙은 AND이며 정규식은 전체 값에 적용합니다. 규칙 필드 생략은 유지, null은 해제입니다. allowMultipleValues는 생성 시 기본 false, 갱신 시 생략하면 유지하며 null은 400입니다. 복수 값이 남으면 false 전환은 409입니다. 잘못된 규칙은 400, 기존 매핑 값과 충돌하는 변경은 409입니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminResultResponse::class))])
 	annotation class UpdateAttribute
 
@@ -89,13 +89,13 @@ object AdminAlcoholAttributeApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "공통 속성을 벌크 생성하거나 갱신한다", description = "items 최대 500개. key 중복은 기존 속성을 덮어쓰고 다른 키의 이름 중복은 409입니다. groupId는 항목별로 생략 시 유지, null이면 해제하며 없는 그룹은 404입니다. 요청 내부 동일 key는 400입니다. allowedValues·pattern은 STRING 전용이며 함께 설정하면 모두 만족해야 합니다. 규칙 생략은 유지, null은 해제입니다. 잘못된 규칙은 400, 기존 매핑 값과 충돌하는 규칙 변경은 409입니다. 오류 시 전체 롤백하며 created·updated·ids를 반환합니다.")
+	@Operation(summary = "공통 속성을 벌크 생성하거나 갱신한다", description = "items 최대 500개. key 중복은 기존 속성을 덮어쓰고 다른 키의 이름 중복은 409입니다. groupId는 항목별로 생략 시 유지, null이면 해제하며 없는 그룹은 404입니다. 요청 내부 동일 key는 400입니다. allowedValues·pattern은 STRING 전용이며 함께 설정하면 모두 만족해야 합니다. 규칙 생략은 유지, null은 해제입니다. 잘못된 규칙은 400, 기존 매핑 값과 충돌하는 규칙 변경은 409입니다. allowMultipleValues는 생성 시 기본 false, 갱신 시 생략하면 유지하며 null은 400입니다. 복수 값이 남으면 false 전환은 409입니다. 오류 시 전체 롤백하며 created·updated·ids를 반환합니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeBulkResponse::class))])
 	annotation class UpsertAttributes
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "술과 속성을 벌크 연결한다", description = "items는 alcoholId·attributeId·value를 포함하며 최대 500개입니다. 기존 연결과 요청 내 중복은 건너뛰며 기존 값과 감사 정보도 유지합니다. 모든 value는 속성 자료형과 allowedValues·pattern 규칙에 맞아야 하며 값 수정은 매핑 수정 API를 사용합니다. 없거나 삭제된 술·없는 속성은 404이며 요청 전체가 롤백됩니다. 조건으로 자동 연결하지 않습니다. createdIds는 신규 매핑 ID입니다.")
+	@Operation(summary = "술과 속성을 벌크 연결한다", description = "items는 alcoholId·attributeId·value를 포함하며 최대 500개입니다. allowMultipleValues=false이면 위스키·속성 쌍, true이면 위스키·속성·값 기준으로 기존 연결과 요청 내 중복을 건너뛰며 기존 값과 감사 정보도 유지합니다. 값의 동일성은 DB collation을 따릅니다. 모든 value는 속성 자료형과 allowedValues·pattern 규칙에 맞아야 하며 값 수정은 매핑 수정 API를 사용합니다. 없거나 삭제된 술·없는 속성은 404이며 요청 전체가 롤백됩니다. 조건으로 자동 연결하지 않습니다. createdIds는 신규 매핑 ID입니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeMappingBulkResponse::class))])
 	annotation class CreateMappings
 
@@ -113,7 +113,7 @@ object AdminAlcoholAttributeApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "술별 속성 값을 수정한다", description = "매핑 ID의 value만 수정합니다. 속성 자료형 또는 allowedValues·pattern 규칙에 맞지 않는 값은 400이며 속성 정의와 다른 술의 값은 유지합니다.")
+	@Operation(summary = "술별 속성 값을 수정한다", description = "매핑 ID의 value만 수정합니다. 같은 위스키·속성의 다른 매핑 값과 중복되면 409입니다. 속성 자료형 또는 allowedValues·pattern 규칙에 맞지 않는 값은 400이며 속성 정의와 다른 술의 값은 유지합니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = AdminAlcoholAttributeMappingItem::class))])
 	annotation class UpdateMapping
 

@@ -428,4 +428,74 @@ class DefaultAdminAlcoholAttributeServiceTest {
                 .value())
         .isEqualTo("적당함");
   }
+
+  @Test
+  @DisplayName("복수 값 속성은 서로 다른 값을 연결하고 동일 값은 건너뛴다")
+  void multipleValuesAndSummary() {
+    var request = request("multiple", "복수 값");
+    request.setAllowMultipleValues(true);
+    var a = service.create(request);
+    assertThat(a.allowMultipleValues()).isTrue();
+    var result =
+        service.mapBulk(
+            new AdminAlcoholAttributeMappingBulkRequest(
+                List.of(
+                    new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id(), "100"),
+                    new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id(), "200"),
+                    new AdminAlcoholAttributeMappingBulkRequest.Item(
+                        first.getId(), a.id(), "0100"))));
+    assertThat(result.added()).isEqualTo(2);
+    assertThat(result.skipped()).isEqualTo(1);
+    var summary =
+        service
+            .summarize(new AdminAlcoholAttributeSummaryRequest(List.of(first.getId())))
+            .getFirst();
+    assertThat(summary.registeredCount()).isEqualTo(1);
+    assertThat(summary.mappings()).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("복수 값이 남아 있으면 단일 값 전환과 충돌하는 값 수정을 거부한다")
+  void rejectsMultiplicityConflict() {
+    var request = request("multiple", "복수 값");
+    request.setAllowMultipleValues(true);
+    var a = service.create(request);
+    var linked =
+        service.mapBulk(
+            new AdminAlcoholAttributeMappingBulkRequest(
+                List.of(
+                    new AdminAlcoholAttributeMappingBulkRequest.Item(first.getId(), a.id(), "100"),
+                    new AdminAlcoholAttributeMappingBulkRequest.Item(
+                        first.getId(), a.id(), "200"))));
+    var update =
+        new AdminAlcoholAttributeUpdateRequest(
+            a.displayName(), a.type(), a.datatype(), a.unit(), null);
+    update.setAllowMultipleValues(false);
+    assertThatThrownBy(() -> service.update(a.id(), update)).isInstanceOf(AlcoholException.class);
+    assertThatThrownBy(
+            () ->
+                service.updateMapping(
+                    linked.createdIds().getFirst(),
+                    new AdminAlcoholAttributeMappingUpdateRequest("200")))
+        .isInstanceOf(AlcoholException.class);
+    assertThat(attributes.findById(a.id()).orElseThrow().isAllowMultipleValues()).isTrue();
+    service.deleteMapping(linked.createdIds().getLast());
+    service.update(a.id(), update);
+    assertThat(attributes.findById(a.id()).orElseThrow().isAllowMultipleValues()).isFalse();
+  }
+
+  @Test
+  @DisplayName("허용 설정 생략은 생성 시 false이며 수정과 벌크 갱신 시 기존 설정을 유지한다")
+  void preservesOmittedMultiplicity() {
+    var request = request("multiple", "복수 값");
+    assertThat(service.create(request).allowMultipleValues()).isFalse();
+    request.setAllowMultipleValues(true);
+    var a = service.create(request);
+    service.update(
+        a.id(),
+        new AdminAlcoholAttributeUpdateRequest(
+            a.displayName(), a.type(), a.datatype(), a.unit(), null));
+    assertThat(attributes.findById(a.id()).orElseThrow().isAllowMultipleValues()).isTrue();
+    assertThat(service.create(request("multiple", "복수 값")).allowMultipleValues()).isTrue();
+  }
 }

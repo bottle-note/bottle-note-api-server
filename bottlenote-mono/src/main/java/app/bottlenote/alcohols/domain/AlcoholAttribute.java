@@ -73,6 +73,13 @@ public class AlcoholAttribute extends BaseEntity {
   @Column(name = "datatype", nullable = false, length = 10)
   private AttributeDatatype datatype;
 
+  @Column(name = "allow_multiple_values", nullable = false)
+  private boolean allowMultipleValues;
+
+  public void changeAllowMultipleValues(boolean allowMultipleValues) {
+    this.allowMultipleValues = allowMultipleValues;
+  }
+
   @Comment("속성의 의미와 관리자 입력 기준")
   @Column(name = "description", length = DESCRIPTION_MAX_LENGTH)
   private String description;
@@ -174,6 +181,7 @@ public class AlcoholAttribute extends BaseEntity {
     this.displayName = validated.displayName;
     this.attributeType = validated.attributeType;
     this.datatype = validated.datatype;
+    this.allowMultipleValues = validated.allowMultipleValues;
     this.unit = validated.unit;
     this.description = validated.description;
     this.allowedValues = validated.getAllowedValues();

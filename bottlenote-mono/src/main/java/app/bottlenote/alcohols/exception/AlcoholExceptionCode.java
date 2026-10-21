@@ -29,6 +29,9 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   ALCOHOL_ATTRIBUTE_NOT_FOUND(HttpStatus.NOT_FOUND, "위스키 속성을 찾을 수 없습니다."),
   ALCOHOL_ATTRIBUTE_DUPLICATE_KEY_IN_REQUEST(HttpStatus.BAD_REQUEST, "요청 안에 같은 속성 키가 있습니다."),
   ALCOHOL_ATTRIBUTE_DATATYPE_IN_USE(HttpStatus.CONFLICT, "연결된 속성의 자료형은 변경할 수 없습니다."),
+  ALCOHOL_ATTRIBUTE_MULTIPLE_VALUES_IN_USE(
+      HttpStatus.CONFLICT, "여러 값이 연결된 위스키가 있어 단일 값으로 변경할 수 없습니다."),
+  ALCOHOL_ATTRIBUTE_MAPPING_DUPLICATE(HttpStatus.CONFLICT, "같은 위스키에 이미 연결된 속성 값입니다."),
   ALCOHOL_ATTRIBUTE_MAPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "주류 속성 연결을 찾을 수 없습니다."),
   ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE(
       HttpStatus.BAD_REQUEST, "속성 그룹의 이름, 설명 또는 정렬 순서가 올바르지 않습니다."),
