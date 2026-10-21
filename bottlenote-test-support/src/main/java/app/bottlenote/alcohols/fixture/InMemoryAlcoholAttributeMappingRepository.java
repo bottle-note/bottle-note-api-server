@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryAlcoholAttributeMappingRepository
@@ -32,7 +33,8 @@ public class InMemoryAlcoholAttributeMappingRepository
             m ->
                 !Objects.equals(m.getId(), mapping.getId())
                     && m.getAlcoholId().equals(mapping.getAlcoholId())
-                    && m.getAttributeId().equals(mapping.getAttributeId())))
+                    && m.getAttributeId().equals(mapping.getAttributeId())
+                    && m.getAttributeValue().equals(mapping.getAttributeValue())))
       throw new IllegalStateException("duplicate mapping");
     if (mapping.getId() == null) ReflectionTestUtils.setField(mapping, "id", ++sequence);
     rows.put(mapping.getId(), mapping);
@@ -57,6 +59,29 @@ public class InMemoryAlcoholAttributeMappingRepository
   @Override
   public boolean existsByAttributeId(Long attributeId) {
     return rows.values().stream().anyMatch(m -> m.getAttributeId().equals(attributeId));
+  }
+
+  @Override
+  public boolean hasMultipleValues(Long attributeId) {
+    return rows.values().stream()
+        .filter(m -> m.getAttributeId().equals(attributeId))
+        .collect(
+            Collectors.groupingBy(
+                AlcoholAttributeMapping::getAlcoholId, Collectors.counting()))
+        .values().stream()
+        .anyMatch(count -> count > 1);
+  }
+
+  @Override
+  public boolean existsEquivalentMapping(
+      Long alcoholId, Long attributeId, String value, Long excludedId) {
+    return rows.values().stream()
+        .anyMatch(
+            m ->
+                m.getAlcoholId().equals(alcoholId)
+                    && m.getAttributeId().equals(attributeId)
+                    && m.getAttributeValue().equals(value)
+                    && !Objects.equals(m.getId(), excludedId));
   }
 
   @Override

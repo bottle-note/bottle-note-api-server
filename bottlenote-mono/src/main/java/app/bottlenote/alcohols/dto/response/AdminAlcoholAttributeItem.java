@@ -16,6 +16,7 @@ public record AdminAlcoholAttributeItem(
     String description,
     List<String> allowedValues,
     String pattern,
+    boolean allowMultipleValues,
     LocalDateTime createAt,
     LocalDateTime lastModifyAt,
     AdminAuditPrincipalItem createPrincipal,

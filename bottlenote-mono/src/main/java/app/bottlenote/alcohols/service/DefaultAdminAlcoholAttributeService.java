@@ -142,6 +142,11 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
         candidate.changeStringRules(
             item.allowedValuesPresent() ? item.allowedValues() : target.getAllowedValues(),
             item.patternPresent() ? item.pattern() : target.getPattern());
+        candidate.changeAllowMultipleValues(
+            item.allowMultipleValues() != null
+                ? item.allowMultipleValues()
+                : target.isAllowMultipleValues());
+        requireCompatibleMultiplicity(target, candidate);
         requireCompatibleRules(target, candidate);
         target.updateFrom(candidate);
         if (requestsByKey.get(candidate.getAttributeKey()).groupIdPresent())
@@ -173,6 +178,11 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     candidate.changeStringRules(
         request.allowedValuesPresent() ? request.allowedValues() : target.getAllowedValues(),
         request.patternPresent() ? request.pattern() : target.getPattern());
+    candidate.changeAllowMultipleValues(
+        request.allowMultipleValues() != null
+            ? request.allowMultipleValues()
+            : target.isAllowMultipleValues());
+    requireCompatibleMultiplicity(target, candidate);
     requireUniqueName(candidate.getDisplayName(), id);
     requireCompatibleRules(target, candidate);
     target.updateFrom(candidate);
@@ -240,8 +250,13 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     List<Long> ids = new ArrayList<>();
     int skipped = 0;
     for (var item : candidates) {
-      if (!existing.add(
-          new AlcoholAttributeMappingKey(item.getAlcoholId(), item.getAttributeId()))) {
+      boolean duplicate =
+          attributes.get(item.getAttributeId()).isAllowMultipleValues()
+              ? mappingRepository.existsEquivalentMapping(
+                  item.getAlcoholId(), item.getAttributeId(), item.getAttributeValue(), null)
+              : !existing.add(
+                  new AlcoholAttributeMappingKey(item.getAlcoholId(), item.getAttributeId()));
+      if (duplicate) {
         skipped++;
         continue;
       }
@@ -262,7 +277,8 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   }
 
   @Override
-  @Transactional
+  // 잠금 대기 전에 읽은 매핑이 있어도 중복 검사는 최신 커밋을 기준으로 한다.
+  @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
   public AdminAlcoholAttributeMappingItem updateMapping(
       Long id, AdminAlcoholAttributeMappingUpdateRequest request) {
     var mapping =
@@ -273,7 +289,12 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     var alcohols = mappingRepository.lockAlcohols(List.of(mapping.getAlcoholId()));
     if (alcohols.isEmpty() || alcohols.getFirst().isDeleted())
       throw new AlcoholException(ALCOHOL_NOT_FOUND);
-    mapping.updateValue(attribute, request.value());
+    String value = AlcoholAttributeMapping.normalizeValue(attribute.getDatatype(), request.value());
+    attribute.validateValue(value);
+    if (mappingRepository.existsEquivalentMapping(
+        mapping.getAlcoholId(), attribute.getId(), value, id))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_MAPPING_DUPLICATE);
+    mapping.updateValue(attribute, value);
     return toMappingItem(mappingRepository.save(mapping));
   }
 
@@ -319,6 +340,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
             request.datatype(),
             request.unit(),
             request.description());
+    candidate.changeAllowMultipleValues(Boolean.TRUE.equals(request.allowMultipleValues()));
     candidate.changeStringRules(request.allowedValues(), request.pattern());
     if (request.groupIdPresent()) candidate.changeGroup(request.groupId());
     return candidate;
@@ -353,6 +375,13 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     if (target.getDatatype() != candidate.getDatatype()
         && mappingRepository.existsByAttributeId(target.getId()))
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_DATATYPE_IN_USE);
+  }
+
+  private void requireCompatibleMultiplicity(AlcoholAttribute target, AlcoholAttribute candidate) {
+    if (target.isAllowMultipleValues()
+        && !candidate.isAllowMultipleValues()
+        && mappingRepository.hasMultipleValues(target.getId()))
+      throw new AlcoholException(ALCOHOL_ATTRIBUTE_MULTIPLE_VALUES_IN_USE);
   }
 
   private void requireCompatibleRules(AlcoholAttribute target, AlcoholAttribute candidate) {

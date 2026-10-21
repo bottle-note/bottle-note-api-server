@@ -12,6 +12,7 @@ class AlcoholAttributeSchemaCustomizer : OpenApiCustomizer {
 			properties?.get("groupId")?.types = setOf("integer", "null")
 			properties?.get("allowedValues")?.types = setOf("array", "null")
 			properties?.get("pattern")?.types = setOf("string", "null")
+			properties?.get("allowMultipleValues")?.types = setOf("boolean")
 		}
 	}
 }

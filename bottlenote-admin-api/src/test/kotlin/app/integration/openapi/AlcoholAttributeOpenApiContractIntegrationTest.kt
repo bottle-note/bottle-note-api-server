@@ -187,4 +187,16 @@ class AlcoholAttributeOpenApiContractIntegrationTest : OpenApiSpecTestSupport() 
 		assertThat(create.at("/properties/allowedValues/maxItems").asInt()).isEqualTo(100)
 		assertThat(create.at("/properties/pattern/maxLength").asInt()).isEqualTo(500)
 	}
+
+	@Test
+	@DisplayName("복수 값 허용 여부를 nullable이 아닌 boolean으로 문서화한다")
+	fun multipleValuesContract() {
+		val spec = fetchSpec()
+		for (name in listOf("AdminAlcoholAttributeCreateRequest", "AdminAlcoholAttributeUpdateRequest", "AdminAlcoholAttributeItem")) {
+			val schema = spec.at("/components/schemas/$name")
+			assertThat(propertyNamesOf(schema)).contains("allowMultipleValues")
+			val type = schema.at("/properties/allowMultipleValues/type")
+			assertThat(if (type.isArray) type.map { it.asText() } else listOf(type.asText())).containsExactly("boolean")
+		}
+	}
 }

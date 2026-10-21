@@ -51,6 +51,29 @@ public interface JpaAlcoholAttributeMappingRepository
       "select m.attributeValue from alcohol_attribute_mapping m where m.attributeId = :attributeId")
   List<String> findValuesByAttributeId(@Param("attributeId") Long attributeId);
 
+  @Override
+  @Query(
+      """
+      select (count(m) > 0) from alcohol_attribute_mapping m
+      where m.attributeId = :attributeId and exists (
+        select n.id from alcohol_attribute_mapping n
+        where n.alcoholId = m.alcoholId and n.attributeId = m.attributeId and n.id <> m.id)
+      """)
+  boolean hasMultipleValues(@Param("attributeId") Long attributeId);
+
+  @Override
+  @Query(
+      """
+      select (count(m) > 0) from alcohol_attribute_mapping m
+      where m.alcoholId = :alcoholId and m.attributeId = :attributeId
+        and m.attributeValue = :value and (:excludedId is null or m.id <> :excludedId)
+      """)
+  boolean existsEquivalentMapping(
+      @Param("alcoholId") Long alcoholId,
+      @Param("attributeId") Long attributeId,
+      @Param("value") String value,
+      @Param("excludedId") Long excludedId);
+
   List<AlcoholAttributeMapping> findAllByAlcoholIdIn(Collection<Long> ids);
 
   @Override

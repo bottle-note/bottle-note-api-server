@@ -50,6 +50,20 @@ public final class AdminAlcoholAttributeCreateRequest {
   @Size(max = 500, message = "ALCOHOL_ATTRIBUTE_INVALID_RULE")
   private String pattern;
 
+  @JsonPropertyDescription("위스키별 복수 값 허용 여부. 생성 시 생략하면 false, 갱신 시 생략하면 기존 설정 유지. null 불가")
+  private Boolean allowMultipleValues;
+
+  @JsonGetter("allowMultipleValues")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean allowMultipleValues() {
+    return allowMultipleValues;
+  }
+
+  @JsonSetter(value = "allowMultipleValues", nulls = Nulls.FAIL)
+  public void setAllowMultipleValues(Boolean allowMultipleValues) {
+    this.allowMultipleValues = allowMultipleValues;
+  }
+
   private boolean allowedValuesPresent;
   private boolean patternPresent;
 
