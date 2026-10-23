@@ -63,4 +63,25 @@ class AlcoholScenarioOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 		assertThat(propertyNamesOf(schemas["ScenarioContribution"])).contains("questionId", "source", "attributeId", "operator", "value")
 		assertThat(schemas["ScenarioAnswer"]["description"].asText()).contains("CHOICE", "NUMBER_RANGE", "ANY", "step")
 	}
+
+	@Test
+	@DisplayName("요청과 응답 모델을 분리해도 정의와 답변의 JSON 필드 및 타입 계약을 유지한다")
+	fun preservesDefinitionAndAnswerWireTypesAcrossSeparateModels() {
+		val spec = fetchSpec()
+		val schemas = spec.at("/components/schemas")
+		fun shape(node: com.fasterxml.jackson.databind.JsonNode): Any {
+			val resolved = referencedSchema(spec, node)
+			val result = sortedMapOf<String, Any>()
+			listOf("type", "types", "format", "enum").forEach { key -> resolved[key]?.let { result[key] = it } }
+			resolved["properties"]?.let { fields -> result["properties"] = fields.fields().asSequence().associate { it.key to shape(it.value) } }
+			resolved["items"]?.let { result["items"] = shape(it) }
+			resolved["oneOf"]?.let { result["oneOf"] = it.map { item -> shape(item) } }
+			return result
+		}
+		assertThat(shape(schemas["ScenarioDefinitionResponse"])).isEqualTo(shape(schemas["ScenarioDefinitionRequest"]))
+		assertThat(shape(schemas["ScenarioAnswerItem"])).isEqualTo(shape(schemas["ScenarioAnswer"]))
+		val version = schemas["ScenarioVersionDetail"].at("/properties/definition/\$ref").asText()
+		assertThat(version).endsWith("/ScenarioDefinitionResponse")
+		assertThat(schemas["ScenarioPreview"].at("/properties/answers/items/\$ref").asText()).endsWith("/ScenarioAnswerItem")
+	}
 }

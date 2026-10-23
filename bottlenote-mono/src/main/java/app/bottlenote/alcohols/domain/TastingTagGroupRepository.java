@@ -24,4 +24,8 @@ public interface TastingTagGroupRepository {
   TastingTagGroup save(TastingTagGroup group);
 
   void delete(TastingTagGroup group);
+
+  List<TastingTagGroup> lockTastingGroups(java.util.Collection<String> codes);
+
+  List<String> findTastingGroupCodesByTagId(Long tagId);
 }

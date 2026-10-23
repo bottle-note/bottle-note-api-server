@@ -5,8 +5,8 @@ import static app.bottlenote.alcohols.exception.ScenarioException.invalid;
 import app.bottlenote.alcohols.constant.*;
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import app.bottlenote.alcohols.domain.*;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest.*;
+import app.bottlenote.alcohols.domain.ScenarioDefinition;
+import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.math.BigDecimal;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScenarioDefinitionValidator {
   public void validate(
-      ScenarioDefinitionRequest d,
+      ScenarioDefinition d,
       Long groupId,
       Map<Long, AlcoholAttribute> attributes,
       Set<String> tastingCodes,
@@ -231,7 +231,7 @@ public class ScenarioDefinitionValidator {
   }
 
   private void validateGraph(
-      ScenarioDefinitionRequest d,
+      ScenarioDefinition d,
       Map<Long, ScenarioStageItem> stages,
       Map<Long, ScenarioQuestionItem> questions) {
     if (d.startQuestionId() == null || questions.isEmpty()) throw invalid("게시에는 시작 질문과 질문이 필요합니다.");

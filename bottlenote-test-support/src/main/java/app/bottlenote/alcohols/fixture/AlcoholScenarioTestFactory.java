@@ -2,8 +2,8 @@ package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import app.bottlenote.alcohols.domain.*;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest.*;
+import app.bottlenote.alcohols.domain.ScenarioDefinition;
+import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
 import com.fasterxml.jackson.databind.node.*;
 import java.math.BigDecimal;
 import java.util.*;
@@ -26,7 +26,7 @@ public final class AlcoholScenarioTestFactory {
   public static ScenarioTransitionItem rule(long id,long from,int priority,Operator operator,String value,Long to) {
     return new ScenarioTransitionItem(id,from,priority,new ScenarioPredicate(operator,value==null?null:TextNode.valueOf(value)),to==null?Target.END:Target.QUESTION,to);
   }
-  public static ScenarioDefinitionRequest sevenStages(Long experience,Long price) {
+  public static ScenarioDefinition sevenStages(Long experience,Long price) {
     var stages=IntStream.rangeClosed(1,7).mapToObj(i -> new ScenarioStageItem(-(long)i,i)).toList();
     var questions=List.of(
       choice(-11,-1,1,"q1",Source.ATTRIBUTE,experience,"newbie","couple","tried","expert"),
@@ -57,10 +57,10 @@ public final class AlcoholScenarioTestFactory {
       rule(-114,-51,1,Operator.ALWAYS,null,-61L),
       rule(-115,-61,1,Operator.ALWAYS,null,-71L),
       rule(-116,-71,1,Operator.ALWAYS,null,null));
-    return new ScenarioDefinitionRequest(1,-11L,stages,questions,rules);
+    return new ScenarioDefinition(1,-11L,stages,questions,rules);
   }
-  public static ScenarioDefinitionRequest oneQuestion() {
-    return new ScenarioDefinitionRequest(1,-11L,List.of(new ScenarioStageItem(-1L,1)),
+  public static ScenarioDefinition oneQuestion() {
+    return new ScenarioDefinition(1,-11L,List.of(new ScenarioStageItem(-1L,1)),
       List.of(choice(-11,-1,1,"q1",Source.CATEGORY,null,"SINGLE_MALT","BOURBON")),
       List.of(rule(-101,-11,1,Operator.ALWAYS,null,null)));
   }

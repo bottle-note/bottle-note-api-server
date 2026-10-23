@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.ScenarioTypes.AnswerKind;
 import app.bottlenote.alcohols.domain.ScenarioJson;
+import app.bottlenote.alcohols.domain.ScenarioPreviewInput;
 import app.bottlenote.alcohols.exception.ScenarioException;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,6 +22,20 @@ public record AdminScenarioPreviewRequest(
   public AdminScenarioPreviewRequest {
     page = page == null ? 0 : page;
     size = size == null ? 25 : size;
+  }
+
+  public ScenarioPreviewInput toInput() {
+    return new ScenarioPreviewInput(
+        answers.stream()
+            .map(
+                a ->
+                    new app.bottlenote.alcohols.domain.ScenarioAnswer(
+                        a.questionId(), a.kind(), a.choiceId(), a.min(), a.max()))
+            .toList(),
+        changedQuestionId,
+        viewQuestionId,
+        page,
+        size);
   }
 
   public record ScenarioAnswer(

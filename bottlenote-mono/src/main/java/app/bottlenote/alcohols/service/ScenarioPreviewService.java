@@ -5,13 +5,14 @@ import static app.bottlenote.alcohols.exception.ScenarioException.invalid;
 import app.bottlenote.alcohols.constant.*;
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.ScenarioAnswer;
+import app.bottlenote.alcohols.domain.ScenarioDefinition;
+import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
+import app.bottlenote.alcohols.domain.ScenarioPreviewInput;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.*;
-import app.bottlenote.alcohols.dto.request.AdminScenarioPreviewRequest;
-import app.bottlenote.alcohols.dto.request.AdminScenarioPreviewRequest.ScenarioAnswer;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest.*;
 import app.bottlenote.alcohols.dto.response.AdminScenarioResponse.*;
+import app.bottlenote.alcohols.dto.response.ScenarioAnswerItem;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
@@ -28,10 +29,10 @@ public class ScenarioPreviewService {
   @org.springframework.transaction.annotation.Transactional(readOnly = true)
   public ScenarioPreview preview(
       Long groupId,
-      ScenarioDefinitionRequest d,
+      ScenarioDefinition d,
       Map<Long, AlcoholAttribute> attributes,
       Set<String> codes,
-      AdminScenarioPreviewRequest r) {
+      ScenarioPreviewInput r) {
     var questions =
         d.questions().stream()
             .collect(Collectors.toMap(ScenarioQuestionItem::id, Function.identity()));
@@ -99,7 +100,7 @@ public class ScenarioPreviewService {
         List.copyOf(path),
         next,
         next == null,
-        List.copyOf(accepted),
+        accepted.stream().map(ScenarioAnswerItem::from).toList(),
         discarded,
         List.copyOf(contributions),
         viewed,

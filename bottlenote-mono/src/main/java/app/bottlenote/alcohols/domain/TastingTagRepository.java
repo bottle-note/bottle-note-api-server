@@ -29,4 +29,6 @@ public interface TastingTagRepository {
   boolean existsByKorNameAndIdNot(String korName, Long id);
 
   boolean existsByParentId(Long parentId);
+
+  void lockTastingTags(java.util.Collection<Long> ids);
 }
