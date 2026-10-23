@@ -3,9 +3,9 @@ package app.integration.alcohols
 import app.IntegrationTestSupport
 import app.bottlenote.alcohols.constant.ScenarioTypes.Target
 import app.bottlenote.alcohols.domain.*
+import app.bottlenote.alcohols.domain.ScenarioDefinition
 import app.bottlenote.alcohols.domain.ScenarioDefinition.ScenarioTransitionItem
 import app.bottlenote.alcohols.dto.request.AdminScenarioRequest.*
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest
 import app.bottlenote.alcohols.exception.ScenarioException
 import app.bottlenote.alcohols.fixture.AlcoholScenarioTestFactory
 import app.bottlenote.alcohols.service.*
@@ -68,7 +68,7 @@ class AdminAlcoholScenarioConcurrencyIntegrationTest : IntegrationTestSupport() 
 		val created = service.create(groupId, Create("게시 경합", 1))
 		val id = created.scenario().id()
 		val versionId = created.versions().first().id()
-		val saved = service.save(groupId, id, versionId, Save(0, mapper.convertValue(AlcoholScenarioTestFactory.oneQuestion(), ScenarioDefinitionRequest::class.java)))
+		val saved = service.save(groupId, id, versionId, Save(0, mapper.convertValue(AlcoholScenarioTestFactory.oneQuestion(), ScenarioDefinition::class.java)))
 		val graphRead = CompletableFuture<Unit>()
 		val resume = CountDownLatch(1)
 		val controlledStages = object : AlcoholScenarioStageRepository by stages {
@@ -91,7 +91,7 @@ class AdminAlcoholScenarioConcurrencyIntegrationTest : IntegrationTestSupport() 
 				return result
 			}
 		}
-		val publisher = DefaultAdminAlcoholScenarioService(repository, versions, stages, questions, transitions, ScenarioDefinitionReader(controlledStages, questions, controlledTransitions), groups, attributes, tastingGroups, validator, preview)
+		val publisher = DefaultAdminAlcoholScenarioService(repository, versions, ScenarioDefinitionStore(repository, controlledStages, questions, controlledTransitions), groups, attributes, tastingGroups, validator, preview)
 		val tx = TransactionTemplate(transactions).apply { isolationLevel = TransactionDefinition.ISOLATION_READ_COMMITTED }
 		val publish = CompletableFuture.supplyAsync {
 			try {
@@ -113,7 +113,7 @@ class AdminAlcoholScenarioConcurrencyIntegrationTest : IntegrationTestSupport() 
 				val q = fresh.questions().first()
 				ScenarioDefinition(1, -11, fresh.stages(), listOf(q, ScenarioDefinition.ScenarioQuestionItem(-12, -1, 2, "새 질문", q.sourceKind(), null, q.inputKind(), q.inputConfig())), listOf(AlcoholScenarioTestFactory.rule(-101, -11, 1, app.bottlenote.alcohols.constant.ScenarioTypes.Operator.ALWAYS, null, -12L), AlcoholScenarioTestFactory.rule(-102, -12, 1, app.bottlenote.alcohols.constant.ScenarioTypes.Operator.ALWAYS, null, null)))
 			}
-			service.save(groupId, id, versionId, Save(1, mapper.convertValue(replacement, ScenarioDefinitionRequest::class.java)))
+			service.save(groupId, id, versionId, Save(1, mapper.convertValue(replacement, ScenarioDefinition::class.java)))
 		} finally {
 			resume.countDown()
 		}

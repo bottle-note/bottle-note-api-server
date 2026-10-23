@@ -13,13 +13,4 @@ public interface JpaAlcoholScenarioTransitionRepository
   @Query(
       "select t from alcohol_attribute_scenario_transition t where t.versionId=:versionId order by t.fromQuestionId,t.priority")
   List<AlcoholAttributeScenarioTransition> findTransitions(Long versionId);
-
-  default AlcoholAttributeScenarioTransition saveTransition(
-      AlcoholAttributeScenarioTransition value) {
-    return save(value);
-  }
-
-  default void deleteTransitions(List<AlcoholAttributeScenarioTransition> rows) {
-    deleteAll(rows);
-  }
 }

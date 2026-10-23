@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -35,15 +36,8 @@ public record AdminAlcoholCandidateRequest(
       @NotNull AttributeSearchOperator operator,
       @Size(max = 255) String value) {}
 
-  public enum Source {
-    ATTRIBUTE,
-    CATEGORY,
-    ABV,
-    TASTING_GROUP
-  }
-
   public record NextQuestion(
-      @NotNull Source source,
+      @NotNull AlcoholQuestionSource source,
       @Positive Long attributeId,
       @Size(max = 20) List<@NotNull @Valid Range> ranges) {
     public NextQuestion {

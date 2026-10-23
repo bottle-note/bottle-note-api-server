@@ -1,12 +1,13 @@
 package app.integration.alcohols
 
 import app.IntegrationTestSupport
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource
 import app.bottlenote.alcohols.constant.ScenarioTypes.*
 import app.bottlenote.alcohols.constant.ScenarioTypes.Target
 import app.bottlenote.alcohols.domain.*
+import app.bottlenote.alcohols.domain.ScenarioDefinition
 import app.bottlenote.alcohols.domain.ScenarioDefinition.*
 import app.bottlenote.alcohols.dto.request.AdminScenarioRequest.*
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest
 import app.bottlenote.alcohols.exception.ScenarioException
 import app.bottlenote.alcohols.fixture.AlcoholScenarioTestFactory.*
 import app.bottlenote.alcohols.service.AdminAlcoholScenarioService
@@ -36,7 +37,8 @@ class AdminAlcoholScenarioPersistenceIntegrationTest : IntegrationTestSupport() 
 	@Autowired private lateinit var transactions: PlatformTransactionManager
 	private val groupId = 730001L
 
-	private fun request(d: ScenarioDefinition): ScenarioDefinitionRequest = mapper.convertValue(d, ScenarioDefinitionRequest::class.java)
+	// HTTP 입력과 같은 JSON 역직렬화 경계를 재현한다.
+	private fun request(d: ScenarioDefinition): ScenarioDefinition = mapper.convertValue(d, ScenarioDefinition::class.java)
 
 	@Test
 	@DisplayName("최대 초안을 저장하고 순서와 참조를 바꿀 때 ID와 자식을 보존하며 flush 횟수를 제한한다")
@@ -46,7 +48,7 @@ class AdminAlcoholScenarioPersistenceIntegrationTest : IntegrationTestSupport() 
 		val id = scenario.scenario().id()
 		val versionId = scenario.versions().first().id()
 		val stages = (1..50).map { ScenarioStageItem(-it.toLong(), it) }
-		val questions = (1..100).map { choice(-it.toLong(), -((it + 1) / 2).toLong(), (it - 1) % 2 + 1, "질문 $it", Source.CATEGORY, null, "SINGLE_MALT", "BOURBON", "BLEND", "OTHER") }
+		val questions = (1..100).map { choice(-it.toLong(), -((it + 1) / 2).toLong(), (it - 1) % 2 + 1, "질문 $it", AlcoholQuestionSource.CATEGORY, null, "SINGLE_MALT", "BOURBON", "BLEND", "OTHER") }
 		val transitions = questions.flatMapIndexed { index, q ->
 			(1..5).map { priority -> rule(-(index * 5L + priority), q.id(), priority, if (priority == 5) Operator.ALWAYS else Operator.EQ, if (priority == 5) null else q.inputConfig().choices()[priority - 1].id(), null) }
 		}
@@ -63,7 +65,7 @@ class AdminAlcoholScenarioPersistenceIntegrationTest : IntegrationTestSupport() 
 			assertThat(statistics.flushCount).isLessThanOrEqualTo(6)
 			assertThat(statistics.prepareStatementCount).isGreaterThanOrEqualTo(650)
 			println("maximum insert: flush=${statistics.flushCount}, preparedStatements=${statistics.prepareStatementCount}")
-			val d = mapper.convertValue(saved.definition(), ScenarioDefinition::class.java)
+			val d = saved.definition()
 			val reordered = ScenarioDefinition(1, d.startQuestionId(), d.stages().map { ScenarioStageItem(it.id(), 51 - it.position()) }, d.questions().map { ScenarioQuestionItem(it.id(), it.stageId(), 3 - it.branchOrder(), it.title(), it.sourceKind(), it.attributeId(), it.inputKind(), it.inputConfig()) }, d.transitions().map { ScenarioTransitionItem(it.id(), it.fromQuestionId(), 6 - it.priority(), it.predicate(), it.targetKind(), it.targetQuestionId()) })
 			statistics.clear()
 			val updated = service.save(groupId, id, versionId, Save(1, request(reordered)))
@@ -93,7 +95,7 @@ class AdminAlcoholScenarioPersistenceIntegrationTest : IntegrationTestSupport() 
 		fun create(slot: Int, code: String, publish: Boolean) {
 			val s = service.create(groupId, Create("참조 검사", slot))
 			val base = oneQuestion()
-			val d = ScenarioDefinition(1, -11, base.stages(), listOf(choice(-11, -1, 1, "맛", Source.TASTING_GROUP, null, code)), base.transitions())
+			val d = ScenarioDefinition(1, -11, base.stages(), listOf(choice(-11, -1, 1, "맛", AlcoholQuestionSource.TASTING_GROUP, null, code)), base.transitions())
 			service.save(groupId, s.scenario().id(), s.versions().first().id(), Save(0, request(d)))
 			if (publish) service.publish(groupId, s.scenario().id(), s.versions().first().id(), Publish(0, 1))
 		}

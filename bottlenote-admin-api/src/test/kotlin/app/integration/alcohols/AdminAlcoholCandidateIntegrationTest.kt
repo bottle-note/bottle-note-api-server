@@ -132,6 +132,8 @@ class AdminAlcoholCandidateIntegrationTest : IntegrationTestSupport() {
 		assertThat(postAs(token, endpoint, mapOf("include" to listOf(condition(999999, "EQ", "a"))))).hasStatus(HttpStatus.NOT_FOUND)
 		assertThat(postAs(token, endpoint, mapOf("nextQuestion" to mapOf("source" to "ATTRIBUTE")))).hasStatus(HttpStatus.BAD_REQUEST)
 		assertThat(postAs(token, "/v1/attribute/groups/999999/candidates", emptyMap<String, Any>())).hasStatus(HttpStatus.NOT_FOUND)
+		assertThat(postAs(token, "/v1/attribute/groups/999999/candidates", mapOf("abvFrom" to 50, "abvTo" to 40))).hasStatus(HttpStatus.NOT_FOUND)
+		assertThat(postAs(token, endpoint, mapOf("nextQuestion" to mapOf("source" to 0)))).hasStatus(HttpStatus.BAD_REQUEST)
 		val empty = postAs(token, "/v1/attribute/groups/700002/candidates", emptyMap<String, Any>())
 		assertThat(empty).hasStatusOk()
 		assertThat(mapper.readTree(empty.response.contentAsString).at("/data/totalCount").asLong()).isZero()
@@ -195,5 +197,20 @@ class AdminAlcoholCandidateIntegrationTest : IntegrationTestSupport() {
 		assertThat(postAs(token, endpoint, mapOf("nextQuestion" to mapOf("source" to "ABV", "ranges" to listOf(mapOf("key" to "bad", "from" to 50, "to" to 30)))))).hasStatus(HttpStatus.BAD_REQUEST)
 		jdbc.update("UPDATE alcohol_attributes SET group_id=700002 WHERE id=?", price)
 		assertThat(postAs(token, endpoint, mapOf("include" to listOf(condition(price, "GTE", "10"))))).hasStatus(HttpStatus.NOT_FOUND)
+	}
+
+	@Test
+	@DisplayName("같은 기본 필터의 여러 선택값은 OR로 묶고 서로 다른 필터는 AND로 적용한다")
+	fun baseFilterAlternativesRemainOrWithinAnAndIntersection() {
+		val token = seed()
+		jdbc.update("UPDATE alcohols SET category_group='BOURBON' WHERE id=800002")
+		jdbc.update("INSERT INTO tasting_tags(id,kor_name,eng_name) VALUES(900001,'바닐라','Vanilla'),(900002,'꿀','Honey')")
+		jdbc.update("INSERT INTO tasting_tag_groups(id,code,name,display_order) VALUES(900001,'VANILLA','바닐라',0),(900002,'HONEY','꿀',1)")
+		jdbc.update("INSERT INTO tasting_tag_group_tags(group_id,tasting_tag_id,role) VALUES(900001,900001,'CORE'),(900002,900002,'CORE')")
+		jdbc.update("INSERT INTO alcohols_tasting_tags(alcohol_id,tasting_tag_id) VALUES(800001,900001),(800002,900002)")
+		val result = query(token, mapOf("categoryGroups" to listOf("SINGLE_MALT", "BOURBON"), "tastingGroupCodes" to listOf("VANILLA", "HONEY"), "abvFrom" to 40, "abvTo" to 40))
+		assertThat(result.at("/data/items").map { it["alcoholId"].asLong() }).containsExactly(800001L, 800002L)
+		assertThat(result.at("/data/totalCount").asLong()).isEqualTo(2)
+		assertThat(query(token, mapOf("tastingGroupCodes" to listOf("HONEY"), "categoryGroups" to listOf("SINGLE_MALT"))).at("/data/totalCount").asLong()).isZero()
 	}
 }

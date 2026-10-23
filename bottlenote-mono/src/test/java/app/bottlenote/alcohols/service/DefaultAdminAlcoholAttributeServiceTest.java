@@ -56,10 +56,9 @@ class DefaultAdminAlcoholAttributeServiceTest {
             attributes,
             mappings,
             new InMemoryAlcoholAttributeGroupRepository(),
-            new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()
-                .referenceGuard(
-                    new app.bottlenote.alcohols.fixture.InMemoryTastingTagGroupRepository(),
-                    new app.bottlenote.alcohols.fixture.InMemoryTastingTagRepository()));
+            new app.bottlenote.alcohols.fixture.FakeScenarioReferenceGuard(
+                new app.bottlenote.alcohols.fixture.InMemoryTastingTagGroupRepository(),
+                new app.bottlenote.alcohols.fixture.InMemoryTastingTagRepository()));
     searchService =
         new DefaultAdminAlcoholAttributeSearchService(
             attributes,

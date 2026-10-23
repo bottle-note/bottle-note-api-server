@@ -18,12 +18,4 @@ public interface JpaAlcoholScenarioQuestionRepository
   @Query(
       "select count(q)>0 from alcohol_attribute_scenario_question q, alcohol_attribute_scenario_version v where q.versionId=v.id and v.status=app.bottlenote.alcohols.constant.ScenarioTypes$Status.PUBLISHED and q.attributeId in :attributeIds")
   boolean hasPublishedAttributeReferences(Collection<Long> attributeIds);
-
-  default AlcoholAttributeScenarioQuestion saveQuestion(AlcoholAttributeScenarioQuestion value) {
-    return save(value);
-  }
-
-  default void deleteQuestions(List<AlcoholAttributeScenarioQuestion> rows) {
-    deleteAll(rows);
-  }
 }

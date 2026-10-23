@@ -4,7 +4,9 @@ import app.IntegrationTestSupport
 import app.bottlenote.alcohols.fixture.AlcoholScenarioTestFactory
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import jakarta.persistence.EntityManagerFactory
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.SessionFactory
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -21,6 +23,8 @@ import java.util.concurrent.TimeUnit
 @DisplayName("시나리오를 관리할 때 저장·게시·분기·동시성을 검증한다")
 class AdminAlcoholScenarioIntegrationTest : IntegrationTestSupport() {
 	@Autowired private lateinit var jdbc: JdbcTemplate
+
+	@Autowired private lateinit var emf: EntityManagerFactory
 	private val group = 710001L
 	private val experience = 710001L
 	private val price = 710002L
@@ -450,5 +454,27 @@ class AdminAlcoholScenarioIntegrationTest : IntegrationTestSupport() {
 		val d2 = save(token, versionUrl(s2), oneQuestion())
 		assertThat(getAs(token, "${scenarioUrl(s)}/versions/${d2.at("/version/id").asLong()}")).hasStatus(HttpStatus.NOT_FOUND)
 		assertThat(putAs(token, url, mapOf("expectedLockVersion" to 0, "definition" to d2["definition"]))).hasStatus(HttpStatus.BAD_REQUEST)
+	}
+
+	@Test
+	@DisplayName("미리보기에서 정의 검증과 후보를 조회할 때 맛 그룹과 태그를 한 번만 읽는다")
+	fun previewReusesTastingGroupsAcrossValidationAndCandidateSearch() {
+		val token = seed()
+		val scenario = create(token)
+		val url = versionUrl(scenario)
+		save(token, url, definition())
+		val statistics = emf.unwrap(SessionFactory::class.java).statistics
+		val enabled = statistics.isStatisticsEnabled
+		statistics.isStatisticsEnabled = true
+		try {
+			statistics.clear()
+			val result = preview(token, url, emptyList())
+			assertThat(result.at("/candidates/totalCount").asLong()).isEqualTo(3)
+			val groupQueries = statistics.queries.filter { it.contains("tasting_tag_group") && it.contains("join fetch") }
+			assertThat(groupQueries).hasSize(1)
+			assertThat(statistics.getQueryStatistics(groupQueries.single()).executionCount).isEqualTo(1)
+		} finally {
+			statistics.isStatisticsEnabled = enabled
+		}
 	}
 }

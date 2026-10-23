@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import app.bottlenote.common.domain.BaseEntity;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
@@ -30,7 +31,7 @@ public class AlcoholAttributeScenarioQuestion extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 30)
-  private Source sourceKind;
+  private AlcoholQuestionSource sourceKind;
 
   private Long attributeId;
 
@@ -52,7 +53,7 @@ public class AlcoholAttributeScenarioQuestion extends BaseEntity {
       Long stageId,
       int order,
       String title,
-      Source source,
+      AlcoholQuestionSource source,
       Long attributeId,
       Input input,
       ScenarioInputConfig config) {

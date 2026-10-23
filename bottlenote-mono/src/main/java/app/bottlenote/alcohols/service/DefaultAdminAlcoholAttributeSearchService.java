@@ -4,6 +4,7 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.*;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.*;
 
 import app.bottlenote.alcohols.constant.*;
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest;
@@ -201,72 +202,65 @@ public class DefaultAdminAlcoholAttributeSearchService
   @Transactional(readOnly = true)
   public AdminAlcoholCandidateResponse findCandidates(
       Long groupId, AdminAlcoholCandidateRequest request) {
-    return findCandidates(groupId, request, List.of());
+    var group = requireCandidateGroup(groupId);
+    var groups = tastingGroupRepository.findAllWithTags();
+    var definitions = candidateDefinitions(groupId);
+    var normalized = normalize(request, definitions, groups);
+    var query =
+        new AlcoholCandidateCriteria(
+            groupId,
+            normalized.keyword(),
+            normalized.include(),
+            normalized.exclude(),
+            List.of(
+                new AlcoholCandidateCriteria.BaseFilterCriteria(
+                    normalized.categoryGroups(),
+                    normalized.abvFrom(),
+                    normalized.abvTo(),
+                    tastingTagIds(groups, normalized.tastingGroupCodes()),
+                    !normalized.tastingGroupCodes().isEmpty())),
+            normalized.nextQuestion(),
+            normalized.page(),
+            normalized.size());
+    return findCandidates(query, group, definitions, groups);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public AdminAlcoholCandidateResponse findScenarioCandidates(
-      Long groupId,
-      List<AdminAlcoholCandidateRequest> contributions,
-      NextQuestion nextQuestion,
-      int page,
-      int size) {
-    var request =
-        new AdminAlcoholCandidateRequest(
-            null,
-            contributions.stream().flatMap(c -> c.include().stream()).toList(),
-            List.of(),
-            List.of(),
-            null,
-            null,
-            List.of(),
-            nextQuestion,
-            page,
-            size);
-    return findCandidates(groupId, request, contributions);
+  public AdminAlcoholCandidateResponse findCandidates(
+      AlcoholCandidateCriteria query,
+      Map<Long, AlcoholAttribute> definitions,
+      List<TastingTagGroup> groups) {
+    return findCandidates(query, requireCandidateGroup(query.groupId()), definitions, groups);
+  }
+
+  private CandidateGroup requireCandidateGroup(Long groupId) {
+    return candidateRepository
+        .findGroup(groupId)
+        .orElseThrow(() -> new AlcoholException(ALCOHOL_ATTRIBUTE_GROUP_NOT_FOUND));
+  }
+
+  private Map<Long, AlcoholAttribute> candidateDefinitions(Long groupId) {
+    return candidateRepository.findAttributes(groupId).stream()
+        .collect(Collectors.toMap(AlcoholAttribute::getId, Function.identity()));
+  }
+
+  private List<Long> tastingTagIds(List<TastingTagGroup> groups, List<String> codes) {
+    return groups.stream()
+        .filter(g -> codes.contains(g.getCode()))
+        .flatMap(g -> g.getTags().stream())
+        .filter(TastingTagGroupTag::isCore)
+        .map(TastingTagGroupTag::getTastingTagId)
+        .distinct()
+        .toList();
   }
 
   private AdminAlcoholCandidateResponse findCandidates(
-      Long groupId,
-      AdminAlcoholCandidateRequest request,
-      List<AdminAlcoholCandidateRequest> contributions) {
-    var group =
-        candidateRepository
-            .findGroup(groupId)
-            .orElseThrow(() -> new AlcoholException(ALCOHOL_ATTRIBUTE_GROUP_NOT_FOUND));
-    var definitions =
-        candidateRepository.findAttributes(groupId).stream()
-            .collect(Collectors.toMap(AlcoholAttribute::getId, Function.identity()));
-    var groups = tastingGroupRepository.findAllWithTags();
-    var normalized = normalize(request, definitions, groups);
-    var tags =
-        groups.stream()
-            .filter(g -> normalized.tastingGroupCodes().contains(g.getCode()))
-            .flatMap(g -> g.getTags().stream())
-            .filter(TastingTagGroupTag::isCore)
-            .map(TastingTagGroupTag::getTastingTagId)
-            .distinct()
-            .toList();
-    var filters =
-        contributions.stream()
-            .map(c -> normalize(c, definitions, groups))
-            .map(
-                c ->
-                    new AlcoholCandidateCriteria.BaseFilterCriteria(
-                        c.categoryGroups(),
-                        c.abvFrom(),
-                        c.abvTo(),
-                        groups.stream()
-                            .filter(g -> c.tastingGroupCodes().contains(g.getCode()))
-                            .flatMap(g -> g.getTags().stream())
-                            .filter(TastingTagGroupTag::isCore)
-                            .map(TastingTagGroupTag::getTastingTagId)
-                            .distinct()
-                            .toList(),
-                        !c.tastingGroupCodes().isEmpty()))
-            .toList();
-    var query = new AlcoholCandidateCriteria(groupId, normalized, tags, filters);
+      AlcoholCandidateCriteria query,
+      CandidateGroup group,
+      Map<Long, AlcoholAttribute> definitions,
+      List<TastingTagGroup> groups) {
+    var groupId = query.groupId();
     var page = candidateRepository.findPage(query);
     var ids = page.stream().map(Alcohol::getId).toList();
     var mappings =
@@ -291,9 +285,7 @@ public class DefaultAdminAlcoholAttributeSearchService
                         groups))
             .toList();
     var facets =
-        normalized.nextQuestion() == null
-            ? null
-            : candidateFacets(query, total, definitions, groups);
+        query.nextQuestion() == null ? null : candidateFacets(query, total, definitions, groups);
     return new AdminAlcoholCandidateResponse(
         group,
         definitions.values().stream()
@@ -325,11 +317,12 @@ public class DefaultAdminAlcoholAttributeSearchService
       if (groups.stream().noneMatch(g -> g.getCode().equals(code))) throw invalid();
     var next = r.nextQuestion();
     if (next != null) {
-      if ((next.source() == Source.ATTRIBUTE) != (next.attributeId() != null)) throw invalid();
+      if ((next.source() == AlcoholQuestionSource.ATTRIBUTE) != (next.attributeId() != null))
+        throw invalid();
       var attribute =
           next.attributeId() == null ? null : requireDefinition(next.attributeId(), definitions);
       if (!next.ranges().isEmpty()
-          && next.source() != Source.ABV
+          && next.source() != AlcoholQuestionSource.ABV
           && (attribute == null || !attribute.getDatatype().isNumeric())) throw invalid();
       Set<String> keys = new HashSet<>();
       for (var range : next.ranges()) {
@@ -338,7 +331,7 @@ public class DefaultAdminAlcoholAttributeSearchService
             || (range.from() != null
                 && range.to() != null
                 && range.from().compareTo(range.to()) > 0)) throw invalid();
-        if (next.source() == Source.ABV
+        if (next.source() == AlcoholQuestionSource.ABV
             && ((range.from() != null
                     && (range.from().signum() < 0
                         || range.from().compareTo(new BigDecimal("100")) > 0))
@@ -453,7 +446,7 @@ public class DefaultAdminAlcoholAttributeSearchService
       long total,
       Map<Long, AlcoholAttribute> definitions,
       List<TastingTagGroup> groups) {
-    var next = query.request().nextQuestion();
+    var next = query.nextQuestion();
     var rows = candidateRepository.findFacetRows(query);
     List<CandidateOption> options = new ArrayList<>();
     Map<String, Set<Long>> matches = new TreeMap<>();
@@ -461,13 +454,16 @@ public class DefaultAdminAlcoholAttributeSearchService
     Set<Long> present = new HashSet<>();
     boolean more = false;
     boolean numeric =
-        next.source() == Source.ABV
-            || (next.source() == Source.ATTRIBUTE
+        next.source() == AlcoholQuestionSource.ABV
+            || (next.source() == AlcoholQuestionSource.ATTRIBUTE
                 && definitions.get(next.attributeId()).getDatatype().isNumeric());
     for (var row : rows) {
       if (row.value() == null) continue;
       if (numeric) {
-        var n = next.source() == Source.ABV ? parseAbv(row.value()) : new BigDecimal(row.value());
+        var n =
+            next.source() == AlcoholQuestionSource.ABV
+                ? parseAbv(row.value())
+                : new BigDecimal(row.value());
         if (n == null) continue;
         numbers.computeIfAbsent(row.alcoholId(), ignored -> new ArrayList<>()).add(n);
       }
@@ -488,7 +484,7 @@ public class DefaultAdminAlcoholAttributeSearchService
                 .count();
         options.add(new CandidateOption(range.key(), range.key(), range.from(), range.to(), count));
       }
-    } else if (next.source() == Source.ATTRIBUTE) {
+    } else if (next.source() == AlcoholQuestionSource.ATTRIBUTE) {
       var definition = definitions.get(next.attributeId());
       Set<String> values = new LinkedHashSet<>(matches.keySet());
       Set<String> otherValues =
@@ -501,7 +497,7 @@ public class DefaultAdminAlcoholAttributeSearchService
         options.add(
             new CandidateOption(
                 value, value, null, null, matches.getOrDefault(value, Set.of()).size()));
-    } else if (next.source() == Source.CATEGORY) {
+    } else if (next.source() == AlcoholQuestionSource.CATEGORY) {
       for (var category : AlcoholCategoryGroup.values())
         options.add(
             new CandidateOption(
@@ -510,7 +506,7 @@ public class DefaultAdminAlcoholAttributeSearchService
                 null,
                 null,
                 matches.getOrDefault(category.name(), Set.of()).size()));
-    } else if (next.source() == Source.TASTING_GROUP) {
+    } else if (next.source() == AlcoholQuestionSource.TASTING_GROUP) {
       present.clear();
       for (var group : groups) {
         var matched =

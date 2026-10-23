@@ -8,6 +8,8 @@ public interface AlcoholAttributeGroupRepository {
 
   List<AlcoholAttributeGroup> lockByIds(Collection<Long> ids);
 
+  boolean existsById(Long id);
+
   boolean existsByNameAndIdNot(String name, Long id);
 
   AlcoholAttributeGroup save(AlcoholAttributeGroup group);

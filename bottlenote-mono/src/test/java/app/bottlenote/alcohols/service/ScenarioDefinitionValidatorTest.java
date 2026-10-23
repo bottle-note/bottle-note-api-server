@@ -4,6 +4,7 @@ import static app.bottlenote.alcohols.fixture.AlcoholScenarioTestFactory.*;
 import static org.assertj.core.api.Assertions.*;
 
 import app.bottlenote.alcohols.constant.*;
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.domain.ScenarioDefinition;
 import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
@@ -178,7 +179,7 @@ class ScenarioDefinitionValidatorTest {
   @Test
   @DisplayName("상위 숫자 조건이 뒤 규칙을 모두 가릴 때 해당 규칙 ID로 거절한다")
   void 숫자_조건의_도달_불가를_거절할_수_있다() {
-    var q = number(-11, -1, 1, "범위", ScenarioTypes.Source.ABV, null, 0, 100, 1);
+    var q = number(-11, -1, 1, "범위", AlcoholQuestionSource.ABV, null, 0, 100, 1);
     var d =
         new ScenarioDefinition(
             1,

@@ -5,14 +5,18 @@ import static app.bottlenote.alcohols.exception.ScenarioException.invalid;
 import app.bottlenote.alcohols.constant.*;
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import app.bottlenote.alcohols.domain.AlcoholAttribute;
+import app.bottlenote.alcohols.domain.AlcoholCandidateRepository;
 import app.bottlenote.alcohols.domain.ScenarioAnswer;
+import app.bottlenote.alcohols.domain.ScenarioAnswer.ScenarioContribution;
 import app.bottlenote.alcohols.domain.ScenarioDefinition;
 import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
-import app.bottlenote.alcohols.domain.ScenarioPreviewInput;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest;
+import app.bottlenote.alcohols.domain.TastingTagGroup;
+import app.bottlenote.alcohols.domain.TastingTagGroupRepository;
+import app.bottlenote.alcohols.domain.TastingTagGroupTag;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.*;
+import app.bottlenote.alcohols.dto.request.AdminScenarioPreviewRequest;
 import app.bottlenote.alcohols.dto.response.AdminScenarioResponse.*;
-import app.bottlenote.alcohols.dto.response.ScenarioAnswerItem;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
@@ -25,14 +29,18 @@ import org.springframework.stereotype.Service;
 public class ScenarioPreviewService {
   private final AdminAlcoholAttributeSearchService searchService;
   private final ScenarioDefinitionValidator validator;
+  private final AlcoholCandidateRepository candidateRepository;
+  private final TastingTagGroupRepository tastingGroupRepository;
 
   @org.springframework.transaction.annotation.Transactional(readOnly = true)
   public ScenarioPreview preview(
-      Long groupId,
-      ScenarioDefinition d,
-      Map<Long, AlcoholAttribute> attributes,
-      Set<String> codes,
-      ScenarioPreviewInput r) {
+      Long groupId, ScenarioDefinition d, AdminScenarioPreviewRequest r) {
+    var attributes =
+        candidateRepository.findAttributes(groupId).stream()
+            .collect(Collectors.toMap(AlcoholAttribute::getId, Function.identity()));
+    var groups = tastingGroupRepository.findAllWithTags();
+    var codes = groups.stream().map(TastingTagGroup::getCode).collect(Collectors.toSet());
+    validator.validate(d, groupId, attributes, codes, true);
     var questions =
         d.questions().stream()
             .collect(Collectors.toMap(ScenarioQuestionItem::id, Function.identity()));
@@ -81,26 +89,68 @@ public class ScenarioPreviewService {
       if (prefix < 0) throw invalid("viewQuestionId는 현재 유효 경로의 질문이어야 합니다.");
     }
     List<ScenarioContribution> contributions = new ArrayList<>();
-    List<AdminAlcoholCandidateRequest> filters = new ArrayList<>();
-    var conditions = new PreviewConditions(contributions, filters);
     for (var a : accepted.subList(0, prefix))
-      contribute(questions.get(a.questionId()), a, attributes, codes, conditions);
+      contribute(questions.get(a.questionId()), a, attributes, codes, contributions);
     NextQuestion facet = null;
     if (viewed != null) {
       var q = questions.get(viewed);
-      facet =
-          new NextQuestion(
-              AdminAlcoholCandidateRequest.Source.valueOf(q.sourceKind().name()),
-              q.attributeId(),
-              List.of());
+      facet = new NextQuestion(q.sourceKind(), q.attributeId(), List.of());
     }
-    var candidates =
-        searchService.findScenarioCandidates(groupId, filters, facet, r.page(), r.size());
+    List<Condition> include = new ArrayList<>();
+    List<AlcoholCandidateCriteria.BaseFilterCriteria> filters = new ArrayList<>();
+    for (var c : contributions) {
+      var operator = AttributeSearchOperator.valueOf(c.operator());
+      switch (c.source()) {
+        case ATTRIBUTE -> {
+          var attribute = attributes.get(c.attributeId());
+          if (operator == AttributeSearchOperator.EQ && attribute.getDatatype().isNumeric()) {
+            include.add(new Condition(c.attributeId(), AttributeSearchOperator.GTE, c.value()));
+            include.add(new Condition(c.attributeId(), AttributeSearchOperator.LTE, c.value()));
+          } else include.add(new Condition(c.attributeId(), operator, c.value()));
+        }
+        case CATEGORY ->
+            filters.add(
+                new AlcoholCandidateCriteria.BaseFilterCriteria(
+                    List.of(AlcoholCategoryGroup.valueOf(c.value())),
+                    null,
+                    null,
+                    List.of(),
+                    false));
+        case TASTING_GROUP ->
+            filters.add(
+                new AlcoholCandidateCriteria.BaseFilterCriteria(
+                    List.of(),
+                    null,
+                    null,
+                    groups.stream()
+                        .filter(g -> g.getCode().equals(c.value()))
+                        .flatMap(g -> g.getTags().stream())
+                        .filter(TastingTagGroupTag::isCore)
+                        .map(TastingTagGroupTag::getTastingTagId)
+                        .distinct()
+                        .toList(),
+                    true));
+        case ABV -> {
+          var value = new BigDecimal(c.value());
+          filters.add(
+              new AlcoholCandidateCriteria.BaseFilterCriteria(
+                  List.of(),
+                  operator == AttributeSearchOperator.LTE ? null : value,
+                  operator == AttributeSearchOperator.GTE ? null : value,
+                  List.of(),
+                  false));
+        }
+      }
+    }
+    var query =
+        new AlcoholCandidateCriteria(
+            groupId, null, include, List.of(), filters, facet, r.page(), r.size());
+    var candidates = searchService.findCandidates(query, attributes, groups);
     return new ScenarioPreview(
         List.copyOf(path),
         next,
         next == null,
-        accepted.stream().map(ScenarioAnswerItem::from).toList(),
+        List.copyOf(accepted),
         discarded,
         List.copyOf(contributions),
         viewed,
@@ -146,22 +196,13 @@ public class ScenarioPreviewService {
     return t.predicate().matches(a.kind(), a.choiceId(), a.min(), a.max());
   }
 
-  private record PreviewConditions(
-      List<ScenarioContribution> contributions, List<AdminAlcoholCandidateRequest> filters) {}
-
   private void contribute(
       ScenarioQuestionItem q,
       ScenarioAnswer a,
       Map<Long, AlcoholAttribute> attrs,
       Set<String> codes,
-      PreviewConditions conditions) {
+      List<ScenarioContribution> out) {
     if (a.kind() == AnswerKind.ANY) return;
-    var out = conditions.contributions();
-    var filters = conditions.filters();
-    List<Condition> include = new ArrayList<>();
-    List<AlcoholCategoryGroup> categories = List.of();
-    List<String> tasting = List.of();
-    BigDecimal from = null, to = null;
     if (a.kind() == AnswerKind.CHOICE) {
       var choice =
           q.inputConfig().choices().stream()
@@ -175,20 +216,6 @@ public class ScenarioPreviewService {
               codes,
               choice.value());
       out.add(new ScenarioContribution(q.id(), q.sourceKind(), q.attributeId(), "EQ", value));
-      switch (q.sourceKind()) {
-        case ATTRIBUTE -> {
-          if (attrs.get(q.attributeId()).getDatatype().isNumeric()) {
-            include.add(new Condition(q.attributeId(), AttributeSearchOperator.GTE, value));
-            include.add(new Condition(q.attributeId(), AttributeSearchOperator.LTE, value));
-          } else include.add(new Condition(q.attributeId(), AttributeSearchOperator.EQ, value));
-        }
-        case CATEGORY -> categories = List.of(AlcoholCategoryGroup.valueOf(value));
-        case TASTING_GROUP -> tasting = List.of(value);
-        case ABV -> {
-          from = new BigDecimal(value);
-          to = from;
-        }
-      }
     } else {
       out.add(
           new ScenarioContribution(
@@ -196,24 +223,6 @@ public class ScenarioPreviewService {
       out.add(
           new ScenarioContribution(
               q.id(), q.sourceKind(), q.attributeId(), "LTE", a.max().toPlainString()));
-      if (q.sourceKind() == ScenarioTypes.Source.ATTRIBUTE) {
-        include.add(
-            new Condition(
-                q.attributeId(),
-                AttributeSearchOperator.GTE,
-                a.min().stripTrailingZeros().toPlainString()));
-        include.add(
-            new Condition(
-                q.attributeId(),
-                AttributeSearchOperator.LTE,
-                a.max().stripTrailingZeros().toPlainString()));
-      } else {
-        from = a.min();
-        to = a.max();
-      }
     }
-    filters.add(
-        new AdminAlcoholCandidateRequest(
-            null, include, List.of(), categories, from, to, tasting, null, 0, 25));
   }
 }

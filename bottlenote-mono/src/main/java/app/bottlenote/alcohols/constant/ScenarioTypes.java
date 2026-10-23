@@ -15,18 +15,6 @@ public final class ScenarioTypes {
     }
   }
 
-  public enum Source {
-    ATTRIBUTE,
-    CATEGORY,
-    TASTING_GROUP,
-    ABV;
-
-    @JsonCreator
-    public static Source parse(String value) {
-      return value == null ? null : valueOf(value);
-    }
-  }
-
   public enum Input {
     SINGLE_CHOICE,
     NUMBER_RANGE;

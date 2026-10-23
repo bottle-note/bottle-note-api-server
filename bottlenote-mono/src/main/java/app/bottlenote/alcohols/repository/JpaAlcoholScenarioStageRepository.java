@@ -12,12 +12,4 @@ public interface JpaAlcoholScenarioStageRepository
   @Query(
       "select s from alcohol_attribute_scenario_stage s where s.versionId=:versionId order by s.position")
   List<AlcoholAttributeScenarioStage> findStages(Long versionId);
-
-  default AlcoholAttributeScenarioStage saveStage(AlcoholAttributeScenarioStage value) {
-    return save(value);
-  }
-
-  default void deleteStages(List<AlcoholAttributeScenarioStage> rows) {
-    deleteAll(rows);
-  }
 }

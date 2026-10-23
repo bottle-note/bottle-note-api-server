@@ -5,13 +5,13 @@ import java.util.*;
 public interface AlcoholScenarioRepository {
   List<AlcoholAttributeScenario> findScenarios(Long groupId);
 
-  Optional<AlcoholAttributeScenario> findScenario(Long id);
+  Optional<AlcoholAttributeScenario> findById(Long id);
 
   AlcoholAttributeScenario saveScenario(AlcoholAttributeScenario scenario);
 
   void claimScenario(AlcoholAttributeScenario scenario, long expected);
 
-  void deleteScenario(AlcoholAttributeScenario scenario);
+  void delete(AlcoholAttributeScenario scenario);
 
   boolean hasScenarios(Long groupId);
 
