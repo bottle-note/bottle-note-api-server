@@ -55,6 +55,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   private final AlcoholAttributeRepository attributeRepository;
   private final AlcoholAttributeMappingRepository mappingRepository;
   private final AlcoholAttributeGroupRepository groupRepository;
+  private final ScenarioReferenceGuard scenarioReferenceGuard;
 
   @Override
   @Transactional(readOnly = true)
@@ -99,14 +100,14 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   }
 
   @Override
-  @Transactional
+  @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
   public AdminAlcoholAttributeItem create(AdminAlcoholAttributeCreateRequest request) {
     var result = upsertBulk(new AdminAlcoholAttributeBulkRequest(List.of(request)));
     return AlcoholAttributeResponseMapper.toItem(requireAttribute(result.ids().getFirst()));
   }
 
   @Override
-  @Transactional
+  @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
   public AdminAlcoholAttributeBulkResponse upsertBulk(AdminAlcoholAttributeBulkRequest request) {
     var candidates = request.items().stream().map(this::candidate).toList();
     Set<String> keys = new HashSet<>();
@@ -148,6 +149,10 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
                 : target.isAllowMultipleValues());
         requireCompatibleMultiplicity(target, candidate);
         requireCompatibleRules(target, candidate);
+        scenarioReferenceGuard.requireCompatible(
+            target,
+            candidate,
+            item.groupIdPresent() ? candidate.getGroupId() : target.getGroupId());
         target.updateFrom(candidate);
         if (requestsByKey.get(candidate.getAttributeKey()).groupIdPresent())
           target.changeGroup(candidate.getGroupId());
@@ -162,7 +167,7 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   }
 
   @Override
-  @Transactional
+  @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
   public AdminResultResponse update(Long id, AdminAlcoholAttributeUpdateRequest request) {
     if (request.groupId() != null) requireGroups(List.of(request.groupId()));
     var target = requireLockedAttribute(id);
@@ -185,6 +190,8 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
     requireCompatibleMultiplicity(target, candidate);
     requireUniqueName(candidate.getDisplayName(), id);
     requireCompatibleRules(target, candidate);
+    scenarioReferenceGuard.requireCompatible(
+        target, candidate, request.groupIdPresent() ? request.groupId() : target.getGroupId());
     target.updateFrom(candidate);
     if (request.groupIdPresent()) target.changeGroup(request.groupId());
     attributeRepository.save(target);
@@ -192,22 +199,24 @@ public class DefaultAdminAlcoholAttributeService implements AdminAlcoholAttribut
   }
 
   @Override
-  @Transactional
+  @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
   public AdminResultResponse delete(Long id) {
     var target = requireLockedAttribute(id);
+    scenarioReferenceGuard.beforeAttributeDeletion(List.of(id));
     mappingRepository.deleteAllByAttributeIdIn(List.of(id));
     attributeRepository.delete(target);
     return AdminResultResponse.of(ALCOHOL_ATTRIBUTE_DELETED, id);
   }
 
   @Override
-  @Transactional
+  @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
   public List<AdminAlcoholAttributeItem> deleteBatch(
       AdminAlcoholAttributeBatchDeleteRequest request) {
     var rows = attributeRepository.lockByIds(request.ids());
     var result = rows.stream().map(AlcoholAttributeResponseMapper::toItem).toList();
     if (!rows.isEmpty()) {
       var ids = rows.stream().map(AlcoholAttribute::getId).toList();
+      scenarioReferenceGuard.beforeAttributeDeletion(ids);
       mappingRepository.deleteAllByAttributeIdIn(ids);
       attributeRepository.deleteAllByIdIn(ids);
     }

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultAdminAlcoholAttributeGroupService implements AdminAlcoholAttributeGroupService {
   private final AlcoholAttributeGroupRepository groupRepository;
   private final AlcoholAttributeRepository attributeRepository;
+  private final ScenarioReferenceGuard scenarioReferenceGuard;
 
   @Override
   @Transactional(readOnly = true)
@@ -53,6 +54,7 @@ public class DefaultAdminAlcoholAttributeGroupService implements AdminAlcoholAtt
     var group = requireLockedGroup(id);
     if (attributeRepository.existsByGroupId(id))
       throw new AlcoholException(ALCOHOL_ATTRIBUTE_GROUP_IN_USE);
+    scenarioReferenceGuard.requireEmptyGroup(id);
     groupRepository.delete(group);
     return AdminResultResponse.of(ALCOHOL_ATTRIBUTE_GROUP_DELETED, id);
   }

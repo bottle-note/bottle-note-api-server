@@ -50,6 +50,7 @@ public class TastingTagService {
   private final TastingTagRepository tastingTagRepository;
   private final AlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
   private final AlcoholQueryRepository alcoholQueryRepository;
+  private final ScenarioReferenceGuard scenarioReferenceGuard;
 
   private volatile Trie trie;
 
@@ -158,8 +159,9 @@ public class TastingTagService {
     return AdminResultResponse.of(TASTING_TAG_UPDATED, tagId);
   }
 
-  @Transactional
+  @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
   public AdminResultResponse deleteTag(Long tagId) {
+    scenarioReferenceGuard.beforeTastingTagDeletion(tagId);
     TastingTag tag =
         tastingTagRepository
             .findById(tagId)

@@ -54,6 +54,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
   private final TastingTagGroupRepository tastingTagGroupRepository;
   private final TastingTagRepository tastingTagRepository;
   private final AlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
+  private final ScenarioReferenceGuard scenarioReferenceGuard;
 
   @Override
   @Transactional(readOnly = true)
@@ -120,6 +121,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
   @Override
   @Transactional
   public AdminResultResponse delete(String code) {
+    scenarioReferenceGuard.requireMutableTastingGroup(code);
     TastingTagGroup group = requireGroup(code);
     if (group.hasTags()) {
       throw new AlcoholException(TASTING_TAG_GROUP_HAS_TAGS);
@@ -131,6 +133,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
   @Override
   @Transactional
   public AdminResultResponse addTags(String code, AdminTastingTagGroupTagsRequest request) {
+    scenarioReferenceGuard.beforeTastingGroupTagsAddition(code, request.tastingTagIds());
     TastingTagGroup group = requireGroup(code);
     Set<Long> knownIds = allTagNames().keySet();
     for (Long tastingTagId : request.tastingTagIds()) {
@@ -149,6 +152,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
   @Transactional
   public AdminResultResponse changeTagRole(
       String code, Long tagId, AdminTastingTagGroupTagRoleRequest request) {
+    scenarioReferenceGuard.requireMutableTastingGroup(code);
     TastingTagGroup group = requireGroup(code);
     if (group.findTag(tagId).isEmpty()) {
       throw new AlcoholException(TASTING_TAG_GROUP_TAG_NOT_FOUND);
@@ -161,6 +165,7 @@ public class DefaultAdminTastingTagGroupService implements AdminTastingTagGroupS
   @Override
   @Transactional
   public AdminResultResponse removeTag(String code, Long tagId) {
+    scenarioReferenceGuard.requireMutableTastingGroup(code);
     TastingTagGroup group = requireGroup(code);
     if (!group.removeTag(tagId)) {
       throw new AlcoholException(TASTING_TAG_GROUP_TAG_NOT_FOUND);
