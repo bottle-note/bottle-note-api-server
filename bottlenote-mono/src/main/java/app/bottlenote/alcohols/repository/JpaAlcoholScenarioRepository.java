@@ -18,10 +18,6 @@ public interface JpaAlcoholScenarioRepository
   @Query("select s from alcohol_attribute_scenario s where s.groupId=:groupId order by s.slot")
   List<AlcoholAttributeScenario> findScenarios(Long groupId);
 
-  default Optional<AlcoholAttributeScenario> findScenario(Long id) {
-    return findById(id);
-  }
-
   @Query("select count(s)>0 from alcohol_attribute_scenario s where s.groupId=:groupId")
   boolean hasScenarios(Long groupId);
 
@@ -33,9 +29,5 @@ public interface JpaAlcoholScenarioRepository
         throw new ScenarioException(SCENARIO_SLOT_OCCUPIED);
       throw ex;
     }
-  }
-
-  default void deleteScenario(AlcoholAttributeScenario value) {
-    delete(value);
   }
 }

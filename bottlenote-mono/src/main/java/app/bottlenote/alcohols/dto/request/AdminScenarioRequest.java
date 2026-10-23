@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.dto.request;
 
+import app.bottlenote.alcohols.domain.ScenarioDefinition;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -19,7 +20,7 @@ public final class AdminScenarioRequest {
 
   public record Save(
       @NotNull @PositiveOrZero Long expectedLockVersion,
-      @NotNull @Valid ScenarioDefinitionRequest definition) {}
+      @NotNull @Valid ScenarioDefinition definition) {}
 
   public record Publish(
       @NotNull @PositiveOrZero Long expectedScenarioLockVersion,

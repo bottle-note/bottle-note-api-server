@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.alcohols.constant.*;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.Source;
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -50,7 +50,7 @@ public record AdminAlcoholCandidateResponse(
       List<String> allowedValues) {}
 
   public record CandidateFacets(
-      Source source,
+      AlcoholQuestionSource source,
       Long attributeId,
       List<CandidateOption> options,
       boolean hasMoreOptions,

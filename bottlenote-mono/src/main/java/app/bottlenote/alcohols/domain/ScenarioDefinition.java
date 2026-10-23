@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public record ScenarioDefinition(
       Long stageId,
       Integer branchOrder,
       String title,
-      Source sourceKind,
+      AlcoholQuestionSource sourceKind,
       Long attributeId,
       Input inputKind,
       ScenarioInputConfig inputConfig) {}
@@ -32,4 +33,35 @@ public record ScenarioDefinition(
       ScenarioPredicate predicate,
       Target targetKind,
       Long targetQuestionId) {}
+
+  public ScenarioDefinition forClone() {
+    return new ScenarioDefinition(
+        1,
+        this.startQuestionId() == null ? null : -this.startQuestionId(),
+        this.stages().stream().map(s -> new ScenarioStageItem(-s.id(), s.position())).toList(),
+        this.questions().stream()
+            .map(
+                q ->
+                    new ScenarioQuestionItem(
+                        -q.id(),
+                        -q.stageId(),
+                        q.branchOrder(),
+                        q.title(),
+                        q.sourceKind(),
+                        q.attributeId(),
+                        q.inputKind(),
+                        q.inputConfig()))
+            .toList(),
+        this.transitions().stream()
+            .map(
+                t ->
+                    new ScenarioTransitionItem(
+                        -t.id(),
+                        -t.fromQuestionId(),
+                        t.priority(),
+                        t.predicate(),
+                        t.targetKind(),
+                        t.targetQuestionId() == null ? null : -t.targetQuestionId()))
+            .toList());
+  }
 }

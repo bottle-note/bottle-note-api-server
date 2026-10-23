@@ -7,6 +7,7 @@ import static app.bottlenote.alcohols.domain.QAlcoholAttributeMapping.alcoholAtt
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
@@ -67,8 +68,8 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
         .fetchJoin()
         .where(predicate(query))
         .orderBy(alcohol.id.asc())
-        .offset((long) query.request().page() * query.request().size())
-        .limit(query.request().size())
+        .offset((long) query.page() * query.size())
+        .limit(query.size())
         .fetch();
   }
 
@@ -128,11 +129,10 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
 
   @Override
   public List<FacetRow> findFacetRows(AlcoholCandidateCriteria query) {
-    var next = query.request().nextQuestion();
+    var next = query.nextQuestion();
     var where = predicate(query);
-    if (next.source()
-        == app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.Source.ATTRIBUTE) {
-      query.request().include().stream()
+    if (next.source() == AlcoholQuestionSource.ATTRIBUTE) {
+      query.include().stream()
           .filter(
               c -> c.attributeId().equals(next.attributeId()) && c.operator().isNumericComparison())
           .forEach(c -> where.and(numericValue(alcoholAttributeMapping, c)));
@@ -190,7 +190,7 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
   }
 
   private BooleanBuilder predicate(AlcoholCandidateCriteria query) {
-    var r = query.request();
+    var r = query;
     var where = new BooleanBuilder(scope(query.groupId()));
     if (r.keyword() != null)
       where.and(
@@ -198,7 +198,6 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
               .korName
               .containsIgnoreCase(r.keyword())
               .or(alcohol.engName.containsIgnoreCase(r.keyword())));
-    if (!r.categoryGroups().isEmpty()) where.and(alcohol.categoryGroup.in(r.categoryGroups()));
     for (var c : r.include()) if (!c.operator().isNumericComparison()) where.and(condition(c));
     var ranges =
         r.include().stream()
@@ -215,24 +214,7 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
       where.and(JPAExpressions.selectOne().from(m).where(range).exists());
     }
     for (var c : r.exclude()) where.and(condition(c).not());
-    if (r.abvFrom() != null || r.abvTo() != null) {
-      var number = abvNumber();
-      where.and(number.between(BigDecimal.ZERO, new BigDecimal("100")));
-      if (r.abvFrom() != null) where.and(number.goe(r.abvFrom()));
-      if (r.abvTo() != null) where.and(number.loe(r.abvTo()));
-    }
-    if (!r.tastingGroupCodes().isEmpty()) {
-      if (query.tastingTagIds().isEmpty()) where.and(alcohol.id.lt(0L));
-      else {
-        var t = new QAlcoholsTastingTags("candidateFilterTag");
-        where.and(
-            JPAExpressions.selectOne()
-                .from(t)
-                .where(t.alcohol.id.eq(alcohol.id), t.tastingTag.id.in(query.tastingTagIds()))
-                .exists());
-      }
-    }
-    for (var filter : query.conjunctiveFilters()) {
+    for (var filter : query.filters()) {
       if (!filter.categories().isEmpty()) where.and(alcohol.categoryGroup.in(filter.categories()));
       if (filter.abvFrom() != null || filter.abvTo() != null) {
         var number = abvNumber();

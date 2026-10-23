@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.service;
 import static app.bottlenote.alcohols.exception.ScenarioException.invalid;
 
 import app.bottlenote.alcohols.constant.*;
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.domain.ScenarioDefinition;
@@ -50,10 +51,10 @@ public class ScenarioDefinitionValidator {
           || q.title().trim().length() > 200
           || q.sourceKind() == null
           || q.inputKind() == null) throw invalid(at + "제목·출처·입력 종류를 확인해 주세요.");
-      if ((q.sourceKind() == Source.ATTRIBUTE) != (q.attributeId() != null))
+      if ((q.sourceKind() == AlcoholQuestionSource.ATTRIBUTE) != (q.attributeId() != null))
         throw invalid(at + "ATTRIBUTE만 attributeId를 사용합니다.");
       AlcoholAttribute attribute = q.attributeId() == null ? null : attributes.get(q.attributeId());
-      if (q.sourceKind() == Source.ATTRIBUTE
+      if (q.sourceKind() == AlcoholQuestionSource.ATTRIBUTE
           && (attribute == null || !Objects.equals(groupId, attribute.getGroupId())))
         throw invalid(at + "현재 그룹의 속성을 참조해야 합니다.");
       validateInput(q, attribute, tastingCodes, publishing);
@@ -123,7 +124,8 @@ public class ScenarioDefinitionValidator {
       }
     } else {
       if (c.choices() != null
-          || (q.sourceKind() != Source.ABV && (a == null || !a.getDatatype().isNumeric())))
+          || (q.sourceKind() != AlcoholQuestionSource.ABV
+              && (a == null || !a.getDatatype().isNumeric())))
         throw invalid(at + "NUMBER_RANGE는 숫자 속성 또는 ABV에만 사용합니다.");
       if (strict && (c.min() == null || c.max() == null || c.step() == null))
         throw invalid(at + "숫자 범위의 min/max/step이 필요합니다.");
@@ -189,7 +191,7 @@ public class ScenarioDefinitionValidator {
   private void numeric(ScenarioQuestionItem q, AlcoholAttribute a, BigDecimal number) {
     String at = "질문 " + q.id() + ": ";
     if (number.precision() > 21 || number.scale() > 6) throw invalid(at + "숫자는 최대 소수 6자리까지 지원합니다.");
-    if (q.sourceKind() == Source.ABV) {
+    if (q.sourceKind() == AlcoholQuestionSource.ABV) {
       if (number.signum() < 0 || number.compareTo(new BigDecimal("100")) > 0)
         throw invalid(at + "ABV는 0~100입니다.");
     } else if (a != null) {

@@ -3,15 +3,15 @@ package app.bottlenote.alcohols.domain;
 import java.util.*;
 
 public interface AlcoholScenarioVersionRepository {
-  Optional<AlcoholAttributeScenarioVersion> findVersion(Long id);
+  Optional<AlcoholAttributeScenarioVersion> findById(Long id);
 
   List<AlcoholAttributeScenarioVersion> findVersions(Long scenarioId);
 
-  AlcoholAttributeScenarioVersion saveVersion(AlcoholAttributeScenarioVersion version);
+  <S extends AlcoholAttributeScenarioVersion> S save(S version);
 
   void claimVersion(AlcoholAttributeScenarioVersion version, long expected);
 
-  void deleteVersion(AlcoholAttributeScenarioVersion version);
+  void delete(AlcoholAttributeScenarioVersion version);
 
   List<AlcoholAttributeScenarioVersion> findDraftsReferencingAttributes(
       Collection<Long> attributeIds);

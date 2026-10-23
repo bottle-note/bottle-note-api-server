@@ -5,9 +5,9 @@ import java.util.*;
 public interface AlcoholScenarioQuestionRepository {
   List<AlcoholAttributeScenarioQuestion> findQuestions(Long versionId);
 
-  AlcoholAttributeScenarioQuestion saveQuestion(AlcoholAttributeScenarioQuestion question);
+  <S extends AlcoholAttributeScenarioQuestion> S save(S question);
 
-  void deleteQuestions(List<AlcoholAttributeScenarioQuestion> questions);
+  void deleteAll(Iterable<? extends AlcoholAttributeScenarioQuestion> questions);
 
   boolean hasPublishedAttributeReferences(Collection<Long> attributeIds);
 

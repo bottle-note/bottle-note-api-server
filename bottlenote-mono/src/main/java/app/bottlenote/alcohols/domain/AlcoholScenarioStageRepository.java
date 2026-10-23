@@ -5,7 +5,7 @@ import java.util.*;
 public interface AlcoholScenarioStageRepository {
   List<AlcoholAttributeScenarioStage> findStages(Long versionId);
 
-  AlcoholAttributeScenarioStage saveStage(AlcoholAttributeScenarioStage stage);
+  <S extends AlcoholAttributeScenarioStage> S save(S stage);
 
-  void deleteStages(List<AlcoholAttributeScenarioStage> stages);
+  void deleteAll(Iterable<? extends AlcoholAttributeScenarioStage> stages);
 }

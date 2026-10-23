@@ -38,7 +38,7 @@ class AlcoholScenarioOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 	fun documentsSchemaOneScalarTypesAndRangeSemantics() {
 		val spec = fetchSpec()
 		val schemas = spec.at("/components/schemas")
-		val definition = schemas["ScenarioDefinitionRequest"]
+		val definition = schemas["ScenarioDefinition"]
 		assertThat(definition["description"].asText()).contains("음수", "기존 ID", "배열 순서")
 		assertThat(definition.at("/properties/questions/maxItems").asInt()).isEqualTo(100)
 		val question = schemas["ScenarioQuestionItem"]
@@ -65,23 +65,21 @@ class AlcoholScenarioOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("요청과 응답 모델을 분리해도 정의와 답변의 JSON 필드 및 타입 계약을 유지한다")
-	fun preservesDefinitionAndAnswerWireTypesAcrossSeparateModels() {
+	@DisplayName("공통 정의와 답변 모델로 요청과 응답의 JSON 필드 및 타입 계약을 유지한다")
+	fun preservesDefinitionAndAnswerWireTypes() {
 		val spec = fetchSpec()
 		val schemas = spec.at("/components/schemas")
-		fun shape(node: com.fasterxml.jackson.databind.JsonNode): Any {
-			val resolved = referencedSchema(spec, node)
-			val result = sortedMapOf<String, Any>()
-			listOf("type", "types", "format", "enum").forEach { key -> resolved[key]?.let { result[key] = it } }
-			resolved["properties"]?.let { fields -> result["properties"] = fields.fields().asSequence().associate { it.key to shape(it.value) } }
-			resolved["items"]?.let { result["items"] = shape(it) }
-			resolved["oneOf"]?.let { result["oneOf"] = it.map { item -> shape(item) } }
-			return result
+		val save = schemas["Save"].at("/properties/definition/\$ref").asText()
+		assertThat(save).endsWith("/ScenarioDefinition")
+		assertThat(propertyNamesOf(schemas["ScenarioDefinition"])).containsExactlyInAnyOrder("definitionSchemaVersion", "startQuestionId", "stages", "questions", "transitions")
+		assertThat(propertyNamesOf(schemas["ScenarioAnswer"])).containsExactlyInAnyOrder("questionId", "kind", "choiceId", "min", "max")
+		listOf("min", "max").forEach { field ->
+			val scalar = schemas["ScenarioAnswer"].at("/properties/$field")
+			val types = scalar["type"] ?: scalar["types"]
+			assertThat(if (types.isArray) types.map { it.asText() } else listOf(types.asText())).contains("number")
 		}
-		assertThat(shape(schemas["ScenarioDefinitionResponse"])).isEqualTo(shape(schemas["ScenarioDefinitionRequest"]))
-		assertThat(shape(schemas["ScenarioAnswerItem"])).isEqualTo(shape(schemas["ScenarioAnswer"]))
 		val version = schemas["ScenarioVersionDetail"].at("/properties/definition/\$ref").asText()
-		assertThat(version).endsWith("/ScenarioDefinitionResponse")
-		assertThat(schemas["ScenarioPreview"].at("/properties/answers/items/\$ref").asText()).endsWith("/ScenarioAnswerItem")
+		assertThat(version).endsWith("/ScenarioDefinition")
+		assertThat(schemas["ScenarioPreview"].at("/properties/answers/items/\$ref").asText()).endsWith("/ScenarioAnswer")
 	}
 }

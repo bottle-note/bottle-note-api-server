@@ -10,6 +10,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class InMemoryAlcoholAttributeGroupRepository implements AlcoholAttributeGroupRepository {
   private final Map<Long, AlcoholAttributeGroup> rows = new LinkedHashMap<>();
   private long sequence;
+  @Override public boolean existsById(Long id) { return rows.containsKey(id); }
   @Override public List<AlcoholAttributeGroup> findAllByOrderByDisplayOrderAscIdAsc() {
     return rows.values().stream().sorted(Comparator.comparingInt(AlcoholAttributeGroup::getDisplayOrder).thenComparing(AlcoholAttributeGroup::getId)).toList();
   }

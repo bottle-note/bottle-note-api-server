@@ -2,15 +2,14 @@ package app.bottlenote.alcohols.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.*;
 import static app.bottlenote.alcohols.exception.ScenarioExceptionCode.*;
-import static app.bottlenote.alcohols.service.ScenarioDefinitionMapper.*;
 
+import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.domain.ScenarioDefinition;
 import app.bottlenote.alcohols.dto.request.AdminScenarioPreviewRequest;
 import app.bottlenote.alcohols.dto.request.AdminScenarioRequest.*;
 import app.bottlenote.alcohols.dto.response.AdminScenarioResponse.*;
-import app.bottlenote.alcohols.dto.response.ScenarioDefinitionResponse;
 import app.bottlenote.alcohols.exception.*;
 import java.util.*;
 import java.util.function.Function;
@@ -25,10 +24,7 @@ import org.springframework.transaction.annotation.*;
 public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioService {
   private final AlcoholScenarioRepository repository;
   private final AlcoholScenarioVersionRepository versions;
-  private final AlcoholScenarioStageRepository stages;
-  private final AlcoholScenarioQuestionRepository questions;
-  private final AlcoholScenarioTransitionRepository transitions;
-  private final ScenarioDefinitionReader definitions;
+  private final ScenarioDefinitionStore definitions;
   private final AlcoholAttributeGroupRepository groupRepository;
   private final AlcoholAttributeRepository attributeRepository;
   private final TastingTagGroupRepository tastingGroupRepository;
@@ -39,7 +35,9 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
   @Transactional(readOnly = true)
   public List<ScenarioItem> findAll(Long groupId) {
     requireGroup(groupId, false);
-    return repository.findScenarios(groupId).stream().map(ScenarioDefinitionMapper::item).toList();
+    return repository.findScenarios(groupId).stream()
+        .map(DefaultAdminAlcoholScenarioService::item)
+        .toList();
   }
 
   @Override
@@ -57,7 +55,7 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
     var scenario =
         repository.saveScenario(
             AlcoholAttributeScenario.create(groupId, request.slot(), request.title()));
-    versions.saveVersion(AlcoholAttributeScenarioVersion.create(scenario.getId(), 1));
+    versions.save(AlcoholAttributeScenarioVersion.create(scenario.getId(), 1));
     return detail(scenario);
   }
 
@@ -76,12 +74,13 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
   public ScenarioVersionDetail createDraft(Long groupId, Long id, Draft request) {
     var s = requireScenario(groupId, id);
     ScenarioDefinition copy = null;
+    Sources copySources = null;
     if (request.sourceVersionId() != null) {
       var source = requireVersion(s, request.sourceVersionId());
       if (source.getStatus() != Status.PUBLISHED)
         throw new ScenarioException(SCENARIO_PUBLISHED_IMMUTABLE, "복제 원본은 게시 버전이어야 합니다.");
-      copy = forClone(definitions.read(source));
-      lockSources(copy);
+      copy = definitions.read(source).forClone();
+      copySources = lockSources(copy);
     }
     repository.claimScenario(s, request.expectedScenarioLockVersion());
     int number =
@@ -90,10 +89,11 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
                 .max()
                 .orElse(0)
             + 1;
-    var v = versions.saveVersion(AlcoholAttributeScenarioVersion.create(id, number));
+    var v = versions.save(AlcoholAttributeScenarioVersion.create(id, number));
     if (copy != null) {
-      validator.validate(copy, groupId, lockSources(copy), tastingCodes(), false);
-      storeGraph(v, copy);
+      validator.validate(
+          copy, groupId, copySources.attributes(), copySources.tastingCodes(), false);
+      definitions.store(v, copy);
     }
     return versionDetail(v);
   }
@@ -110,12 +110,12 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
     var s = requireScenario(groupId, id);
     var v = requireVersion(s, versionId);
     requireDraft(v);
-    var definition = request.definition().toDefinition();
-    var attributes = lockSources(definition);
-    validator.validate(definition, groupId, attributes, tastingCodes(), false);
+    var definition = request.definition();
+    var sources = lockSources(definition);
+    validator.validate(definition, groupId, sources.attributes(), sources.tastingCodes(), false);
     versions.claimVersion(v, request.expectedLockVersion());
     requireDraft(v);
-    storeGraph(v, definition);
+    definitions.store(v, definition);
     return versionDetail(v);
   }
 
@@ -129,11 +129,11 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
       throw new ScenarioException(SCENARIO_CONFLICT);
     // 참조 잠금 순서를 유지하고 초기 revision과 CAS로 읽은 그래프의 일관성을 보장한다.
     var d = definitions.read(v);
-    var attributes = lockSources(d);
+    var sources = lockSources(d);
     repository.claimScenario(s, request.expectedScenarioLockVersion());
     versions.claimVersion(v, request.expectedLockVersion());
     requireDraft(v);
-    validator.validate(d, groupId, attributes, tastingCodes(), true);
+    validator.validate(d, groupId, sources.attributes(), sources.tastingCodes(), true);
     v.publish();
     s.activate(v.getId());
     repository.flush();
@@ -151,7 +151,7 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
     s.activate(null);
     for (var v : versionRows) v.startAt(null);
     repository.flush();
-    repository.deleteScenario(s);
+    repository.delete(s);
     return new ScenarioDeleted(id);
   }
 
@@ -167,7 +167,7 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
     if (Objects.equals(s.getActiveVersionId(), v.getId())) s.activate(null);
     v.startAt(null);
     repository.flush();
-    versions.deleteVersion(v);
+    versions.delete(v);
     return new ScenarioDeleted(versionId);
   }
 
@@ -179,20 +179,12 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
     if (v.getLockVersion() != request.expectedLockVersion())
       throw new ScenarioException(SCENARIO_CONFLICT);
     var d = definitions.read(v);
-    var ids =
-        d.questions().stream()
-            .map(q -> q.attributeId())
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
-    var attributes =
-        attributeRepository.findAllByIdIn(ids).stream()
-            .collect(Collectors.toMap(AlcoholAttribute::getId, Function.identity()));
-    validator.validate(d, groupId, attributes, tastingCodes(), true);
-    return previewService.preview(groupId, d, attributes, tastingCodes(), request.toInput());
+    return previewService.preview(groupId, d, request);
   }
 
-  private Map<Long, AlcoholAttribute> lockSources(ScenarioDefinition d) {
+  private record Sources(Map<Long, AlcoholAttribute> attributes, Set<String> tastingCodes) {}
+
+  private Sources lockSources(ScenarioDefinition d) {
     if (d == null || d.questions() == null) throw ScenarioException.invalid("질문 배열이 필요합니다.");
     var ids =
         d.questions().stream()
@@ -209,43 +201,37 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
             .filter(Objects::nonNull)
             .filter(
                 q ->
-                    q.sourceKind() == Source.TASTING_GROUP
+                    q.sourceKind() == AlcoholQuestionSource.TASTING_GROUP
                         && q.inputConfig() != null
                         && q.inputConfig().choices() != null)
             .flatMap(q -> q.inputConfig().choiceCodes().stream())
             .distinct()
             .sorted()
             .toList();
-    tastingGroupRepository.lockTastingGroups(codes);
-    return attributes.stream()
-        .collect(Collectors.toMap(AlcoholAttribute::getId, Function.identity()));
-  }
-
-  private Set<String> tastingCodes() {
-    return tastingGroupRepository.findAllWithTags().stream()
-        .map(TastingTagGroup::getCode)
-        .collect(Collectors.toSet());
+    var groups = tastingGroupRepository.lockTastingGroups(codes);
+    return new Sources(
+        attributes.stream().collect(Collectors.toMap(AlcoholAttribute::getId, Function.identity())),
+        groups.stream().map(TastingTagGroup::getCode).collect(Collectors.toSet()));
   }
 
   private void requireGroup(Long groupId, boolean lock) {
     boolean exists =
         lock
             ? !groupRepository.lockByIds(List.of(groupId)).isEmpty()
-            : groupRepository.findAllByOrderByDisplayOrderAscIdAsc().stream()
-                .anyMatch(g -> g.getId().equals(groupId));
+            : groupRepository.existsById(groupId);
     if (!exists) throw new AlcoholException(ALCOHOL_ATTRIBUTE_GROUP_NOT_FOUND);
   }
 
   private AlcoholAttributeScenario requireScenario(Long groupId, Long id) {
     return repository
-        .findScenario(id)
+        .findById(id)
         .filter(s -> s.getGroupId().equals(groupId))
         .orElseThrow(() -> new ScenarioException(SCENARIO_NOT_FOUND));
   }
 
   private AlcoholAttributeScenarioVersion requireVersion(AlcoholAttributeScenario s, Long id) {
     return versions
-        .findVersion(id)
+        .findById(id)
         .filter(v -> v.getScenarioId().equals(s.getId()))
         .orElseThrow(() -> new ScenarioException(SCENARIO_NOT_FOUND));
   }
@@ -257,89 +243,40 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
   private ScenarioDetail detail(AlcoholAttributeScenario s) {
     return new ScenarioDetail(
         item(s),
-        versions.findVersions(s.getId()).stream().map(ScenarioDefinitionMapper::item).toList());
+        versions.findVersions(s.getId()).stream()
+            .map(DefaultAdminAlcoholScenarioService::item)
+            .toList());
   }
 
   private ScenarioVersionDetail versionDetail(AlcoholAttributeScenarioVersion v) {
-    return new ScenarioVersionDetail(item(v), ScenarioDefinitionResponse.from(definitions.read(v)));
+    return new ScenarioVersionDetail(item(v), definitions.read(v));
   }
 
-  private static <T> Map<Long, T> byId(List<T> list, Function<T, Long> id) {
-    return list.stream().collect(Collectors.toMap(id, Function.identity()));
+  private static ScenarioItem item(AlcoholAttributeScenario s) {
+    return new ScenarioItem(
+        s.getId(),
+        s.getGroupId(),
+        s.getSlot(),
+        s.getTitle(),
+        s.isEnabled(),
+        s.getActiveVersionId(),
+        s.getLockVersion(),
+        s.getCreateAt(),
+        s.getLastModifyAt(),
+        AlcoholAttributeResponseMapper.toPrincipal(s.getCreatePrincipal()),
+        AlcoholAttributeResponseMapper.toPrincipal(s.getLastModifyPrincipal()));
   }
 
-  private static void requireOwned(Collection<Long> requested, Set<Long> existing, String kind) {
-    for (Long id : requested)
-      if (id > 0 && !existing.contains(id))
-        throw ScenarioException.invalid(kind + " " + id + ": 이 버전이 소유한 ID가 아닙니다.");
-  }
-
-  private void storeGraph(AlcoholAttributeScenarioVersion v, ScenarioDefinition d) {
-    var stageRows = byId(stages.findStages(v.getId()), AlcoholAttributeScenarioStage::getId);
-    var questionRows =
-        byId(questions.findQuestions(v.getId()), AlcoholAttributeScenarioQuestion::getId);
-    var rules =
-        byId(transitions.findTransitions(v.getId()), AlcoholAttributeScenarioTransition::getId);
-    requireOwned(d.stages().stream().map(x -> x.id()).toList(), stageRows.keySet(), "단계");
-    requireOwned(d.questions().stream().map(x -> x.id()).toList(), questionRows.keySet(), "질문");
-    requireOwned(d.transitions().stream().map(x -> x.id()).toList(), rules.keySet(), "규칙");
-    v.startAt(null);
-    int n = 10000;
-    for (var s : stageRows.values()) s.moveTo(n++);
-    for (var q : questionRows.values()) q.moveTo(n++);
-    for (var t : rules.values()) t.moveTo(n++);
-    // 고유 순서를 임시 영역으로 옮긴 뒤 최종 순서와 신규 ID를 적용한다.
-    repository.flush();
-    Map<Long, Long> stageIds = new HashMap<>(), questionIds = new HashMap<>();
-    for (var s : d.stages()) {
-      var entity =
-          s.id() > 0
-              ? stageRows.get(s.id())
-              : AlcoholAttributeScenarioStage.create(v.getId(), s.position());
-      entity.moveTo(s.position());
-      stages.saveStage(entity);
-      stageIds.put(s.id(), entity.getId());
-    }
-    for (var q : d.questions()) {
-      var entity =
-          q.id() > 0
-              ? questionRows.get(q.id())
-              : AlcoholAttributeScenarioQuestion.create(v.getId());
-      entity.configure(
-          stageIds.get(q.stageId()),
-          q.branchOrder(),
-          q.title(),
-          q.sourceKind(),
-          q.attributeId(),
-          q.inputKind(),
-          q.inputConfig());
-      questions.saveQuestion(entity);
-      questionIds.put(q.id(), entity.getId());
-    }
-    var keptRules = d.transitions().stream().map(t -> t.id()).collect(Collectors.toSet());
-    transitions.deleteTransitions(
-        rules.values().stream().filter(t -> !keptRules.contains(t.getId())).toList());
-    for (var t : d.transitions()) {
-      var entity =
-          t.id() > 0 ? rules.get(t.id()) : AlcoholAttributeScenarioTransition.create(v.getId());
-      entity.configure(
-          questionIds.get(t.fromQuestionId()),
-          t.priority(),
-          t.predicate(),
-          t.targetKind(),
-          questionIds.get(t.targetQuestionId()));
-      transitions.saveTransition(entity);
-    }
-    // 자식 CASCADE 전에 유지할 이동 참조와 질문의 단계 이동을 반영한다.
-    repository.flush();
-    var keptQuestions = new HashSet<>(questionIds.values());
-    questions.deleteQuestions(
-        questionRows.values().stream().filter(q -> !keptQuestions.contains(q.getId())).toList());
-    repository.flush();
-    var keptStages = new HashSet<>(stageIds.values());
-    stages.deleteStages(
-        stageRows.values().stream().filter(s -> !keptStages.contains(s.getId())).toList());
-    v.startAt(questionIds.get(d.startQuestionId()));
-    repository.flush();
+  private static ScenarioVersionItem item(AlcoholAttributeScenarioVersion v) {
+    return new ScenarioVersionItem(
+        v.getId(),
+        v.getVersionNo(),
+        v.getStatus(),
+        v.getLockVersion(),
+        v.getPublishedAt(),
+        v.getCreateAt(),
+        v.getLastModifyAt(),
+        AlcoholAttributeResponseMapper.toPrincipal(v.getCreatePrincipal()),
+        AlcoholAttributeResponseMapper.toPrincipal(v.getLastModifyPrincipal()));
   }
 }
