@@ -232,6 +232,26 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
                 .exists());
       }
     }
+    for (var filter : query.conjunctiveFilters()) {
+      if (!filter.categories().isEmpty()) where.and(alcohol.categoryGroup.in(filter.categories()));
+      if (filter.abvFrom() != null || filter.abvTo() != null) {
+        var number = abvNumber();
+        where.and(number.between(BigDecimal.ZERO, new BigDecimal("100")));
+        if (filter.abvFrom() != null) where.and(number.goe(filter.abvFrom()));
+        if (filter.abvTo() != null) where.and(number.loe(filter.abvTo()));
+      }
+      if (filter.requiresTasting()) {
+        var tag = new QAlcoholsTastingTags("scenarioFilterTag");
+        where.and(
+            filter.tastingTagIds().isEmpty()
+                ? alcohol.id.lt(0L)
+                : JPAExpressions.selectOne()
+                    .from(tag)
+                    .where(
+                        tag.alcohol.id.eq(alcohol.id), tag.tastingTag.id.in(filter.tastingTagIds()))
+                    .exists());
+      }
+    }
     return where;
   }
 

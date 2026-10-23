@@ -53,7 +53,11 @@ class DefaultAdminAlcoholAttributeServiceTest {
     attributes = new InMemoryAlcoholAttributeRepository(mappings, alcohols);
     service =
         new DefaultAdminAlcoholAttributeService(
-            attributes, mappings, new InMemoryAlcoholAttributeGroupRepository());
+            attributes,
+            mappings,
+            new InMemoryAlcoholAttributeGroupRepository(),
+            new ScenarioReferenceGuard(
+                new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()));
     searchService =
         new DefaultAdminAlcoholAttributeSearchService(
             attributes,

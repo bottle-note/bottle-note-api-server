@@ -201,6 +201,36 @@ public class DefaultAdminAlcoholAttributeSearchService
   @Transactional(readOnly = true)
   public AdminAlcoholCandidateResponse findCandidates(
       Long groupId, AdminAlcoholCandidateRequest request) {
+    return findCandidates(groupId, request, List.of());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public AdminAlcoholCandidateResponse findScenarioCandidates(
+      Long groupId,
+      List<AdminAlcoholCandidateRequest> contributions,
+      NextQuestion nextQuestion,
+      int page,
+      int size) {
+    var request =
+        new AdminAlcoholCandidateRequest(
+            null,
+            contributions.stream().flatMap(c -> c.include().stream()).toList(),
+            List.of(),
+            List.of(),
+            null,
+            null,
+            List.of(),
+            nextQuestion,
+            page,
+            size);
+    return findCandidates(groupId, request, contributions);
+  }
+
+  private AdminAlcoholCandidateResponse findCandidates(
+      Long groupId,
+      AdminAlcoholCandidateRequest request,
+      List<AdminAlcoholCandidateRequest> contributions) {
     var group =
         candidateRepository
             .findGroup(groupId)
@@ -218,7 +248,25 @@ public class DefaultAdminAlcoholAttributeSearchService
             .map(TastingTagGroupTag::getTastingTagId)
             .distinct()
             .toList();
-    var query = new AlcoholCandidateCriteria(groupId, normalized, tags);
+    var filters =
+        contributions.stream()
+            .map(c -> normalize(c, definitions, groups))
+            .map(
+                c ->
+                    new AlcoholCandidateCriteria.BaseFilterCriteria(
+                        c.categoryGroups(),
+                        c.abvFrom(),
+                        c.abvTo(),
+                        groups.stream()
+                            .filter(g -> c.tastingGroupCodes().contains(g.getCode()))
+                            .flatMap(g -> g.getTags().stream())
+                            .filter(TastingTagGroupTag::isCore)
+                            .map(TastingTagGroupTag::getTastingTagId)
+                            .distinct()
+                            .toList(),
+                        !c.tastingGroupCodes().isEmpty()))
+            .toList();
+    var query = new AlcoholCandidateCriteria(groupId, normalized, tags, filters);
     var page = candidateRepository.findPage(query);
     var ids = page.stream().map(Alcohol::getId).toList();
     var mappings =

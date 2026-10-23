@@ -11,6 +11,13 @@ import org.springframework.data.domain.Page;
 public interface AdminAlcoholAttributeSearchService {
   AdminAlcoholCandidateResponse findCandidates(Long groupId, AdminAlcoholCandidateRequest request);
 
+  AdminAlcoholCandidateResponse findScenarioCandidates(
+      Long groupId,
+      java.util.List<AdminAlcoholCandidateRequest> contributions,
+      AdminAlcoholCandidateRequest.NextQuestion nextQuestion,
+      int page,
+      int size);
+
   AdminAlcoholAttributeFacetsResponse facets(AdminAlcoholCompoundSearchRequest request);
 
   Page<AdminAttributedAlcoholItem> searchAlcohols(AdminAttributedAlcoholSearchRequest request);
