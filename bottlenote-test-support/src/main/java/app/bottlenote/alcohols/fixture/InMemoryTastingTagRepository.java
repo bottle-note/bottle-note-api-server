@@ -105,4 +105,5 @@ public class InMemoryTastingTagRepository implements TastingTagRepository {
     return TastingTagNodeItem.forList(
         tag.getId(), tag.getKorName(), tag.getEngName(), tag.getDescription());
   }
+@Override public void lockTastingTags(java.util.Collection<Long> ids) {}
 }

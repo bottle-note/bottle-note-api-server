@@ -69,4 +69,6 @@ public class InMemoryTastingTagGroupRepository implements TastingTagGroupReposit
   public void delete(TastingTagGroup group) {
     groups.removeIf(existing -> Objects.equals(existing.getId(), group.getId()));
   }
+@Override public List<TastingTagGroup> lockTastingGroups(java.util.Collection<String> codes) { return groups.stream().filter(g->codes.contains(g.getCode())).sorted(Comparator.comparing(TastingTagGroup::getId)).toList(); }
+ @Override public List<String> findTastingGroupCodesByTagId(Long id) { return groups.stream().filter(g->g.getTags().stream().anyMatch(t->t.getTastingTagId().equals(id))).sorted(Comparator.comparing(TastingTagGroup::getId)).map(TastingTagGroup::getCode).toList(); }
 }

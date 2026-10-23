@@ -1,8 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.alcohols.constant.ScenarioTypes.*;
-import app.bottlenote.alcohols.dto.request.AdminScenarioPreviewRequest.ScenarioAnswer;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,7 +34,7 @@ public final class AdminScenarioResponse {
       AdminAuditPrincipalItem lastModifyPrincipal) {}
 
   public record ScenarioVersionDetail(
-      ScenarioVersionItem version, ScenarioDefinitionRequest definition) {}
+      ScenarioVersionItem version, ScenarioDefinitionResponse definition) {}
 
   public record ScenarioDeleted(Long id) {}
 
@@ -47,7 +45,7 @@ public final class AdminScenarioResponse {
       List<Long> path,
       Long nextQuestionId,
       boolean completed,
-      List<ScenarioAnswer> answers,
+      List<ScenarioAnswerItem> answers,
       List<Long> discardedQuestionIds,
       List<ScenarioContribution> contributions,
       Long viewedQuestionId,

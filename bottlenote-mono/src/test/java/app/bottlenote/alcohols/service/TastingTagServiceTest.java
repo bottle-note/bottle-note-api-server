@@ -44,8 +44,10 @@ class TastingTagServiceTest {
             tastingTagRepository,
             alcoholsTastingTagsRepository,
             alcoholQueryRepository,
-            new ScenarioReferenceGuard(
-                new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()));
+            new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()
+                .referenceGuard(
+                    new app.bottlenote.alcohols.fixture.InMemoryTastingTagGroupRepository(),
+                    tastingTagRepository));
 
     tastingTagRepository.save(createTag("바닐라", "vanilla"));
     tastingTagRepository.save(createTag("꿀", "honey"));
@@ -234,8 +236,10 @@ class TastingTagServiceTest {
               tastingTagRepository,
               racingRepo,
               alcoholQueryRepository,
-              new ScenarioReferenceGuard(
-                  new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()));
+              new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()
+                  .referenceGuard(
+                      new app.bottlenote.alcohols.fixture.InMemoryTastingTagGroupRepository(),
+                      tastingTagRepository));
 
       assertThatThrownBy(
               () -> racingService.addAlcoholsToTag(tag.getId(), List.of(alcohol.getId())))

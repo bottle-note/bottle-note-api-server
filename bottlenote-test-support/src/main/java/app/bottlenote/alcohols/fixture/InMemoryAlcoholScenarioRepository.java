@@ -6,22 +6,13 @@ import app.bottlenote.alcohols.exception.*;
 import java.util.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class InMemoryAlcoholScenarioRepository implements AlcoholScenarioRepository {
+public class InMemoryAlcoholScenarioRepository implements AlcoholScenarioRepository,AlcoholScenarioVersionRepository,AlcoholScenarioStageRepository,AlcoholScenarioQuestionRepository,AlcoholScenarioTransitionRepository {
   private final Map<Long,AlcoholAttributeScenario> scenarios=new LinkedHashMap<>();
   private final Map<Long,AlcoholAttributeScenarioVersion> versions=new LinkedHashMap<>();
   private final Map<Long,AlcoholAttributeScenarioStage> stages=new LinkedHashMap<>();
   private final Map<Long,AlcoholAttributeScenarioQuestion> questions=new LinkedHashMap<>();
   private final Map<Long,AlcoholAttributeScenarioTransition> transitions=new LinkedHashMap<>();
   private long sequence;
-  private final TastingTagGroupRepository tastingGroups;
-
-  public InMemoryAlcoholScenarioRepository() {
-    this(new InMemoryTastingTagGroupRepository());
-  }
-
-  public InMemoryAlcoholScenarioRepository(TastingTagGroupRepository tastingGroups) {
-    this.tastingGroups = tastingGroups;
-  }
   private <T> T save(T value,Map<Long,T> rows) {
     Long id=(Long)ReflectionTestUtils.getField(value,"id");
     if(id==null) { id=++sequence;ReflectionTestUtils.setField(value,"id",id); }
@@ -61,13 +52,9 @@ public class InMemoryAlcoholScenarioRepository implements AlcoholScenarioReposit
   @Override public boolean hasScenarios(Long groupId) { return !findScenarios(groupId).isEmpty(); }
   @Override public boolean hasPublishedAttributeReferences(Collection<Long> ids) { return questions.values().stream().anyMatch(q -> ids.contains(q.getAttributeId()) && versions.get(q.getVersionId()).getStatus()==Status.PUBLISHED); }
   @Override public List<AlcoholAttributeScenarioVersion> findDraftsReferencingAttributes(Collection<Long> ids) { return versions.values().stream().filter(v -> v.getStatus()==Status.DRAFT && findQuestions(v.getId()).stream().anyMatch(q -> ids.contains(q.getAttributeId()))).toList(); }
-  @Override public List<TastingTagGroup> lockTastingGroups(Collection<String> codes) {
-    return tastingGroups.findAllWithTags().stream().filter(g -> codes.contains(g.getCode())).toList();
-  }
-  @Override public void lockTastingTags(Collection<Long> ids) {}
-  @Override public List<String> findTastingGroupCodesByTagId(Long id) {
-    return tastingGroups.findAllWithTags().stream().filter(g -> g.getTags().stream().anyMatch(t -> t.getTastingTagId().equals(id))).map(TastingTagGroup::getCode).toList();
-  }
-  @Override public boolean hasPublishedTastingGroupReference(String code) { return questions.values().stream().filter(q -> versions.get(q.getVersionId()).getStatus()==Status.PUBLISHED && q.getSourceKind()==Source.TASTING_GROUP).anyMatch(q -> q.getInputConfig().choices().stream().anyMatch(c -> code.equals(c.value().asText()))); }
+  @Override public boolean hasPublishedTastingGroupReferences(Collection<String> codes) { return questions.values().stream().filter(q -> versions.get(q.getVersionId()).getStatus()==Status.PUBLISHED && q.getSourceKind()==Source.TASTING_GROUP).anyMatch(q -> q.getInputConfig().choices()!=null && q.getInputConfig().choices().stream().anyMatch(c -> c.value()!=null && c.value().isTextual() && codes.contains(c.value().textValue()))); }
   @Override public void flush() {}
+public app.bottlenote.alcohols.service.ScenarioReferenceGuard referenceGuard(TastingTagGroupRepository groups,TastingTagRepository tags) {
+ return new app.bottlenote.alcohols.service.ScenarioReferenceGuard(this,this,this,groups,tags);
+}
 }

@@ -44,4 +44,14 @@ public interface JpaTastingTagGroupRepository
 
   @Override
   boolean existsByNameAndIdNot(String name, Long id);
+
+  @Override
+  @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @Query("select g from tasting_tag_group g where g.code in :codes order by g.id")
+  List<TastingTagGroup> lockTastingGroups(java.util.Collection<String> codes);
+
+  @Override
+  @Query(
+      "select g.code from tasting_tag_group g join g.tags t where t.tastingTagId=:tagId order by g.id")
+  List<String> findTastingGroupCodesByTagId(Long tagId);
 }

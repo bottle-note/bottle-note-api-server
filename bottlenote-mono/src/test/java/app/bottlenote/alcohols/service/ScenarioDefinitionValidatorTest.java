@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import app.bottlenote.alcohols.constant.*;
 import app.bottlenote.alcohols.domain.*;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest.*;
+import app.bottlenote.alcohols.domain.ScenarioDefinition;
+import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
 import app.bottlenote.alcohols.exception.ScenarioException;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.*;
@@ -66,12 +66,10 @@ class ScenarioDefinitionValidatorTest {
   @DisplayName("빈 초안을 저장할 때 허용하고 게시할 때 시작 질문 오류를 반환한다")
   void 빈_초안을_저장하고_게시를_거절할_수_있다() {
     assertThatCode(
-            () ->
-                validator.validate(ScenarioDefinitionRequest.empty(), 1L, attributes, codes, false))
+            () -> validator.validate(ScenarioDefinition.empty(), 1L, attributes, codes, false))
         .doesNotThrowAnyException();
     assertThatThrownBy(
-            () ->
-                validator.validate(ScenarioDefinitionRequest.empty(), 1L, attributes, codes, true))
+            () -> validator.validate(ScenarioDefinition.empty(), 1L, attributes, codes, true))
         .isInstanceOf(ScenarioException.class)
         .hasMessageContaining("시작 질문");
   }
@@ -158,7 +156,7 @@ class ScenarioDefinitionValidatorTest {
       throws Exception {
     ObjectNode json = mapper.valueToTree(sevenStages(10L, 20L));
     edit.accept(json);
-    var definition = mapper.treeToValue(json, ScenarioDefinitionRequest.class);
+    var definition = mapper.treeToValue(json, ScenarioDefinition.class);
     assertThatThrownBy(() -> validator.validate(definition, 1L, attributes, codes, publishing))
         .isInstanceOf(ScenarioException.class)
         .hasMessageContaining("시나리오");
@@ -182,7 +180,7 @@ class ScenarioDefinitionValidatorTest {
   void 숫자_조건의_도달_불가를_거절할_수_있다() {
     var q = number(-11, -1, 1, "범위", ScenarioTypes.Source.ABV, null, 0, 100, 1);
     var d =
-        new ScenarioDefinitionRequest(
+        new ScenarioDefinition(
             1,
             -11L,
             List.of(new ScenarioStageItem(-1L, 1)),

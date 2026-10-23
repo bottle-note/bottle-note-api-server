@@ -54,4 +54,13 @@ public interface JpaTastingTagRepository
 
   @Override
   boolean existsByParentId(Long parentId);
+
+  @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @Query("select t from tasting_tag t where t.id in :ids order by t.id")
+  List<TastingTag> findLockedTastingTags(java.util.Collection<Long> ids);
+
+  @Override
+  default void lockTastingTags(java.util.Collection<Long> ids) {
+    if (!ids.isEmpty()) findLockedTastingTags(ids);
+  }
 }

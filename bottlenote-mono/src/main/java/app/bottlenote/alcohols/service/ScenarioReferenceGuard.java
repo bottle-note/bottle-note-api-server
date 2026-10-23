@@ -12,6 +12,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ScenarioReferenceGuard {
   private final AlcoholScenarioRepository repository;
+  private final AlcoholScenarioVersionRepository versions;
+  private final AlcoholScenarioQuestionRepository questions;
+  private final TastingTagGroupRepository tastingGroups;
+  private final TastingTagRepository tastingTags;
 
   public void requireCompatible(AlcoholAttribute old, AlcoholAttribute candidate, Long groupId) {
     boolean changed =
@@ -34,15 +38,15 @@ public class ScenarioReferenceGuard {
   }
 
   private void requireUnpublished(Collection<Long> ids) {
-    if (repository.hasPublishedAttributeReferences(ids))
+    if (questions.hasPublishedAttributeReferences(ids))
       throw new ScenarioException(SCENARIO_REFERENCE_IN_USE, "속성 ID: " + ids);
   }
 
   private void reviseDrafts(Collection<Long> ids, boolean deleting) {
-    for (var v : repository.findDraftsReferencingAttributes(ids)) {
-      repository.claimVersion(v, v.getLockVersion());
+    for (var v : versions.findDraftsReferencingAttributes(ids)) {
+      versions.claimVersion(v, v.getLockVersion());
       if (deleting
-          && repository.findQuestions(v.getId()).stream()
+          && questions.findQuestions(v.getId()).stream()
               .anyMatch(
                   q ->
                       ids.contains(q.getAttributeId()) && q.getId().equals(v.getStartQuestionId())))
@@ -52,23 +56,22 @@ public class ScenarioReferenceGuard {
   }
 
   public void requireMutableTastingGroup(String code) {
-    repository.lockTastingGroups(List.of(code));
-    if (repository.hasPublishedTastingGroupReference(code))
+    tastingGroups.lockTastingGroups(List.of(code));
+    if (questions.hasPublishedTastingGroupReferences(List.of(code)))
       throw new ScenarioException(SCENARIO_REFERENCE_IN_USE, "맛 그룹 코드: " + code);
   }
 
   public void beforeTastingGroupTagsAddition(String code, Collection<Long> tagIds) {
-    repository.lockTastingTags(tagIds);
+    tastingTags.lockTastingTags(tagIds);
     requireMutableTastingGroup(code);
   }
 
   public void beforeTastingTagDeletion(Long tagId) {
-    repository.lockTastingTags(List.of(tagId));
-    var codes = repository.findTastingGroupCodesByTagId(tagId);
-    repository.lockTastingGroups(codes);
-    for (String code : codes)
-      if (repository.hasPublishedTastingGroupReference(code))
-        throw new ScenarioException(SCENARIO_REFERENCE_IN_USE, "맛 그룹의 태그 ID: " + tagId);
+    tastingTags.lockTastingTags(List.of(tagId));
+    var codes = tastingGroups.findTastingGroupCodesByTagId(tagId);
+    tastingGroups.lockTastingGroups(codes);
+    if (questions.hasPublishedTastingGroupReferences(codes))
+      throw new ScenarioException(SCENARIO_REFERENCE_IN_USE, "맛 그룹의 태그 ID: " + tagId);
   }
 
   public void requireEmptyGroup(Long id) {

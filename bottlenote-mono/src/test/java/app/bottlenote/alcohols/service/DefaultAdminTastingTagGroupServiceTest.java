@@ -52,8 +52,8 @@ class DefaultAdminTastingTagGroupServiceTest {
             groupRepository,
             tastingTagRepository,
             alcoholsTastingTagsRepository,
-            new ScenarioReferenceGuard(
-                new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()));
+            new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()
+                .referenceGuard(groupRepository, tastingTagRepository));
   }
 
   @Test
@@ -264,8 +264,8 @@ class DefaultAdminTastingTagGroupServiceTest {
             new DuplicateOnInsertRepository("uk_tasting_tag_groups_code"),
             tastingTagRepository,
             alcoholsTastingTagsRepository,
-            new ScenarioReferenceGuard(
-                new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()));
+            new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()
+                .referenceGuard(groupRepository, tastingTagRepository));
 
     assertThatThrownBy(() -> service.create(createRequest("PEAT", "피트", null, null, 0)))
         .isInstanceOf(AlcoholException.class)
@@ -281,8 +281,8 @@ class DefaultAdminTastingTagGroupServiceTest {
             new DuplicateOnInsertRepository("uk_tasting_tag_groups_name"),
             tastingTagRepository,
             alcoholsTastingTagsRepository,
-            new ScenarioReferenceGuard(
-                new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()));
+            new app.bottlenote.alcohols.fixture.InMemoryAlcoholScenarioRepository()
+                .referenceGuard(groupRepository, tastingTagRepository));
 
     assertThatThrownBy(() -> service.create(createRequest("PEAT", "피트", null, null, 0)))
         .isInstanceOf(AlcoholException.class)

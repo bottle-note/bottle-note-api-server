@@ -1,8 +1,8 @@
 package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.*;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest;
-import app.bottlenote.alcohols.dto.request.ScenarioDefinitionRequest.*;
+import app.bottlenote.alcohols.domain.ScenarioDefinition;
+import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
 import app.bottlenote.alcohols.dto.response.AdminScenarioResponse.*;
 import java.util.*;
 
@@ -37,47 +37,8 @@ final class ScenarioDefinitionMapper {
         AlcoholAttributeResponseMapper.toPrincipal(v.getLastModifyPrincipal()));
   }
 
-  static ScenarioDefinitionRequest definition(
-      AlcoholAttributeScenarioVersion v, AlcoholScenarioRepository repo) {
-    var stages = repo.findStages(v.getId());
-    Map<Long, Integer> positions = new HashMap<>();
-    stages.forEach(s -> positions.put(s.getId(), s.getPosition()));
-    return new ScenarioDefinitionRequest(
-        v.getDefinitionSchemaVersion(),
-        v.getStartQuestionId(),
-        stages.stream().map(s -> new ScenarioStageItem(s.getId(), s.getPosition())).toList(),
-        repo.findQuestions(v.getId()).stream()
-            .sorted(
-                Comparator.comparing(
-                        (AlcoholAttributeScenarioQuestion q) -> positions.get(q.getStageId()))
-                    .thenComparing(AlcoholAttributeScenarioQuestion::getBranchOrder))
-            .map(
-                q ->
-                    new ScenarioQuestionItem(
-                        q.getId(),
-                        q.getStageId(),
-                        q.getBranchOrder(),
-                        q.getTitle(),
-                        q.getSourceKind(),
-                        q.getAttributeId(),
-                        q.getInputKind(),
-                        q.getInputConfig()))
-            .toList(),
-        repo.findTransitions(v.getId()).stream()
-            .map(
-                t ->
-                    new ScenarioTransitionItem(
-                        t.getId(),
-                        t.getFromQuestionId(),
-                        t.getPriority(),
-                        t.getPredicate(),
-                        t.getTargetKind(),
-                        t.getTargetQuestionId()))
-            .toList());
-  }
-
-  static ScenarioDefinitionRequest forClone(ScenarioDefinitionRequest d) {
-    return new ScenarioDefinitionRequest(
+  static ScenarioDefinition forClone(ScenarioDefinition d) {
+    return new ScenarioDefinition(
         1,
         d.startQuestionId() == null ? null : -d.startQuestionId(),
         d.stages().stream().map(s -> new ScenarioStageItem(-s.id(), s.position())).toList(),
