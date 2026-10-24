@@ -20,6 +20,8 @@ public record ScenarioAnswer(
     throw ScenarioException.invalid("답변에 미지원 필드가 있습니다: " + key);
   }
 
+  public record Selection(ScenarioAnswer answer, boolean minExclusive, String label) {}
+
   public record ScenarioContribution(
       Long questionId,
       AlcoholQuestionSource source,

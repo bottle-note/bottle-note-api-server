@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import app.bottlenote.alcohols.constant.ScenarioTypes.AnswerKind;
 import app.bottlenote.alcohols.domain.ScenarioAnswer;
-import app.bottlenote.alcohols.domain.ScenarioSelection;
+import app.bottlenote.alcohols.domain.ScenarioAnswer.Selection;
 import app.bottlenote.alcohols.exception.ScenarioException;
 import app.bottlenote.global.pagination.CursorProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,8 +17,8 @@ import org.junit.jupiter.api.*;
 class ScenarioOptionCodecTest {
   private final CursorProperties keys = new CursorProperties();
   private final ScenarioOptionCodec codec = new ScenarioOptionCodec(keys, new ObjectMapper());
-  private final ScenarioSelection selection =
-      new ScenarioSelection(
+  private final Selection selection =
+      new Selection(
           new ScenarioAnswer(
               11L, AnswerKind.NUMBER_RANGE, null, new BigDecimal("13000"), new BigDecimal("15000")),
           true,
@@ -28,6 +28,17 @@ class ScenarioOptionCodecTest {
   void setup() {
     keys.setCurrentKeyId("v1");
     keys.setCurrentSecret("unit-test-key-with-sufficient-length");
+  }
+
+  @Test
+  @DisplayName("내부 타입으로 옮긴 뒤에도 기존 형식으로 발급한 선택지를 읽는다")
+  void readsPreviouslyIssuedOption() {
+    String token =
+        "djE.eyJmb3JtYXQiOjEsImNvbnRleHQiOiJhMGJhNmY1NDc2ZWQyODY3MGYxZTkyOTI3N2E5MjMyNGQ0NTVhOTkzNjA0MGQ2OGZi"
+            + "YTk5NWIyMTM3YzZiMDRiIiwic2VsZWN0aW9uIjp7ImFuc3dlciI6eyJxdWVzdGlvbklkIjoxMSwia2luZCI6Ik5VTUJFUl9SQU5H"
+            + "RSIsImNob2ljZUlkIjpudWxsLCJtaW4iOjEzMDAwLCJtYXgiOjE1MDAwfSwibWluRXhjbHVzaXZlIjp0cnVlLCJsYWJlbCI6IjEz"
+            + "MDAw7JuQIOy0iOqzvCB-IDE1MDAw7JuQIOydtO2VmCJ9fQ.nKsE8r_SqGrtqfcb1CzBdNdxJjbnWCsCGai5viRSmGI";
+    assertThat(codec.decode(token, codec.context(1L, 2L, List.of()), 11L)).isEqualTo(selection);
   }
 
   @Test
@@ -77,7 +88,7 @@ class ScenarioOptionCodecTest {
   @DisplayName("소수 표기만 다른 답변은 같은 조건으로 정규화한다")
   void normalizesDecimalScale() {
     var scaled =
-        new ScenarioSelection(
+        new Selection(
             new ScenarioAnswer(
                 11L,
                 AnswerKind.NUMBER_RANGE,
@@ -93,14 +104,12 @@ class ScenarioOptionCodecTest {
   @Test
   @DisplayName("문구만 달라지면 선행 답변 조건은 같은 문맥으로 평가한다")
   void contextUsesPredicatesRatherThanLabels() {
-    var renamed = new ScenarioSelection(selection.answer(), selection.minExclusive(), "다른 문구");
+    var renamed = new Selection(selection.answer(), selection.minExclusive(), "다른 문구");
     assertThat(codec.context(1L, 2L, List.of(selection)))
         .isEqualTo(codec.context(1L, 2L, List.of(renamed)));
     assertThat(codec.context(1L, 2L, List.of(selection)))
         .isNotEqualTo(
             codec.context(
-                1L,
-                2L,
-                List.of(new ScenarioSelection(selection.answer(), false, selection.label()))));
+                1L, 2L, List.of(new Selection(selection.answer(), false, selection.label()))));
   }
 }

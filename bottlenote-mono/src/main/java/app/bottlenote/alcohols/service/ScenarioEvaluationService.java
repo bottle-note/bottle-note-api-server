@@ -8,9 +8,9 @@ import app.bottlenote.alcohols.domain.AlcoholAttribute;
 import app.bottlenote.alcohols.domain.AlcoholCandidateRepository;
 import app.bottlenote.alcohols.domain.ScenarioAnswer;
 import app.bottlenote.alcohols.domain.ScenarioAnswer.ScenarioContribution;
+import app.bottlenote.alcohols.domain.ScenarioAnswer.Selection;
 import app.bottlenote.alcohols.domain.ScenarioDefinition;
 import app.bottlenote.alcohols.domain.ScenarioDefinition.*;
-import app.bottlenote.alcohols.domain.ScenarioSelection;
 import app.bottlenote.alcohols.domain.TastingTagGroup;
 import app.bottlenote.alcohols.domain.TastingTagGroupRepository;
 import app.bottlenote.alcohols.domain.TastingTagGroupTag;
@@ -121,7 +121,7 @@ public class ScenarioEvaluationService {
   }
 
   AlcoholCandidateCriteria withSelection(
-      Evaluation e, ScenarioQuestionItem question, ScenarioSelection selection) {
+      Evaluation e, ScenarioQuestionItem question, Selection selection) {
     List<ScenarioContribution> contributions = new ArrayList<>(e.contributions());
     var codes =
         e.tastingGroups().stream().map(TastingTagGroup::getCode).collect(Collectors.toSet());
