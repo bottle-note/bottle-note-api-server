@@ -7,9 +7,9 @@ import app.bottlenote.alcohols.constant.*;
 import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria.*;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholAttributeConditionRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.*;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholCompoundSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAttributedAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholAttributeFacetsResponse;
@@ -353,13 +353,13 @@ public class DefaultAdminAlcoholAttributeSearchService
         r.size());
   }
 
-  private List<Condition> normalizeConditions(
-      List<Condition> conditions, Map<Long, AlcoholAttribute> definitions) {
+  private List<ConditionCriteria> normalizeConditions(
+      List<ConditionCriteria> conditions, Map<Long, AlcoholAttribute> definitions) {
     return conditions.stream()
         .map(
             c -> {
               var attribute = requireDefinition(c.attributeId(), definitions);
-              return new Condition(
+              return new ConditionCriteria(
                   c.attributeId(),
                   c.operator(),
                   attribute.normalizeSearchValue(c.operator(), c.value()));

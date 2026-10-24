@@ -540,6 +540,23 @@ class DefaultAdminAlcoholAttributeServiceTest {
     }
 
     @Override
+    public List<java.math.BigDecimal> findQuartiles(
+        AlcoholCandidateCriteria query, java.math.BigDecimal min, java.math.BigDecimal max) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<Long> countAlternatives(
+        AlcoholCandidateCriteria base, List<AlcoholCandidateCriteria> alternatives) {
+      throw unexpectedCall();
+    }
+
+    @Override
+    public List<Alcohol> findAfter(AlcoholCandidateCriteria query, Long afterId, int limit) {
+      throw unexpectedCall();
+    }
+
+    @Override
     public List<AlcoholAttributeMapping> findMappings(Long groupId, List<Long> alcoholIds) {
       throw unexpectedCall();
     }
