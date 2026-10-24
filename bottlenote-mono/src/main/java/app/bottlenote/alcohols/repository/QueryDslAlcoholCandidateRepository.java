@@ -11,16 +11,18 @@ import app.bottlenote.alcohols.constant.AlcoholQuestionSource;
 import app.bottlenote.alcohols.constant.AttributeSearchOperator;
 import app.bottlenote.alcohols.domain.*;
 import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria;
-import app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.Condition;
+import app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria.ConditionCriteria;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholCandidateResponse.CandidateGroup;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholCandidateResponse.CandidateTag;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +73,69 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
         .offset((long) query.page() * query.size())
         .limit(query.size())
         .fetch();
+  }
+
+  @Override
+  public List<BigDecimal> findQuartiles(
+      AlcoholCandidateCriteria query, BigDecimal min, BigDecimal max) {
+    var next = query.nextQuestion();
+    var number =
+        next.source() == AlcoholQuestionSource.ABV
+            ? abvNumber()
+            : Expressions.numberTemplate(
+                BigDecimal.class,
+                "cast({0} as BigDecimal(24,6))",
+                alcoholAttributeMapping.attributeValue);
+    var values =
+        factory.select(number).from(alcohol).where(predicate(query), number.between(min, max));
+    if (next.source() == AlcoholQuestionSource.ATTRIBUTE) {
+      values
+          .join(alcoholAttributeMapping)
+          .on(
+              alcoholAttributeMapping.alcoholId.eq(alcohol.id),
+              alcoholAttributeMapping.attributeId.eq(next.attributeId()));
+      query.include().stream()
+          .filter(
+              c -> c.attributeId().equals(next.attributeId()) && c.operator().isNumericComparison())
+          .forEach(c -> values.where(numericValue(alcoholAttributeMapping, c)));
+    }
+    Long count = values.clone().select(number.count()).fetchOne();
+    if (count == null || count == 0) return List.of();
+    List<BigDecimal> cuts = new ArrayList<>();
+    for (int quartile = 1; quartile < 4; quartile++) {
+      cuts.add(
+          values
+              .clone()
+              .orderBy(number.asc())
+              .offset((count * quartile - 1) / 4)
+              .limit(1)
+              .fetchOne());
+    }
+    return List.copyOf(cuts);
+  }
+
+  @Override
+  public List<Long> countAlternatives(
+      AlcoholCandidateCriteria base, List<AlcoholCandidateCriteria> alternatives) {
+    if (alternatives.isEmpty()) return List.of();
+    var counts =
+        alternatives.stream()
+            .map(q -> new CaseBuilder().when(predicate(q)).then(1L).otherwise(0L).sumLong())
+            .toList();
+    var row =
+        factory
+            .select(counts.toArray(Expression<?>[]::new))
+            .from(alcohol)
+            .where(predicate(base))
+            .fetchOne();
+    return counts.stream().map(c -> row == null || row.get(c) == null ? 0L : row.get(c)).toList();
+  }
+
+  @Override
+  public List<Alcohol> findAfter(AlcoholCandidateCriteria query, Long afterId, int limit) {
+    var where = predicate(query);
+    if (afterId != null) where.and(alcohol.id.gt(afterId));
+    return factory.selectFrom(alcohol).where(where).orderBy(alcohol.id.asc()).limit(limit).fetch();
   }
 
   @Override
@@ -202,7 +267,7 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
     var ranges =
         r.include().stream()
             .filter(c -> c.operator().isNumericComparison())
-            .collect(java.util.stream.Collectors.groupingBy(Condition::attributeId));
+            .collect(java.util.stream.Collectors.groupingBy(ConditionCriteria::attributeId));
     for (var conditions : ranges.values()) {
       var m = new QAlcoholAttributeMapping("candidateRangeMapping");
       var range =
@@ -219,7 +284,11 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
       if (filter.abvFrom() != null || filter.abvTo() != null) {
         var number = abvNumber();
         where.and(number.between(BigDecimal.ZERO, new BigDecimal("100")));
-        if (filter.abvFrom() != null) where.and(number.goe(filter.abvFrom()));
+        if (filter.abvFrom() != null)
+          where.and(
+              filter.abvFromExclusive()
+                  ? number.gt(filter.abvFrom())
+                  : number.goe(filter.abvFrom()));
         if (filter.abvTo() != null) where.and(number.loe(filter.abvTo()));
       }
       if (filter.requiresTasting()) {
@@ -245,7 +314,7 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
         "^[0-9]+([.][0-9]+)?[[:space:]]*%?$");
   }
 
-  private BooleanExpression condition(Condition c) {
+  private BooleanExpression condition(ConditionCriteria c) {
     var m = new QAlcoholAttributeMapping("candidateConditionMapping");
     var base =
         JPAExpressions.selectOne()
@@ -276,7 +345,8 @@ public class QueryDslAlcoholCandidateRepository implements AlcoholCandidateRepos
     return base.where(value).exists();
   }
 
-  private BooleanExpression numericValue(QAlcoholAttributeMapping mapping, Condition condition) {
+  private BooleanExpression numericValue(
+      QAlcoholAttributeMapping mapping, ConditionCriteria condition) {
     var n =
         Expressions.numberTemplate(
             BigDecimal.class, "cast({0} as BigDecimal(24,6))", mapping.attributeValue);

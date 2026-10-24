@@ -85,7 +85,7 @@ class ScenarioDtoContractTest {
             () ->
                 mapper.readValue(
                     "{\"source\":" + json + "}",
-                    app.bottlenote.alcohols.dto.request.AdminAlcoholCandidateRequest.NextQuestion
+                    app.bottlenote.alcohols.dto.dsl.AlcoholCandidateCriteria.NextQuestionCriteria
                         .class))
         .isInstanceOf(com.fasterxml.jackson.core.JsonProcessingException.class);
     assertThatThrownBy(
