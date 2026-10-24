@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.service;
 
 import static app.bottlenote.alcohols.exception.ScenarioException.invalid;
 
-import app.bottlenote.alcohols.domain.ScenarioSelection;
+import app.bottlenote.alcohols.domain.ScenarioAnswer.Selection;
 import app.bottlenote.global.pagination.CursorProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +26,7 @@ public class ScenarioOptionCodec {
   private final CursorProperties properties;
   private final ObjectMapper mapper;
 
-  public String context(Long scenarioId, Long versionId, List<ScenarioSelection> prefix) {
+  public String context(Long scenarioId, Long versionId, List<Selection> prefix) {
     // 표기 문구와 서명 키 교체가 선행 답변의 의미를 바꾸지 않는다.
     var values =
         prefix.stream()
@@ -50,7 +50,7 @@ public class ScenarioOptionCodec {
     }
   }
 
-  public String encode(String context, ScenarioSelection selection) {
+  public String encode(String context, Selection selection) {
     String keyId =
         ENCODER.encodeToString(properties.getCurrentKeyId().getBytes(StandardCharsets.UTF_8));
     String body = ENCODER.encodeToString(json(new Payload(1, context, selection)));
@@ -58,7 +58,7 @@ public class ScenarioOptionCodec {
     return input + "." + ENCODER.encodeToString(sign(input, properties.currentSecretBytes()));
   }
 
-  public ScenarioSelection decode(String token, String context, Long questionId) {
+  public Selection decode(String token, String context, Long questionId) {
     if (token == null || token.length() > 2048) throw invalid("선택지를 다시 조회해 주세요.");
     try {
       String[] parts = token.split("\\.", -1);
@@ -105,5 +105,5 @@ public class ScenarioOptionCodec {
     }
   }
 
-  private record Payload(int format, String context, ScenarioSelection selection) {}
+  private record Payload(int format, String context, Selection selection) {}
 }
