@@ -82,23 +82,24 @@ popularity:
       rating: 0.35
       pick: 0.20
       engagement: 0.40
-    # 단위별 각 축을 0~1로 누르는 분모. 실제 분포를 확인하기 전까지 같은 임시값을 쓴다.
+    # 단위별 각 축을 0~1로 누르는 분모. 2026-10-27 운영 분포(주간 조회 최대 146, 별점 19, 찜 5, 참여 94)를 기준으로
+    # 최댓값이 0.5~0.8에 오도록 잡았다. 조회는 기간 합산이라 단위별로 다르고, 나머지 세 축은 누적 상태라 단위와 무관하다.
     reference:
       hour:
         interest: 50
-        rating: 100
-        pick: 200
-        engagement: 300
+        rating: 25
+        pick: 10
+        engagement: 120
       week:
-        interest: 50
-        rating: 100
-        pick: 200
-        engagement: 300
+        interest: 200
+        rating: 25
+        pick: 10
+        engagement: 120
       month:
-        interest: 50
-        rating: 100
-        pick: 200
-        engagement: 300
+        interest: 600
+        rating: 25
+        pick: 10
+        engagement: 120
 
 batch:
   visitor-telemetry:

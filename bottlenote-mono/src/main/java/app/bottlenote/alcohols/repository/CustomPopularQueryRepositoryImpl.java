@@ -35,19 +35,28 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         userId,
         pageable.getPageSize(),
         BucketGranularity.WEEK,
-        alcoholPopularitySnapshot.popularityScore);
+        alcoholPopularitySnapshot.popularityScore,
+        alcoholPopularitySnapshot.interestValue);
   }
 
   @Override
   public List<PopularItem> getPopularByInterestWeekly(Long userId, int limit) {
     return getPopularBySnapshot(
-        userId, limit, BucketGranularity.WEEK, alcoholPopularitySnapshot.interestScore);
+        userId,
+        limit,
+        BucketGranularity.WEEK,
+        alcoholPopularitySnapshot.interestScore,
+        alcoholPopularitySnapshot.interestValue);
   }
 
   @Override
   public List<PopularItem> getPopularByInterestMonthly(Long userId, int limit) {
     return getPopularBySnapshot(
-        userId, limit, BucketGranularity.MONTH, alcoholPopularitySnapshot.interestScore);
+        userId,
+        limit,
+        BucketGranularity.MONTH,
+        alcoholPopularitySnapshot.interestScore,
+        alcoholPopularitySnapshot.interestValue);
   }
 
   @Override
@@ -87,8 +96,17 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
         .fetch();
   }
 
+  /**
+   * 정규화 점수는 분모에 닿으면 만점으로 묶이므로 동점이 생긴다. 동점은 원시값 내림차순으로 풀고, 그래도 같으면 id로 고정한다.
+   *
+   * <p>종합 인기도의 동점은 기간마다 새로 쌓이는 조회수로 푼다. 나머지 축은 누적 상태라 주차가 바뀌어도 순서가 거의 바뀌지 않기 때문이다.
+   */
   private List<PopularItem> getPopularBySnapshot(
-      Long userId, int limit, BucketGranularity granularity, NumberPath<BigDecimal> snapshotScore) {
+      Long userId,
+      int limit,
+      BucketGranularity granularity,
+      NumberPath<BigDecimal> snapshotScore,
+      NumberPath<Long> tieBreakValue) {
     if (limit <= 0) {
       return List.of();
     }
@@ -114,8 +132,9 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
             alcohol.korCategory,
             alcohol.engCategory,
             alcohol.imageUrl,
-            snapshotScore)
-        .orderBy(snapshotScore.desc(), alcohol.id.asc())
+            snapshotScore,
+            tieBreakValue)
+        .orderBy(snapshotScore.desc(), tieBreakValue.desc(), alcohol.id.asc())
         .limit(limit)
         .fetch();
   }

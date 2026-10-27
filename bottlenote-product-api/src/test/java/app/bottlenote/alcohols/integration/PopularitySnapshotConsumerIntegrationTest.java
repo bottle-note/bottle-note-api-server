@@ -86,6 +86,53 @@ class PopularitySnapshotConsumerIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("주간 관심도 순위는 정규화 점수가 같을 때 원시 조회수가 많은 주류를 먼저 반환한다")
+  void weeklyInterest_breaksTiesByRawViewCountBeforeId() {
+    Alcohol lowerIdFewerViews = alcoholTestFactory.persistAlcohol();
+    Alcohol higherIdMoreViews = alcoholTestFactory.persistAlcohol();
+    LocalDateTime bucket = BucketGranularity.WEEK.startAt(LocalDateTime.now());
+    alcoholTestFactory.persistPopularitySnapshot(
+        lowerIdFewerViews.getId(),
+        BucketGranularity.WEEK,
+        bucket,
+        54L,
+        BigDecimal.ONE,
+        BigDecimal.ZERO);
+    alcoholTestFactory.persistPopularitySnapshot(
+        higherIdMoreViews.getId(),
+        BucketGranularity.WEEK,
+        bucket,
+        105L,
+        BigDecimal.ONE,
+        BigDecimal.ZERO);
+
+    List<PopularItem> result = popularQueryRepository.getPopularByInterestWeekly(-1L, 2);
+
+    assertThat(result)
+        .extracting(PopularItem::alcoholId)
+        .containsExactly(higherIdMoreViews.getId(), lowerIdFewerViews.getId());
+  }
+
+  @Test
+  @DisplayName("주간 인기 순위는 종합 점수가 같을 때 원시 조회수가 많은 주류를 먼저 반환한다")
+  void weeklyPopular_breaksTiesByRawViewCountBeforeId() {
+    Alcohol lowerIdFewerViews = alcoholTestFactory.persistAlcohol();
+    Alcohol higherIdMoreViews = alcoholTestFactory.persistAlcohol();
+    LocalDateTime bucket = BucketGranularity.WEEK.startAt(LocalDateTime.now());
+    BigDecimal sameScore = new BigDecimal("0.05");
+    alcoholTestFactory.persistPopularitySnapshot(
+        lowerIdFewerViews.getId(), BucketGranularity.WEEK, bucket, 54L, BigDecimal.ONE, sameScore);
+    alcoholTestFactory.persistPopularitySnapshot(
+        higherIdMoreViews.getId(), BucketGranularity.WEEK, bucket, 105L, BigDecimal.ONE, sameScore);
+
+    List<PopularItem> result = popularQueryRepository.getPopularOfWeeks(-1L, Pageable.ofSize(2));
+
+    assertThat(result)
+        .extracting(PopularItem::alcoholId)
+        .containsExactly(higherIdMoreViews.getId(), lowerIdFewerViews.getId());
+  }
+
+  @Test
   @DisplayName("마이보틀 isHot5는 최신 WEEK Snapshot 상위 5개만 true로 반환한다")
   void myBottle_marksOnlyTopFiveWeeklySnapshotsAsHot() throws Exception {
     User target = userTestFactory.persistUser();
