@@ -505,13 +505,32 @@ public class AlcoholTestFactory {
       @NotNull LocalDateTime bucketAt,
       @NotNull BigDecimal interestScore,
       @NotNull BigDecimal popularityScore) {
+    return persistPopularitySnapshot(
+        alcoholId,
+        granularity,
+        bucketAt,
+        interestScore.movePointRight(4).longValue(),
+        interestScore,
+        popularityScore);
+  }
+
+  /** 정규화 점수가 같아도 원시 조회수가 다른 경우를 만들 때 쓴다. */
+  @Transactional
+  @NotNull
+  public AlcoholPopularitySnapshot persistPopularitySnapshot(
+      @NotNull Long alcoholId,
+      @NotNull BucketGranularity granularity,
+      @NotNull LocalDateTime bucketAt,
+      long interestValue,
+      @NotNull BigDecimal interestScore,
+      @NotNull BigDecimal popularityScore) {
     AlcoholPopularitySnapshot snapshot =
         AlcoholPopularitySnapshot.builder()
             .alcoholId(alcoholId)
             .bucketGranularity(granularity)
             .bucketAt(bucketAt)
             .observedAt(bucketAt.plusHours(1))
-            .interestValue(interestScore.movePointRight(4).longValue())
+            .interestValue(interestValue)
             .interestSourceBucketAt(bucketAt)
             .interestScore(interestScore)
             .ratingValue(0L)
