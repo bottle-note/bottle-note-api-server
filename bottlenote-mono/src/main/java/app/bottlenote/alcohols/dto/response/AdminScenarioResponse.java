@@ -13,6 +13,7 @@ public final class AdminScenarioResponse {
       Long id,
       Long groupId,
       int slot,
+      String code,
       String title,
       boolean enabled,
       Long activeVersionId,

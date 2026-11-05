@@ -159,6 +159,33 @@ class ScenarioControllerIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("공개 목록은 게시된 시나리오만 보여 주고 기존 미할당 코드를 보존한다")
+  void listsOnlyActivePublishedScenarios() throws Exception {
+    var path = "/api/v1/scenarios";
+    var legacy = data(mockMvcTester.get().uri(path).exchange());
+    assertThat(legacy.isArray()).isTrue();
+    assertThat(legacy.size()).isEqualTo(1);
+    assertThat(legacy.get(0).get("scenarioId").asLong()).isEqualTo(scenarioId);
+    assertThat(legacy.get(0).get("code").isNull()).isTrue();
+    jdbc.update(
+        "UPDATE alcohol_attribute_scenarios SET code='bartender-note' WHERE id=?", scenarioId);
+    var assigned = data(mockMvcTester.get().uri(path).exchange());
+    assertThat(assigned.get(0).get("code").asText()).isEqualTo("bartender-note");
+    assertThat(assigned.get(0).get("title").asText()).isEqualTo("추천");
+    jdbc.update("UPDATE alcohol_attribute_scenarios SET is_enabled=false WHERE id=?", scenarioId);
+    assertThat(data(mockMvcTester.get().uri(path).exchange()).isEmpty()).isTrue();
+    jdbc.update("UPDATE alcohol_attribute_scenarios SET is_enabled=true WHERE id=?", scenarioId);
+    jdbc.update(
+        "UPDATE alcohol_attribute_scenario_versions SET status='DRAFT' WHERE id=?", versionId);
+    assertThat(data(mockMvcTester.get().uri(path).exchange()).isEmpty()).isTrue();
+    jdbc.update(
+        "UPDATE alcohol_attribute_scenario_versions SET status='PUBLISHED' WHERE id=?", versionId);
+    jdbc.update(
+        "UPDATE alcohol_attribute_scenarios SET active_version_id=NULL WHERE id=?", scenarioId);
+    assertThat(data(mockMvcTester.get().uri(path).exchange()).isEmpty()).isTrue();
+  }
+
+  @Test
   @DisplayName("숫자 구간을 선택할 때 소수 후보가 경계 사이에서 빠지거나 겹치지 않는다")
   void numericIntervalsPartitionCandidates() throws Exception {
     var question = start().get("question");

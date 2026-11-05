@@ -20,7 +20,7 @@ object AdminAlcoholScenarioApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "빈 시나리오를 생성한다", description = "slot은 1~3이며 그룹에서 고유합니다. 중복·동시 슬롯 생성 충돌은 409입니다. 빈 DRAFT 버전 1을 함께 만들며 샘플 질문을 주입하지 않습니다.")
+	@Operation(summary = "빈 시나리오를 생성한다", description = "slot은 1~3이며 그룹에서 고유합니다. code는 선택 입력으로, 지정하면 전체 시나리오에서 고유하며 1~64자입니다. 중복 코드·슬롯은 409입니다. 빈 DRAFT 버전 1을 함께 만듭니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = ScenarioDetail::class))])
 	annotation class Create
 
@@ -32,7 +32,7 @@ object AdminAlcoholScenarioApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "시나리오 이름과 활성 여부를 변경한다", description = "expectedLockVersion으로 시나리오 전체 변경을 비교하며 오래된 요청은 409입니다. enabled=false여도 게시 이력과 슬롯을 유지합니다.")
+	@Operation(summary = "시나리오 이름과 활성 여부를 변경한다", description = "code를 생략하면 유지하고 미지정 시나리오에만 최초 지정할 수 있습니다. 지정한 코드는 변경할 수 없고 중복·오래된 revision은 409입니다. enabled=false여도 게시 이력과 슬롯을 유지합니다.")
 	@ApiResponse(responseCode = "200", description = "처리 결과", content = [Content(schema = Schema(implementation = ScenarioItem::class))])
 	annotation class Update
 

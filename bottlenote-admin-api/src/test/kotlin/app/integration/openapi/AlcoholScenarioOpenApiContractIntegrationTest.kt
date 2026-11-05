@@ -27,6 +27,10 @@ class AlcoholScenarioOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 			assertThat(op.summary()).isNotBlank()
 		}
 		assertThat(operationsOf(spec).none { it.path.contains("scenario-runs") }).isTrue()
+		val create = referencedSchema(spec, operation(spec, "POST $root").definition.at("/requestBody/content/application~1json/schema"))
+		assertThat(propertyNamesOf(create)).containsExactlyInAnyOrder("title", "slot", "code")
+		val update = referencedSchema(spec, operation(spec, "PUT $root/{scenarioId}").definition.at("/requestBody/content/application~1json/schema"))
+		assertThat(propertyNamesOf(update)).containsExactlyInAnyOrder("expectedLockVersion", "title", "enabled", "code")
 		val request = referencedSchema(spec, operation(spec, "PUT $root/{scenarioId}/versions/{versionId}").definition.at("/requestBody/content/application~1json/schema"))
 		assertThat(propertyNamesOf(request)).containsExactlyInAnyOrder("expectedLockVersion", "definition")
 		val publish = referencedSchema(spec, operation(spec, "POST $root/{scenarioId}/versions/{versionId}/publish").definition.at("/requestBody/content/application~1json/schema"))

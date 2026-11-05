@@ -20,6 +20,9 @@ public class AlcoholAttributeScenario extends BaseEntity {
   @Column(nullable = false, columnDefinition = "tinyint")
   private int slot;
 
+  @Column(length = 64)
+  private String code;
+
   @Column(nullable = false, length = 100)
   private String title;
 
@@ -48,6 +51,16 @@ public class AlcoholAttributeScenario extends BaseEntity {
     requireTitle(title);
     this.title = title.trim();
     this.enabled = enabled;
+  }
+
+  public void assignCode(String value) {
+    if (value == null) return;
+    if (value.isEmpty() || value.codePointCount(0, value.length()) > 64)
+      throw app.bottlenote.alcohols.exception.ScenarioException.invalid("코드는 1~64자여야 합니다.");
+    if (code != null && !code.equals(value))
+      throw new app.bottlenote.alcohols.exception.ScenarioException(
+          app.bottlenote.alcohols.exception.ScenarioExceptionCode.SCENARIO_CONFLICT);
+    code = value;
   }
 
   public void activate(Long versionId) {

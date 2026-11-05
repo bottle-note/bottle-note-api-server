@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.controller.docs;
 
 import app.bottlenote.alcohols.dto.response.ScenarioEvaluationResponse;
+import app.bottlenote.alcohols.dto.response.ScenarioListItem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +15,22 @@ public final class ScenarioApiDocs {
   @Retention(RetentionPolicy.RUNTIME)
   @Tag(name = "사용자 시나리오")
   public @interface ApiTag {}
+
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Operation(
+      summary = "활성 게시 시나리오 목록을 조회한다",
+      description =
+          "로그인이나 groupId 없이 조회합니다. scenarioId, code, title을 ID 순서로 반환하며 빈 목록은 []입니다. 기존 시나리오의 코드를 아직 지정하지 않았다면 code는 null입니다.",
+      responses =
+          @ApiResponse(
+              responseCode = "200",
+              description = "공개 시나리오 목록",
+              content =
+                  @Content(
+                      array =
+                          @ArraySchema(schema = @Schema(implementation = ScenarioListItem.class)))))
+  public @interface FindAll {}
 
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)

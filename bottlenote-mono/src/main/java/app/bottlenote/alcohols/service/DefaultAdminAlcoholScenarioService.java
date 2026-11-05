@@ -52,9 +52,9 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
     requireGroup(groupId, true);
     if (repository.findScenarios(groupId).stream().anyMatch(s -> s.getSlot() == request.slot()))
       throw new ScenarioException(SCENARIO_SLOT_OCCUPIED);
-    var scenario =
-        repository.saveScenario(
-            AlcoholAttributeScenario.create(groupId, request.slot(), request.title()));
+    var scenario = AlcoholAttributeScenario.create(groupId, request.slot(), request.title());
+    scenario.assignCode(request.code());
+    repository.saveScenario(scenario);
     versions.save(AlcoholAttributeScenarioVersion.create(scenario.getId(), 1));
     return detail(scenario);
   }
@@ -65,7 +65,8 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
     var s = requireScenario(groupId, id);
     repository.claimScenario(s, request.expectedLockVersion());
     s.update(request.title(), request.enabled());
-    repository.flush();
+    s.assignCode(request.code());
+    repository.saveScenario(s);
     return item(s);
   }
 
@@ -257,6 +258,7 @@ public class DefaultAdminAlcoholScenarioService implements AdminAlcoholScenarioS
         s.getId(),
         s.getGroupId(),
         s.getSlot(),
+        s.getCode(),
         s.getTitle(),
         s.isEnabled(),
         s.getActiveVersionId(),

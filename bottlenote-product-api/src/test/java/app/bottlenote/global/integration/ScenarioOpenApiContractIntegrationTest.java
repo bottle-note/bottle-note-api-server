@@ -46,4 +46,18 @@ class ScenarioOpenApiContractIntegrationTest extends OpenApiSpecTestSupport {
     assertThat(propertyNamesOf(request))
         .contains("versionId", "answers", "mode", "viewQuestionId", "cursor", "size");
   }
+
+  @Test
+  @DisplayName("공개 시나리오 목록은 식별자와 제목만 문서화한다")
+  void documentsPublicScenarioList() {
+    var spec = fetchSpec();
+    var operation =
+        operationsOf(spec).stream()
+            .filter(o -> o.endpoint().equals("GET /api/v1/scenarios"))
+            .findFirst()
+            .orElseThrow();
+    var data = resolve(spec, operation.successSchema().at("/properties/data"));
+    var item = resolve(spec, data.at("/items"));
+    assertThat(propertyNamesOf(item)).containsExactlyInAnyOrder("scenarioId", "code", "title");
+  }
 }
