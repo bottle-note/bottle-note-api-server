@@ -10,6 +10,7 @@ import app.bottlenote.alcohols.dto.request.ScenarioEvaluateRequest;
 import app.bottlenote.alcohols.dto.request.ScenarioEvaluateRequest.Mode;
 import app.bottlenote.alcohols.dto.response.ScenarioEvaluationResponse;
 import app.bottlenote.alcohols.dto.response.ScenarioEvaluationResponse.*;
+import app.bottlenote.alcohols.dto.response.ScenarioListItem;
 import app.bottlenote.alcohols.exception.ScenarioException;
 import app.bottlenote.alcohols.service.ScenarioEvaluationService.*;
 import app.bottlenote.global.pagination.*;
@@ -31,6 +32,14 @@ public class DefaultScenarioService implements ScenarioService {
   private final AlcoholCandidateRepository candidates;
   private final ScenarioOptionCodec optionCodec;
   private final HmacCursorCodec cursors;
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ScenarioListItem> findAll() {
+    return scenarios.findPublishedScenarios(Status.PUBLISHED).stream()
+        .map(s -> new ScenarioListItem(s.getId(), s.getCode(), s.getTitle()))
+        .toList();
+  }
 
   @Override
   @Transactional(readOnly = true)

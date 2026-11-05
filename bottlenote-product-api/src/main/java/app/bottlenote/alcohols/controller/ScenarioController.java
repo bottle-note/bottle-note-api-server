@@ -23,6 +23,12 @@ import org.springframework.web.bind.annotation.*;
 public class ScenarioController {
   private final ScenarioService service;
 
+  @GetMapping
+  @ScenarioApiDocs.FindAll
+  public ResponseEntity<GlobalResponse> findAll() {
+    return GlobalResponse.ok(service.findAll());
+  }
+
   @GetMapping("/{scenarioId}")
   @ScenarioApiDocs.Get
   public ResponseEntity<GlobalResponse> get(@PathVariable @Positive Long scenarioId) {

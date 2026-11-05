@@ -93,6 +93,25 @@ class AdminAlcoholScenarioIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
+	@DisplayName("기존 시나리오에 코드를 한 번 지정하고 중복·변경·길이 초과를 거절한다")
+	fun assignsScenarioCodeOnceAndRejectsDuplicates() {
+		val token = seed()
+		val old = create(token)
+		assertThat(old.at("/scenario/code").isNull).isTrue()
+		val url = scenarioUrl(old)
+		val assigned = data(putAs(token, url, mapOf("expectedLockVersion" to 0, "title" to "추천 시나리오", "enabled" to true, "code" to "bartender-note")))
+		assertThat(assigned["code"].asText()).isEqualTo("bartender-note")
+		assertThat(data(getAs(token, base))[0]["code"].asText()).isEqualTo("bartender-note")
+		val another = data(postAs(token, base, mapOf("slot" to 2, "title" to "다른 추천", "code" to "another")))
+		assertThat(another.at("/scenario/code").asText()).isEqualTo("another")
+		assertThat(postAs(token, base, mapOf("slot" to 3, "title" to "중복", "code" to "bartender-note"))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(putAs(token, url, mapOf("expectedLockVersion" to 1, "title" to "추천 시나리오", "enabled" to true, "code" to "another"))).hasStatus(HttpStatus.CONFLICT)
+		assertThat(putAs(token, url, mapOf("expectedLockVersion" to 1, "title" to "추천 시나리오", "enabled" to true, "code" to ""))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(postAs(token, base, mapOf("slot" to 3, "title" to "초과", "code" to "a".repeat(65)))).hasStatus(HttpStatus.BAD_REQUEST)
+		assertThat(data(getAs(token, url)).at("/scenario/code").asText()).isEqualTo("bartender-note")
+	}
+
+	@Test
 	@DisplayName("같은 속성을 다시 쓰고 스킵할 때 질문별 조건을 보존하고 교집합으로 검색한다")
 	fun branchesSkipAndRepeatedPriceConditionsIntersect() {
 		val token = seed()
