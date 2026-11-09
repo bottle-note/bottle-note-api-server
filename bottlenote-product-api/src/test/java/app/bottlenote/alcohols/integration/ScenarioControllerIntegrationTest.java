@@ -243,6 +243,9 @@ class ScenarioControllerIntegrationTest extends IntegrationTestSupport {
     var result = data(evaluate(List.of(a, answer(q, 1)), Map.of()));
     assertThat(result.get("state").asText()).isEqualTo("SCENARIO_END");
     assertThat(result.get("candidateCount").asLong()).isEqualTo(4);
+    for (var candidate : result.at("/candidates/content")) {
+      assertThat(candidate.get("alcoholsTastingTags").isArray()).isTrue();
+    }
     assertThat(data(evaluate(List.of(a), Map.of("mode", "RESULT"))).get("state").asText())
         .isEqualTo("USER_FINISHED");
   }
@@ -333,6 +336,32 @@ class ScenarioControllerIntegrationTest extends IntegrationTestSupport {
         .assertThat()
         .hasStatus(HttpStatus.BAD_REQUEST);
     evaluate(List.of(), Map.of("cursor", cursor)).assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  @DisplayName("첫 추천과 추가 페이지에 술별 테이스팅 태그를 순서대로 반환하고 없는 술은 빈 목록이다")
+  void resultPagesIncludeAlcoholTastingTags() throws Exception {
+    jdbc.update("INSERT INTO tasting_tags(id,kor_name,eng_name) VALUES(970002,'달콤','Sweet')");
+    jdbc.update(
+        "INSERT INTO alcohols_tasting_tags(alcohol_id,tasting_tag_id) VALUES(980002,970002),(980004,970002)");
+
+    var first = data(evaluate(List.of(), Map.of("mode", "RESULT", "size", 3)));
+    assertThat(first.get("candidateCount").asLong()).isEqualTo(8);
+    assertThat(first.at("/candidates/content/0/alcoholId").asLong()).isEqualTo(980001);
+    assertThat(first.at("/candidates/content/0/alcoholsTastingTags").toString()).isEqualTo("[]");
+    assertThat(first.at("/candidates/content/1/alcoholId").asLong()).isEqualTo(980002);
+    assertThat(first.at("/candidates/content/1/alcoholsTastingTags").toString())
+        .isEqualTo("[\"피트\",\"달콤\"]");
+    assertThat(first.at("/candidates/content/2/alcoholsTastingTags").toString()).isEqualTo("[]");
+
+    String cursor = first.at("/candidates/pagination/nextCursor").asText();
+    var second = data(evaluate(List.of(), Map.of("mode", "RESULT", "size", 3, "cursor", cursor)));
+    assertThat(second.at("/candidates/content/0/alcoholId").asLong()).isEqualTo(980004);
+    assertThat(second.at("/candidates/content/0/alcoholsTastingTags").toString())
+        .isEqualTo("[\"피트\",\"달콤\"]");
+    assertThat(second.at("/candidates/content/1/alcoholsTastingTags").toString()).isEqualTo("[]");
+    assertThat(second.at("/candidates/content/2/alcoholsTastingTags").toString())
+        .isEqualTo("[\"피트\"]");
   }
 
   @Test
