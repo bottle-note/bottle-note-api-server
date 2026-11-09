@@ -36,7 +36,7 @@ public final class ScenarioApiDocs {
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
       summary = "게시된 시나리오와 첫 질문을 조회한다",
-      description = "활성 게시본만 제공합니다. 후보는 매 요청 현재 데이터로 계산합니다. 로그인 없이 사용할 수 있으며 참여 이벤트는 기록하지 않습니다.",
+      description = "활성 게시본만 제공합니다. 후보는 매 요청 현재 데이터로 계산합니다. 추천 후보의 alcoholsTastingTags는 테이스팅 태그 한글명 배열이며 없으면 []입니다. 로그인 없이 사용할 수 있으며 참여 이벤트는 기록하지 않습니다.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -63,6 +63,7 @@ public final class ScenarioApiDocs {
       optionId는 서버가 발급한 값을 그대로 보관합니다. 분포가 바뀌어도 숫자 구간 의미는 유지하며 후보만 다시 계산합니다.
       답변이나 결과를 서버에 저장하지 않고 캠페인 참여 이벤트도 기록하지 않습니다.
       결과는 alcoholId 오름차순 keyset이며 candidates.pagination.nextCursor로 다음 페이지를 요청합니다.
+      모든 결과 페이지의 추천 후보는 alcoholsTastingTags에 테이스팅 태그 한글명 배열을 포함하며, 없으면 []입니다.
       페이징 중 관리 데이터가 변경되면 현재 수와 목록이 달라질 수 있습니다. 커서는 1시간 후 만료됩니다.
       버전 충돌은 재조회하고, 선택지 검증 실패 또는 서명 키 폐기는 해당 질문부터 다시 선택해야 합니다.
       """,
