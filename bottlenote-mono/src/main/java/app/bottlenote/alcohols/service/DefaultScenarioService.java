@@ -166,6 +166,12 @@ public class DefaultScenarioService implements ScenarioService {
             candidates.findAfter(e.query(), after, r.size() + 1),
             r.size(),
             alcohol -> cursors.encode(context, Map.of("id", alcohol.getId().toString())));
+    Map<Long, List<String>> tagsByAlcohol =
+        candidates.findTags(slice.items().stream().map(Alcohol::getId).toList()).stream()
+            .collect(
+                Collectors.groupingBy(
+                    AlcoholCandidateRepository.TagRow::alcoholId,
+                    Collectors.mapping(row -> row.tag().korName(), Collectors.toList())));
     return KeysetPageResponse.of(
         slice.items().stream()
             .map(
@@ -176,7 +182,8 @@ public class DefaultScenarioService implements ScenarioService {
                         a.getEngName(),
                         a.getImageUrl(),
                         a.getKorCategory(),
-                        a.getAbv()))
+                        a.getAbv(),
+                        tagsByAlcohol.getOrDefault(a.getId(), List.of())))
             .toList(),
         slice.pagination());
   }

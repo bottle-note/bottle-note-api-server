@@ -35,6 +35,12 @@ class ScenarioOpenApiContractIntegrationTest extends OpenApiSpecTestSupport {
           .contains("optionId", "label", "candidateCount", "selectable", "minExclusive");
       var answer = resolve(spec, data.at("/properties/answers/items"));
       assertThat(propertyNamesOf(answer)).contains("questionId", "optionId", "label", "applied");
+      var candidates = resolve(spec, data.at("/properties/candidates"));
+      var item = resolve(spec, candidates.at("/properties/content/items"));
+      var tags = resolve(spec, item.at("/properties/alcoholsTastingTags"));
+      assertThat(propertyNamesOf(item)).contains("alcoholId", "alcoholsTastingTags");
+      assertThat(tags.path("type").asText()).isEqualTo("array");
+      assertThat(resolve(spec, tags.at("/items")).path("type").asText()).isEqualTo("string");
     }
     var request =
         resolve(

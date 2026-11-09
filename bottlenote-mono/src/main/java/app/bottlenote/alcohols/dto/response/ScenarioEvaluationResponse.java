@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.alcohols.constant.ScenarioTypes.AnswerKind;
 import app.bottlenote.global.pagination.KeysetPageResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -43,5 +44,7 @@ public record ScenarioEvaluationResponse(
       String engName,
       String imageUrl,
       String korCategory,
-      String abv) {}
+      String abv,
+      @Schema(description = "술에 연결된 테이스팅 태그의 한글 이름 목록. 없으면 빈 배열")
+          List<String> alcoholsTastingTags) {}
 }
