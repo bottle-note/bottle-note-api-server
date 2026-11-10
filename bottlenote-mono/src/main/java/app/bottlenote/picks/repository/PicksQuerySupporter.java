@@ -26,7 +26,11 @@ public class PicksQuerySupporter {
     return ExpressionUtils.as(
         select(picks.count())
             .from(picks)
-            .where(picks.userId.eq(userId).and(picks.status.eq(PicksStatus.PICK))),
+            .where(
+                picks.userId.eq(userId),
+                picks.status.eq(PicksStatus.PICK),
+                picks.alcoholId.notIn(
+                    select(alcohol.id).from(alcohol).where(alcohol.deletedAt.isNotNull()))),
         "picksCount");
   }
 

@@ -134,6 +134,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .and(review.userId.eq(userId))
                     .and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
             .where(
+                alcohol.deletedAt.isNull(),
                 userQuerySupporter.eqName(request.keyword()),
                 userQuerySupporter.eqRegion(request.regionId()),
                 request.sortType() == MyBottleSortType.LATEST
@@ -257,6 +258,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .and(rating.id.userId.eq(userId))
                     .and(rating.ratingPoint.rating.gt(0.0)))
             .where(
+                alcohol.deletedAt.isNull(),
                 userQuerySupporter.eqName(request.keyword()),
                 userQuerySupporter.eqRegion(request.regionId()),
                 request.sortType() == MyBottleSortType.LATEST
@@ -333,6 +335,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .and(picks.userId.eq(targetUserId))
                     .and(picks.status.eq(PicksStatus.PICK)))
             .where(
+                alcohol.deletedAt.isNull(),
                 userQuerySupporter.eqName(request.keyword()),
                 userQuerySupporter.eqRegion(request.regionId()),
                 request.sortType() == MyBottleSortType.LATEST

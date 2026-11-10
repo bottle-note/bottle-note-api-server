@@ -51,6 +51,7 @@ public interface JpaAlcoholsViewHistoryRepository
       FROM alcohols_view_history a
       JOIN alcohol al ON al.id = a.id.alcoholId
       WHERE a.id.userId = :userId
+        AND al.deletedAt IS NULL
         AND (:cursorViewAt IS NULL
              OR a.viewAt < :cursorViewAt
              OR (a.viewAt = :cursorViewAt AND a.id.alcoholId < :cursorAlcoholId))
