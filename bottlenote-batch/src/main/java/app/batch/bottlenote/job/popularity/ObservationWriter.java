@@ -50,13 +50,24 @@ public class ObservationWriter {
             bucketAt));
   }
 
+  /**
+   * 첫 컬럼이 alcohol_id인 관측·스냅샷 행을 적재한다.
+   *
+   * <p>병합으로 삭제된 주류를 가리키는 행이 하나라도 있으면 FK 위반으로 축 전체가 실패하므로, 없는 주류의 행은 건너뛴다.
+   */
   public void batchInsert(String sql, List<Object[]> rows) {
     if (rows.isEmpty()) {
       return;
     }
-    for (int from = 0; from < rows.size(); from += BATCH_SIZE) {
-      int to = Math.min(from + BATCH_SIZE, rows.size());
-      jdbcTemplate.batchUpdate(sql, rows.subList(from, to));
+    Set<Long> alcoholIds =
+        new HashSet<>(jdbcTemplate.queryForList("SELECT id FROM alcohols", Long.class));
+    List<Object[]> insertable = rows.stream().filter(row -> alcoholIds.contains(row[0])).toList();
+    if (insertable.size() < rows.size()) {
+      log.warn("존재하지 않는 주류의 행을 건너뜁니다. 건너뜀={}행", rows.size() - insertable.size());
+    }
+    for (int from = 0; from < insertable.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, insertable.size());
+      jdbcTemplate.batchUpdate(sql, insertable.subList(from, to));
     }
   }
 
