@@ -112,6 +112,18 @@ class ObservationTaskletSqlTest {
     }
 
     @Test
+    @DisplayName("삭제된 주류의 조회수가 남아 있을 때 그 행만 건너뛰고 나머지를 저장한다")
+    void skipsCountsOfMissingAlcohol() throws Exception {
+      alcoholViewCounter.put(BUCKET, Map.of(1L, 2L, 99L, 5L));
+
+      run(interestTasklet(), BUCKET);
+
+      List<Map<String, Object>> rows = rowsOf("alcohol_interest_observations");
+      assertThat(rows).hasSize(1);
+      assertThat(rows.get(0).get("alcohol_id")).isEqualTo(1L);
+    }
+
+    @Test
     @DisplayName("조회가 없는 주류는 행을 남기지 않는다")
     void writesNothingForUnviewedAlcohol() throws Exception {
       run(interestTasklet(), BUCKET);
