@@ -18,14 +18,15 @@ public class JdbcRatingAlcoholReferenceMerger implements AlcoholReferenceMerger 
   public List<AlcoholMergeCount> merge(Long sourceAlcoholId, Long targetAlcoholId) {
     Map<String, Object> params = Map.of("source", sourceAlcoholId, "target", targetAlcoholId);
     // 기준 쪽의 지워진 별점(0점)은 중복 쪽 실제 별점에 자리를 내준다
-    jdbcTemplate.update(
-        """
-        DELETE t FROM ratings t
-        JOIN ratings s ON s.user_id = t.user_id AND s.alcohol_id = :source AND s.rating > 0
-        WHERE t.alcohol_id = :target AND t.rating = 0
-        """,
-        params);
-    int discarded =
+    int discardedFromTarget =
+        jdbcTemplate.update(
+            """
+            DELETE t FROM ratings t
+            JOIN ratings s ON s.user_id = t.user_id AND s.alcohol_id = :source AND s.rating > 0
+            WHERE t.alcohol_id = :target AND t.rating = 0
+            """,
+            params);
+    int discardedFromSource =
         jdbcTemplate.update(
             """
             DELETE s FROM ratings s
@@ -36,6 +37,7 @@ public class JdbcRatingAlcoholReferenceMerger implements AlcoholReferenceMerger 
     int moved =
         jdbcTemplate.update(
             "UPDATE ratings SET alcohol_id = :target WHERE alcohol_id = :source", params);
-    return List.of(new AlcoholMergeCount("ratings", moved, discarded));
+    return List.of(
+        new AlcoholMergeCount("ratings", moved, discardedFromTarget + discardedFromSource));
   }
 }

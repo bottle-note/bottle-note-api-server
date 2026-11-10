@@ -143,6 +143,9 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(postAs(accessToken, MERGE_URI, request(target, source))).hasStatusOk()
 
 		// then
+		val counts = getLogs().get("data").single().get("counts")
+		assertThat(countsOf(counts, "ratings")).isEqualTo(2 to 3)
+		assertThat(countsOf(counts, "picks")).isEqualTo(2 to 3)
 		assertThat(valuesOf("SELECT rating FROM ratings WHERE alcohol_id = ? AND user_id = ?", target, users[0])).containsExactly("5.0")
 		assertThat(valuesOf("SELECT rating FROM ratings WHERE alcohol_id = ? AND user_id = ?", target, users[1])).containsExactly("3.0")
 		assertThat(valuesOf("SELECT status FROM picks WHERE alcohol_id = ? AND user_id = ?", target, users[2])).containsExactly("PICK")
@@ -156,7 +159,13 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		val sharedTag = alcoholTestFactory.appendTastingTag(target, null).first().tastingTag
 		jdbc.update("INSERT INTO alcohols_tasting_tags(alcohol_id,tasting_tag_id) VALUES(?,?)", source.id, sharedTag.id)
 		alcoholTestFactory.appendTastingTag(source, null)
-		jdbc.update("INSERT INTO alcohol_attributes(id,attribute_key,display_name,attribute_type,datatype,allow_multiple_values) VALUES(9001,'merge_single','단일','PRICE','STRING',FALSE),(9002,'merge_multi','복수','PRICE','STRING',TRUE)")
+		jdbc.update(
+			"""
+			INSERT INTO alcohol_attributes(id, attribute_key, display_name, attribute_type, datatype, allow_multiple_values)
+			VALUES (9001, 'merge_single', '단일', 'PRICE', 'STRING', FALSE),
+			       (9002, 'merge_multi', '복수', 'PRICE', 'STRING', TRUE)
+			""".trimIndent()
+		)
 		listOf(
 			Triple(target, 9001, "기준값"),
 			Triple(source, 9001, "중복값"),
@@ -197,7 +206,9 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(postAs(accessToken, MERGE_URI, request(target, target))).hasStatus(400)
 		assertThat(postAs(accessToken, MERGE_URI, request(deleted, source))).hasStatus(400)
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, source.id)))).hasStatus(400)
-		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, emptyList()))).hasStatus(400)
+		val emptySources = postAs(accessToken, MERGE_URI, mergeBody(target.id, emptyList()))
+		assertThat(emptySources).hasStatus(400)
+		assertThat(mapper.readTree(emptySources.response.contentAsString).at("/errors/0/code").asText()).isEqualTo("ALCOHOL_MERGE_SOURCES_SIZE")
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, (1L..11L).toList()))).hasStatus(400)
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(-1L)))).hasStatus(404)
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, merged.id)))).hasStatus(404)
