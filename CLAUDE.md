@@ -67,6 +67,7 @@ git submodule update --init --recursive
 - **git.environment-variables**: 환경 설정과 DB 마이그레이션 SQL을 담은 비공개 서브모듈
   - `storage/db/migration/*.sql`: Flyway 마이그레이션 원본. batch는 서브모듈에서 어떤 리소스도 패키징하지 않는다
   - 빌드와 통합 테스트 실행 전 서브모듈 초기화 필수
+  - 서브모듈 포인터는 항상 서브모듈 원격 `main`의 최신 커밋에 맞춘다. 뒤처져 있으면 최신으로 올리고 포인터 변경만 담아 `deps: version sync` 메시지로 커밋한다
 
 ## 배포 및 실행 인프라
 
