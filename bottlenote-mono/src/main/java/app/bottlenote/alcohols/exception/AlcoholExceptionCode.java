@@ -14,6 +14,8 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   ALCOHOL_HAS_REVIEWS(HttpStatus.CONFLICT, "리뷰가 존재하는 위스키는 삭제할 수 없습니다."),
   ALCOHOL_HAS_RATINGS(HttpStatus.CONFLICT, "평점이 존재하는 위스키는 삭제할 수 없습니다."),
   ALCOHOL_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 위스키입니다."),
+  ALCOHOL_MERGE_SELF(HttpStatus.BAD_REQUEST, "기준 위스키를 병합 대상에 넣을 수 없습니다."),
+  ALCOHOL_ALREADY_MERGED(HttpStatus.CONFLICT, "이미 병합된 위스키입니다."),
   TASTING_TAG_NOT_FOUND(HttpStatus.NOT_FOUND, "테이스팅 태그를 찾을 수 없습니다."),
   TASTING_TAG_DUPLICATE_NAME(HttpStatus.CONFLICT, "동일한 한글 이름의 태그가 이미 존재합니다."),
   TASTING_TAG_HAS_CHILDREN(HttpStatus.CONFLICT, "자식 태그가 존재하는 태그는 삭제할 수 없습니다."),
