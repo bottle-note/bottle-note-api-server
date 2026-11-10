@@ -20,6 +20,10 @@ public class JdbcReviewAlcoholReferenceMerger implements AlcoholReferenceMerger 
     int moved =
         jdbcTemplate.update(
             "UPDATE reviews SET alcohol_id = :target WHERE alcohol_id = :source", params);
+    // 선정 로그는 리뷰가 속한 주류를 따라간다
+    jdbcTemplate.update(
+        "UPDATE best_review_selection_logs SET alcohol_id = :target WHERE alcohol_id = :source",
+        params);
     return List.of(new AlcoholMergeCount("reviews", moved, 0));
   }
 }

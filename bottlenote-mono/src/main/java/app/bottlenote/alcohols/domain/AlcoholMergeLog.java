@@ -38,7 +38,7 @@ public class AlcoholMergeLog extends BaseTimeEntity {
   @Column(name = "target_kor_name", nullable = false)
   private String targetKorName;
 
-  @Comment("병합되어 삭제 처리된 중복 주류 ID")
+  @Comment("병합되어 삭제된 중복 주류 ID")
   @Column(name = "source_alcohol_id", nullable = false)
   private Long sourceAlcoholId;
 

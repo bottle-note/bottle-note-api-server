@@ -12,24 +12,13 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class JdbcAlcoholReferenceMerger implements AlcoholReferenceMerger {
 
-  private static final List<String> POPULARITY_TABLES =
-      List.of(
-          "alcohol_interest_observations",
-          "alcohol_rating_observations",
-          "alcohol_pick_observations",
-          "alcohol_engagement_observations",
-          "alcohol_popularity_snapshots");
-
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   @Override
   public List<AlcoholMergeCount> merge(Long sourceAlcoholId, Long targetAlcoholId) {
     Map<String, Object> params = Map.of("source", sourceAlcoholId, "target", targetAlcoholId);
     return List.of(
-        mergeTastingTags(params),
-        mergeAttributes(params),
-        mergeCurationKeywords(params),
-        discardPopularity(params));
+        mergeTastingTags(params), mergeAttributes(params), mergeCurationKeywords(params));
   }
 
   private AlcoholMergeCount mergeTastingTags(Map<String, Object> params) {
@@ -90,17 +79,5 @@ public class JdbcAlcoholReferenceMerger implements AlcoholReferenceMerger {
             """,
             params);
     return new AlcoholMergeCount("curationKeywords", moved, discarded);
-  }
-
-  private AlcoholMergeCount discardPopularity(Map<String, Object> params) {
-    // 인기도 집계는 배치가 다시 계산하므로 옮기지 않고 지운다
-    int discarded =
-        POPULARITY_TABLES.stream()
-            .mapToInt(
-                table ->
-                    jdbcTemplate.update(
-                        "DELETE FROM " + table + " WHERE alcohol_id = :source", params))
-            .sum();
-    return new AlcoholMergeCount("popularity", 0, discarded);
   }
 }

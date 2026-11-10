@@ -1,7 +1,6 @@
 package app.bottlenote.alcohols.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ALREADY_DELETED;
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_ALREADY_MERGED;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_MERGE_SELF;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_MERGED;
@@ -88,15 +87,12 @@ public class AdminAlcoholMergeService {
     List<SourceItem> sources = new ArrayList<>();
     for (Long sourceId : sourceIds) {
       Alcohol source = alcohols.get(sourceId);
-      if (source.isMerged()) {
-        throw new AlcoholException(ALCOHOL_ALREADY_MERGED);
-      }
       List<AlcoholMergeCount> counts =
           referenceMergers.stream()
               .flatMap(merger -> merger.merge(sourceId, targetId).stream())
               .toList();
-      source.mergeInto(targetId);
       alcoholMergeRepository.save(AlcoholMergeLog.of(mergeGroupId, target, source, counts));
+      alcoholMergeRepository.deleteAlcohol(sourceId);
       sources.add(new SourceItem(toAlcoholItem(source), counts));
     }
     return new AdminAlcoholMergePreviewResponse(toAlcoholItem(target), sources);
