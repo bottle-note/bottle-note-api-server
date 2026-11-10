@@ -72,7 +72,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
-	@DisplayName("병합하면 중복 위스키의 데이터를 기준으로 옮기고 겹치는 별점과 찜은 삭제한다")
+	@DisplayName("병합할 때 중복 위스키의 데이터를 기준으로 옮기고 겹치는 별점과 찜과 중복 위스키를 삭제한다")
 	fun merge_movesReferencesAndDiscardsConflicts() {
 		// when
 		val result = postAs(accessToken, MERGE_URI, request(target, source))
@@ -88,7 +88,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(countOf("user_histories", target)).isEqualTo(3)
 		assertThat(countOf("alcohols_view_histories", target)).isEqualTo(2)
 		assertThat(redirectUrlsOf(target)).containsOnly("/search/all/${target.id}")
-		assertThat(mergedIntoIdOf(source)).isEqualTo(target.id)
+		assertThat(exists(source)).isFalse()
 
 		val log = getLogs("sourceAlcoholId" to source.id.toString()).get("data").single()
 		assertThat(log.get("targetAlcoholId").asLong()).isEqualTo(target.id)
@@ -122,7 +122,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(logs.map { it.get("counts") }).isEqualTo(previewCounts)
 		assertThat(countsOf(previewCounts.last(), "ratings")).isEqualTo(0 to 1)
 		assertThat(logs.map { it.get("mergeGroupId").asText() }.distinct()).hasSize(1)
-		assertThat(listOf(source, secondSource).map { mergedIntoIdOf(it) }).containsOnly(target.id)
+		assertThat(listOf(source, secondSource).map { exists(it) }).containsOnly(false)
 	}
 
 	@Test
@@ -200,9 +200,9 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, emptyList()))).hasStatus(400)
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, (1L..11L).toList()))).hasStatus(400)
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(-1L)))).hasStatus(404)
-		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, merged.id)))).hasStatus(409)
+		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, merged.id)))).hasStatus(404)
 		assertThat(countOf("reviews", source)).isEqualTo(2)
-		assertThat(mergedIntoIdOf(source)).isNull()
+		assertThat(exists(source)).isTrue()
 	}
 
 	@Test
@@ -258,7 +258,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 
 	private fun redirectUrlsOf(alcohol: Alcohol): List<String> = jdbc.queryForList("SELECT redirect_url FROM user_histories WHERE alcohol_id = ?", String::class.java, alcohol.id)
 
-	private fun mergedIntoIdOf(alcohol: Alcohol): Long? = jdbc.queryForObject("SELECT merged_into_id FROM alcohols WHERE id = ?", Long::class.javaObjectType, alcohol.id)
+	private fun exists(alcohol: Alcohol): Boolean = jdbc.queryForObject("SELECT COUNT(*) FROM alcohols WHERE id = ?", Int::class.java, alcohol.id) == 1
 
 	private fun valuesOf(
 		sql: String,
@@ -268,7 +268,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 
 	/** 미리보기가 건드리는 사용자 데이터의 전체 상태. */
 	private fun snapshot(): List<List<Map<String, Any?>>> = REFERENCE_TABLES.map { jdbc.queryForList("SELECT * FROM $it ORDER BY alcohol_id, user_id") } +
-		listOf(jdbc.queryForList("SELECT id, deleted_at, merged_into_id FROM alcohols ORDER BY id"))
+		listOf(jdbc.queryForList("SELECT id, deleted_at FROM alcohols ORDER BY id"))
 
 	private fun countsOf(
 		counts: JsonNode,

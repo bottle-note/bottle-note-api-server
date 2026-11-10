@@ -100,25 +100,12 @@ public class Alcohol extends BaseEntity {
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
-  @Comment("병합되어 흡수된 기준 주류 ID")
-  @Column(name = "merged_into_id")
-  private Long mergedIntoId;
-
   @Builder.Default
   @OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
   private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
 
   public void delete() {
     this.deletedAt = LocalDateTime.now();
-  }
-
-  public void mergeInto(Long targetAlcoholId) {
-    this.mergedIntoId = targetAlcoholId;
-    delete();
-  }
-
-  public boolean isMerged() {
-    return this.mergedIntoId != null;
   }
 
   public boolean isDeleted() {
