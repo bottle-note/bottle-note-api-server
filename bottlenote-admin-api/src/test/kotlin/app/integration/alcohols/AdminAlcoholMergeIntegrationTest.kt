@@ -11,6 +11,8 @@ import app.bottlenote.mfds.fixture.MfdsTestFactory
 import app.bottlenote.picks.constant.PicksStatus
 import app.bottlenote.picks.fixture.PicksTestFactory
 import app.bottlenote.rating.fixture.RatingTestFactory
+import app.bottlenote.review.constant.BestReviewChangeType
+import app.bottlenote.review.fixture.BestReviewSelectionLogTestFactory
 import app.bottlenote.review.fixture.ReviewTestFactory
 import app.bottlenote.user.domain.User
 import app.bottlenote.user.fixture.UserTestFactory
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
+import java.time.LocalDate
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin 중복 위스키 병합 API 통합 테스트")
@@ -49,6 +52,9 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var mfdsTestFactory: MfdsTestFactory
+
+	@Autowired
+	private lateinit var selectionLogTestFactory: BestReviewSelectionLogTestFactory
 
 	@Autowired
 	private lateinit var jdbc: JdbcTemplate
@@ -103,8 +109,12 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	@DisplayName("미리보기는 데이터를 바꾸지 않고 여러 위스키를 병합한 결과와 같은 건수를 돌려준다")
 	fun preview_matchesMergeWithoutChanges() {
 		// given
-		val secondSource = alcoholTestFactory.persistAlcohol()
+		val secondSource = alcoholTestFactory.persistDeletedAlcohol()
 		seed(both, secondSource)
+		selectionLogTestFactory.persistLog(reviewTestFactory.persistReview(both, secondSource), LocalDate.of(2026, 11, 1), BestReviewChangeType.SELECTED)
+		listOf(target, secondSource).forEach {
+			jdbc.update("INSERT INTO alcohol_interest_observations(alcohol_id, bucket_granularity, bucket_at, observed_at) VALUES(?, 'HOUR', '2026-11-01 00:00:00', NOW())", it.id)
+		}
 		val body = mergeBody(target.id, listOf(source.id, secondSource.id))
 		val before = snapshot()
 
@@ -123,6 +133,9 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(countsOf(previewCounts.last(), "ratings")).isEqualTo(0 to 1)
 		assertThat(logs.map { it.get("mergeGroupId").asText() }.distinct()).hasSize(1)
 		assertThat(listOf(source, secondSource).map { exists(it) }).containsOnly(false)
+		assertThat(countOf("alcohol_interest_observations", secondSource)).isZero()
+		assertThat(countOf("alcohol_interest_observations", target)).isEqualTo(1)
+		assertThat(countOf("best_review_selection_logs", target)).isEqualTo(1)
 	}
 
 	@Test
@@ -201,6 +214,15 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		val merged = alcoholTestFactory.persistAlcohol()
 		assertThat(postAs(accessToken, MERGE_URI, request(target, merged))).hasStatusOk()
 		val deleted = alcoholTestFactory.persistDeletedAlcohol()
+		val failing = alcoholTestFactory.persistAlcohol()
+		jdbc.update(
+			"""
+			INSERT INTO alcohol_merge_logs(merge_group_id, target_alcohol_id, target_kor_name, source_alcohol_id, source_kor_name, source_eng_name, counts)
+			VALUES ('conflict', ?, '기준', ?, '중복', 'duplicate', '[]')
+			""".trimIndent(),
+			target.id,
+			failing.id
+		)
 
 		// when & then
 		assertThat(postAs(accessToken, MERGE_URI, request(target, target))).hasStatus(400)
@@ -212,6 +234,8 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, (1L..11L).toList()))).hasStatus(400)
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(-1L)))).hasStatus(404)
 		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, merged.id)))).hasStatus(404)
+		// 앞선 위스키를 지운 뒤 다음 위스키의 로그 저장이 실패해도 전부 되돌린다
+		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, failing.id))).response.status).isGreaterThanOrEqualTo(400)
 		assertThat(countOf("reviews", source)).isEqualTo(2)
 		assertThat(exists(source)).isTrue()
 	}
@@ -279,7 +303,11 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 
 	/** 미리보기가 건드리는 사용자 데이터의 전체 상태. */
 	private fun snapshot(): List<List<Map<String, Any?>>> = REFERENCE_TABLES.map { jdbc.queryForList("SELECT * FROM $it ORDER BY alcohol_id, user_id") } +
-		listOf(jdbc.queryForList("SELECT id, deleted_at FROM alcohols ORDER BY id"))
+		listOf(
+			jdbc.queryForList("SELECT id, deleted_at FROM alcohols ORDER BY id"),
+			jdbc.queryForList("SELECT * FROM alcohol_interest_observations ORDER BY alcohol_id"),
+			jdbc.queryForList("SELECT * FROM best_review_selection_logs ORDER BY id")
+		)
 
 	private fun countsOf(
 		counts: JsonNode,
