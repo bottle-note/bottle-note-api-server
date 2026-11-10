@@ -117,7 +117,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 .id
                 .eq(reviewId)
                 .and(review.userId.eq(userId).or(review.status.eq(PUBLIC)))
-                .and(review.activeStatus.eq(ACTIVE)))
+                .and(review.activeStatus.eq(ACTIVE)),
+            alcohol.deletedAt.isNull())
         .groupBy(review.id, review.isBest, review.sizeType, review.userId)
         .fetchOne();
   }
@@ -148,7 +149,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                             .userId
                             .eq(userId)
                             .or(review.status.eq(PUBLIC))) // 내 리뷰는 모두 조회 아니면 공개된 리뷰만 조회
-                    .and(review.activeStatus.eq(ACTIVE)))
+                    .and(review.activeStatus.eq(ACTIVE)),
+                alcohol.deletedAt.isNull())
             .groupBy(review.id, review.isBest, review.sizeType, review.userId)
             .orderBy(
                 sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder())
@@ -181,7 +183,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .on(review.id.eq(reviewReply.reviewId))
             .leftJoin(reviewImage)
             .on(review.id.eq(reviewImage.review.id))
-            .where(review.userId.eq(userId).and(review.activeStatus.eq(ACTIVE)))
+            .where(
+                review.userId.eq(userId).and(review.activeStatus.eq(ACTIVE)),
+                alcohol.deletedAt.isNull())
             // .and(review.status.eq(PUBLIC)))// 공개 여부와 상관 없이 모두 조회
             .groupBy(review.id, review.isBest, review.sizeType, review.userId)
             .orderBy(
@@ -357,6 +361,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .where(
                 review.activeStatus.eq(ACTIVE),
                 review.status.eq(PUBLIC),
+                alcohol.deletedAt.isNull(),
                 containsAllSearchTokens(criteria.searchTokens()),
                 criteria.ratingFrom() == null
                     ? null

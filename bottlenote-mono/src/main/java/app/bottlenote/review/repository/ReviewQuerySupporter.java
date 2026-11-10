@@ -467,7 +467,11 @@ public class ReviewQuerySupporter {
     return ExpressionUtils.as(
         select(review.count())
             .from(review)
-            .where(review.userId.eq(userId).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE))),
+            .where(
+                review.userId.eq(userId),
+                review.activeStatus.eq(ReviewActiveStatus.ACTIVE),
+                review.alcoholId.notIn(
+                    select(alcohol.id).from(alcohol).where(alcohol.deletedAt.isNotNull()))),
         "reviewCount");
   }
 }

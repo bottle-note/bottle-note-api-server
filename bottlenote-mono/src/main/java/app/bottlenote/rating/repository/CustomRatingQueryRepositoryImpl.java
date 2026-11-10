@@ -127,6 +127,7 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
               .leftJoin(review)
               .on(alcohol.id.eq(review.alcoholId))
               .where(
+                  alcohol.deletedAt.isNull(),
                   ratingQuerySupporter.eqAlcoholName(criteria.keyword()),
                   ratingQuerySupporter.eqAlcoholCategory(criteria.category()),
                   ratingQuerySupporter.eqAlcoholRegion(criteria.regionId()),
@@ -151,6 +152,7 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
             .leftJoin(review)
             .on(alcohol.id.eq(review.alcoholId))
             .where(
+                alcohol.deletedAt.isNull(),
                 ratingQuerySupporter.eqAlcoholName(criteria.keyword()),
                 ratingQuerySupporter.eqAlcoholCategory(criteria.category()),
                 ratingQuerySupporter.eqAlcoholRegion(criteria.regionId()),

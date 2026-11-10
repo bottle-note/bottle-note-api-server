@@ -126,6 +126,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
             .on(userHistory.alcoholId.eq(picks.alcoholId).and(picks.userId.eq(userId)))
             .where(
                 condition,
+                alcohol.deletedAt.isNull(),
                 isValidKeyword(request.keyword())
                     ? alcohol.korName.like("%" + request.keyword() + "%")
                     : null,
