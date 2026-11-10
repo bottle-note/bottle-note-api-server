@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.global.pagination.OffsetPage;
 import java.util.List;
-import org.springframework.data.domain.Page;
 
 public interface AlcoholMergeRepository {
 
@@ -13,5 +13,6 @@ public interface AlcoholMergeRepository {
 
   AlcoholMergeLog save(AlcoholMergeLog log);
 
-  Page<AlcoholMergeLog> searchLogs(Long targetAlcoholId, Long sourceAlcoholId, int page, int size);
+  OffsetPage<AlcoholMergeLog> searchLogs(
+      Long targetAlcoholId, Long sourceAlcoholId, int page, int size);
 }

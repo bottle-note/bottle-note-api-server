@@ -18,14 +18,15 @@ public class JdbcPicksAlcoholReferenceMerger implements AlcoholReferenceMerger {
   public List<AlcoholMergeCount> merge(Long sourceAlcoholId, Long targetAlcoholId) {
     Map<String, Object> params = Map.of("source", sourceAlcoholId, "target", targetAlcoholId);
     // 기준 쪽의 해제된 찜은 중복 쪽 유효한 찜에 자리를 내준다
-    jdbcTemplate.update(
-        """
-        DELETE t FROM picks t
-        JOIN picks s ON s.user_id = t.user_id AND s.alcohol_id = :source AND s.status = 'PICK'
-        WHERE t.alcohol_id = :target AND t.status <> 'PICK'
-        """,
-        params);
-    int discarded =
+    int discardedFromTarget =
+        jdbcTemplate.update(
+            """
+            DELETE t FROM picks t
+            JOIN picks s ON s.user_id = t.user_id AND s.alcohol_id = :source AND s.status = 'PICK'
+            WHERE t.alcohol_id = :target AND t.status <> 'PICK'
+            """,
+            params);
+    int discardedFromSource =
         jdbcTemplate.update(
             """
             DELETE s FROM picks s
@@ -36,6 +37,7 @@ public class JdbcPicksAlcoholReferenceMerger implements AlcoholReferenceMerger {
     int moved =
         jdbcTemplate.update(
             "UPDATE picks SET alcohol_id = :target WHERE alcohol_id = :source", params);
-    return List.of(new AlcoholMergeCount("picks", moved, discarded));
+    return List.of(
+        new AlcoholMergeCount("picks", moved, discardedFromTarget + discardedFromSource));
   }
 }

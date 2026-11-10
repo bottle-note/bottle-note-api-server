@@ -19,6 +19,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholMergePreviewResponse.Sou
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.dto.response.AdminResultResponse;
+import app.bottlenote.global.pagination.OffsetPage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -53,14 +56,14 @@ public class AdminAlcoholMergeService {
 
   @Transactional(readOnly = true)
   public GlobalResponse searchLogs(AdminAlcoholMergeLogSearchRequest request) {
+    OffsetPage<AlcoholMergeLog> logs =
+        alcoholMergeRepository.searchLogs(
+            request.targetAlcoholId(), request.sourceAlcoholId(), request.page(), request.size());
     return GlobalResponse.fromPage(
-        alcoholMergeRepository
-            .searchLogs(
-                request.targetAlcoholId(),
-                request.sourceAlcoholId(),
-                request.page(),
-                request.size())
-            .map(AdminAlcoholMergeService::toLogResponse));
+        new PageImpl<>(
+            logs.content().stream().map(AdminAlcoholMergeService::toLogResponse).toList(),
+            PageRequest.of(request.page(), request.size()),
+            logs.totalElements()));
   }
 
   private AdminAlcoholMergePreviewResponse execute(AdminAlcoholMergeRequest request) {

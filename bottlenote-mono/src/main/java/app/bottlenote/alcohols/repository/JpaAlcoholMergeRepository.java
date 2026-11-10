@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholMergeLog;
 import app.bottlenote.alcohols.domain.AlcoholMergeRepository;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import app.bottlenote.global.pagination.OffsetPage;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -42,8 +43,10 @@ public interface JpaAlcoholMergeRepository
       Pageable pageable);
 
   @Override
-  default Page<AlcoholMergeLog> searchLogs(
+  default OffsetPage<AlcoholMergeLog> searchLogs(
       Long targetAlcoholId, Long sourceAlcoholId, int page, int size) {
-    return findLogs(targetAlcoholId, sourceAlcoholId, PageRequest.of(page, size));
+    Page<AlcoholMergeLog> logs =
+        findLogs(targetAlcoholId, sourceAlcoholId, PageRequest.of(page, size));
+    return new OffsetPage<>(logs.getContent(), logs.getTotalElements());
   }
 }
