@@ -23,14 +23,14 @@ object AdminAlcoholMergeApiDocs {
 	@Operation(
 		summary = "중복 위스키 병합을 미리 본다",
 		description = """
-			기준 위스키 하나에 중복 위스키를 최대 10개까지 합쳤을 때 대상별로 옮겨질 건수(moved)와 겹쳐서 삭제될 건수(discarded)를 보여줍니다. 데이터는 바뀌지 않습니다.
+			남길 위스키(기준 위스키, targetAlcoholId) 하나에 없앨 위스키(중복 위스키, sourceAlcoholIds)를 최대 10개까지 합쳤을 때, 대상별로 옮겨질 건수(moved)와 삭제될 건수(discarded)를 보여줍니다. 데이터는 바뀌지 않습니다.
 
-			같은 사용자가 기준과 중복 양쪽에 별점이나 찜을 남겼다면 기준 쪽 기록을 남기고 중복 쪽 기록을 삭제합니다. 다만 기준 쪽이 0점 별점이거나 해제된 찜이고 중복 쪽에 유효한 기록이 있으면 중복 쪽 기록을 남깁니다. 삭제한 기록은 어느 쪽이든 discarded에 포함됩니다. 검증 규칙은 병합 실행과 같습니다.
+			같은 사용자가 두 위스키에 모두 별점이나 찜을 남겼다면 기준 위스키의 기록을 남기고 중복 위스키의 기록을 삭제합니다. 다만 기준 위스키의 기록이 0점 별점이거나 해제된 찜이고 중복 위스키의 기록이 유효하면 중복 위스키의 기록을 남깁니다. 어느 위스키에서 삭제했든 discarded에 포함됩니다. 검증 규칙은 병합 실행과 같습니다.
 			""",
 		responses = [
 			ApiResponse(
 				responseCode = "200",
-				description = "기준 위스키와 중복 위스키별 이전·삭제 건수",
+				description = "기준 위스키 정보와, 중복 위스키마다 옮겨질 건수와 삭제될 건수",
 				content = [Content(schema = Schema(implementation = AdminAlcoholMergePreviewResponse::class))]
 			),
 			ApiResponse(responseCode = "400", description = "기준 위스키가 삭제됐거나 병합 대상에 기준 위스키가 포함된 경우"),
@@ -67,7 +67,7 @@ object AdminAlcoholMergeApiDocs {
 		description = """
 			병합 기록을 최근 순으로 페이지 단위로 조회합니다. 중복 위스키 한 건이 한 행이며, 한 번의 요청으로 함께 병합된 행은 mergeGroupId가 같습니다.
 
-			기준 위스키나 중복 위스키 ID로 좁힐 수 있고 병합 시점의 이름, 대상별 이전·삭제 건수, 병합한 관리자를 함께 내립니다.
+			기준 위스키나 중복 위스키 ID로 좁힐 수 있고 병합 시점의 이름, 대상별로 옮긴 건수와 삭제한 건수, 병합한 관리자를 함께 내립니다.
 			""",
 		responses = [
 			ApiResponse(

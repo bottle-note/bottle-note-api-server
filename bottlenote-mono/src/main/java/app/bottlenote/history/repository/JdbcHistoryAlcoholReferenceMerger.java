@@ -36,7 +36,7 @@ public class JdbcHistoryAlcoholReferenceMerger implements AlcoholReferenceMerger
             WHERE alcohol_id = :source
             """,
             params);
-    // 양쪽을 모두 본 사용자는 더 최근 조회 시각을 기준 쪽에 남긴다
+    // 두 위스키를 모두 본 사용자는 더 최근 조회 시각을 기준 위스키에 남긴다
     jdbcTemplate.update(
         """
         UPDATE alcohols_view_histories t

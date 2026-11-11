@@ -37,7 +37,7 @@ public enum ValidExceptionCode implements ExceptionCode {
   ALCOHOL_MERGE_TARGET_REQUIRED(HttpStatus.BAD_REQUEST, "기준 위스키는 필수입니다."),
   ALCOHOL_MERGE_SOURCES_REQUIRED(HttpStatus.BAD_REQUEST, "병합할 위스키는 필수입니다."),
   ALCOHOL_MERGE_SOURCES_SIZE(HttpStatus.BAD_REQUEST, "병합할 위스키는 1개 이상 10개 이하여야 합니다."),
-  ALCOHOL_MERGE_SOURCES_DUPLICATED(HttpStatus.BAD_REQUEST, "병합할 위스키에 같은 위스키가 중복되었습니다."),
+  ALCOHOL_MERGE_SOURCES_DUPLICATED(HttpStatus.BAD_REQUEST, "병합할 위스키 목록에 같은 위스키가 두 번 들어 있습니다."),
   ALCOHOL_MERGE_LOG_PAGE_MINIMUM(HttpStatus.BAD_REQUEST, "페이지 번호는 0 이상이어야 합니다."),
   ALCOHOL_MERGE_LOG_SIZE_MINIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 1 이상이어야 합니다."),
   ALCOHOL_MERGE_LOG_SIZE_MAXIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 100 이하여야 합니다."),

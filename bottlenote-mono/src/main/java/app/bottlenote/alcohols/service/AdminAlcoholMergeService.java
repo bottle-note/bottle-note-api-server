@@ -40,7 +40,7 @@ public class AdminAlcoholMergeService {
   private final AlcoholMergeRepository alcoholMergeRepository;
   private final List<AlcoholReferenceMerger> referenceMergers;
 
-  /** 병합을 실제로 실행한 뒤 롤백한다. 미리보기 건수와 병합 결과가 같은 코드에서 나온다. */
+  /** 병합을 실제로 실행한 뒤 롤백한다. 건수를 따로 세지 않아 미리보기와 병합의 건수가 달라지지 않는다. */
   @Transactional
   public AdminAlcoholMergePreviewResponse preview(AdminAlcoholMergeRequest request) {
     AdminAlcoholMergePreviewResponse response = execute(request);
