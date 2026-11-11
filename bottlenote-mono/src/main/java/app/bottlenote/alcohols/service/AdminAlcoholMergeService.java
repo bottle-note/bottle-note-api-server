@@ -7,15 +7,15 @@ import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholMergeCount;
+import app.bottlenote.alcohols.domain.AlcoholMergeHandler;
 import app.bottlenote.alcohols.domain.AlcoholMergeLog;
 import app.bottlenote.alcohols.domain.AlcoholMergeRepository;
-import app.bottlenote.alcohols.domain.AlcoholReferenceMerger;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholMergeLogSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholMergeRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholMergeLogResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholMergePreviewResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholMergePreviewResponse.AlcoholItem;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholMergePreviewResponse.SourceItem;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholMergePreviewResponse.DuplicateItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.dto.response.AdminResultResponse;
@@ -38,7 +38,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 public class AdminAlcoholMergeService {
 
   private final AlcoholMergeRepository alcoholMergeRepository;
-  private final List<AlcoholReferenceMerger> referenceMergers;
+  private final List<AlcoholMergeHandler> mergeHandlers;
 
   /** 병합을 실제로 실행한 뒤 롤백한다. 건수를 따로 세지 않아 미리보기와 병합의 건수가 달라지지 않는다. */
   @Transactional
@@ -51,14 +51,14 @@ public class AdminAlcoholMergeService {
   @Transactional
   public AdminResultResponse merge(AdminAlcoholMergeRequest request) {
     execute(request);
-    return AdminResultResponse.of(ALCOHOL_MERGED, request.targetAlcoholId());
+    return AdminResultResponse.of(ALCOHOL_MERGED, request.baseAlcoholId());
   }
 
   @Transactional(readOnly = true)
   public GlobalResponse searchLogs(AdminAlcoholMergeLogSearchRequest request) {
     OffsetPage<AlcoholMergeLog> logs =
         alcoholMergeRepository.searchLogs(
-            request.targetAlcoholId(), request.sourceAlcoholId(), request.page(), request.size());
+            request.baseAlcoholId(), request.duplicateAlcoholId(), request.page(), request.size());
     return GlobalResponse.fromPage(
         new PageImpl<>(
             logs.content().stream().map(AdminAlcoholMergeService::toLogResponse).toList(),
@@ -67,38 +67,39 @@ public class AdminAlcoholMergeService {
   }
 
   private AdminAlcoholMergePreviewResponse execute(AdminAlcoholMergeRequest request) {
-    Long targetId = request.targetAlcoholId();
-    List<Long> sourceIds = request.sourceAlcoholIds();
-    if (sourceIds.contains(targetId)) {
+    Long baseId = request.baseAlcoholId();
+    List<Long> duplicateIds = request.duplicateAlcoholIds();
+    if (duplicateIds.contains(baseId)) {
       throw new AlcoholException(ALCOHOL_MERGE_SELF);
     }
 
-    List<Long> alcoholIds = new ArrayList<>(sourceIds);
-    alcoholIds.add(targetId);
+    List<Long> alcoholIds = new ArrayList<>(duplicateIds);
+    alcoholIds.add(baseId);
     Map<Long, Alcohol> alcohols =
         alcoholMergeRepository.lockAlcohols(alcoholIds).stream()
             .collect(Collectors.toMap(Alcohol::getId, Function.identity()));
     if (alcohols.size() != alcoholIds.size()) {
       throw new AlcoholException(ALCOHOL_NOT_FOUND);
     }
-    Alcohol target = alcohols.get(targetId);
-    if (target.isDeleted()) {
+    // 삭제된 위스키를 합치면 숨겨져 있던 데이터가 기준 위스키에 다시 노출된다
+    if (alcohols.values().stream().anyMatch(Alcohol::isDeleted)) {
       throw new AlcoholException(ALCOHOL_ALREADY_DELETED);
     }
+    Alcohol base = alcohols.get(baseId);
 
     String mergeGroupId = UUID.randomUUID().toString();
-    List<SourceItem> sources = new ArrayList<>();
-    for (Long sourceId : sourceIds) {
-      Alcohol source = alcohols.get(sourceId);
+    List<DuplicateItem> duplicates = new ArrayList<>();
+    for (Long duplicateId : duplicateIds) {
+      Alcohol duplicate = alcohols.get(duplicateId);
       List<AlcoholMergeCount> counts =
-          referenceMergers.stream()
-              .flatMap(merger -> merger.merge(sourceId, targetId).stream())
+          mergeHandlers.stream()
+              .flatMap(handler -> handler.merge(duplicateId, baseId).stream())
               .toList();
-      alcoholMergeRepository.save(AlcoholMergeLog.of(mergeGroupId, target, source, counts));
-      alcoholMergeRepository.deleteAlcohol(sourceId);
-      sources.add(new SourceItem(toAlcoholItem(source), counts));
+      alcoholMergeRepository.save(AlcoholMergeLog.of(mergeGroupId, base, duplicate, counts));
+      alcoholMergeRepository.deleteAlcohol(duplicateId);
+      duplicates.add(new DuplicateItem(toAlcoholItem(duplicate), counts));
     }
-    return new AdminAlcoholMergePreviewResponse(toAlcoholItem(target), sources);
+    return new AdminAlcoholMergePreviewResponse(toAlcoholItem(base), duplicates);
   }
 
   private static AlcoholItem toAlcoholItem(Alcohol alcohol) {
@@ -110,11 +111,11 @@ public class AdminAlcoholMergeService {
     return new AdminAlcoholMergeLogResponse(
         log.getId(),
         log.getMergeGroupId(),
-        log.getTargetAlcoholId(),
-        log.getTargetKorName(),
-        log.getSourceAlcoholId(),
-        log.getSourceKorName(),
-        log.getSourceEngName(),
+        log.getBaseAlcoholId(),
+        log.getBaseKorName(),
+        log.getDuplicateAlcoholId(),
+        log.getDuplicateKorName(),
+        log.getDuplicateEngName(),
         log.getCounts(),
         log.getCreatePrincipal() != null ? log.getCreatePrincipal().getId() : null,
         log.getCreatePrincipal() != null ? log.getCreatePrincipal().getEmail() : null,

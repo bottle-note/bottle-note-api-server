@@ -33,20 +33,20 @@ public interface JpaAlcoholMergeRepository
   @Query(
       """
       select l from alcohol_merge_log l
-      where (:targetAlcoholId is null or l.targetAlcoholId = :targetAlcoholId)
-        and (:sourceAlcoholId is null or l.sourceAlcoholId = :sourceAlcoholId)
+      where (:baseAlcoholId is null or l.baseAlcoholId = :baseAlcoholId)
+        and (:duplicateAlcoholId is null or l.duplicateAlcoholId = :duplicateAlcoholId)
       order by l.id desc
       """)
   Page<AlcoholMergeLog> findLogs(
-      @Param("targetAlcoholId") Long targetAlcoholId,
-      @Param("sourceAlcoholId") Long sourceAlcoholId,
+      @Param("baseAlcoholId") Long baseAlcoholId,
+      @Param("duplicateAlcoholId") Long duplicateAlcoholId,
       Pageable pageable);
 
   @Override
   default OffsetPage<AlcoholMergeLog> searchLogs(
-      Long targetAlcoholId, Long sourceAlcoholId, int page, int size) {
+      Long baseAlcoholId, Long duplicateAlcoholId, int page, int size) {
     Page<AlcoholMergeLog> logs =
-        findLogs(targetAlcoholId, sourceAlcoholId, PageRequest.of(page, size));
+        findLogs(baseAlcoholId, duplicateAlcoholId, PageRequest.of(page, size));
     return new OffsetPage<>(logs.getContent(), logs.getTotalElements());
   }
 }
