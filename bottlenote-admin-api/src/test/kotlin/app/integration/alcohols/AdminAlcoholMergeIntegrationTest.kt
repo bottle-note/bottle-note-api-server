@@ -60,45 +60,45 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	private lateinit var jdbc: JdbcTemplate
 
 	private lateinit var accessToken: String
-	private lateinit var target: Alcohol
-	private lateinit var source: Alcohol
+	private lateinit var base: Alcohol
+	private lateinit var duplicate: Alcohol
 	private lateinit var both: User
 
-	/** both는 기준 위스키와 중복 위스키 모두에, sourceOnly는 중복 위스키에만 데이터가 있다. */
+	/** both는 기준 위스키와 중복 위스키 모두에, duplicateOnly는 중복 위스키에만 데이터가 있다. */
 	@BeforeEach
 	fun setUp() {
 		accessToken = getAccessToken(adminUserTestFactory.persistRootAdmin())
-		target = alcoholTestFactory.persistAlcohol()
-		source = alcoholTestFactory.persistAlcohol()
+		base = alcoholTestFactory.persistAlcohol()
+		duplicate = alcoholTestFactory.persistAlcohol()
 		both = userTestFactory.persistUser()
-		val sourceOnly = userTestFactory.persistUser()
-		seed(both, target)
-		seed(both, source)
-		seed(sourceOnly, source)
+		val duplicateOnly = userTestFactory.persistUser()
+		seed(both, base)
+		seed(both, duplicate)
+		seed(duplicateOnly, duplicate)
 	}
 
 	@Test
 	@DisplayName("병합할 때 중복 위스키의 데이터를 기준으로 옮기고 겹치는 별점과 찜과 중복 위스키를 삭제한다")
 	fun merge_movesReferencesAndDiscardsConflicts() {
 		// when
-		val result = postAs(accessToken, MERGE_URI, request(target, source))
+		val result = postAs(accessToken, MERGE_URI, request(base, duplicate))
 
 		// then
 		assertThat(result).hasStatusOk()
 		REFERENCE_TABLES.forEach { table ->
-			assertThat(countOf(table, source)).`as`(table).isZero()
+			assertThat(countOf(table, duplicate)).`as`(table).isZero()
 		}
-		assertThat(countOf("reviews", target)).isEqualTo(3)
-		assertThat(countOf("ratings", target)).isEqualTo(2)
-		assertThat(countOf("picks", target)).isEqualTo(2)
-		assertThat(countOf("user_histories", target)).isEqualTo(3)
-		assertThat(countOf("alcohols_view_histories", target)).isEqualTo(2)
-		assertThat(redirectUrlsOf(target)).containsOnly("/search/all/${target.id}")
-		assertThat(exists(source)).isFalse()
+		assertThat(countOf("reviews", base)).isEqualTo(3)
+		assertThat(countOf("ratings", base)).isEqualTo(2)
+		assertThat(countOf("picks", base)).isEqualTo(2)
+		assertThat(countOf("user_histories", base)).isEqualTo(3)
+		assertThat(countOf("alcohols_view_histories", base)).isEqualTo(2)
+		assertThat(redirectUrlsOf(base)).containsOnly("/search/all/${base.id}")
+		assertThat(exists(duplicate)).isFalse()
 
-		val log = getLogs("sourceAlcoholId" to source.id.toString()).get("data").single()
-		assertThat(log.get("targetAlcoholId").asLong()).isEqualTo(target.id)
-		assertThat(log.get("sourceKorName").asText()).isEqualTo(source.korName)
+		val log = getLogs("duplicateAlcoholId" to duplicate.id.toString()).get("data").single()
+		assertThat(log.get("baseAlcoholId").asLong()).isEqualTo(base.id)
+		assertThat(log.get("duplicateKorName").asText()).isEqualTo(duplicate.korName)
 		assertThat(log.get("mergedByEmail").isNull).isFalse()
 		assertThat(countsOf(log.get("counts"), "ratings")).isEqualTo(1 to 1)
 		assertThat(countsOf(log.get("counts"), "picks")).isEqualTo(1 to 1)
@@ -109,13 +109,13 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	@DisplayName("미리보기는 데이터를 바꾸지 않고 여러 위스키를 병합한 결과와 같은 건수를 돌려준다")
 	fun preview_matchesMergeWithoutChanges() {
 		// given
-		val secondSource = alcoholTestFactory.persistDeletedAlcohol()
-		seed(both, secondSource)
-		selectionLogTestFactory.persistLog(reviewTestFactory.persistReview(both, secondSource), LocalDate.of(2026, 11, 1), BestReviewChangeType.SELECTED)
-		listOf(target, secondSource).forEach {
+		val secondDuplicate = alcoholTestFactory.persistAlcohol()
+		seed(both, secondDuplicate)
+		selectionLogTestFactory.persistLog(reviewTestFactory.persistReview(both, secondDuplicate), LocalDate.of(2026, 11, 1), BestReviewChangeType.SELECTED)
+		listOf(base, secondDuplicate).forEach {
 			jdbc.update("INSERT INTO alcohol_interest_observations(alcohol_id, bucket_granularity, bucket_at, observed_at) VALUES(?, 'HOUR', '2026-11-01 00:00:00', NOW())", it.id)
 		}
-		val body = mergeBody(target.id, listOf(source.id, secondSource.id))
+		val body = mergeBody(base.id, listOf(duplicate.id, secondDuplicate.id))
 		val before = snapshot()
 
 		// when
@@ -127,15 +127,15 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 		assertThat(getLogs().get("data")).isEmpty()
 
 		assertThat(postAs(accessToken, MERGE_URI, body)).hasStatusOk()
-		val previewCounts = mapper.readTree(preview.response.contentAsString).at("/data/sources").map { it.get("counts") }
+		val previewCounts = mapper.readTree(preview.response.contentAsString).at("/data/duplicates").map { it.get("counts") }
 		val logs = getLogs().get("data").reversed()
 		assertThat(logs.map { it.get("counts") }).isEqualTo(previewCounts)
 		assertThat(countsOf(previewCounts.last(), "ratings")).isEqualTo(0 to 1)
 		assertThat(logs.map { it.get("mergeGroupId").asText() }.distinct()).hasSize(1)
-		assertThat(listOf(source, secondSource).map { exists(it) }).containsOnly(false)
-		assertThat(countOf("alcohol_interest_observations", secondSource)).isZero()
-		assertThat(countOf("alcohol_interest_observations", target)).isEqualTo(1)
-		assertThat(countOf("best_review_selection_logs", target)).isEqualTo(1)
+		assertThat(listOf(duplicate, secondDuplicate).map { exists(it) }).containsOnly(false)
+		assertThat(countOf("alcohol_interest_observations", secondDuplicate)).isZero()
+		assertThat(countOf("alcohol_interest_observations", base)).isEqualTo(1)
+		assertThat(countOf("best_review_selection_logs", base)).isEqualTo(1)
 	}
 
 	@Test
@@ -143,35 +143,35 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	fun merge_keepsActiveRatingsAndPicks() {
 		// given
 		val users = (1..4).map { userTestFactory.persistUser() }
-		ratingTestFactory.persistRating(users[0], target, 0)
-		ratingTestFactory.persistRating(users[0], source, 5)
-		ratingTestFactory.persistRating(users[1], target, 3)
-		ratingTestFactory.persistRating(users[1], source, 0)
-		picksTestFactory.persistPicks(target.id, users[2].id, PicksStatus.UNPICK)
-		picksTestFactory.persistPicks(source.id, users[2].id, PicksStatus.PICK)
-		picksTestFactory.persistPicks(target.id, users[3].id, PicksStatus.PICK)
-		picksTestFactory.persistPicks(source.id, users[3].id, PicksStatus.UNPICK)
+		ratingTestFactory.persistRating(users[0], base, 0)
+		ratingTestFactory.persistRating(users[0], duplicate, 5)
+		ratingTestFactory.persistRating(users[1], base, 3)
+		ratingTestFactory.persistRating(users[1], duplicate, 0)
+		picksTestFactory.persistPicks(base.id, users[2].id, PicksStatus.UNPICK)
+		picksTestFactory.persistPicks(duplicate.id, users[2].id, PicksStatus.PICK)
+		picksTestFactory.persistPicks(base.id, users[3].id, PicksStatus.PICK)
+		picksTestFactory.persistPicks(duplicate.id, users[3].id, PicksStatus.UNPICK)
 
 		// when
-		assertThat(postAs(accessToken, MERGE_URI, request(target, source))).hasStatusOk()
+		assertThat(postAs(accessToken, MERGE_URI, request(base, duplicate))).hasStatusOk()
 
 		// then
 		val counts = getLogs().get("data").single().get("counts")
 		assertThat(countsOf(counts, "ratings")).isEqualTo(2 to 3)
 		assertThat(countsOf(counts, "picks")).isEqualTo(2 to 3)
-		assertThat(valuesOf("SELECT rating FROM ratings WHERE alcohol_id = ? AND user_id = ?", target, users[0])).containsExactly("5.0")
-		assertThat(valuesOf("SELECT rating FROM ratings WHERE alcohol_id = ? AND user_id = ?", target, users[1])).containsExactly("3.0")
-		assertThat(valuesOf("SELECT status FROM picks WHERE alcohol_id = ? AND user_id = ?", target, users[2])).containsExactly("PICK")
-		assertThat(valuesOf("SELECT status FROM picks WHERE alcohol_id = ? AND user_id = ?", target, users[3])).containsExactly("PICK")
+		assertThat(valuesOf("SELECT rating FROM ratings WHERE alcohol_id = ? AND user_id = ?", base, users[0])).containsExactly("5.0")
+		assertThat(valuesOf("SELECT rating FROM ratings WHERE alcohol_id = ? AND user_id = ?", base, users[1])).containsExactly("3.0")
+		assertThat(valuesOf("SELECT status FROM picks WHERE alcohol_id = ? AND user_id = ?", base, users[2])).containsExactly("PICK")
+		assertThat(valuesOf("SELECT status FROM picks WHERE alcohol_id = ? AND user_id = ?", base, users[3])).containsExactly("PICK")
 	}
 
 	@Test
 	@DisplayName("병합할 때 태그와 복수 값 속성은 합치고 단일 값 속성은 기준값을 유지하며 수입 신고 확정 연결을 옮긴다")
 	fun merge_movesMetadataAndConfirmedMfds() {
 		// given
-		val sharedTag = alcoholTestFactory.appendTastingTag(target, null).first().tastingTag
-		jdbc.update("INSERT INTO alcohols_tasting_tags(alcohol_id,tasting_tag_id) VALUES(?,?)", source.id, sharedTag.id)
-		alcoholTestFactory.appendTastingTag(source, null)
+		val sharedTag = alcoholTestFactory.appendTastingTag(base, null).first().tastingTag
+		jdbc.update("INSERT INTO alcohols_tasting_tags(alcohol_id,tasting_tag_id) VALUES(?,?)", duplicate.id, sharedTag.id)
+		alcoholTestFactory.appendTastingTag(duplicate, null)
 		jdbc.update(
 			"""
 			INSERT INTO alcohol_attributes(id, attribute_key, display_name, attribute_type, datatype, allow_multiple_values)
@@ -180,31 +180,31 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 			""".trimIndent()
 		)
 		listOf(
-			Triple(target, 9001, "기준값"),
-			Triple(source, 9001, "중복값"),
-			Triple(target, 9002, "공통"),
-			Triple(source, 9002, "공통"),
-			Triple(source, 9002, "추가")
+			Triple(base, 9001, "기준값"),
+			Triple(duplicate, 9001, "중복값"),
+			Triple(base, 9002, "공통"),
+			Triple(duplicate, 9002, "공통"),
+			Triple(duplicate, 9002, "추가")
 		).forEach { (alcohol, attributeId, value) ->
 			jdbc.update("INSERT INTO alcohol_attribute_mappings(alcohol_id,attribute_id,attribute_value) VALUES(?,?,?)", alcohol.id, attributeId, value)
 		}
-		alcoholTestFactory.persistCurationKeyword("공통 키워드", "설명", setOf(target.id, source.id))
-		alcoholTestFactory.persistCurationKeyword("중복 전용 키워드", "설명", setOf(source.id))
-		val declaration = mfdsTestFactory.persistDeclaration("MERGE-RCNO-1", MfdsNormalizationStatus.NORMALIZED, null, source.id, null)
+		alcoholTestFactory.persistCurationKeyword("공통 키워드", "설명", setOf(base.id, duplicate.id))
+		alcoholTestFactory.persistCurationKeyword("중복 전용 키워드", "설명", setOf(duplicate.id))
+		val declaration = mfdsTestFactory.persistDeclaration("MERGE-RCNO-1", MfdsNormalizationStatus.NORMALIZED, null, duplicate.id, null)
 
 		// when
-		assertThat(postAs(accessToken, MERGE_URI, request(target, source))).hasStatusOk()
+		assertThat(postAs(accessToken, MERGE_URI, request(base, duplicate))).hasStatusOk()
 
 		// then
-		assertThat(countOf("alcohols_tasting_tags", source)).isZero()
-		assertThat(countOf("alcohols_tasting_tags", target)).isEqualTo(2)
-		assertThat(countOf("alcohol_attribute_mappings", source)).isZero()
-		assertThat(jdbc.queryForList("SELECT attribute_value FROM alcohol_attribute_mappings WHERE alcohol_id = ? ORDER BY attribute_id, attribute_value", String::class.java, target.id))
+		assertThat(countOf("alcohols_tasting_tags", duplicate)).isZero()
+		assertThat(countOf("alcohols_tasting_tags", base)).isEqualTo(2)
+		assertThat(countOf("alcohol_attribute_mappings", duplicate)).isZero()
+		assertThat(jdbc.queryForList("SELECT attribute_value FROM alcohol_attribute_mappings WHERE alcohol_id = ? ORDER BY attribute_id, attribute_value", String::class.java, base.id))
 			.containsExactly("기준값", "공통", "추가")
 		assertThat(jdbc.queryForList("SELECT alcohol_ids FROM curation_keyword_alcohol_ids", Long::class.javaObjectType))
-			.containsExactly(target.id, target.id)
+			.containsExactly(base.id, base.id)
 		assertThat(jdbc.queryForObject("SELECT selected_alcohol_id FROM mfds_declarations WHERE id = ?", Long::class.javaObjectType, declaration.id))
-			.isEqualTo(target.id)
+			.isEqualTo(base.id)
 	}
 
 	@Test
@@ -212,32 +212,33 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	fun merge_rejectsInvalidRequestsAtomically() {
 		// given
 		val merged = alcoholTestFactory.persistAlcohol()
-		assertThat(postAs(accessToken, MERGE_URI, request(target, merged))).hasStatusOk()
+		assertThat(postAs(accessToken, MERGE_URI, request(base, merged))).hasStatusOk()
 		val deleted = alcoholTestFactory.persistDeletedAlcohol()
 		val failing = alcoholTestFactory.persistAlcohol()
 		jdbc.update(
 			"""
-			INSERT INTO alcohol_merge_logs(merge_group_id, target_alcohol_id, target_kor_name, source_alcohol_id, source_kor_name, source_eng_name, counts)
+			INSERT INTO alcohol_merge_logs(merge_group_id, base_alcohol_id, base_kor_name, duplicate_alcohol_id, duplicate_kor_name, duplicate_eng_name, counts)
 			VALUES ('conflict', ?, '기준', ?, '중복', 'duplicate', '[]')
 			""".trimIndent(),
-			target.id,
+			base.id,
 			failing.id
 		)
 
 		// when & then
-		assertThat(postAs(accessToken, MERGE_URI, request(target, target))).hasStatus(400)
-		assertThat(postAs(accessToken, MERGE_URI, request(deleted, source))).hasStatus(400)
-		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, source.id)))).hasStatus(400)
-		val emptySources = postAs(accessToken, MERGE_URI, mergeBody(target.id, emptyList()))
-		assertThat(emptySources).hasStatus(400)
-		assertThat(mapper.readTree(emptySources.response.contentAsString).at("/errors/0/code").asText()).isEqualTo("ALCOHOL_MERGE_SOURCES_SIZE")
-		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, (1L..11L).toList()))).hasStatus(400)
-		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(-1L)))).hasStatus(404)
-		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, merged.id)))).hasStatus(404)
+		assertThat(postAs(accessToken, MERGE_URI, request(base, base))).hasStatus(400)
+		assertThat(postAs(accessToken, MERGE_URI, request(deleted, duplicate))).hasStatus(400)
+		assertThat(postAs(accessToken, MERGE_URI, request(base, deleted))).hasStatus(400)
+		assertThat(postAs(accessToken, MERGE_URI, mergeBody(base.id, listOf(duplicate.id, duplicate.id)))).hasStatus(400)
+		val emptyDuplicates = postAs(accessToken, MERGE_URI, mergeBody(base.id, emptyList()))
+		assertThat(emptyDuplicates).hasStatus(400)
+		assertThat(mapper.readTree(emptyDuplicates.response.contentAsString).at("/errors/0/code").asText()).isEqualTo("ALCOHOL_MERGE_DUPLICATES_SIZE")
+		assertThat(postAs(accessToken, MERGE_URI, mergeBody(base.id, (1L..11L).toList()))).hasStatus(400)
+		assertThat(postAs(accessToken, MERGE_URI, mergeBody(base.id, listOf(-1L)))).hasStatus(404)
+		assertThat(postAs(accessToken, MERGE_URI, mergeBody(base.id, listOf(duplicate.id, merged.id)))).hasStatus(404)
 		// 앞선 위스키를 지운 뒤 다음 위스키의 로그 저장이 실패해도 전부 되돌린다
-		assertThat(postAs(accessToken, MERGE_URI, mergeBody(target.id, listOf(source.id, failing.id))).response.status).isGreaterThanOrEqualTo(400)
-		assertThat(countOf("reviews", source)).isEqualTo(2)
-		assertThat(exists(source)).isTrue()
+		assertThat(postAs(accessToken, MERGE_URI, mergeBody(base.id, listOf(duplicate.id, failing.id))).response.status).isGreaterThanOrEqualTo(400)
+		assertThat(countOf("reviews", duplicate)).isEqualTo(2)
+		assertThat(exists(duplicate)).isTrue()
 	}
 
 	@Test
@@ -245,14 +246,14 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	fun searchLogs_ordersByLatestAndFilters() {
 		// given
 		val another = alcoholTestFactory.persistAlcohol()
-		val anotherSource = alcoholTestFactory.persistAlcohol()
-		assertThat(postAs(accessToken, MERGE_URI, request(target, source))).hasStatusOk()
-		assertThat(postAs(accessToken, MERGE_URI, request(another, anotherSource))).hasStatusOk()
+		val anotherDuplicate = alcoholTestFactory.persistAlcohol()
+		assertThat(postAs(accessToken, MERGE_URI, request(base, duplicate))).hasStatusOk()
+		assertThat(postAs(accessToken, MERGE_URI, request(another, anotherDuplicate))).hasStatusOk()
 
 		// when & then
-		assertThat(getLogs().get("data").map { it.get("sourceAlcoholId").asLong() })
-			.containsExactly(anotherSource.id, source.id)
-		assertThat(getLogs("targetAlcoholId" to target.id.toString()).get("data")).hasSize(1)
+		assertThat(getLogs().get("data").map { it.get("duplicateAlcoholId").asLong() })
+			.containsExactly(anotherDuplicate.id, duplicate.id)
+		assertThat(getLogs("baseAlcoholId" to base.id.toString()).get("data")).hasSize(1)
 		assertThat(getLogs("size" to "1").at("/meta/totalElements").asLong()).isEqualTo(2)
 	}
 
@@ -268,14 +269,14 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	}
 
 	private fun request(
-		target: Alcohol,
-		source: Alcohol
-	) = mergeBody(target.id, listOf(source.id))
+		base: Alcohol,
+		duplicate: Alcohol
+	) = mergeBody(base.id, listOf(duplicate.id))
 
 	private fun mergeBody(
-		targetAlcoholId: Long,
-		sourceAlcoholIds: List<Long>
-	) = mapOf("targetAlcoholId" to targetAlcoholId, "sourceAlcoholIds" to sourceAlcoholIds)
+		baseAlcoholId: Long,
+		duplicateAlcoholIds: List<Long>
+	) = mapOf("baseAlcoholId" to baseAlcoholId, "duplicateAlcoholIds" to duplicateAlcoholIds)
 
 	private fun getLogs(vararg params: Pair<String, String>): JsonNode {
 		val request = mockMvcTester.get().uri(MERGE_URI).header("Authorization", "Bearer $accessToken")
@@ -312,7 +313,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	private fun countsOf(
 		counts: JsonNode,
 		name: String
-	): Pair<Int, Int> = counts.single { it.get("name").asText() == name }.let { it.get("moved").asInt() to it.get("discarded").asInt() }
+	): Pair<Int, Int> = counts.single { it.get("name").asText() == name }.let { it.get("moved").asInt() to it.get("deleted").asInt() }
 
 	companion object {
 		private const val MERGE_URI = "/v1/alcohols/merges"

@@ -31,24 +31,24 @@ public class AlcoholMergeLog extends BaseTimeEntity {
   private String mergeGroupId;
 
   @Comment("유지한 기준 주류 ID")
-  @Column(name = "target_alcohol_id", nullable = false)
-  private Long targetAlcoholId;
+  @Column(name = "base_alcohol_id", nullable = false)
+  private Long baseAlcoholId;
 
   @Comment("병합 시점의 기준 주류 한글 이름")
-  @Column(name = "target_kor_name", nullable = false)
-  private String targetKorName;
+  @Column(name = "base_kor_name", nullable = false)
+  private String baseKorName;
 
   @Comment("병합되어 삭제된 중복 주류 ID")
-  @Column(name = "source_alcohol_id", nullable = false)
-  private Long sourceAlcoholId;
+  @Column(name = "duplicate_alcohol_id", nullable = false)
+  private Long duplicateAlcoholId;
 
   @Comment("병합 시점의 중복 주류 한글 이름")
-  @Column(name = "source_kor_name", nullable = false)
-  private String sourceKorName;
+  @Column(name = "duplicate_kor_name", nullable = false)
+  private String duplicateKorName;
 
   @Comment("병합 시점의 중복 주류 영문 이름")
-  @Column(name = "source_eng_name", nullable = false)
-  private String sourceEngName;
+  @Column(name = "duplicate_eng_name", nullable = false)
+  private String duplicateEngName;
 
   @Comment("대상별 이전·삭제 건수")
   @Type(JsonType.class)
@@ -56,14 +56,14 @@ public class AlcoholMergeLog extends BaseTimeEntity {
   private List<AlcoholMergeCount> counts;
 
   public static AlcoholMergeLog of(
-      String mergeGroupId, Alcohol target, Alcohol source, List<AlcoholMergeCount> counts) {
+      String mergeGroupId, Alcohol base, Alcohol duplicate, List<AlcoholMergeCount> counts) {
     AlcoholMergeLog log = new AlcoholMergeLog();
     log.mergeGroupId = mergeGroupId;
-    log.targetAlcoholId = target.getId();
-    log.targetKorName = target.getKorName();
-    log.sourceAlcoholId = source.getId();
-    log.sourceKorName = source.getKorName();
-    log.sourceEngName = source.getEngName();
+    log.baseAlcoholId = base.getId();
+    log.baseKorName = base.getKorName();
+    log.duplicateAlcoholId = duplicate.getId();
+    log.duplicateKorName = duplicate.getKorName();
+    log.duplicateEngName = duplicate.getEngName();
     log.counts = counts;
     return log;
   }

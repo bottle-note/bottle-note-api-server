@@ -14,5 +14,5 @@ public interface AlcoholMergeRepository {
   AlcoholMergeLog save(AlcoholMergeLog log);
 
   OffsetPage<AlcoholMergeLog> searchLogs(
-      Long targetAlcoholId, Long sourceAlcoholId, int page, int size);
+      Long baseAlcoholId, Long duplicateAlcoholId, int page, int size);
 }
