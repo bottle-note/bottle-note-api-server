@@ -5,10 +5,10 @@ import java.util.List;
 
 public interface AlcoholMergeRepository {
 
-  /** 병합 대상 주류를 ID 순서로 잠근다. 같은 주류를 건드리는 병합끼리 순서대로 실행되게 한다. */
+  /** 병합에 포함된 위스키 행을 ID 순서로 잠근다. 같은 위스키를 다루는 병합이 동시에 실행되지 않게 한다. */
   List<Alcohol> lockAlcohols(List<Long> alcoholIds);
 
-  /** 참조를 모두 옮긴 중복 주류 행을 지운다. 인기도 집계는 FK로 함께 지워진다. */
+  /** 데이터를 모두 옮긴 중복 위스키 행을 삭제한다. 인기도 관측과 스냅샷은 FK로 함께 삭제된다. */
   void deleteAlcohol(Long alcoholId);
 
   AlcoholMergeLog save(AlcoholMergeLog log);

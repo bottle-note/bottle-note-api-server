@@ -39,7 +39,7 @@ public class JdbcAlcoholReferenceMerger implements AlcoholReferenceMerger {
   }
 
   private AlcoholMergeCount mergeAttributes(Map<String, Object> params) {
-    // 단일 값 속성은 기준 쪽 값이 있으면 버리고, 복수 값 속성은 같은 값만 버린다
+    // 값을 하나만 가지는 속성은 기준 위스키에 값이 있으면 삭제하고, 여러 개 가지는 속성은 같은 값만 삭제한다
     int discarded =
         jdbcTemplate.update(
             """

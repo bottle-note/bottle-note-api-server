@@ -17,7 +17,7 @@ public class JdbcMfdsAlcoholReferenceMerger implements AlcoholReferenceMerger {
   @Override
   public List<AlcoholMergeCount> merge(Long sourceAlcoholId, Long targetAlcoholId) {
     Map<String, Object> params = Map.of("source", sourceAlcoholId, "target", targetAlcoholId);
-    // 확정 연결만 옮긴다. 후보와 과거 매칭 기록은 당시 판단의 근거라 그대로 둔다
+    // 확정된 연결만 옮긴다. 후보와 과거 매칭 기록은 당시 판단의 근거이므로 바꾸지 않는다
     int moved =
         jdbcTemplate.update(
             """

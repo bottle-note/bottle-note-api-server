@@ -17,7 +17,7 @@ public class JdbcRatingAlcoholReferenceMerger implements AlcoholReferenceMerger 
   @Override
   public List<AlcoholMergeCount> merge(Long sourceAlcoholId, Long targetAlcoholId) {
     Map<String, Object> params = Map.of("source", sourceAlcoholId, "target", targetAlcoholId);
-    // 기준 쪽의 지워진 별점(0점)은 중복 쪽 실제 별점에 자리를 내준다
+    // 기준 위스키의 별점이 0점(지운 별점)이면 삭제하고 중복 위스키의 유효한 별점을 옮긴다
     int discardedFromTarget =
         jdbcTemplate.update(
             """

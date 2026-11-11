@@ -17,7 +17,7 @@ public class JdbcPicksAlcoholReferenceMerger implements AlcoholReferenceMerger {
   @Override
   public List<AlcoholMergeCount> merge(Long sourceAlcoholId, Long targetAlcoholId) {
     Map<String, Object> params = Map.of("source", sourceAlcoholId, "target", targetAlcoholId);
-    // 기준 쪽의 해제된 찜은 중복 쪽 유효한 찜에 자리를 내준다
+    // 기준 위스키의 찜이 해제 상태이면 삭제하고 중복 위스키의 유효한 찜을 옮긴다
     int discardedFromTarget =
         jdbcTemplate.update(
             """

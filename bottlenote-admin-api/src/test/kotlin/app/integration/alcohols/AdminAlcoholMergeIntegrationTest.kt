@@ -64,7 +64,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	private lateinit var source: Alcohol
 	private lateinit var both: User
 
-	/** both는 기준과 중복 양쪽에, sourceOnly는 중복 쪽에만 데이터가 있다. */
+	/** both는 기준 위스키와 중복 위스키 모두에, sourceOnly는 중복 위스키에만 데이터가 있다. */
 	@BeforeEach
 	fun setUp() {
 		accessToken = getAccessToken(adminUserTestFactory.persistRootAdmin())
@@ -139,7 +139,7 @@ class AdminAlcoholMergeIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
-	@DisplayName("기준 쪽 기록이 0점 별점이거나 해제된 찜이면 중복 쪽의 유효한 기록을 남긴다")
+	@DisplayName("기준 위스키의 기록이 0점 별점이거나 해제된 찜일 때 중복 위스키의 유효한 기록을 남긴다")
 	fun merge_keepsActiveRatingsAndPicks() {
 		// given
 		val users = (1..4).map { userTestFactory.persistUser() }

@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.Type;
 
-/** 중복 주류 병합 로그. 중복 주류 한 건당 한 행이며 만든 뒤에는 바꾸지 않는다. */
+/** 중복 위스키 병합 로그. 중복 위스키 한 건당 한 행이며 저장한 뒤에는 수정하지 않는다. */
 @Getter
 @Entity(name = "alcohol_merge_log")
 @Table(name = "alcohol_merge_logs")
