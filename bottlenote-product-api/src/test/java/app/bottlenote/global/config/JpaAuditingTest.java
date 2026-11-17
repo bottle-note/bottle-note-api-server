@@ -7,6 +7,7 @@ import app.bottlenote.common.domain.AuditPrincipal;
 import app.bottlenote.global.config.jpa.AuditorAwareImpl;
 import app.bottlenote.global.security.CustomAdminUserContext;
 import app.bottlenote.global.security.CustomUserContext;
+import app.bottlenote.global.security.CustomUserDetailsService;
 import app.bottlenote.user.constant.AdminRole;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.AdminUser;
@@ -77,6 +78,23 @@ class JpaAuditingTest {
     assertThat(result.orElseThrow().getId()).isEqualTo(2L);
     assertThat(result.orElseThrow().getType()).isEqualTo(AuditPrincipalType.ADMIN);
     assertThat(result.orElseThrow().getEmail()).isEqualTo("admin@example.com");
+  }
+
+  @Test
+  @DisplayName("익명 사용자로 인증할 때 식별자 없는 익명 principal을 감사 주체로 반환한다")
+  void 익명_사용자로_인증할_때_식별자_없는_익명_principal을_반환한다() {
+    // 필터가 토큰 없는 요청에 쓰는 익명 principal(id=-4)을 운영 코드로 만든다.
+    UserDetails principal = new CustomUserDetailsService(null).loadAnonymousUser();
+    authenticate(principal);
+
+    Optional<AuditPrincipal> result = auditorAware.getCurrentAuditor();
+
+    assertThat(principal).isInstanceOf(CustomUserContext.class);
+    assertThat(((CustomUserContext) principal).getId()).isEqualTo(-4L);
+    assertThat(result).isPresent();
+    assertThat(result.orElseThrow().getId()).isNull();
+    assertThat(result.orElseThrow().getType()).isEqualTo(AuditPrincipalType.ANONYMOUS);
+    assertThat(result.orElseThrow().getEmail()).isEqualTo("AnonymousUser@email.com");
   }
 
   @Test

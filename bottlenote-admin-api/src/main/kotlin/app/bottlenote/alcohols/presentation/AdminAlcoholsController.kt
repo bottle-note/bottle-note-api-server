@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.excel.AdminAlcoholExcelService
 import app.bottlenote.alcohols.excel.AlcoholExcelSchema
 import app.bottlenote.alcohols.presentation.docs.AdminAlcoholsApiDocs
 import app.bottlenote.alcohols.service.AdminAlcoholCommandService
+import app.bottlenote.alcohols.service.AdminAlcoholDetailQueryService
 import app.bottlenote.alcohols.service.AdminAlcoholLookupService
 import app.bottlenote.alcohols.service.AdminAlcoholQueryService
 import app.bottlenote.global.data.response.GlobalResponse
@@ -32,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile
 @AdminAlcoholsApiDocs.ApiTag
 class AdminAlcoholsController(
 	private val adminAlcoholQueryService: AdminAlcoholQueryService,
+	private val adminAlcoholDetailQueryService: AdminAlcoholDetailQueryService,
 	private val adminAlcoholCommandService: AdminAlcoholCommandService,
 	private val adminAlcoholLookupService: AdminAlcoholLookupService,
 	private val adminAlcoholExcelService: AdminAlcoholExcelService
@@ -70,7 +72,7 @@ class AdminAlcoholsController(
 	@GetMapping("/{alcoholId}")
 	fun getAlcoholDetail(
 		@PathVariable alcoholId: Long
-	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholQueryService.findAdminAlcoholDetailById(alcoholId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholDetailQueryService.findAdminAlcoholDetailById(alcoholId))
 
 	@AdminAlcoholsApiDocs.GetCategoryReference
 	@GetMapping("/categories/reference")

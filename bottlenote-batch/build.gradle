@@ -10,7 +10,14 @@ jar {
 }
 
 dependencies {
-	implementation project(':bottlenote-mono')
+	implementation project(':bottlenote-community')
+	implementation project(':bottlenote-support')
+	testImplementation project(':bottlenote-user')
+	implementation libs.hypersistence.utils
+	implementation libs.spring.cloud.starter.openfeign
+	implementation libs.micrometer.core
+	implementation project(':bottlenote-foundation')
+	implementation project(':bottlenote-alcohol')
 
 	// batch
 	implementation libs.spring.boot.starter
@@ -30,7 +37,6 @@ dependencies {
 
 	//security 필요없지만 mono 호환성을 위해
 	implementation libs.spring.boot.starter.security
-	implementation libs.spring.security.test
 	testImplementation libs.spring.security.test
 }
 

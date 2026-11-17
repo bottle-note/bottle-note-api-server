@@ -1,7 +1,5 @@
 package app.bottlenote.operation.utils;
 
-import app.bottlenote.common.file.service.ImageUploadService;
-import app.bottlenote.common.file.service.ResourceCommandService;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import com.redis.testcontainers.RedisContainer;
@@ -9,7 +7,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -135,15 +132,6 @@ public class TestContainersConfig {
       }
       throw exception;
     }
-  }
-
-  @Bean("testImageUploadService")
-  @Primary
-  ImageUploadService imageUploadService(
-      ResourceCommandService resourceCommandService,
-      S3Presigner s3Presigner,
-      @Value("${amazon.aws.cloudFrontUrl}") String cloudFrontUrl) {
-    return new ImageUploadService(resourceCommandService, s3Presigner, TEST_BUCKET, cloudFrontUrl);
   }
 
   public static String getTestBucket() {

@@ -6,11 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
+import app.bottlenote.common.event.fixture.FakeApplicationEventPublisher;
 import app.bottlenote.picks.domain.PicksRepository;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
+import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import app.bottlenote.picks.fake.FakePicksRepository;
 import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.fixture.FakeUserFacade;
@@ -24,15 +24,30 @@ import org.junit.jupiter.api.Test;
 @DisplayName("[unit] [service] PicksCommand")
 class FakePicksCommandServiceTest {
   private PicksCommandService picksCommandService;
+  private FakeApplicationEventPublisher picksEventPublisher;
 
   @BeforeEach
   void setUp() {
     UserFacade userFacade = new FakeUserFacade();
     AlcoholFacade alcoholFacade = new FakeAlcoholFacade();
     PicksRepository picksRepository = new FakePicksRepository();
-    HistoryEventPublisher picksEventPublisher = new FakeHistoryEventPublisher();
+    picksEventPublisher = new FakeApplicationEventPublisher();
     picksCommandService =
         new PicksCommandService(userFacade, alcoholFacade, picksRepository, picksEventPublisher);
+  }
+
+  @Test
+  @DisplayName("찜 상태를 반복하고 취소할 때 변경된 상태의 업무 이벤트만 발행한다")
+  void publishesTransitionsOnly() {
+    picksCommandService.updatePicks(new PicksUpdateRequest(1L, UNPICK), 1L);
+    picksCommandService.updatePicks(new PicksUpdateRequest(1L, UNPICK), 1L);
+    picksCommandService.updatePicks(new PicksUpdateRequest(1L, PICK), 1L);
+    picksCommandService.updatePicks(new PicksUpdateRequest(1L, PICK), 1L);
+
+    assertEquals(
+        java.util.List.of(
+            new PicksRegistryEvent(1L, 1L, UNPICK), new PicksRegistryEvent(1L, 1L, PICK)),
+        picksEventPublisher.getPublishedEventsOfType(PicksRegistryEvent.class));
   }
 
   @Nested

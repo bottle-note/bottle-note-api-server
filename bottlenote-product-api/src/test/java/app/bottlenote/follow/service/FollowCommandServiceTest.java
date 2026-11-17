@@ -3,8 +3,6 @@ package app.bottlenote.follow.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import app.bottlenote.global.pagination.CursorProperties;
-import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
@@ -15,7 +13,6 @@ import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.fixture.InMemoryFollowRepository;
 import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
 import app.bottlenote.user.service.FollowService;
-import java.time.Clock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -33,15 +30,7 @@ class FollowCommandServiceTest {
   void setUp() {
     followRepository = new InMemoryFollowRepository();
     userRepository = new InMemoryUserQueryRepository();
-    var properties = new CursorProperties();
-    properties.setCurrentKeyId("v1");
-    properties.setCurrentSecret("test-pagination-cursor-secret");
-    followService =
-        new FollowService(
-            followRepository,
-            userRepository,
-            new HmacCursorCodec(properties, Clock.systemUTC()),
-            event -> {});
+    followService = new FollowService(followRepository, userRepository, event -> {});
   }
 
   @Test

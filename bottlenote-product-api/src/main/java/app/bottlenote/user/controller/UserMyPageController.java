@@ -14,7 +14,7 @@ import app.bottlenote.user.controller.docs.UserMyPageApiDocs;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.UserBasicService;
+import app.bottlenote.user.service.MyPageQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @UserMyPageApiDocs.ApiTag
 public class UserMyPageController {
 
-  private final UserBasicService userBasicService;
+  private final MyPageQueryService myPageQueryService;
   private static final String SEARCH_PARAMETERS = "searchParameters";
   private static final String PAGINATION = "pagination";
 
@@ -39,7 +39,7 @@ public class UserMyPageController {
   @GetMapping("/{userId}")
   public ResponseEntity<GlobalResponse> getMyPage(@PathVariable Long userId) {
     final Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-    return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
+    return GlobalResponse.ok(myPageQueryService.getMyPage(userId, currentUserId));
   }
 
   @SecurityPolicy(auth = REQUIRED_AUTH)
@@ -53,7 +53,7 @@ public class UserMyPageController {
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
     KeysetPageResponse<MyBottleResponse> pageResponse =
-        userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW);
+        myPageQueryService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW);
 
     return GlobalResponse.ok(
         pageResponse.content(),
@@ -73,7 +73,7 @@ public class UserMyPageController {
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
     KeysetPageResponse<MyBottleResponse> pageResponse =
-        userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING);
+        myPageQueryService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING);
 
     return GlobalResponse.ok(
         pageResponse.content(),
@@ -93,7 +93,7 @@ public class UserMyPageController {
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
     KeysetPageResponse<MyBottleResponse> pageResponse =
-        userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK);
+        myPageQueryService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK);
 
     return GlobalResponse.ok(
         pageResponse.content(),

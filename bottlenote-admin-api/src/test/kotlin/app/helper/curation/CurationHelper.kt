@@ -1,8 +1,10 @@
 package app.helper.curation
 
+import app.bottlenote.alcohols.constant.AlcoholAdminResultCode
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
 import app.bottlenote.alcohols.dto.response.AdminCurationDetailResponse
 import app.bottlenote.alcohols.dto.response.AdminCurationListResponse
+import app.bottlenote.global.dto.response.AdminResultCode
 import app.bottlenote.global.dto.response.AdminResultResponse
 import app.helper.alcohols.AlcoholsHelper
 import java.time.LocalDateTime
@@ -93,7 +95,7 @@ object CurationHelper {
 	fun createCurationAlcoholRequest(alcoholIds: Set<Long> = setOf(1L, 2L)): Map<String, Any> = mapOf("alcoholIds" to alcoholIds)
 
 	fun createAdminResultResponse(
-		code: AdminResultResponse.ResultCode = AdminResultResponse.ResultCode.CURATION_CREATED,
+		code: AdminResultCode = AlcoholAdminResultCode.CURATION_CREATED,
 		targetId: Long = 1L
 	): AdminResultResponse = AdminResultResponse.of(code, targetId)
 }
