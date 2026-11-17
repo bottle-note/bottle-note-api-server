@@ -36,7 +36,8 @@ public final class ScenarioApiDocs {
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
       summary = "게시된 시나리오와 첫 질문을 조회한다",
-      description = "활성 게시본만 제공합니다. 후보는 매 요청 현재 데이터로 계산합니다. 추천 후보의 alcoholsTastingTags는 테이스팅 태그 한글명 배열이며 없으면 []입니다. 로그인 없이 사용할 수 있으며 참여 이벤트는 기록하지 않습니다.",
+      description =
+          "활성 게시본만 제공합니다. 후보는 매 요청 현재 데이터로 계산합니다. 추천 후보의 alcoholsTastingTags는 테이스팅 태그 한글명 배열이며 없으면 []입니다. 로그인 없이 사용할 수 있으며 참여 이벤트는 기록하지 않습니다.",
       responses = {
         @ApiResponse(
             responseCode = "200",
