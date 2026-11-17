@@ -30,7 +30,7 @@ argument-hint: "[unit|integration|openapi|all]"
 
 - **단위 테스트**: 포트와 Facade의 Fake/InMemory 구현을 우선 사용한다. 타 도메인 접근도 Facade 계약으로 대체하고, 인터페이스가 바뀌면 관련 테스트 더블을 함께 갱신한다.
 - **Mock 정책**: 새로운 Mockito 등 모킹 프레임워크 사용은 프로젝트의 명시적 예외 승인 없이는 도입하지 않는다. Fake/InMemory 대안을 먼저 검토하고, 예외가 필요한 경우에만 이유와 대안을 제시한다. 이미 받은 명시적 허가는 다시 묻지 않는다.
-- **공유 인프라**: 컨테이너 설정·persistent factory·Fake는 `bottlenote-test-support`의 기존 위치에 둔다. 특정 모듈 전용 헬퍼는 해당 모듈 test에 두며, 운영 코드가 테스트 코드를 참조하지 않게 한다.
+- **공유 인프라**: 중립 컨테이너 설정·데이터 정리·webhook 대역은 `bottlenote-test-support`에 둔다. 업무 Factory·Fake는 소유 모듈의 `src/testFixtures`에서 선택한다. 특정 모듈 전용 헬퍼는 해당 모듈 test에 두며, 운영 코드가 테스트 코드를 참조하지 않게 한다.
 - **통합 테스트**: `IntegrationTestSupport`, TestContainers, `MockMvcTester`, `{도메인명}TestFactory`와 기존 인증 헬퍼를 사용한다. 실제 DB·트랜잭션·인증 경계를 검증하되 외부 서비스 호출은 기존 Fake로 격리한다.
 - **Flyway**: API 통합 테스트 DB도 Flyway로 스키마를 구성하고 `ddl-auto=validate`를 유지한다. batch는 마이그레이션 주체가 아니다. 엔티티 변경은 `git.environment-variables/storage/db/migration/` 원본과 대조한다. 임의 init SQL·baseline·DDL 자동 생성으로 실패를 숨기지 않는다.
 - **분류**: 단위는 `@Tag("unit")`, 통합은 `@Tag("integration")`, 아키텍처 규칙은 `@Tag("rule")`을 따른다. admin 전용 태그와 실행 task는 해당 모듈의 현재 설정을 확인한다.

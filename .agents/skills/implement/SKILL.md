@@ -32,13 +32,13 @@ description: >-
 
 - 도메인 레포지토리는 순수 포트로 두고 JPA·QueryDSL·Redis 구현을 분리한다. 타 도메인 Service나 Repository를 직접 참조하지 않고 Facade 인터페이스를 호출한다.
 - Facade 인터페이스는 `facade`, 별도 구현체는 `service` 패키지에 둔다. 트랜잭션, 도메인 VO 생성·검증, 도메인 간 조합은 Service가 소유한다.
-- Controller는 인터페이스에 의존하고 기존 인증, 입력 검증, `GlobalResponse`, 현재 `KeysetPageRequest`·`KeysetPageResponse` 등 대상 API의 페이징 계약을 따른다. 이벤트와 캐시 등 기존 부수효과도 보존한다.
+- Controller는 공개 진입점(Facade·command/query 서비스·앱 조회 서비스)을 호출하고 기존 인증, 입력 검증, `GlobalResponse`, 현재 `KeysetPageRequest`·`KeysetPageResponse` 등 대상 API의 페이징 계약을 따른다. 이벤트와 캐시 등 기존 부수효과도 보존한다.
 - 스키마에 영향을 주는 엔티티 변경에는 `git.environment-variables/storage/db/migration/`의 Flyway 마이그레이션을 함께 마련한다. `ddl-auto: validate`를 우회하지 않으며 Batch를 마이그레이션 주체로 만들지 않는다. 서브모듈의 Git 쓰기에도 별도 명시 권한이 필요하다.
 - 다중 인스턴스에서 공유되어야 하는 상태나 잠금은 JVM 로컬 상태로 구현하지 않는다.
 
 ## 테스트와 최소 검사
 
-동작 변경을 입증할 테스트를 구현과 함께 추가·수정한다. 포트와 Facade의 Fake/InMemory 구현을 재사용하고 인터페이스 변경을 함께 반영한다. 공유 테스트 인프라와 픽스처는 `test-support`에 둔다.
+동작 변경을 입증할 테스트를 구현과 함께 추가·수정한다. 포트와 Facade의 Fake/InMemory 구현을 재사용하고 인터페이스 변경을 함께 반영한다. 중립 테스트 인프라는 `test-support`, 업무 픽스처는 소유 모듈의 `src/testFixtures`, 앱 조합 픽스처는 해당 앱의 `src/test`에 둔다.
 
 필요한 통합 테스트는 `IntegrationTestSupport`, `MockMvcTester`, TestContainers, 기존 TestFactory 패턴을 따른다. API 계약을 바꾸면 실제 springdoc JSON의 경로·스키마·응답·보안 정책을 확인하는 OpenAPI 품질 테스트도 갱신한다. 테스트 작성과 테스트 실행 여부는 별도로 보고한다.
 

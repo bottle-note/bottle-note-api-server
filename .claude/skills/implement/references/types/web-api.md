@@ -6,13 +6,13 @@ Product Java와 Admin Kotlin의 HTTP 계약을 변경할 때 읽는다. 프로�
 
 Product Controller는 `bottlenote-product-api/src/main/java/app/bottlenote/`, Admin Controller·Docs는 `bottlenote-admin-api/src/main/kotlin/app/bottlenote/{domain}/presentation/`와 `presentation/docs/`에서 찾는다. 기존 경로·버전·메서드·상태 코드를 먼저 확인하고 주변 패턴을 유지한다.
 
-Controller는 인증 주체와 요청 DTO를 해석하여 인터페이스를 호출한다. 도메인 VO 생성, 트랜잭션, 타 도메인 Facade 조합은 Service가 담당한다. 현재 보안 정책 어노테이션·필터를 확인하고 사용자별 소유권 검증을 보존한다. 선택 인증과 필수 인증을 혼동하지 않는다.
+Controller는 인증 주체와 요청 DTO를 해석하여 공개 진입점을 호출한다. 공개 command/query 서비스와 앱 조회 서비스를 직접 주입할 수 있다. 업무 VO 생성·검증과 트랜잭션은 Service가 담당하고, 복합 응답은 사용하는 앱의 서비스가 조합한다. 현재 보안 정책 어노테이션·필터를 확인하고 사용자별 소유권 검증을 보존한다. 선택 인증과 필수 인증을 혼동하지 않는다.
 
 응답은 실제 `GlobalResponse`의 success·code·data·errors·meta 계약과 전역 예외 처리를 따른다. 다른 프레임워크의 error JSON이나 새 상태 코드 규칙을 끼워 넣지 않는다. Entity를 응답 DTO에 직접 노출하지 않는다. 공개 필드·타입·인증·정렬 의미가 바뀌면 호환성 영향과 사용자 결정을 확인한다.
 
 ## 페이징
 
-현재 공통 구현은 mono의 `app/bottlenote/global/pagination/`에 있다. `KeysetPageRequest`, `KeysetPageResponse`, `KeysetPagination.fromOverflow`, `HmacCursorCodec`와 대상 Repository를 함께 읽는다. Product·Admin 모두 endpoint마다 계약이 다를 수 있으므로 “Admin은 항상 offset”이라고 가정하지 않는다.
+현재 공통 구현은 foundation의 `app/bottlenote/global/pagination/`에 있다. `KeysetPageRequest`, `KeysetPageResponse`, `KeysetPagination.fromOverflow`, `HmacCursorCodec`와 대상 Repository를 함께 읽는다. Product·Admin 모두 endpoint마다 계약이 다를 수 있으므로 “Admin은 항상 offset”이라고 가정하지 않는다.
 
 - `pageSize + 1`개로 다음 페이지 여부를 판단하고 반환할 항목은 pageSize까지만 남긴다.
 - nextCursor는 **반환하는 마지막 item**에서 만든다. 버리는 초과 item을 쓰면 다음 페이지 첫 항목이 누락될 수 있다.

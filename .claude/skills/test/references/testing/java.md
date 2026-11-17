@@ -5,7 +5,7 @@ Java·Kotlin 테스트를 작성할 때 현재 구현과 함께 읽는다. 실�
 ## 태그와 테스트 위치
 
 - `unit`: Spring context 없이 Service·도메인 동작을 Fake/InMemory로 검증한다. `unit_test`가 선택한다.
-- `integration`: Product의 `IntegrationTestSupport`를 사용하는 API·영속성 통합 테스트이며 `integration_test`가 선택한다.
+- `integration`: Product의 API·영속성 테스트와 storage의 MinIO 테스트 등 실제 인프라 통합 테스트이며 `integration_test`가 선택한다.
 - `admin_integration`: Admin Kotlin의 통합 테스트이며 `admin_integration_test`가 선택한다.
 - `rule`: ArchUnit 규칙이며 `check_rule_test`가 선택한다.
 - `batch`: Batch 전용 테스트이며 `batch_test`가 선택한다. Batch는 위 네 공통 태스크가 비활성화되어 있다.
@@ -20,12 +20,13 @@ Java·Kotlin 테스트를 작성할 때 현재 구현과 함께 읽는다. 실�
 
 - Product 기반 클래스: `bottlenote-product-api/src/test/java/app/bottlenote/IntegrationTestSupport.java`
 - Admin 기반 클래스: `bottlenote-admin-api/src/test/kotlin/app/IntegrationTestSupport.kt`
-- 공용 인프라: `bottlenote-test-support/src/main/java/app/bottlenote/operation/utils/`의 `TestContainersConfig`, `DataInitializer`, `TestAuthenticationSupport`, `FakeWebhookRestTemplate`
-- 공용 Factory·InMemory: `bottlenote-test-support/src/main/java/app/bottlenote/{domain}/fixture/`
+- 공용 인프라: `module-shared/test-support/src/main/java/app/bottlenote/operation/utils/`의 `TestContainersConfig`, `DataInitializer`, `FakeWebhookRestTemplate`
+- 업무 Factory·InMemory: `module-domains/{모듈명}/src/testFixtures/java/app/bottlenote/{domain}/fixture/`
+- 인증 테스트 지원: `module-domains/user/src/testFixtures/java/app/bottlenote/operation/utils/TestAuthenticationSupport.java`
 - Product 전용 publisher Fake: `bottlenote-product-api/src/test/java/app/bottlenote/common/event/fixture/FakeApplicationEventPublisher.java`
 - Batch 기반 사례: `bottlenote-batch/src/test/java/app/batch/bottlenote/BatchApplicationContextTest.java`와 `job/popularity/`
 
-Product·Admin·mono는 test-support를 testImplementation으로 사용한다. 특정 모듈에만 쓰는 헬퍼는 그 모듈 test에 둘 수 있다. 새 Fake를 만들기 전에 전체 모듈에서 기존 구현을 검색하며, 기반 클래스를 mono의 test에 있다고 가정하지 않는다.
+소비자는 필요한 업무 fixture를 `testImplementation(testFixtures(project(":bottlenote-user")))`처럼 선택한다. 다른 fixture를 공개 의존으로 일괄 재노출하지 않는다. 앱 조합 헬퍼는 해당 앱 test에 둔다. 새 Fake를 만들기 전에 전체 모듈에서 기존 구현을 검색한다. 순수 Fake 단위 테스트는 Spring context나 Docker를 시작하지 않는다. 다만 fixture 컴파일 경로에 Spring/JPA가 없다는 뜻은 아니다.
 
 Product의 `getToken(User)`는 TokenItem을 반환하고 `getToken()`은 access token 문자열을 반환한다. Admin은 `createToken(AdminUser)`와 `getAccessToken(AdminUser)`를 제공한다. 호출 전에 실제 메서드 시그니처를 확인하며 토큰 값을 출력하지 않는다.
 
