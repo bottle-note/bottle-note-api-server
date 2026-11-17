@@ -4,7 +4,7 @@
 
 ## 포트 변경과 테스트 더블
 
-Repository 또는 Facade의 메서드·시그니처가 바뀌면 구현체와 모든 소비자를 함께 검색한다. 공용 더블은 `bottlenote-test-support/src/main/java/app/bottlenote/{domain}/fixture/`에 있고, 모듈 전용 더블은 Product의 `src/test/java/`나 Admin의 `src/test/kotlin/` 등에 남아 있다. 이름만 추측하지 말고 `rg --files`, 인터페이스 구현·참조 검색으로 실제 위치를 찾는다.
+Repository 또는 Facade의 메서드·시그니처가 바뀌면 구현체와 모든 소비자를 함께 검색한다. 업무 더블은 `module-domains/{모듈명}/src/testFixtures/java/app/bottlenote/{domain}/fixture/`에 있고, 모듈 전용 더블은 Product의 `src/test/java/`나 Admin의 `src/test/kotlin/` 등에 남아 있다. 이름만 추측하지 말고 `rg --files`, 인터페이스 구현·참조 검색으로 실제 위치를 찾는다.
 
 Fake/InMemory는 반환값뿐 아니라 필터, 정렬, 갱신·삭제, 중복, 페이징 계약을 재현해야 한다. JPA 구현만 고치거나 테스트를 통과시키기 위해 Fake를 느슨하게 만들지 않는다. 공용 테스트 인프라를 운영 모듈로 되돌리지 않는다.
 

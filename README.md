@@ -56,18 +56,34 @@
 
 ## 아키텍처
 
-### 도메인 간 통신과 Facade 완충 지대
+현재 `settings.gradle`에는 16개 모듈이 있다. `bottlenote-mono`의 소스와 build 설정은 제거했다. Gradle 프로젝트명에는 `bottlenote-` 접두사를 붙인다.
 
-이 서버는 alcohols, user, review, rating 등 여러 도메인이 서로를 참조하는 DDD 기반 모듈러 모놀리스입니다. 유저 조회에 위스키 정보가 필요하고, 위스키 조회에 유저 정보가 필요한 양방향 호출이 자연스럽게 발생하는 구조입니다.
+| 모듈 | 소유하는 코드 |
+|---|---|
+| product-api / admin-api / batch | 기존 3개 실행 앱. Product·Admin의 화면별 복합 조회와 응답 조합도 각 앱이 소유한다 |
+| foundation | 업무 타입과 업무 테이블을 모르는 공통 기반, 공통 예외·페이징·JPA 설정·외부 연동 |
+| user | 사용자·인증·약관·차단·감사자·마스킹 |
+| alcohol | 주류·속성·기존 큐레이션(AdminCurationService)·수입 정보와 주류 병합 계약 |
+| storage | 파일·이미지·리소스 기록 |
+| community | 리뷰·별점·좋아요·찜과 관련 웹 변환 설정 |
+| history | 활동 이력과 Redis 주류 조회 이력 |
+| support | 문의와 일일 리포트 |
+| notification | 알림과 수신 설정 |
+| analytics | 방문·통계 |
+| content | 배너·캠페인·스펙 기반 큐레이션(AdminSpecBasedCurationService) |
+| access-control | IP 접근 제어 |
+| observability | 관측 공통 기능 |
+| test-support | 업무를 모르는 컨테이너 설정·데이터 정리·webhook 테스트 대역 |
 
-이때 각 도메인의 Service가 상대 도메인의 Service를 직접 참조하게 두면 순환 의존이 생기고, 어떤 메서드가 공개 계약이고 어떤 것이 내부 구현인지 경계가 사라져 변경 비용이 누적됩니다. 그래서 도메인 간 호출을 서로 직접 잇지 않고, 그 사이를 유연하게 완충하는 계층으로 Facade를 두었습니다.
+실행 앱 3개는 루트에 둔다. 업무 모듈 10개는 `module-domains/{이름}`, foundation·observability·test-support는 `module-shared/{이름}`에 둔다. `settings.gradle`에서 각 폴더를 기존 Gradle 프로젝트명에 `projectDir`로 연결한다.
 
-- `{domain}/facade/` — 타 도메인에 공개하는 유일한 계약. 인터페이스와 전용 payload DTO만 두며, 엔티티는 경계를 넘지 않습니다.
-- `{domain}/service/Default{Domain}Facade` — 계약의 구현체. 도메인 내부 사정이므로 밖에서 알 필요가 없습니다.
-- 동기 조회는 Facade로, 부수효과 전파(히스토리, 알림)는 도메인 이벤트로 분리해 완충 지대가 병목이 되지 않게 합니다.
-- 이 규칙은 문서가 아니라 ArchUnit 아키텍처 테스트(`./gradlew check_rule_test`)가 빌드에서 강제합니다.
+모듈명은 패키지명과 같지 않을 수 있다. 파일 위치와 build 의존을 함께 확인한다. `query`와 `web-support` 모듈은 만들지 않았다. 조회는 사용하는 앱에 두고, 인증과 마스킹은 user에, 별점 규칙과 웹 변환 설정은 community에 두었다.
 
-결합을 없애는 설계가 아니라, 결합을 좁고 눈에 보이는 지점으로 모아 관리하는 설계입니다.
+Product·Admin·Batch 세 앱과 기존 DB를 유지합니다. 여러 업무를 묶는 화면 조회는 사용하는 앱이 소유하며 업무 간 호출은 공개 계약을 따릅니다. community가 활동 이벤트를 발행하고 history와 notification이 받습니다. 모듈 방향은 업무의 중요도를 뜻하지 않습니다.
+
+Gradle 의존 선언은 컴파일 경로를 정합니다. public 내부 클래스 접근과 조회 쓰기 제한은 규칙 검사와 리뷰가 함께 맡습니다. 업무 Factory·Fake는 소유 모듈의 testFixtures에서 선택하고 test-support는 중립 인프라만 제공합니다.
+
+상세 구성과 비용은 [모듈 ADR](<adr/2026.11.17 업무 경계를 Gradle 모듈로 분리하고 기존 배포 단위는 유지한다.md>), [협력 ADR](<adr/2026.11.17 모듈 간 협력은 공개 계약과 단방향 의존으로 구성한다.md>), [fixture ADR](<adr/2026.11.17 업무 Fake와 fixture는 소유 모듈에 두고 테스트 인프라는 공유한다.md>)을 따릅니다.
 
 ---
 

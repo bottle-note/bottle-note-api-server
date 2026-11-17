@@ -26,22 +26,44 @@ This file provides guidance to Codex CLI when working with code in this reposito
 
 ## 모듈 구조
 
-> [진행 중] 모듈 기술 부채 정리 작업 진행 중 (2026-06-10 시작). 모듈 구성은 아래가 확정 토폴로지이며(물리 3분할은 트리거 조건부로 강등), 남은 작업은 mono 내부 표준 위반 청소와 ArchUnit 룰 활성화다.
->
-> 현재 모듈: `product-api`(Java) / `admin-api`(Kotlin) / `batch` / `mono`(공유 라이브러리) / `observability` / `test-support`(테스트 인프라·픽스처). test-support 분리는 PR #623으로 완료(2026-06-12), 각 모듈은 testImplementation으로 소비한다.
-> 레이어 규칙은 아래 "레이어 표준 15"를 따른다.
+현재 `settings.gradle`에는 16개 모듈이 있다. `bottlenote-mono`의 소스와 build 설정은 제거했다. Gradle 프로젝트명에는 `bottlenote-` 접두사를 붙인다.
 
-```mermaid
-graph LR
-    P["product-api (Java, bootJar)"] --> M["mono (공유 라이브러리)"]
-    A["admin-api (Kotlin, bootJar)"] --> M
-    B["batch (Java, bootJar)"] --> M
-    M --> O[observability]
-    TS["test-support (테스트 인프라)"] -- api --> M
-    P -. testImplementation .-> TS
-    A -. testImplementation .-> TS
-    M -. testImplementation .-> TS
-```
+| 모듈 | 소유하는 코드 |
+|---|---|
+| product-api / admin-api / batch | 기존 3개 실행 앱. Product·Admin의 화면별 복합 조회와 응답 조합도 각 앱이 소유한다 |
+| foundation | 업무 타입과 업무 테이블을 모르는 공통 기반, 공통 예외·페이징·JPA 설정·외부 연동 |
+| user | 사용자·인증·약관·차단·감사자·마스킹 |
+| alcohol | 주류·속성·기존 큐레이션(AdminCurationService)·수입 정보와 주류 병합 계약 |
+| storage | 파일·이미지·리소스 기록 |
+| community | 리뷰·별점·좋아요·찜과 관련 웹 변환 설정 |
+| history | 활동 이력과 Redis 주류 조회 이력 |
+| support | 문의와 일일 리포트 |
+| notification | 알림과 수신 설정 |
+| analytics | 방문·통계 |
+| content | 배너·캠페인·스펙 기반 큐레이션(AdminSpecBasedCurationService) |
+| access-control | IP 접근 제어 |
+| observability | 관측 공통 기능 |
+| test-support | 업무를 모르는 컨테이너 설정·데이터 정리·webhook 테스트 대역 |
+
+실행 앱 3개는 루트에 둔다. 업무 모듈 10개는 `module-domains/{이름}`, foundation·observability·test-support는 `module-shared/{이름}`에 둔다. `settings.gradle`에서 각 폴더를 기존 Gradle 프로젝트명에 `projectDir`로 연결한다.
+
+모듈명은 패키지명과 같지 않을 수 있다. 파일 위치와 build 의존을 함께 확인한다. `query`와 `web-support` 모듈은 만들지 않았다. 조회는 사용하는 앱에 두고, 인증과 마스킹은 user에, 별점 규칙과 웹 변환 설정은 community에 두었다.
+
+운영 코드의 허용 방향은 다음과 같다. 화살표는 왼쪽이 오른쪽 타입을 사용한다는 뜻이며 업무의 중요도와 무관하다. 모든 업무 라이브러리는 foundation을 `api`로 공개하고, 그 밖의 업무 간 의존은 `implementation`으로 선언한다.
+
+- foundation → observability
+- user, alcohol, analytics → foundation
+- storage → foundation, user
+- community → foundation, user, alcohol, storage, observability
+- history → foundation, user, alcohol, community, observability
+- support → foundation, user, community
+- notification → foundation, user, community, support
+- content → foundation, user, alcohol, community, analytics
+- access-control → foundation, user
+
+Product와 Admin은 필요한 업무 라이브러리를 직접 선언한다. 두 앱은 서로를 의존하지 않는다. Batch main은 foundation, alcohol, community, support를 직접 선언하고 test에서는 user도 직접 쓴다.
+
+공개 계약·앱 조회·이벤트는 [협력 ADR](<adr/2026.11.17 모듈 간 협력은 공개 계약과 단방향 의존으로 구성한다.md>)을 따른다. Gradle 의존은 public 내부 클래스 접근을 모두 차단하지 않는다. 허용 방향과 조회 쓰기 금지는 양 앱의 `ModuleBoundaryRules`와 코드 리뷰로 확인한다. 모듈 분리는 기존 세 앱과 DB를 유지하며 MSA 전환이나 변경 감지 이미지 빌드를 뜻하지 않는다.
 
 ## 빌드 및 실행
 
@@ -144,30 +166,30 @@ gh workflow run deploy_development_applications.yml
 
 ### 아키텍처 패턴
 
-- **계층 구조**: Controller → Facade <-> Service → Repository → Domain
+- **호출 구조**: Controller → 공개 진입점(Facade·command/query 서비스) → Service·Repository·Domain. 앱 복합 조회와 SPI는 협력 ADR을 따른다.
 - **도메인별 패키지**: constant, controller, domain, dto, repository, service, facade, exception, event
 
-**설계 배경 — Facade는 도메인 간 완충 지대다.** 여러 도메인이 양방향으로 통신하는 구조(user↔alcohols 등)에서 Service끼리 직접 상호 참조하면 순환 의존과 부채가 쌓인다. 그래서 타 도메인 접근은 상대의 Facade 인터페이스로만 하며, 결합을 좁고 보이는 한 지점으로 모아 관리한다. 배치 상세는 아래 `@FacadeService` 항목, 강제 수단은 ArchUnit(`./gradlew check_rule_test`)이다.
+업무 사이의 호출은 명시한 공개 계약으로 모은다. Facade는 그 방식 중 하나다. 앱의 공개 command/query 서비스와 복합 조회, 좁은 서비스 계약과 SPI도 실제 소유와 협력 ADR을 따른다. 단순히 호출을 전달하는 interface나 Facade를 모든 클래스에 추가하지 않는다. Gradle 의존과 ArchUnit은 각자 검사하는 범위가 다르며, 공개 계약의 의미는 코드 리뷰에서도 확인한다.
 
-### 레이어 표준 15 (2026-06-10 확정)
+### 레이어 표준 15 (2026.11.17 모듈 구조 반영)
 
-모듈 기술 부채 정리의 기준이 되는 표준. ArchUnit `@Tag("rule")` 테스트로 강제하며, 위반 0이 된 룰부터 활성화한다.
+기존 레이어 원칙을 현재 모듈 소유와 공개 계약에 맞춰 적용한다. 규칙 검사는 실제 테스트에 적힌 범위를 강제한다.
 
 1. 도메인 모델 != `@Entity`가 원칙이나, 구현 중복 제거를 위해 도메인 엔티티(JPA 엔티티)를 허용한다. 의도된 트레이드오프다.
 2. 레포지토리는 2형으로 분리한다: 순수 자바 인터페이스인 도메인 레포지토리(포트) + 구현 레포지토리(JPA, QueryDSL, Redis).
 3. 도메인 레포지토리 시그니처에 Spring Data 타입(`Page`, `Pageable`, `Slice`, `Sort`) 노출 금지. 페이징은 자체 타입(`KeysetPageResponse`, cursor criteria)을 쓴다.
 4. 기술 세부사항(QueryDSL, EntityManager, Redis)은 구현 레포지토리 안에 격리하고 포트 밖으로 새지 않는다.
-5. 코드는 자기 도메인 패키지에만 둔다. 타 도메인 파일을 자기 패키지에 두지 않는다.
-6. 타 도메인 접근은 Facade 경유만 허용한다. 타 도메인의 repository는 물론 service도 직접 참조하지 않는다.
-7. Facade는 인터페이스 + 별도 구현체로 구성한다. Service가 Facade를 겸직하지 않는다.
-8. Controller는 인터페이스에만 의존한다. 구현체 직접 주입 금지, 도메인 VO 직접 생성 금지.
-9. 트랜잭션 경계, 도메인 VO 생성/검증, cross-domain 조합은 Service가 소유한다.
-10. 테스트 더블은 Mockito가 아니라 포트와 Facade의 Fake/InMemory 구현을 쓴다.
-11. 공통 타입(`KeysetPageResponse`, cursor criteria, 공통 예외 베이스, 공통 어노테이션)은 `global`(공유 커널)에 둔다.
-12. global은 어떤 도메인도 모른다. global → 도메인 import 금지.
-13. 동기 호출은 Facade, 부수효과 전파(히스토리, 알림 등)는 도메인 이벤트로 한다.
-14. 예외는 도메인이 소유한다. 도메인별 예외는 자기 exception 패키지에, 공통 베이스만 global에 둔다.
-15. 운영 코드는 테스트 코드를 모른다. 테스트 인프라(컨테이너 설정, persistent factory, fake)는 test-support 모듈이 소유한다.
+5. 소유는 물리 모듈과 source set으로 판단한다. 기존 패키지명과 FQN은 보존할 수 있으며 모듈명과 일치할 의무는 없다. 업무 코드는 소유 모듈에, 앱 복합 조회는 사용하는 앱에 둔다.
+6. 타 업무 호출은 명시한 공개 계약을 따른다. 앱 복합 조회의 읽기 전용 조인과 storage의 좁은 서비스 계약은 협력 ADR 및 ModuleBoundaryRules의 허용 범위를 따른다. 타 업무 저장소의 쓰기는 허용하지 않는다.
+7. Facade interface와 별도 구현체는 기존 패턴으로 유지하되 일률적으로 강제하지 않는다. Product FollowQueryService처럼 서비스가 공개 Facade를 구현할 수 있다. 대체가 필요한 포트와 계약은 유지하며 모든 서비스에 전달용 interface를 만들지 않는다.
+8. Controller는 해당 앱이 사용하는 공개 진입점을 호출한다. 공개 command/query 서비스 클래스와 앱 조회 서비스도 직접 주입할 수 있다. 업무 검증·VO 생성·트랜잭션 책임은 서비스에 두고 Controller에 옮기지 않는다.
+9. 트랜잭션 경계와 업무 VO 생성·검증은 서비스가 소유한다. 여러 업무를 묶는 화면 응답은 사용하는 앱의 서비스와 조회 구현이 소유한다.
+10. 테스트 더블은 Mockito가 아니라 포트와 공개 계약의 Fake/InMemory 구현을 쓴다.
+11. 업무를 모르는 공통 예외·페이징·어노테이션은 foundation에 둔다. global/common이라는 패키지명만으로 공통 기반이라고 판단하지 않는다.
+12. foundation은 업무 타입과 업무 테이블을 참조하지 않는다. user의 global.security, community의 global.rating과 WebConfig는 해당 업무 모듈 소유다. 패키지명에 global이 있다는 이유로 업무 참조를 금지하지 않는다.
+13. 같은 트랜잭션에서 필요한 검증·잠금은 Facade·좁은 공개 서비스·SPI 등 정한 계약을 직접 호출한다. 이력·알림은 소유 업무의 이벤트로 전달하되 모든 리스너를 비동기로 만들지 않는다. 변환·저장 시점은 기존 트랜잭션 계약을 지킨다.
+14. 업무 예외는 소유 업무 모듈에, 업무를 모르는 공통 예외 베이스는 foundation에 둔다.
+15. 운영 코드는 테스트 코드를 모른다. 중립 테스트 인프라는 test-support, 업무 Factory·Fake·InMemory는 소유 모듈의 src/testFixtures, 앱 조합 fixture는 해당 앱의 src/test가 소유한다.
 
 ### 네이밍 컨벤션
 
@@ -178,7 +200,7 @@ gh workflow run deploy_development_applications.yml
 
 | 어노테이션 | 위치 | 포함 | 용도 |
 |---|---|---|---|
-| `@FacadeService` | 구현체 `Default{도메인명}Facade`는 `{domain}.service`, 인터페이스는 `{domain}.facade`(공개 계약) | `@Service` | 도메인 간 완충 계층 구현체. 타 도메인은 Facade 인터페이스만 호출한다 |
+| `@FacadeService` | 구현체 `Default{도메인명}Facade`는 `{domain}.service`, 인터페이스는 `{domain}.facade`(공개 계약) | `@Service` | Facade 공개 계약의 기존 구현 패턴. 다른 공개 진입점과 SPI는 협력 ADR을 따른다 |
 | `@DomainRepository` | `{domain}.domain` | 없음 (마커) | Spring/JPA 비의존 도메인 레포지토리 인터페이스 |
 | `@JpaRepositoryImpl` | `{domain}.repository` | `@Repository` | 도메인 레포지토리의 JPA 구현체, 영속성 예외 변환 |
 | `@DomainEventListener` | `{domain}.event` | `@Component` | 도메인 이벤트 리스너, `ProcessingType`으로 동기/비동기 지정 |
@@ -211,13 +233,13 @@ gh workflow run deploy_development_applications.yml
 - Given-When-Then 패턴 사용
 - Fixture 클래스를 통한 테스트 데이터 관리
 - TestContainers 사용 (실제 DB 환경)
-- 테스트 데이터: test-support 모듈의 `{도메인명}TestFactory` / `DataInitializer`로 생성
+- 테스트 데이터: 소유 업무 모듈 fixture의 `{도메인명}TestFactory`로 생성하고 test-support의 `DataInitializer`로 정리
 
 ### 단위 테스트 패턴
 
 - **Fake/Stub 패턴 선호**: Mock 대신 InMemory 구현체 사용
 - **네이밍**: `InMemory{도메인명}Repository`, `Fake{서비스명}`
-- **위치**: `bottlenote-test-support` 모듈의 `{도메인}.fixture` 패키지 (특정 모듈 전용 헬퍼는 그 모듈 test에 둔다)
+- **위치**: 소유 업무 모듈의 `src/testFixtures/java`에 둔다. 필요한 fixture를 `testImplementation(testFixtures(project(":소유모듈")))`로 선택하며 앱 전용 헬퍼는 해당 앱 test에 둔다
 
 ### 통합 테스트 패턴
 
@@ -230,8 +252,9 @@ gh workflow run deploy_development_applications.yml
 ### 이벤트 기반 아키텍처
 
 - **이벤트 발행**: `ApplicationEventPublisher.publishEvent()`
-- **이벤트 수신**: `@TransactionalEventListener` + `@Async` 조합
-- **트랜잭션 분리**: `@Transactional(propagation = Propagation.REQUIRES_NEW)`
+- **이벤트 수신**: 동기 변환과 커밋 후 비동기 저장을 구분하며 모든 리스너에 `@Async`를 붙이지 않는다
+- **이력 경로**: `HistoryRegistryListener`가 원래 트랜잭션에서 동기로 받아 `HistoryEventPublisher`를 통해 이력 metadata를 만든다. `HistoryListener`가 `AFTER_COMMIT`·`@Async`·`REQUIRES_NEW`로 저장한다
+- **트랜잭션 분리**: 별도 저장 트랜잭션이 필요한 리스너에 `@Transactional(propagation = Propagation.REQUIRES_NEW)`를 사용한다
 - **이벤트 클래스**: `{도메인명}{동작}Event` record로 정의
 
 ## 데이터베이스 설계
@@ -265,7 +288,7 @@ gh workflow run deploy_development_applications.yml
 
 ## 보안 및 인증
 
-- JWT 토큰: 현재 액세스 토큰 48시간, 리프레시 토큰 14일이다. 근거는 [JwtTokenProvider](bottlenote-mono/src/main/java/app/bottlenote/global/security/jwt/JwtTokenProvider.java)의 `ACCESS_TOKEN_EXPIRE_TIME`, `REFRESH_TOKEN_EXPIRE_TIME`과 발급 메서드이며, 변경 시 해당 코드를 기준으로 확인한다.
+- JWT 토큰: 현재 액세스 토큰 48시간, 리프레시 토큰 14일이다. 근거는 [JwtTokenProvider](module-domains/user/src/main/java/app/bottlenote/global/security/jwt/JwtTokenProvider.java)의 `ACCESS_TOKEN_EXPIRE_TIME`, `REFRESH_TOKEN_EXPIRE_TIME`과 발급 메서드이며, 변경 시 해당 코드를 기준으로 확인한다.
 - 토큰 검증: `JwtTokenProvider`, 보안 설정: `SecurityConfig`
 - API 보안: `@PreAuthorize` 또는 `@Secured`, CORS: `WebConfig`
 
