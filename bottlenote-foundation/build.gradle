@@ -1,0 +1,21 @@
+dependencies {
+	runtimeOnly libs.mysql.connector.j
+	implementation platform(libs.netty.bom)
+	runtimeOnly variantOf(libs.netty.epoll) { classifier('linux-aarch_64') }
+	implementation project(':bottlenote-observability')
+	implementation libs.spring.boot.starter.web
+	implementation libs.spring.boot.starter.data.jpa
+	implementation libs.spring.boot.starter.data.redis
+	implementation libs.spring.boot.starter.validation
+	implementation libs.spring.boot.starter.cache
+	implementation libs.caffeine
+	implementation libs.spring.cloud.starter.openfeign
+	implementation libs.querydsl.jpa
+	implementation libs.p6spy
+	implementation libs.bundles.jwt.complete
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${libs.versions.querydsl.get()}:jakarta"
+	annotationProcessor libs.jakarta.annotation.api
+	annotationProcessor libs.jakarta.persistence.api
+	implementation platform(libs.aws.sdk.bom)
+	implementation libs.aws.sdk.s3
+}

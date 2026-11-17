@@ -1,0 +1,39 @@
+dependencies {
+	testFixturesImplementation libs.commons.lang3
+	testFixturesImplementation libs.jackson.databind
+	implementation libs.micrometer.core
+
+	api project(':bottlenote-foundation')
+	implementation project(':bottlenote-user')
+	implementation project(':bottlenote-alcohol')
+	implementation project(':bottlenote-storage')
+	implementation project(':bottlenote-observability')
+	implementation libs.spring.boot.starter.web
+	implementation libs.spring.boot.starter.data.jpa
+	implementation libs.spring.boot.starter.data.redis
+	implementation libs.spring.boot.starter.validation
+	implementation libs.spring.boot.starter.security
+	implementation libs.spring.boot.starter.cache
+	implementation libs.querydsl.jpa
+	implementation libs.hypersistence.utils
+	implementation libs.micrometer.core
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${libs.versions.querydsl.get()}:jakarta"
+	annotationProcessor libs.jakarta.annotation.api
+	annotationProcessor libs.jakarta.persistence.api
+	testImplementation libs.mockito.inline
+	testImplementation libs.testng
+	testImplementation libs.spring.security.test
+	testImplementation libs.bundles.testcontainers.complete
+	testImplementation testFixtures(project(':bottlenote-community'))
+	testFixturesImplementation libs.lombok
+	testFixturesAnnotationProcessor libs.lombok
+	testFixturesImplementation libs.spring.boot.starter.test
+	testFixturesImplementation libs.spring.boot.starter.data.jpa
+	testFixturesImplementation libs.spring.boot.starter.security
+	testFixturesImplementation libs.spring.security.test
+	testFixturesImplementation libs.jetbrains.annotations
+	testFixturesImplementation project(':bottlenote-user')
+	testFixturesImplementation project(':bottlenote-alcohol')
+	testImplementation testFixtures(project(':bottlenote-user'))
+	testImplementation project(':bottlenote-user')
+}

@@ -1,0 +1,50 @@
+package app.bottlenote.alcohols.domain;
+
+import app.bottlenote.alcohols.constant.AlcoholType;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
+import app.bottlenote.alcohols.dto.response.AlcoholBulkCategoryItem;
+import app.bottlenote.alcohols.dto.response.AlcoholBulkReferenceItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholMatchTargetItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+
+/** 알코올 조회 질의에 관한 애그리거트를 정의합니다. */
+public interface AlcoholQueryRepository {
+
+  Alcohol save(Alcohol alcohol);
+
+  Optional<Alcohol> findById(Long alcoholId);
+
+  List<Alcohol> findAll();
+
+  List<Alcohol> findAllByIdIn(List<Long> ids);
+
+  Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
+
+  List<CategoryItem> findAllCategories(AlcoholType type);
+
+  List<CategoryItem> findAllCategoryItems();
+
+  List<AlcoholLookupItem> findAllLookupItems();
+
+  List<AlcoholBulkCategoryItem> findBulkCategoryItems();
+
+  List<AlcoholBulkReferenceItem> findBulkReferenceItemsByDistilleryIds(List<Long> distilleryIds);
+
+  List<AlcoholMatchTargetItem> findAllMatchTargets();
+
+  List<AlcoholMatchTargetItem> findMatchTargetsByDistilleryIdIn(List<Long> distilleryIds);
+
+  List<AlcoholMatchTargetItem> findMatchTargetsByIdIn(List<Long> alcoholIds);
+
+  Boolean existsByAlcoholId(Long alcoholId);
+
+  Boolean existsByDistilleryId(Long distilleryId);
+
+  Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
+}

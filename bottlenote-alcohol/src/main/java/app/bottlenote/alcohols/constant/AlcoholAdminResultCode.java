@@ -1,0 +1,46 @@
+package app.bottlenote.alcohols.constant;
+
+import app.bottlenote.global.dto.response.AdminResultCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum AlcoholAdminResultCode implements AdminResultCode {
+  ALCOHOL_CREATED("위스키가 등록되었습니다."),
+  ALCOHOL_UPDATED("위스키가 수정되었습니다."),
+  ALCOHOL_DELETED("위스키가 삭제되었습니다."),
+  ALCOHOL_MERGED("위스키가 병합되었습니다."),
+  ALCOHOL_ATTRIBUTE_GROUP_DELETED("속성 그룹이 삭제되었습니다."),
+  ALCOHOL_ATTRIBUTE_UPDATED("위스키 속성이 수정되었습니다."),
+  ALCOHOL_ATTRIBUTE_MAPPING_DELETED("주류 속성 연결이 해제되었습니다."),
+  ALCOHOL_ATTRIBUTE_DELETED("위스키 속성이 삭제되었습니다."),
+  DISTILLERY_CREATED("증류소가 등록되었습니다."),
+  DISTILLERY_UPDATED("증류소가 수정되었습니다."),
+  DISTILLERY_DELETED("증류소가 삭제되었습니다."),
+  DISTILLERY_SORT_ORDER_UPDATED("증류소 정렬 순서가 변경되었습니다."),
+  TASTING_TAG_CREATED("테이스팅 태그가 등록되었습니다."),
+  TASTING_TAG_UPDATED("테이스팅 태그가 수정되었습니다."),
+  TASTING_TAG_DELETED("테이스팅 태그가 삭제되었습니다."),
+  TASTING_TAG_ALCOHOL_ADDED("위스키가 연결되었습니다."),
+  TASTING_TAG_ALCOHOL_REMOVED("위스키 연결이 해제되었습니다."),
+  TASTING_TAG_GROUP_CREATED("맛 그룹이 등록되었습니다."),
+  TASTING_TAG_GROUP_UPDATED("맛 그룹이 수정되었습니다."),
+  TASTING_TAG_GROUP_DELETED("맛 그룹이 삭제되었습니다."),
+  TASTING_TAG_GROUP_TAG_ADDED("맛 그룹에 태그가 연결되었습니다."),
+  TASTING_TAG_GROUP_TAG_ROLE_UPDATED("맛 그룹 태그의 역할이 변경되었습니다."),
+  TASTING_TAG_GROUP_TAG_REMOVED("맛 그룹에서 태그가 제거되었습니다."),
+  CURATION_CREATED("큐레이션이 등록되었습니다."),
+  CURATION_UPDATED("큐레이션이 수정되었습니다."),
+  CURATION_DELETED("큐레이션이 삭제되었습니다."),
+  CURATION_STATUS_UPDATED("큐레이션 활성화 상태가 변경되었습니다."),
+  CURATION_DISPLAY_ORDER_UPDATED("큐레이션 노출 순서가 변경되었습니다."),
+  CURATION_ALCOHOL_ADDED("큐레이션에 위스키가 추가되었습니다."),
+  CURATION_ALCOHOL_REMOVED("큐레이션에서 위스키가 제거되었습니다."),
+  REGION_CREATED("지역이 등록되었습니다."),
+  REGION_UPDATED("지역이 수정되었습니다."),
+  REGION_DELETED("지역이 삭제되었습니다."),
+  REGION_SORT_ORDER_UPDATED("지역 정렬 순서가 변경되었습니다.");
+
+  private final String message;
+}

@@ -1,5 +1,6 @@
 package app.bottlenote.user.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -15,12 +16,18 @@ import app.bottlenote.global.data.response.Error;
 import app.bottlenote.picks.fixture.PicksTestFactory;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.review.fixture.ReviewTestFactory;
+import app.bottlenote.user.constant.FollowStatus;
+import app.bottlenote.user.constant.UserStatus;
+import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.fixture.UserTestFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +43,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 class UserQueryIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private UserTestFactory userTestFactory;
+  @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbc;
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private ReviewTestFactory reviewTestFactory;
   @Autowired private RatingTestFactory ratingTestFactory;
@@ -110,6 +118,127 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 
       assertNotNull(followerSearchResponse);
       assertEquals(followerSearchResponse.followerList().size(), followers.size());
+    }
+
+    @Test
+    @DisplayName("자신과 타인의 팔로잉을 반환 커서로 끝까지 읽을 때 시간 동률과 관계 상태를 보존한다")
+    void followingCursorPreservesOrderForSelfAndOther() throws Exception {
+      User owner = userTestFactory.persistUser();
+      User viewer = userTestFactory.persistUser();
+      List<User> expected = seedCursorRelations(owner, true);
+      for (User current : List.of(owner, viewer)) {
+        assertCursorTraversal(
+            owner, current, "following-list", "followingList", "followUserId", expected);
+      }
+    }
+
+    @Test
+    @DisplayName("자신과 타인의 팔로워를 반환 커서로 끝까지 읽을 때 시간 동률과 관계 상태를 보존한다")
+    void followerCursorPreservesOrderForSelfAndOther() throws Exception {
+      User owner = userTestFactory.persistUser();
+      User viewer = userTestFactory.persistUser();
+      List<User> expected = seedCursorRelations(owner, false);
+      userTestFactory.persistFollow(owner, expected.get(1));
+      for (User current : List.of(owner, viewer)) {
+        assertCursorTraversal(owner, current, "follower-list", "followerList", "userId", expected);
+      }
+    }
+
+    private List<User> seedCursorRelations(User owner, boolean following) {
+      LocalDateTime tie = LocalDateTime.of(2026, 1, 1, 12, 0);
+      List<User> related = new ArrayList<>();
+      for (int i = 0; i < 5; i++) {
+        User other =
+            i == 2
+                ? userTestFactory.persistUser(User.builder().status(UserStatus.DELETED))
+                : userTestFactory.persistUser();
+        related.add(other);
+        Follow relation =
+            following
+                ? userTestFactory.persistFollow(owner, other)
+                : userTestFactory.persistFollow(other, owner);
+        LocalDateTime modified = i == 1 || i == 3 ? tie.plusDays(1) : tie;
+        jdbc.update(
+            "UPDATE follows SET last_modify_at = ? WHERE id = ?",
+            Timestamp.valueOf(modified),
+            relation.getId());
+      }
+      User unfollowed = userTestFactory.persistUser();
+      Follow excluded =
+          userTestFactory.persistFollow(
+              Follow.builder()
+                  .userId(following ? owner.getId() : unfollowed.getId())
+                  .targetUserId(following ? unfollowed.getId() : owner.getId())
+                  .status(FollowStatus.UNFOLLOW));
+      jdbc.update(
+          "UPDATE follows SET last_modify_at = ? WHERE id = ?",
+          Timestamp.valueOf(tie.plusDays(2)),
+          excluded.getId());
+      return List.of(
+          related.get(3), related.get(1), related.get(4), related.get(2), related.get(0));
+    }
+
+    private void assertCursorTraversal(
+        User owner,
+        User viewer,
+        String endpoint,
+        String listField,
+        String idField,
+        List<User> expected)
+        throws Exception {
+      String token = getToken(viewer).accessToken();
+      List<Long> collected = new ArrayList<>();
+      String cursor = null;
+      for (int page = 0; page < 3; page++) {
+        var request =
+            mockMvcTester
+                .get()
+                .uri("/api/v1/follow/{userId}/" + endpoint, owner.getId())
+                .param("size", "2")
+                .contentType(APPLICATION_JSON)
+                .with(csrf())
+                .header("Authorization", "Bearer " + token);
+        if (cursor != null) {
+          request.param("cursor", cursor);
+        }
+        MvcTestResult result = request.exchange();
+        result.assertThat().hasStatusOk();
+        JsonNode body =
+            new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(result.getResponse().getContentAsString());
+        JsonNode items = body.path("data").path(listField);
+        assertThat(items.isArray()).isTrue();
+        assertThat(items).hasSize(page < 2 ? 2 : 1);
+        List<Long> pageIds = new ArrayList<>();
+        for (JsonNode item : items) {
+          Long id = item.path(idField).asLong();
+          pageIds.add(id);
+          String expectedStatus =
+              endpoint.equals("following-list") || id.equals(expected.get(1).getId())
+                  ? "FOLLOWING"
+                  : "UNFOLLOW";
+          assertThat(item.path("status").asText()).isEqualTo(expectedStatus);
+        }
+        int start = page * 2;
+        assertThat(pageIds)
+            .containsExactlyElementsOf(
+                expected.subList(start, Math.min(start + 2, 5)).stream().map(User::getId).toList());
+        collected.addAll(pageIds);
+        JsonNode pagination = body.path("meta").path("pagination");
+        assertThat(pagination.path("hasNext").isBoolean()).isTrue();
+        assertThat(pagination.path("hasNext").asBoolean()).isEqualTo(page < 2);
+        if (page < 2) {
+          String next = pagination.path("nextCursor").asText();
+          assertThat(next).isNotBlank().isNotEqualTo(cursor);
+          cursor = next;
+        } else {
+          assertThat(pagination.has("nextCursor")).isTrue();
+          assertThat(pagination.path("nextCursor").isNull()).isTrue();
+        }
+      }
+      assertThat(collected)
+          .containsExactlyElementsOf(expected.stream().map(User::getId).toList())
+          .doesNotHaveDuplicates();
     }
   }
 

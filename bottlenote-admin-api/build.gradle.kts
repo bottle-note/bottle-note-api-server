@@ -5,7 +5,31 @@ plugins {
 }
 
 dependencies {
-	implementation(project(":bottlenote-mono"))
+	implementation(project(":bottlenote-user"))
+	implementation(project(":bottlenote-storage"))
+	implementation(project(":bottlenote-community"))
+	implementation(project(":bottlenote-history"))
+	implementation(project(":bottlenote-support"))
+	implementation(project(":bottlenote-notification"))
+	implementation(project(":bottlenote-analytics"))
+	implementation(project(":bottlenote-content"))
+	implementation(project(":bottlenote-access-control"))
+	testImplementation(testFixtures(project(":bottlenote-user")))
+	testImplementation(testFixtures(project(":bottlenote-community")))
+	testImplementation(testFixtures(project(":bottlenote-content")))
+	testImplementation(testFixtures(project(":bottlenote-history")))
+	testImplementation(testFixtures(project(":bottlenote-storage")))
+	testImplementation(testFixtures(project(":bottlenote-support")))
+	testImplementation(testFixtures(project(":bottlenote-access-control")))
+	testImplementation(testFixtures(project(":bottlenote-analytics")))
+	implementation(libs.spring.boot.starter.data.redis)
+	implementation(libs.hypersistence.utils)
+	implementation(libs.spring.cloud.starter.openfeign)
+	implementation(libs.micrometer.core)
+	implementation(project(":bottlenote-foundation"))
+	implementation(project(":bottlenote-alcohol"))
+	implementation(libs.querydsl.jpa)
+	testImplementation(testFixtures(project(":bottlenote-alcohol")))
 	testImplementation(project(":bottlenote-test-support"))
 
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -23,7 +47,6 @@ dependencies {
 
 	// Security
 	implementation(libs.spring.boot.starter.security)
-	implementation(libs.spring.security.test)
 	testImplementation(libs.spring.security.test)
 
 	testImplementation(libs.spring.boot.starter.data.jpa)

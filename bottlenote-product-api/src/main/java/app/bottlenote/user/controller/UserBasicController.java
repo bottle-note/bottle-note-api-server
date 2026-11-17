@@ -11,7 +11,7 @@ import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.DefaultUserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserBasicController {
 
   private final UserBasicService userBasicService;
-  private final DefaultUserFacade userFacade;
+  private final UserFacade userFacade;
 
   @UserBasicApiDocs.ChangeNickname
   @PatchMapping("/nickname")

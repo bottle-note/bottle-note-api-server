@@ -1,0 +1,27 @@
+dependencies {
+	implementation libs.micrometer.core
+
+	api project(':bottlenote-foundation')
+	implementation libs.spring.boot.starter.web
+	implementation libs.spring.boot.starter.data.jpa
+	implementation libs.spring.boot.starter.data.redis
+	implementation libs.spring.boot.starter.validation
+	implementation libs.spring.boot.starter.security
+	implementation libs.spring.boot.starter.cache
+	implementation libs.querydsl.jpa
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${libs.versions.querydsl.get()}:jakarta"
+	annotationProcessor libs.jakarta.annotation.api
+	annotationProcessor libs.jakarta.persistence.api
+	testImplementation libs.mockito.inline
+	testImplementation libs.testng
+	testImplementation libs.spring.security.test
+	testImplementation libs.bundles.testcontainers.complete
+	testImplementation testFixtures(project(':bottlenote-analytics'))
+	testFixturesImplementation libs.lombok
+	testFixturesAnnotationProcessor libs.lombok
+	testFixturesImplementation libs.spring.boot.starter.test
+	testFixturesImplementation libs.spring.boot.starter.data.jpa
+	testFixturesImplementation libs.spring.boot.starter.security
+	testFixturesImplementation libs.spring.security.test
+	testFixturesImplementation libs.jetbrains.annotations
+}

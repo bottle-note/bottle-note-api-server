@@ -1,5 +1,5 @@
 dependencies {
-	api project(':bottlenote-mono')
+	implementation project(':bottlenote-foundation')
 
 	implementation libs.spring.boot.starter.test
 	implementation libs.spring.boot.starter.web

@@ -21,5 +21,29 @@ public abstract class AbstractRules {
     }
   }
 
+  static {
+    for (String name :
+        new String[] {
+          "app.bottlenote.accesscontrol.constant.IpBanActorType",
+          "app.bottlenote.alcohols.constant.AdminAlcoholSortType",
+          "app.bottlenote.statistics.config.StatisticsConfiguration",
+          "app.bottlenote.global.config.WebConfig",
+          "app.bottlenote.banner.constant.BannerAdminResultCode",
+          "app.bottlenote.common.annotation.DomainEventListener",
+          "app.bottlenote.global.redis.entity.AlcoholViewHistory",
+          "app.bottlenote.notification.action.NotificationAction",
+          "app.bottlenote.common.file.PreSignUrlProvider",
+          "app.bottlenote.support.business.constant.BusinessResultMessage",
+          "app.bottlenote.agent.constant.AgentStatus",
+          "app.bottlenote.alcohols.domain.Alcohol",
+          "app.bottlenote.common.domain.BaseEntity",
+          "app.bottlenote.alcohols.repository.QueryDslAlcoholDetailQueryRepository"
+        }) {
+      if (!IMPORTED_CLASSES.contain(name)) {
+        throw new IllegalStateException("검사 대상 모듈의 대표 클래스가 없다: " + name);
+      }
+    }
+  }
+
   protected final JavaClasses importedClasses = IMPORTED_CLASSES;
 }

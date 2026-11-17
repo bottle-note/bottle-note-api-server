@@ -170,8 +170,8 @@ public class FacadeRules extends AbstractRules {
                 new DescribedPredicate<>("are not facade implementations") {
                   @Override
                   public boolean test(JavaClass javaClass) {
-                    return !javaClass.getName().startsWith("Default")
-                        || !javaClass.getName().endsWith("Facade");
+                    return !javaClass.getSimpleName().startsWith("Default")
+                        || !javaClass.getSimpleName().endsWith("Facade");
                   }
                 })
             .because("컨트롤러는 퍼사드 인터페이스에만 의존하고 구현체에 직접 의존하지 않아야 합니다");

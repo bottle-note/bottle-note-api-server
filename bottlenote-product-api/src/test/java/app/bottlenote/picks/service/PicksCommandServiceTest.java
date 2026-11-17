@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.facade.AlcoholFacade;
-import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksRepository;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Tag("unit")
 @DisplayName("[unit] [service] PicksCommand")
@@ -41,7 +41,7 @@ class PicksCommandServiceTest {
 
   @Mock private PicksRepository picksRepository;
 
-  @Mock private HistoryEventPublisher picksEventPublisher;
+  @Mock private ApplicationEventPublisher picksEventPublisher;
 
   private User user;
   private Alcohol alcohol;
@@ -84,7 +84,7 @@ class PicksCommandServiceTest {
       // when
       when(picksRepository.findByAlcoholIdAndUserId(alcohol.getId(), user.getId()))
           .thenReturn(Optional.ofNullable(picks));
-      doNothing().when(picksEventPublisher).publishPicksHistoryEvent(any());
+      doNothing().when(picksEventPublisher).publishEvent(any(Object.class));
       PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, user.getId());
 
       // then

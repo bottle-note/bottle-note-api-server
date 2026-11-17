@@ -1,6 +1,28 @@
 // bottlenote-product-api
 dependencies {
-	implementation project(':bottlenote-mono')
+	implementation project(':bottlenote-user')
+	implementation project(':bottlenote-storage')
+	implementation project(':bottlenote-community')
+	implementation project(':bottlenote-history')
+	implementation project(':bottlenote-support')
+	implementation project(':bottlenote-notification')
+	implementation project(':bottlenote-analytics')
+	implementation project(':bottlenote-content')
+	implementation project(':bottlenote-access-control')
+	testImplementation testFixtures(project(':bottlenote-user'))
+	testImplementation testFixtures(project(':bottlenote-community'))
+	testImplementation testFixtures(project(':bottlenote-content'))
+	testImplementation testFixtures(project(':bottlenote-history'))
+	testImplementation testFixtures(project(':bottlenote-storage'))
+	testImplementation testFixtures(project(':bottlenote-support'))
+	testImplementation testFixtures(project(':bottlenote-access-control'))
+	testImplementation testFixtures(project(':bottlenote-analytics'))
+	implementation libs.micrometer.core
+	implementation platform(libs.aws.sdk.bom)
+	implementation libs.aws.sdk.s3
+	testImplementation testFixtures(project(':bottlenote-alcohol'))
+	implementation project(':bottlenote-foundation')
+	implementation project(':bottlenote-alcohol')
 	testImplementation project(':bottlenote-test-support')
 	implementation project(':bottlenote-observability')
 
@@ -22,7 +44,7 @@ dependencies {
 	testImplementation libs.mysql.connector.j
 
 	// Test - QueryDSL
-	testImplementation libs.querydsl.jpa
+	implementation libs.querydsl.jpa
 	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${libs.versions.querydsl.get()}:jakarta"
 	annotationProcessor libs.jakarta.annotation.api
 	annotationProcessor libs.jakarta.persistence.api
@@ -33,7 +55,6 @@ dependencies {
 
 	// Security
 	implementation libs.spring.boot.starter.security
-	implementation libs.spring.security.test
 	testImplementation libs.spring.security.test
 	testImplementation libs.mockito.inline
 

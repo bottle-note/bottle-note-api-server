@@ -1,0 +1,465 @@
+package app.bottlenote.alcohols.repository;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholPopularitySnapshot.alcoholPopularitySnapshot;
+import static app.bottlenote.alcohols.domain.QDistillery.distillery;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+
+import app.bottlenote.alcohols.constant.SearchSortType;
+import app.bottlenote.alcohols.domain.AlcoholDetailQueryRepository;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
+import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.CursorKeys;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.KeysetPageResponse;
+import app.bottlenote.global.pagination.KeysetPagination;
+import app.bottlenote.global.rating.RatingDisplay;
+import app.bottlenote.global.service.cursor.SortOrder;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Repository;
+
+/** 주류 상세·둘러보기 조회 구현. 찜·별점·리뷰를 조인하므로 최종 소유는 product-api다. */
+@Repository
+public class QueryDslAlcoholDetailQueryRepository implements AlcoholDetailQueryRepository {
+  private final JPAQueryFactory queryFactory;
+  private final AlcoholQuerySupporter supporter;
+  private final AlcoholEngagementQuerySupporter engagementSupporter;
+  private final HmacCursorCodec cursorCodec;
+
+  public QueryDslAlcoholDetailQueryRepository(
+      JPAQueryFactory queryFactory,
+      AlcoholQuerySupporter supporter,
+      AlcoholEngagementQuerySupporter engagementSupporter,
+      HmacCursorCodec cursorCodec) {
+    this.queryFactory = queryFactory;
+    this.supporter = supporter;
+    this.engagementSupporter = engagementSupporter;
+    this.cursorCodec = cursorCodec;
+  }
+
+  /** queryDSL 알코올 상세 조회 */
+  @Override
+  public AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId) {
+    if (Objects.isNull(userId)) userId = -1L;
+
+    return queryFactory
+        .select(
+            Projections.constructor(
+                AlcoholDetailItem.class,
+                alcohol.id,
+                alcohol.imageUrl,
+                alcohol.korName,
+                alcohol.engName,
+                alcohol.korCategory,
+                alcohol.engCategory,
+                region.korName,
+                region.engName,
+                alcohol.cask,
+                alcohol.abv,
+                distillery.korName,
+                distillery.engName,
+                alcohol.description,
+                displayedRating().as("rating"),
+                rating.id.countDistinct(),
+                engagementSupporter.myRating(alcoholId, userId),
+                engagementSupporter.averageReviewRating(alcoholId, userId),
+                engagementSupporter.isPickedSubquery(alcoholId, userId),
+                review.id.countDistinct(),
+                picks.id.countDistinct(),
+                getTastingTags()))
+        .from(alcohol)
+        .leftJoin(rating)
+        .on(countedRating())
+        .leftJoin(review)
+        .on(review.alcoholId.eq(alcohol.id))
+        .leftJoin(picks)
+        .on(picks.alcoholId.eq(alcohol.id))
+        .join(region)
+        .on(alcohol.region.id.eq(region.id))
+        .join(distillery)
+        .on(alcohol.distillery.id.eq(distillery.id))
+        .where(alcohol.id.eq(alcoholId), supporter.isNotDeleted())
+        .groupBy(
+            alcohol.id,
+            alcohol.imageUrl,
+            alcohol.korName,
+            alcohol.engName,
+            alcohol.korCategory,
+            alcohol.engCategory,
+            region.korName,
+            region.engName,
+            alcohol.cask,
+            alcohol.abv,
+            distillery.korName,
+            distillery.engName,
+            alcohol.description)
+        .fetchOne();
+  }
+
+  /** queryDSL 알코올 둘러보기 */
+  @Override
+  public KeysetPageResponse<List<AlcoholDetailItem>> getStandardExplore(
+      ExploreStandardCriteria criteria) {
+    Long userId = criteria.userId();
+    int pageSize = criteria.size();
+    int fetchSize = Math.addExact(pageSize, 1);
+    String context = criteria.context();
+
+    List<ExploreSeekKey> candidates = fetchCandidateIds(criteria, fetchSize);
+    if (candidates.isEmpty()) {
+      return KeysetPageResponse.of(List.of(), new KeysetPagination(false, null));
+    }
+
+    List<Long> candidateIds = candidates.stream().map(ExploreSeekKey::id).toList();
+    Map<Long, String> sortById =
+        candidates.stream()
+            .collect(Collectors.toMap(ExploreSeekKey::id, ExploreSeekKey::sortValue));
+
+    List<AlcoholDetailItem> items =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    AlcoholDetailItem.class,
+                    alcohol.id,
+                    alcohol.imageUrl,
+                    alcohol.korName,
+                    alcohol.engName,
+                    alcohol.korCategory,
+                    alcohol.engCategory,
+                    region.korName,
+                    region.engName,
+                    alcohol.cask,
+                    alcohol.abv,
+                    distillery.korName,
+                    distillery.engName,
+                    alcohol.description,
+                    displayedRating().as("rating"),
+                    rating.id.countDistinct(),
+                    engagementSupporter.myRating(alcohol.id, userId),
+                    engagementSupporter.averageReviewRating(alcohol.id, userId),
+                    engagementSupporter.isPickedSubquery(alcohol.id, userId),
+                    review.id.countDistinct(),
+                    picks.id.countDistinct(),
+                    getTastingTags()))
+            .from(alcohol)
+            .leftJoin(rating)
+            .on(countedRating())
+            .leftJoin(review)
+            .on(review.alcoholId.eq(alcohol.id))
+            .leftJoin(picks)
+            .on(picks.alcoholId.eq(alcohol.id))
+            .join(region)
+            .on(alcohol.region.id.eq(region.id))
+            .join(distillery)
+            .on(alcohol.distillery.id.eq(distillery.id))
+            .where(alcohol.id.in(candidateIds), supporter.isNotDeleted())
+            .groupBy(
+                alcohol.id,
+                alcohol.imageUrl,
+                alcohol.korName,
+                alcohol.engName,
+                alcohol.korCategory,
+                alcohol.engCategory,
+                region.korName,
+                region.engName,
+                alcohol.cask,
+                alcohol.abv,
+                distillery.korName,
+                distillery.engName,
+                alcohol.description)
+            .fetch();
+
+    Map<Long, AlcoholDetailItem> byId =
+        items.stream()
+            .collect(Collectors.toMap(AlcoholDetailItem::getAlcoholId, Function.identity()));
+    List<AlcoholDetailItem> ordered =
+        candidateIds.stream().map(byId::get).filter(Objects::nonNull).toList();
+
+    var slice =
+        KeysetPagination.fromOverflow(
+            ordered,
+            pageSize,
+            item -> {
+              Map<String, String> keys =
+                  Map.of(
+                      "id",
+                      String.valueOf(item.getAlcoholId()),
+                      "sort",
+                      sortById.getOrDefault(item.getAlcoholId(), "0"));
+              Map<String, String> extra =
+                  switch (criteria.sortType()) {
+                    case RANDOM -> Map.of("seed", String.valueOf(criteria.seed()));
+                    case POPULAR ->
+                        Map.of(
+                            "bucketAt",
+                            criteria.popularityBucketAt() == null
+                                ? ExploreStandardCriteria.NO_POPULARITY_BUCKET
+                                : criteria.popularityBucketAt().toString());
+                    default -> Map.of();
+                  };
+              return cursorCodec.encode(context, keys, extra);
+            });
+    return KeysetPageResponse.of(slice.items(), slice.pagination());
+  }
+
+  /**
+   * 1단계 후보 ID 추출. 정렬 타입에 따라 RANDOM은 CRC32 keyset, 나머지는 필요한 집계 테이블만 LEFT JOIN + GROUP BY + id ASC 보조
+   * 정렬로 처리한다.
+   */
+  private List<ExploreSeekKey> fetchCandidateIds(ExploreStandardCriteria criteria, int fetchSize) {
+    SearchSortType sortType = criteria.sortType();
+    CursorClaims claims =
+        criteria.cursor() == null
+            ? null
+            : cursorCodec.verify(criteria.cursor(), criteria.context());
+
+    if (sortType == SearchSortType.POPULAR) {
+      return fetchPopularityCandidates(criteria, claims, fetchSize);
+    }
+
+    if (sortType == SearchSortType.RANDOM) {
+      NumberExpression<Long> crc = supporter.crc32Rank(criteria.seed());
+      if (criteria.hasRatingRange()) {
+        List<Tuple> rows =
+            queryFactory
+                .select(alcohol.id, crc)
+                .from(alcohol)
+                .join(region)
+                .on(alcohol.region.id.eq(region.id))
+                .join(distillery)
+                .on(alcohol.distillery.id.eq(distillery.id))
+                .leftJoin(rating)
+                .on(countedRating())
+                .where(
+                    supporter.searchTokensMatch(criteria.searchTokens()),
+                    supporter.eqCategory(criteria.category()),
+                    supporter.inRegionIds(criteria.regionIds()),
+                    supporter.inDistilleryIds(criteria.distilleryIds()),
+                    supporter.eqCurationId(criteria.curationId()),
+                    supporter.isNotDeleted(),
+                    randomSeek(claims, crc))
+                .groupBy(alcohol.id)
+                .having(ratingInRange(criteria.ratingFrom(), criteria.ratingTo()))
+                .orderBy(crc.asc(), alcohol.id.asc())
+                .limit(fetchSize)
+                .fetch();
+        return toSeekKeys(rows, crc);
+      }
+      List<Tuple> rows =
+          queryFactory
+              .select(alcohol.id, crc)
+              .from(alcohol)
+              .join(region)
+              .on(alcohol.region.id.eq(region.id))
+              .join(distillery)
+              .on(alcohol.distillery.id.eq(distillery.id))
+              .where(
+                  supporter.searchTokensMatch(criteria.searchTokens()),
+                  supporter.eqCategory(criteria.category()),
+                  supporter.inRegionIds(criteria.regionIds()),
+                  supporter.inDistilleryIds(criteria.distilleryIds()),
+                  supporter.eqCurationId(criteria.curationId()),
+                  supporter.isNotDeleted(),
+                  randomSeek(claims, crc))
+              .orderBy(crc.asc(), alcohol.id.asc())
+              .limit(fetchSize)
+              .fetch();
+      return toSeekKeys(rows, crc);
+    }
+
+    NumberExpression<? extends Number> sortScore = engagementSupporter.sortScore(sortType);
+    var query =
+        queryFactory
+            .select(alcohol.id, sortScore)
+            .from(alcohol)
+            .join(region)
+            .on(alcohol.region.id.eq(region.id))
+            .join(distillery)
+            .on(alcohol.distillery.id.eq(distillery.id));
+    if (needsRatingJoin(sortType) || criteria.hasRatingRange()) {
+      query = query.leftJoin(rating).on(countedRating());
+    }
+    if (needsReviewJoin(sortType)) {
+      query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
+    }
+    if (needsPicksJoin(sortType)) {
+      query = query.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id));
+    }
+    List<Tuple> rows =
+        query
+            .where(
+                supporter.searchTokensMatch(criteria.searchTokens()),
+                supporter.eqCategory(criteria.category()),
+                supporter.inRegionIds(criteria.regionIds()),
+                supporter.inDistilleryIds(criteria.distilleryIds()),
+                supporter.eqCurationId(criteria.curationId()),
+                supporter.isNotDeleted())
+            .groupBy(alcohol.id)
+            .having(
+                ratingInRange(criteria.ratingFrom(), criteria.ratingTo()),
+                aggregateSeek(claims, sortType, criteria.sortOrder(), sortScore))
+            .orderBy(engagementSupporter.sortBy(sortType, criteria.sortOrder()), alcohol.id.asc())
+            .limit(fetchSize)
+            .fetch();
+    return toSeekKeys(rows, sortScore);
+  }
+
+  private List<ExploreSeekKey> fetchPopularityCandidates(
+      ExploreStandardCriteria criteria, CursorClaims claims, int fetchSize) {
+    NumberExpression<BigDecimal> score =
+        alcoholPopularitySnapshot.popularityScore.coalesce(BigDecimal.ZERO);
+    // 첫 페이지에서 스냅샷이 없었다면 이후에도 점수 조인을 차단한다.
+    BooleanExpression bucketCondition =
+        criteria.popularityBucketAt() == null
+            ? Expressions.FALSE
+            : alcoholPopularitySnapshot.bucketAt.eq(criteria.popularityBucketAt());
+    var query =
+        queryFactory
+            .select(alcohol.id, score)
+            .from(alcohol)
+            .join(region)
+            .on(alcohol.region.id.eq(region.id))
+            .join(distillery)
+            .on(alcohol.distillery.id.eq(distillery.id))
+            .leftJoin(alcoholPopularitySnapshot)
+            .on(
+                alcoholPopularitySnapshot
+                    .alcoholId
+                    .eq(alcohol.id)
+                    .and(
+                        alcoholPopularitySnapshot.bucketGranularity.eq(
+                            app.bottlenote.alcohols.constant.BucketGranularity.HOUR))
+                    .and(bucketCondition));
+    if (criteria.hasRatingRange()) {
+      query = query.leftJoin(rating).on(countedRating());
+    }
+
+    OrderSpecifier<BigDecimal> scoreOrder =
+        criteria.sortOrder() == SortOrder.DESC ? score.desc() : score.asc();
+    List<Tuple> rows =
+        query
+            .where(
+                supporter.searchTokensMatch(criteria.searchTokens()),
+                supporter.eqCategory(criteria.category()),
+                supporter.inRegionIds(criteria.regionIds()),
+                supporter.inDistilleryIds(criteria.distilleryIds()),
+                supporter.eqCurationId(criteria.curationId()),
+                supporter.isNotDeleted(),
+                popularitySeek(claims, criteria.sortOrder(), score))
+            .groupBy(alcohol.id, alcoholPopularitySnapshot.popularityScore)
+            .having(ratingInRange(criteria.ratingFrom(), criteria.ratingTo()))
+            .orderBy(scoreOrder, alcohol.id.asc())
+            .limit(fetchSize)
+            .fetch();
+    return toSeekKeys(rows, score);
+  }
+
+  private static List<ExploreSeekKey> toSeekKeys(
+      List<Tuple> rows, Expression<? extends Number> sortExpr) {
+    return rows.stream()
+        .map(
+            row -> {
+              Long id = row.get(alcohol.id);
+              Number sort = row.get(sortExpr);
+              return new ExploreSeekKey(id, sort == null ? "0" : String.valueOf(sort));
+            })
+        .toList();
+  }
+
+  private static BooleanExpression randomSeek(CursorClaims claims, NumberExpression<Long> crc) {
+    if (claims == null) {
+      return null;
+    }
+    long lastCrc = CursorKeys.requireLong(claims, "sort");
+    long lastId = CursorKeys.requireLong(claims, "id");
+    return crc.gt(lastCrc).or(crc.eq(lastCrc).and(alcohol.id.gt(lastId)));
+  }
+
+  private static BooleanExpression popularitySeek(
+      CursorClaims claims, SortOrder sortOrder, NumberExpression<BigDecimal> score) {
+    if (claims == null) {
+      return null;
+    }
+    BigDecimal lastScore = CursorKeys.requireBigDecimal(claims, "sort");
+    long lastId = CursorKeys.requireLong(claims, "id");
+    BooleanExpression moved =
+        sortOrder == SortOrder.DESC ? score.lt(lastScore) : score.gt(lastScore);
+    return moved.or(score.eq(lastScore).and(alcohol.id.gt(lastId)));
+  }
+
+  private static BooleanExpression aggregateSeek(
+      CursorClaims claims,
+      SearchSortType sortType,
+      SortOrder sortOrder,
+      NumberExpression<? extends Number> sortScore) {
+    if (claims == null) {
+      return null;
+    }
+    long lastId = CursorKeys.requireLong(claims, "id");
+    boolean desc = sortOrder == SortOrder.DESC;
+    if (sortType == SearchSortType.PICK || sortType == SearchSortType.REVIEW) {
+      long last = CursorKeys.requireLong(claims, "sort");
+      @SuppressWarnings("unchecked")
+      NumberExpression<Long> expr = (NumberExpression<Long>) sortScore;
+      BooleanExpression moved = desc ? expr.lt(last) : expr.gt(last);
+      return moved.or(expr.eq(last).and(alcohol.id.gt(lastId)));
+    }
+    double last = CursorKeys.requireDouble(claims, "sort");
+    @SuppressWarnings("unchecked")
+    NumberExpression<Double> expr = (NumberExpression<Double>) sortScore;
+    BooleanExpression moved = desc ? expr.lt(last) : expr.gt(last);
+    return moved.or(expr.eq(last).and(alcohol.id.gt(lastId)));
+  }
+
+  private record ExploreSeekKey(Long id, String sortValue) {}
+
+  /** 노출 집계에 포함할 별점만 남기는 조인 조건. 0점은 평가로 보지 않는다. */
+  private static BooleanExpression countedRating() {
+    return rating.id.alcoholId.eq(alcohol.id).and(rating.ratingPoint.rating.gt(0.0));
+  }
+
+  /** 목록 응답에 노출하는 집계 평점과 같은 정규화 값을 HAVING과 projection에서 공통 사용한다. */
+  private static NumberExpression<Double> displayedRating() {
+    return RatingDisplay.normalize(rating.ratingPoint.rating.avg()).coalesce(0.0);
+  }
+
+  private static BooleanExpression ratingInRange(BigDecimal from, BigDecimal to) {
+    BooleanExpression lower = from == null ? null : displayedRating().goe(from.doubleValue());
+    BooleanExpression upper = to == null ? null : displayedRating().loe(to.doubleValue());
+    BooleanExpression hasRating = rating.id.count().gt(0L);
+    if (lower == null) {
+      return upper == null ? null : hasRating.and(upper);
+    }
+    return hasRating.and(upper == null ? lower : lower.and(upper));
+  }
+
+  private static boolean needsRatingJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.RATING;
+  }
+
+  private static boolean needsReviewJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.REVIEW;
+  }
+
+  private static boolean needsPicksJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.PICK;
+  }
+}

@@ -7,14 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
+import app.bottlenote.common.event.fixture.FakeApplicationEventPublisher;
 import app.bottlenote.observability.service.LocalTracingService;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
+import app.bottlenote.rating.event.payload.RatingRegistryEvent;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
 import app.bottlenote.user.exception.UserException;
@@ -34,6 +34,7 @@ class RatingCommandServiceTest {
   private final Long alcoholId = 1L;
   private RatingRepository fakeRatingRepository;
   private RatingCommandService ratingCommandService;
+  private FakeApplicationEventPublisher ratingEventPublisher;
 
   @BeforeEach
   void setup() {
@@ -44,7 +45,7 @@ class RatingCommandServiceTest {
     fakeRatingRepository = new InMemoryRatingRepository();
     UserFacade fakeUserFacade = new FakeUserFacade(user1, user2, user3);
     AlcoholFacade fakeAlcoholFacade = new FakeAlcoholFacade();
-    HistoryEventPublisher ratingEventPublisher = new FakeHistoryEventPublisher();
+    ratingEventPublisher = new FakeApplicationEventPublisher();
     ratingCommandService =
         new RatingCommandService(
             fakeRatingRepository,
@@ -52,6 +53,27 @@ class RatingCommandServiceTest {
             fakeAlcoholFacade,
             ratingEventPublisher,
             new LocalTracingService());
+  }
+
+  @Test
+  @DisplayName("별점을 반복 수정하고 취소할 때 각 요청의 이전 값과 현재 값을 발행한다")
+  void publishesEveryRatingRequest() {
+    ratingCommandService.register(alcoholId, userId, RatingPoint.of(2.5));
+    ratingCommandService.register(alcoholId, userId, RatingPoint.of(2.5));
+    ratingCommandService.register(alcoholId, userId, RatingPoint.of(0.0));
+
+    var events = ratingEventPublisher.getPublishedEventsOfType(RatingRegistryEvent.class);
+    assertEquals(3, events.size());
+    org.junit.jupiter.api.Assertions.assertNull(events.get(0).prevRating());
+    assertEquals(2.5, events.get(0).currentRating().getRating());
+    assertEquals(2.5, events.get(1).prevRating().getRating());
+    assertEquals(2.5, events.get(1).currentRating().getRating());
+    assertEquals(2.5, events.get(2).prevRating().getRating());
+    assertEquals(0.0, events.get(2).currentRating().getRating());
+    for (var event : events) {
+      assertEquals(userId, event.userId());
+      assertEquals(alcoholId, event.alcoholId());
+    }
   }
 
   @Nested

@@ -49,6 +49,8 @@ public class DataTransferObjectRules extends AbstractRules {
             .haveNameNotMatching(".*\\$.*")
             .and()
             .areTopLevelClasses()
+            .and()
+            .haveNameNotMatching("app\\.bottlenote\\.global\\.dto\\.response\\.AdminResultCode")
             .should()
             .haveSimpleNameEndingWith("Response")
             .orShould()
@@ -56,6 +58,22 @@ public class DataTransferObjectRules extends AbstractRules {
             .because("응답 DTO 클래스는 명확한 식별을 위해 'Response' , 'Item'로 끝나야 합니다");
 
     rule.check(importedClasses);
+  }
+
+  @Test
+  public void 업무_응답_코드_공개_계약_검증() {
+    Class<?> contract = app.bottlenote.global.dto.response.AdminResultCode.class;
+    org.assertj.core.api.Assertions.assertThat(contract.isInterface()).isTrue();
+    org.assertj.core.api.Assertions.assertThat(contract.getDeclaredMethods())
+        .extracting(java.lang.reflect.Method::getName)
+        .containsExactlyInAnyOrder("name", "getMessage");
+    org.assertj.core.api.Assertions.assertThat(contract.getDeclaredMethods())
+        .allSatisfy(
+            method -> {
+              org.assertj.core.api.Assertions.assertThat(method.getReturnType())
+                  .isEqualTo(String.class);
+              org.assertj.core.api.Assertions.assertThat(method.getParameterCount()).isZero();
+            });
   }
 
   @Test

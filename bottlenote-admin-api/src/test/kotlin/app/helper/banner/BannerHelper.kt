@@ -1,10 +1,12 @@
 package app.helper.banner
 
+import app.bottlenote.banner.constant.BannerAdminResultCode
 import app.bottlenote.banner.constant.BannerType
 import app.bottlenote.banner.constant.MediaType
 import app.bottlenote.banner.constant.TextPosition
 import app.bottlenote.banner.dto.response.AdminBannerDetailResponse
 import app.bottlenote.banner.dto.response.AdminBannerListResponse
+import app.bottlenote.global.dto.response.AdminResultCode
 import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
 
@@ -159,7 +161,7 @@ object BannerHelper {
 	fun createBannerSortOrderRequest(sortOrder: Int = 1): Map<String, Any> = mapOf("sortOrder" to sortOrder)
 
 	fun createAdminResultResponse(
-		code: AdminResultResponse.ResultCode = AdminResultResponse.ResultCode.BANNER_CREATED,
+		code: AdminResultCode = BannerAdminResultCode.BANNER_CREATED,
 		targetId: Long = 1L
 	): AdminResultResponse = AdminResultResponse.of(code, targetId)
 }

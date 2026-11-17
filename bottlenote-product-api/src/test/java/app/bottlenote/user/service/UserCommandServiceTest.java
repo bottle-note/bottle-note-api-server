@@ -35,6 +35,8 @@ class UserCommandServiceTest {
 
   @Mock UserFilterManager userFilterManager;
 
+  @Mock org.springframework.context.ApplicationEventPublisher eventPublisher;
+
   @Mock UserRepository userCommandRepository;
 
   @Test

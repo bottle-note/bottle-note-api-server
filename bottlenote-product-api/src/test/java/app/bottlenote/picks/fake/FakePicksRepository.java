@@ -29,6 +29,15 @@ public class FakePicksRepository implements PicksRepository {
   }
 
   @Override
+  public boolean existsByAlcoholIdAndUserIdAndStatus(
+      Long alcoholId, Long userId, PicksStatus status) {
+    return picksDatabase.values().stream()
+        .filter(picks -> Objects.equals(picks.getAlcoholId(), alcoholId))
+        .filter(picks -> Objects.equals(picks.getUserId(), userId))
+        .anyMatch(picks -> picks.getStatus() == status);
+  }
+
+  @Override
   public Long countByAlcoholIdAndStatus(Long alcoholId, PicksStatus status) {
     return picksDatabase.values().stream()
         .filter(picks -> Objects.equals(picks.getAlcoholId(), alcoholId))

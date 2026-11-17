@@ -1,10 +1,12 @@
 package app.helper.alcohols
 
+import app.bottlenote.alcohols.constant.AlcoholAdminResultCode
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.alcohols.dto.response.*
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTagInfo
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.response.AdminResultCode
 import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
 
@@ -180,7 +182,7 @@ object AlcoholsHelper {
 		).build()
 
 	fun createAdminResultResponse(
-		code: AdminResultResponse.ResultCode = AdminResultResponse.ResultCode.ALCOHOL_CREATED,
+		code: AdminResultCode = AlcoholAdminResultCode.ALCOHOL_CREATED,
 		targetId: Long = 1L
 	): AdminResultResponse = AdminResultResponse.of(code, targetId)
 

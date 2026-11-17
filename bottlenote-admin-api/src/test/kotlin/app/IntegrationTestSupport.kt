@@ -1,5 +1,6 @@
 package app
 
+import app.bottlenote.common.file.fixture.StorageTestConfig
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.jwt.JwtTokenProvider
 import app.bottlenote.operation.utils.DataInitializer
@@ -22,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.assertj.MockMvcTester
 import org.springframework.test.web.servlet.assertj.MvcTestResult
 
-@Import(TestContainersConfig::class)
+@Import(TestContainersConfig::class, StorageTestConfig::class)
 @ActiveProfiles("test")
 @Tag("admin_integration")
 @AutoConfigureMockMvc

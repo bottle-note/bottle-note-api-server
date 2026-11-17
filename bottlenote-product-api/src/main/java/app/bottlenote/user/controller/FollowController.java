@@ -14,6 +14,7 @@ import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.service.FollowQueryService;
 import app.bottlenote.user.service.FollowService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class FollowController {
 
   private final FollowService followService;
+  private final FollowQueryService followQueryService;
 
   @FollowApiDocs.GetFollowingList
   @GetMapping("/{targetUserId}/following-list")
@@ -44,7 +46,7 @@ public class FollowController {
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
     KeysetPageResponse<FollowingSearchResponse> followingPageResponse =
-        followService.getFollowingList(currentUserId, targetUserId, pageableRequest);
+        followQueryService.getFollowingList(currentUserId, targetUserId, pageableRequest);
     return GlobalResponse.ok(
         followingPageResponse.content(),
         MetaService.createMetaInfo().add("pagination", followingPageResponse.pagination()));
@@ -60,7 +62,7 @@ public class FollowController {
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
     KeysetPageResponse<FollowerSearchResponse> followerPageResponse =
-        followService.getFollowerList(currentUserId, targetUserId, pageableRequest);
+        followQueryService.getFollowerList(currentUserId, targetUserId, pageableRequest);
     return GlobalResponse.ok(
         followerPageResponse.content(),
         MetaService.createMetaInfo().add("pagination", followerPageResponse.pagination()));

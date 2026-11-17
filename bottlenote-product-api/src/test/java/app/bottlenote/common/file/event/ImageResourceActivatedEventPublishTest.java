@@ -1,5 +1,7 @@
 package app.bottlenote.common.file.event;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,13 +18,16 @@ import app.bottlenote.common.file.upload.fixture.InMemoryResourceLogRepository;
 import app.bottlenote.common.profanity.FakeProfanityClient;
 import app.bottlenote.global.pagination.CursorProperties;
 import app.bottlenote.global.pagination.HmacCursorCodec;
-import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.observability.service.LocalTracingService;
+import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.event.payload.ReviewRegistryEvent;
+import app.bottlenote.review.exception.ReviewException;
+import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.service.ReviewService;
 import app.bottlenote.support.business.constant.BusinessSupportType;
@@ -73,7 +78,6 @@ class ImageResourceActivatedEventPublishTest {
               new FakeAlcoholFacade(),
               new FakeUserFacade(UserProfileItem.create(1L, "user1", "")),
               reviewRepository,
-              new FakeHistoryEventPublisher(),
               new LocalTracingService(),
               eventPublisher,
               new ResourceVerifierService(resourceLogRepository));
@@ -104,6 +108,13 @@ class ImageResourceActivatedEventPublishTest {
       assertEquals("review/img2.jpg", event.resourceKeys().get(1));
       assertEquals(response.getId(), event.referenceId());
       assertEquals("REVIEW", event.referenceType());
+      List<ReviewRegistryEvent> reviews =
+          eventPublisher.getPublishedEventsOfType(ReviewRegistryEvent.class);
+      assertEquals(1, reviews.size());
+      assertEquals(response.getId(), reviews.getFirst().reviewId());
+      assertEquals(request.alcoholId(), reviews.getFirst().alcoholId());
+      assertEquals(1L, reviews.getFirst().userId());
+      assertEquals(request.content(), reviews.getFirst().content());
     }
 
     @Test
@@ -147,6 +158,41 @@ class ImageResourceActivatedEventPublishTest {
       assertEquals("review/new-img.jpg", event.resourceKeys().get(0));
       assertEquals(createResponse.getId(), event.referenceId());
       assertEquals("REVIEW", event.referenceType());
+    }
+
+    @Test
+    @DisplayName("작성자가 일치할 때 통합 Fake로 리뷰를 수정하고 삭제한다")
+    void ownerCanModifyAndDeleteReview() {
+      Long id = reviewService.createReview(createReviewRequest(List.of()), 1L).getId();
+      ReviewModifyRequest request =
+          new ReviewModifyRequest(
+              "작성자 수정", null, null, List.of(), null, null, LocationInfoRequest.empty(), null, null);
+      reviewService.modifyReview(request, id, 1L);
+      assertThat(reviewRepository.findByIdAndUserId(id, 1L).orElseThrow().getContent())
+          .isEqualTo("작성자 수정");
+      reviewService.deleteReview(id, 1L);
+      assertThat(reviewRepository.findById(id).orElseThrow().getActiveStatus())
+          .isEqualTo(ReviewActiveStatus.DELETED);
+    }
+
+    @Test
+    @DisplayName("작성자가 다르거나 리뷰가 없을 때 수정과 삭제를 거절한다")
+    void rejectsNonOwnerAndMissingReview() {
+      Long id = reviewService.createReview(createReviewRequest(List.of()), 1L).getId();
+      ReviewModifyRequest request =
+          new ReviewModifyRequest(
+              "거절할 수정", null, null, List.of(), null, null, LocationInfoRequest.empty(), null, null);
+      for (Long target : List.of(id, Long.MAX_VALUE)) {
+        assertThatThrownBy(() -> reviewService.modifyReview(request, target, 2L))
+            .isInstanceOf(ReviewException.class)
+            .hasFieldOrPropertyWithValue("exceptionCode", ReviewExceptionCode.REVIEW_NOT_FOUND);
+        assertThatThrownBy(() -> reviewService.deleteReview(target, 2L))
+            .isInstanceOf(ReviewException.class)
+            .hasFieldOrPropertyWithValue("exceptionCode", ReviewExceptionCode.REVIEW_NOT_FOUND);
+      }
+      assertThat(reviewRepository.findById(id).orElseThrow().getContent()).isEqualTo("테스트 리뷰 내용");
+      assertThat(reviewRepository.findById(id).orElseThrow().getActiveStatus())
+          .isNotEqualTo(ReviewActiveStatus.DELETED);
     }
 
     private ReviewCreateRequest createReviewRequest(List<ReviewImageInfoRequest> images) {
