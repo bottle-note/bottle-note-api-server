@@ -131,7 +131,7 @@ class ModuleBoundaryRules {
                 if (to.isEmpty()
                     || from.equals(to)
                     || to.equals("foundation")
-                    || !target.getPackageName().contains(".service.")) return;
+                    || !isServicePackage(target.getPackageName())) return;
                 assertThat(target.getName())
                     .as(dependency.getDescription())
                     .isIn(
@@ -140,6 +140,19 @@ class ModuleBoundaryRules {
                         "app.bottlenote.common.file.service.ImageUploadService");
               });
     }
+  }
+
+  @Test
+  @DisplayName("service 패키지와 그 하위 패키지를 서비스 계약 검사에 포함한다")
+  void recognizesServicePackages() {
+    assertThat(isServicePackage("app.bottlenote.user.service")).isTrue();
+    assertThat(isServicePackage("app.bottlenote.user.service.internal")).isTrue();
+    assertThat(isServicePackage("app.bottlenote.user.facade")).isFalse();
+    assertThat(isServicePackage("app.bottlenote.user.services")).isFalse();
+  }
+
+  private static boolean isServicePackage(String packageName) {
+    return packageName.endsWith(".service") || packageName.contains(".service.");
   }
 
   @Test

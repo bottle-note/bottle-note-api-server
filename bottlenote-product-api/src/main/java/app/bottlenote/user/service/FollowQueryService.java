@@ -3,7 +3,6 @@ package app.bottlenote.user.service;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.KeysetPageResponse;
 import app.bottlenote.global.pagination.TimeIdCursor;
-import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
@@ -11,6 +10,7 @@ import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.FollowFacade;
+import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
 import app.bottlenote.user.repository.CustomFollowRepository;
 import java.util.List;
@@ -24,14 +24,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowQueryService implements FollowFacade {
 
   private final CustomFollowRepository queryRepository;
-  private final UserRepository userRepository;
+  private final UserFacade userFacade;
   private final HmacCursorCodec cursorCodec;
 
   @Transactional(readOnly = true)
   public KeysetPageResponse<FollowingSearchResponse> getFollowingList(
       Long currentUserId, Long userId, FollowPageableRequest pageableRequest) {
 
-    if (!userRepository.existsByUserId(currentUserId)) {
+    if (!userFacade.existsByUserId(currentUserId)) {
       throw new UserException(UserExceptionCode.USER_NOT_FOUND);
     }
 
@@ -42,7 +42,7 @@ public class FollowQueryService implements FollowFacade {
   public KeysetPageResponse<FollowerSearchResponse> getFollowerList(
       Long currentUserId, Long userId, FollowPageableRequest pageableRequest) {
 
-    if (!userRepository.existsByUserId(currentUserId)) {
+    if (!userFacade.existsByUserId(currentUserId)) {
       throw new UserException(UserExceptionCode.USER_NOT_FOUND);
     }
 
