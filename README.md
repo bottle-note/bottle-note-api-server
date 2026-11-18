@@ -3,6 +3,8 @@
 
 > Bottle note 프로젝트의 API 서버입니다.
 
+[서버 모듈 관계도 보기](#아키텍처)
+
 <img src="https://github.com/bottle-note/.github/assets/97773895/fa515094-a490-4b7b-9bca-026752fe3de1" alt="Image 1" width="49.5%"/>
 <img src="https://github.com/bottle-note/.github/assets/97773895/98a69d6d-af4f-4365-ac6c-b3e7bdd6aed1" alt="Image 4" width="49.5%"/>
 <img src="https://github.com/bottle-note/.github/assets/97773895/5877ab4b-af23-4767-aebc-5e97a35a89ba" alt="Image 3" width="49.5%"/>
@@ -57,6 +59,63 @@
 ## 아키텍처
 
 현재 `settings.gradle`에는 16개 모듈이 있다. `bottlenote-mono`의 소스와 build 설정은 제거했다. Gradle 프로젝트명에는 `bottlenote-` 접두사를 붙인다.
+
+### 업무 코어와 어댑터
+
+캠페인 통계를 예로 들면, **육각형 안**의 `content`가 조회 기간과 결과 도달률을 정합니다. **경계**의 출력 포트는 어떤 값을 집계해야 하는지 정의합니다. **바깥**의 JDBC 어댑터가 이 포트를 구현하고 MySQL에서 이벤트를 셉니다.
+
+![캠페인 통계의 육각형 구조. Admin API는 content의 통계 조회를 호출한다. JDBC는 content가 정의한 출력 포트를 구현한다. content는 analytics에서 활성 회원 수와 집계 제외 기준을 얻는다.](<adr/assets/캠페인 통계의 육각형 구조.svg>)
+
+도달률의 분모인 활성 회원 수는 `analytics`가 제공합니다. 이벤트 집계 포트와 JDBC 구현체는 모두 `content`에 있습니다. 육각형은 한 업무 안에서 규칙과 기술 구현을 가르는 경계입니다. [통계 서비스](module-domains/content/src/main/java/app/bottlenote/campaigncontent/service/AdminCampaignContentService.java) · [집계 포트](module-domains/content/src/main/java/app/bottlenote/campaigncontent/domain/CampaignContentMetricsRepository.java) · [JDBC 구현](module-domains/content/src/main/java/app/bottlenote/campaigncontent/repository/JdbcCampaignContentMetricsRepository.java)
+
+<details>
+<summary>이미지 업로드 기록에서 같은 구조 보기</summary>
+
+![이미지 업로드 기록의 육각형 구조. ImageUploadService가 user에서 로그인한 회원 ID를 얻으면 ResourceCommandService가 생성 기록을 남긴다. Spring Data JPA가 ResourceLogRepository 포트를 구현한다.](<adr/assets/이미지 업로드 기록의 육각형 구조.svg>)
+
+Product API가 호출하는 `ImageUploadService`는 S3 SDK로 업로드 URL을 서명합니다. 로그인한 회원 ID가 있으면 `ResourceCommandService`에 이미지 생성 기록을 맡깁니다. 이 기록을 MySQL에 쓰는 쪽은 `storage`의 JPA 어댑터입니다. [URL 발급](module-domains/storage/src/main/java/app/bottlenote/common/file/service/ImageUploadService.java) · [생성 기록](module-domains/storage/src/main/java/app/bottlenote/common/file/service/ResourceCommandService.java) · [JPA 구현](module-domains/storage/src/main/java/app/bottlenote/common/file/repository/JpaResourceLogRepository.java)
+
+</details>
+
+### 업무 모듈의 직접 의존
+
+![업무 모듈 10개의 직접 의존 17개. 화살표는 사용하는 모듈에서 참조 대상으로 향한다. storage는 user를, content는 analytics를 참조한다.](<adr/assets/모듈 관계도.svg>)
+
+- **`storage → user`**에서 `storage`는 사용자용 이미지 업로드 URL을 발급할 때 `user`에서 로그인한 회원의 ID를 얻어 업로드 기록에 남깁니다. [이미지 업로드 서비스](module-domains/storage/src/main/java/app/bottlenote/common/file/service/ImageUploadService.java)
+- **`content → analytics`**에서 `content`는 캠페인 결과 도달률을 계산할 때 `analytics`가 집계한 같은 기간의 활성 회원 수를 분모로 씁니다. 캠페인 이벤트를 집계할 때도 방문 통계의 기기·IP 제외 기준을 적용합니다. [캠페인 지표 조회](module-domains/content/src/main/java/app/bottlenote/campaigncontent/service/AdminCampaignContentService.java)
+
+<details>
+<summary>17개 관계의 실제 사용처 보기</summary>
+
+![행의 모듈이 열의 모듈을 쓰는 이유. 예를 들어 community는 storage에서 리뷰 이미지 소유권을 검증하고 alcohol에서 리뷰 대상 주류를 확인한다.](<adr/assets/모듈 관계별 사용처.svg>)
+
+</details>
+
+<details>
+<summary>실행 앱과 공유 모듈을 포함한 전체 Gradle 의존 보기</summary>
+
+왼쪽 모듈이 오른쪽 모듈을 직접 사용합니다. 업무 모듈 10개는 모두 `foundation`에도 의존하므로 업무 모듈 행에는 그 밖의 의존만 적었습니다.
+
+| 모듈 | 운영 코드의 직접 의존 |
+|---|---|
+| `product-api` | 업무 모듈 10개 전체, `foundation`, `observability` |
+| `admin-api` | 업무 모듈 10개 전체, `foundation` |
+| `batch` | `alcohol`, `community`, `support`, `foundation` |
+| `user`, `alcohol`, `analytics` | 추가 의존 없음 |
+| `storage`, `access-control` | `user` |
+| `community` | `user`, `alcohol`, `storage`, `observability` |
+| `history` | `user`, `alcohol`, `community`, `observability` |
+| `support` | `user`, `community` |
+| `notification` | `user`, `community`, `support` |
+| `content` | `user`, `alcohol`, `community`, `analytics` |
+| `foundation` | `observability` |
+| `observability` | 없음 |
+
+테스트 전용 라이브러리 `test-support`는 `foundation`에 의존합니다. 모듈 이름과 실제 디렉터리의 대응은 [settings.gradle](settings.gradle)에서 확인할 수 있습니다.
+
+</details>
+
+### 모듈별 책임
 
 | 모듈 | 소유하는 코드 |
 |---|---|

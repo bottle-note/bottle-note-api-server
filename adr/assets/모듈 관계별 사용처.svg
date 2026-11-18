@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="662" viewBox="0 0 1080 662" role="img" aria-labelledby="relations-title relations-desc" lang="ko">
+  <title id="relations-title">업무 모듈 사이의 직접 의존과 사용처</title>
+  <desc id="relations-desc">왼쪽 행의 모듈이 위쪽 열의 모듈을 사용하는 17가지 관계다. storage는 user의 인증 사용자 ID를 읽고 content는 analytics의 활성 회원 수와 방문 통계 제외 기준을 사용한다.</desc>
+  <defs>
+    <style>
+      text { font-family: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif; fill: #233e34; }
+      .title { font-size: 32px; font-weight: 750; }
+      .caption { font-size: 17px; fill: #465e52; }
+      .axis { font-size: 15px; fill: #506456; font-weight: 600; }
+      .name { font-family: Inter,'Helvetica Neue',Arial,sans-serif; font-size: 20px; font-weight: 650; }
+      .use { font-size: 16px; font-weight: 550; }
+      .grid { fill: none; stroke: #d6ded3; stroke-width: 1; }
+      .cell { fill: #e3eee4; }
+      .selected { fill: #fae7c6; stroke: #bc8d52; }
+    </style>
+  </defs>
+  <rect width="1080" height="662" rx="14" fill="#faf9f3"/>
+  <text x="28" y="51" class="title">업무 모듈 관계도</text>
+  <text x="1053" y="50" text-anchor="end" class="caption">업무 모듈 10개 · 직접 의존 17개</text>
+  <text x="29" y="84" class="caption">왼쪽의 모듈이 위쪽의 모듈을 사용합니다. 각 칸에는 실제 코드의 사용 예를 적었습니다.</text>
+  <path d="M27 100H1054" class="grid"/>
+  <text x="29" y="151" class="axis">사용하는 모듈</text>
+  <text x="195" y="124" class="axis">참조 대상</text>
+  <text x="256.5" y="151" text-anchor="middle" class="name">user</text>
+  <text x="401.5" y="151" text-anchor="middle" class="name">storage</text>
+  <text x="546.5" y="151" text-anchor="middle" class="name">alcohol</text>
+  <text x="691.5" y="151" text-anchor="middle" class="name">community</text>
+  <text x="836.5" y="151" text-anchor="middle" class="name">support</text>
+  <text x="981.5" y="151" text-anchor="middle" class="name">analytics</text>
+  <path d="M184 162v440" class="grid"/>
+  <path d="M329 162v440" class="grid"/>
+  <path d="M474 162v440" class="grid"/>
+  <path d="M619 162v440" class="grid"/>
+  <path d="M764 162v440" class="grid"/>
+  <path d="M909 162v440" class="grid"/>
+  <path d="M1054 162v440" class="grid"/>
+  <path d="M27 168H1054" class="grid"/>
+  <path d="M27 230H1054" class="grid"/>
+  <path d="M27 292H1054" class="grid"/>
+  <path d="M27 354H1054" class="grid"/>
+  <path d="M27 416H1054" class="grid"/>
+  <path d="M27 478H1054" class="grid"/>
+  <path d="M27 540H1054" class="grid"/>
+  <path d="M27 602H1054" class="grid"/>
+  <g data-from="storage">
+    <text x="29" y="206" class="name">storage</text>
+    <g data-to="user">
+      <title>storage → user · 업로드 기록에 인증 사용자 ID 사용</title>
+      <rect x="188" y="172" width="137" height="54" rx="6" class="selected"/>
+      <text x="256.5" y="195" class="use" text-anchor="middle">업로드 기록에</text>
+      <text x="256.5" y="215" class="use" text-anchor="middle">인증 사용자 ID 사용</text>
+    </g>
+  </g>
+  <g data-from="access-control">
+    <text x="29" y="268" class="name">access-control</text>
+    <g data-to="user">
+      <title>access-control → user · IP 차단·신고 처리자 식별</title>
+      <rect x="188" y="234" width="137" height="54" rx="6" class="cell"/>
+      <text x="256.5" y="257" class="use" text-anchor="middle">IP 차단·신고</text>
+      <text x="256.5" y="277" class="use" text-anchor="middle">처리자 식별</text>
+    </g>
+  </g>
+  <g data-from="community">
+    <text x="29" y="330" class="name">community</text>
+    <g data-to="user">
+      <title>community → user · 리뷰 댓글 작성자 확인</title>
+      <rect x="188" y="296" width="137" height="54" rx="6" class="cell"/>
+      <text x="256.5" y="319" class="use" text-anchor="middle">리뷰 댓글</text>
+      <text x="256.5" y="339" class="use" text-anchor="middle">작성자 확인</text>
+    </g>
+    <g data-to="storage">
+      <title>community → storage · 리뷰 이미지 소유권 검증</title>
+      <rect x="333" y="296" width="137" height="54" rx="6" class="cell"/>
+      <text x="401.5" y="319" class="use" text-anchor="middle">리뷰 이미지</text>
+      <text x="401.5" y="339" class="use" text-anchor="middle">소유권 검증</text>
+    </g>
+    <g data-to="alcohol">
+      <title>community → alcohol · 리뷰 등록 시 주류 확인</title>
+      <rect x="478" y="296" width="137" height="54" rx="6" class="cell"/>
+      <text x="546.5" y="319" class="use" text-anchor="middle">리뷰 등록 시</text>
+      <text x="546.5" y="339" class="use" text-anchor="middle">주류 확인</text>
+    </g>
+  </g>
+  <g data-from="history">
+    <text x="29" y="392" class="name">history</text>
+    <g data-to="user">
+      <title>history → user · 이력 조회 대상 사용자 확인</title>
+      <rect x="188" y="358" width="137" height="54" rx="6" class="cell"/>
+      <text x="256.5" y="381" class="use" text-anchor="middle">이력 조회 대상</text>
+      <text x="256.5" y="401" class="use" text-anchor="middle">사용자 확인</text>
+    </g>
+    <g data-to="alcohol">
+      <title>history → alcohol · 활동 이력에 주류 이미지 추가</title>
+      <rect x="478" y="358" width="137" height="54" rx="6" class="cell"/>
+      <text x="546.5" y="381" class="use" text-anchor="middle">활동 이력에</text>
+      <text x="546.5" y="401" class="use" text-anchor="middle">주류 이미지 추가</text>
+    </g>
+    <g data-to="community">
+      <title>history → community · 리뷰·별점·찜 이벤트로 이력 생성</title>
+      <rect x="623" y="358" width="137" height="54" rx="6" class="cell"/>
+      <text x="691.5" y="381" class="use" text-anchor="middle">리뷰·별점·찜</text>
+      <text x="691.5" y="401" class="use" text-anchor="middle">이벤트로 이력 생성</text>
+    </g>
+  </g>
+  <g data-from="support">
+    <text x="29" y="454" class="name">support</text>
+    <g data-to="user">
+      <title>support → user · 기업 문의 등록 시 사용자 확인</title>
+      <rect x="188" y="420" width="137" height="54" rx="6" class="cell"/>
+      <text x="256.5" y="443" class="use" text-anchor="middle">기업 문의 등록 시</text>
+      <text x="256.5" y="463" class="use" text-anchor="middle">사용자 확인</text>
+    </g>
+    <g data-to="community">
+      <title>support → community · 신고된 리뷰 확인·차단</title>
+      <rect x="623" y="420" width="137" height="54" rx="6" class="cell"/>
+      <text x="691.5" y="443" class="use" text-anchor="middle">신고된 리뷰</text>
+      <text x="691.5" y="463" class="use" text-anchor="middle">확인·차단</text>
+    </g>
+  </g>
+  <g data-from="notification">
+    <text x="29" y="516" class="name">notification</text>
+    <g data-to="user">
+      <title>notification → user · 팔로우 이벤트로 알림 발송</title>
+      <rect x="188" y="482" width="137" height="54" rx="6" class="cell"/>
+      <text x="256.5" y="505" class="use" text-anchor="middle">팔로우 이벤트로</text>
+      <text x="256.5" y="525" class="use" text-anchor="middle">알림 발송</text>
+    </g>
+    <g data-to="community">
+      <title>notification → community · 리뷰 좋아요·댓글 이벤트로 알림</title>
+      <rect x="623" y="482" width="137" height="54" rx="6" class="cell"/>
+      <text x="691.5" y="505" class="use" text-anchor="middle">리뷰 좋아요·댓글</text>
+      <text x="691.5" y="525" class="use" text-anchor="middle">이벤트로 알림</text>
+    </g>
+    <g data-to="support">
+      <title>notification → support · 문의 답변 이벤트로 알림</title>
+      <rect x="768" y="482" width="137" height="54" rx="6" class="cell"/>
+      <text x="836.5" y="505" class="use" text-anchor="middle">문의 답변</text>
+      <text x="836.5" y="525" class="use" text-anchor="middle">이벤트로 알림</text>
+    </g>
+  </g>
+  <g data-from="content">
+    <text x="29" y="578" class="name">content</text>
+    <g data-to="user">
+      <title>content → user · 사용자 ID 누락 시 사용자 예외 사용</title>
+      <rect x="188" y="544" width="137" height="54" rx="6" class="cell"/>
+      <text x="256.5" y="567" class="use" text-anchor="middle">사용자 ID 누락 시</text>
+      <text x="256.5" y="587" class="use" text-anchor="middle">사용자 예외 사용</text>
+    </g>
+    <g data-to="alcohol">
+      <title>content → alcohol · 큐레이션용 주류 일괄 조회</title>
+      <rect x="478" y="544" width="137" height="54" rx="6" class="cell"/>
+      <text x="546.5" y="567" class="use" text-anchor="middle">큐레이션용</text>
+      <text x="546.5" y="587" class="use" text-anchor="middle">주류 일괄 조회</text>
+    </g>
+    <g data-to="community">
+      <title>content → community · 큐레이션의 별점·찜·리뷰 수 집계</title>
+      <rect x="623" y="544" width="137" height="54" rx="6" class="cell"/>
+      <text x="691.5" y="567" class="use" text-anchor="middle">큐레이션의 별점·</text>
+      <text x="691.5" y="587" class="use" text-anchor="middle">찜·리뷰 수 집계</text>
+    </g>
+    <g data-to="analytics">
+      <title>content → analytics · 활성 회원 수와 집계 제외 기준 조회</title>
+      <rect x="913" y="544" width="137" height="54" rx="6" class="selected"/>
+      <text x="981.5" y="567" class="use" text-anchor="middle">활성 회원 수와</text>
+      <text x="981.5" y="587" class="use" text-anchor="middle">집계 제외 기준 조회</text>
+    </g>
+  </g>
+  <text x="29" y="637" class="caption">user, alcohol, analytics의 다른 업무 모듈에 대한 직접 의존은 0개입니다. 빈칸은 직접 의존이 없는 쌍입니다.</text>
+</svg>

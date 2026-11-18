@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 503" width="1120" height="503" role="img" aria-labelledby="contentWide-title contentWide-desc" lang="ko">
+<title id="contentWide-title">캠페인 통계의 코어와 어댑터</title>
+<desc id="contentWide-desc">Admin API가 content의 캠페인 지표 조회를 호출한다. content는 기간과 도달률을 결정하고 analytics에서 활성 회원 수와 제외 기준을 얻는다. JDBC 어댑터는 content가 정의한 집계 포트를 구현한다.</desc>
+<defs><style>
+text {font-family:Inter,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif;fill:#192e2a}
+.kicker {font-size:17px;font-weight:650;fill:#536665}
+.outer-title {font-size:29px;font-weight:720;letter-spacing:-.8px}
+.type {font-family:Inter,'Helvetica Neue',Arial,sans-serif;font-size:15px;fill:#3e5654}
+.note {font-size:16px;fill:#405853}
+.tag {font-size:15px;font-weight:700;fill:#566a63}
+.core-mod {fill:#c7e6c8;font-size:22px;font-family:Inter,Arial,sans-serif;font-weight:600}
+.core-name {fill:#fffaf1;font-size:35px;font-weight:750;letter-spacing:-1.2px}
+.core-service {fill:#e2ece4;font-size:16px;font-family:Inter,Arial,sans-serif}
+.core-rule {fill:#e8f1df;font-size:18px;font-weight:550}
+.port-label {font-size:14px;fill:#88501e;font-weight:720}
+.port-name {font-family:Inter,Arial,sans-serif;font-size:16px;fill:#492f19;font-weight:650}
+.port-method {font-family:Inter,Arial,sans-serif;font-size:14px;fill:#7b512d}
+.link {fill:none;stroke:#5b7268;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.copper {stroke:#a96736}
+.peer-name {font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:730}
+.peer-note {font-size:16px;fill:#3e5851}
+.peer-type {font-family:Inter,Arial,sans-serif;font-size:14px;fill:#4b6258}
+.icon {fill:none;stroke:#526c60;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+</style>
+<marker id="contentWide-code" viewBox="0 0 9 10" refX="8" refY="5" markerWidth="7" markerHeight="8" orient="auto"><path d="M1 1 L8 5 L1 9" stroke="#5b7268" stroke-width="1.6" fill="none"/></marker>
+<marker id="contentWide-impl" viewBox="0 0 9 10" refX="8" refY="5" markerWidth="7" markerHeight="8" orient="auto"><path d="M1 1 L8 5 L1 9" stroke="#a96736" stroke-width="1.6" fill="none"/></marker>
+</defs>
+<rect x="0" y="0" width="1120" height="503" rx="16" fill="#f9f8f1"/>
+<polygon points="539,18 728,124 728,302 539,411 350,302 350,124" fill="#e2ecdc" stroke="#b5c8b5" stroke-linejoin="round" stroke-width="1.5"/>
+<polygon points="539,38 712,135 712,292 539,392 366,292 366,135" fill="#23463d" stroke="#23463d" stroke-linejoin="round" stroke-width="1.5"/>
+<path d="M60 210 H350" class="link" marker-end="url(#contentWide-code)"/>
+<path d="M959 182 V288 Q959 296 951 296 H849" class="link copper" marker-end="url(#contentWide-impl)"/>
+<path d="M539 412 V429" class="link" marker-end="url(#contentWide-code)"/>
+<g transform="translate(36 76)" aria-hidden="true"><path d="M2 4 H28 V23 H2 Z M2 10 H28 M6 7 H7 M10 7 H11" class="icon"/></g>
+<text x="78" y="97" class="kicker" text-anchor="start">웹 어댑터</text>
+<text x="38" y="140" class="outer-title" text-anchor="start">Admin API</text>
+<text x="38" y="165" class="type" text-anchor="start">AdminCampaignContentController</text>
+<text x="38" y="189" class="note" text-anchor="start">관리자가 캠페인 지표를 조회합니다.</text>
+<text x="337" y="201" class="tag" text-anchor="end">호출</text>
+<text x="38" y="238" class="type" text-anchor="start">getMetrics()</text>
+<text x="539" y="114" class="core-mod" text-anchor="middle">content · 업무 코어</text>
+<text x="539" y="164" class="core-name" text-anchor="middle">캠페인 통계</text>
+<text x="539" y="194" class="core-service" text-anchor="middle">AdminCampaignContentService</text>
+<path d="M490 215 H588" class="link"/>
+<text x="539" y="244" class="core-rule" text-anchor="middle">조회 기간 검증 · 결과 도달률 계산</text>
+<g transform="translate(785 55)" aria-hidden="true"><path d="M3 7 C3 0 27 0 27 7 C27 14 3 14 3 7 Z M3 7 V22 C3 29 27 29 27 22 V7 M3 14 C3 21 27 21 27 14" class="icon"/></g>
+<text x="826" y="77" class="kicker" text-anchor="start">영속성 어댑터</text>
+<text x="787" y="117" class="outer-title" text-anchor="start">JDBC</text>
+<text x="787" y="143" class="type" text-anchor="start">JdbcCampaignContentMetricsRepository</text>
+<text x="787" y="169" class="note" text-anchor="start">MySQL에서 캠페인 이벤트를 집계합니다.</text>
+<text x="923" y="286" class="tag" text-anchor="end">구현</text>
+<rect x="534" y="270" width="314" height="66" rx="9" fill="#fcf0d8" stroke="#be8c50"/>
+<text x="548" y="289" class="port-label" text-anchor="start">출력 포트</text>
+<text x="548" y="309" class="port-name" text-anchor="start">CampaignContentMetricsRepository</text>
+<text x="548" y="327" class="port-method" text-anchor="start">countEvents()</text>
+<rect x="334" y="430" width="420" height="58" rx="9" fill="#eef2e8" stroke="#c3d0bd"/>
+<text x="352" y="455" class="peer-name" text-anchor="start">content → analytics</text>
+<text x="352" y="477" class="peer-note" text-anchor="start">활성 회원 수와 집계에서 제외할 기기·IP 기준</text>
+</svg>
