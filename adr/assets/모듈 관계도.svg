@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="549" viewBox="0 0 1080 549" role="img" aria-labelledby="domain-network-title domain-network-desc" lang="ko">
+  <title id="domain-network-title">BottleNote 업무 모듈 간 직접 의존</title>
+  <desc id="domain-network-desc">10개 업무 모듈 사이의 17개 직접 의존을 모두 표시한다. storage가 user의 인증 사용자 ID를 사용하고 content가 analytics의 활성 회원 수와 방문자 제외 기준을 사용하는 두 관계를 주황색으로 강조했다.</desc>
+  <defs>
+    <style>
+      text { font-family: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif; fill: #243e34; }
+      .heading { font-size: 31px; font-weight: 730; }
+      .detail { font-size: 17px; fill: #455c50; }
+      .module { font-family: Inter,'Helvetica Neue',Arial,sans-serif; font-size: 22px; font-weight: 650; }
+      .role { font-size: 16px; fill: #4b6556; }
+      .label { font-size: 16px; fill: #89451e; }
+      .node { fill: #e5eee3; stroke: #a9bca9; stroke-width: 1.3; }
+      .wire,.arrow { fill: none; stroke: #557367; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+      .halo { fill: none; stroke: #faf9f3; stroke-width: 8; stroke-linecap: round; }
+      .highlight { stroke: #9b4f23; stroke-width: 2.8; }
+    </style>
+  </defs>
+  <rect width="1080" height="549" rx="14" fill="#faf9f3"/>
+  <text x="32" y="48" class="heading">업무 모듈 간 직접 의존</text>
+  <text x="1046" y="47" text-anchor="end" class="detail">10개 모듈 · 17개 관계</text>
+  <text x="33" y="79" class="detail">화살표의 시작은 사용하는 모듈, 끝은 코드나 이벤트 타입을 제공하는 모듈입니다.</text>
+  <g data-from="access-control" data-to="user">
+    <title>access-control → user · IP 차단·신고 처리자 식별</title>
+    <path d="M818 136 L698 136" class="halo"/>
+    <path d="M818 136 L698 136" class="wire"/>
+    <path d="M707 141 L698 136 L707 131" class="arrow"/>
+  </g>
+  <g data-from="history" data-to="user">
+    <title>history → user · 이력 조회 대상 사용자 확인</title>
+    <path d="M306 285 L306 215 Q306 207 314 207 L515 207 Q523 207 523 199 L523 170" class="halo"/>
+    <path d="M306 285 L306 215 Q306 207 314 207 L515 207 Q523 207 523 199 L523 170" class="wire"/>
+    <path d="M518 179 L523 170 L528 179" class="arrow"/>
+  </g>
+  <g data-from="content" data-to="user">
+    <title>content → user · 사용자 ID 누락 시 사용자 예외 사용</title>
+    <path d="M187 285 L187 192 Q187 184 195 184 L497 184 Q504 184 504 177 L504 170" class="halo"/>
+    <path d="M187 285 L187 192 Q187 184 195 184 L497 184 Q504 184 504 177 L504 170" class="wire"/>
+    <path d="M499 179 L504 170 L509 179" class="arrow"/>
+  </g>
+  <g data-from="support" data-to="user">
+    <title>support → user · 기업 문의 등록 시 사용자 확인</title>
+    <path d="M726 285 L726 239 Q726 231 718 231 L647 231 Q639 231 639 223 L639 170" class="halo"/>
+    <path d="M726 285 L726 239 Q726 231 718 231 L647 231 Q639 231 639 223 L639 170" class="wire"/>
+    <path d="M634 179 L639 170 L644 179" class="arrow"/>
+  </g>
+  <g data-from="notification" data-to="user">
+    <title>notification → user · 팔로우 이벤트로 알림 발송</title>
+    <path d="M946 285 L946 212 Q946 204 938 204 L675 204 Q667 204 667 196 L667 170" class="halo"/>
+    <path d="M946 285 L946 212 Q946 204 938 204 L675 204 Q667 204 667 196 L667 170" class="wire"/>
+    <path d="M662 179 L667 170 L672 179" class="arrow"/>
+  </g>
+  <g data-from="notification" data-to="support">
+    <title>notification → support · 문의 답변 이벤트로 알림</title>
+    <path d="M849 315 L809 315" class="halo"/>
+    <path d="M849 315 L809 315" class="wire"/>
+    <path d="M818 320 L809 315 L818 310" class="arrow"/>
+  </g>
+  <g data-from="community" data-to="user">
+    <title>community → user · 리뷰 댓글 작성자 확인</title>
+    <path d="M590 458 L590 170" class="halo"/>
+    <path d="M590 458 L590 170" class="wire"/>
+    <path d="M585 179 L590 170 L595 179" class="arrow"/>
+  </g>
+  <g data-from="history" data-to="alcohol">
+    <title>history → alcohol · 활동 이력에 주류 이미지 추가</title>
+    <path d="M270 345 L270 454" class="halo"/>
+    <path d="M270 345 L270 454" class="wire"/>
+    <path d="M275 445 L270 454 L265 445" class="arrow"/>
+  </g>
+  <g data-from="content" data-to="alcohol">
+    <title>content → alcohol · 큐레이션용 주류 일괄 조회</title>
+    <path d="M66 345 L66 479 Q66 487 74 487 L182 487" class="halo"/>
+    <path d="M66 345 L66 479 Q66 487 74 487 L182 487" class="wire"/>
+    <path d="M173 482 L182 487 L173 492" class="arrow"/>
+  </g>
+  <g data-from="community" data-to="alcohol">
+    <title>community → alcohol · 리뷰 등록 시 주류 확인</title>
+    <path d="M491 487 L360 487" class="halo"/>
+    <path d="M491 487 L360 487" class="wire"/>
+    <path d="M369 492 L360 487 L369 482" class="arrow"/>
+  </g>
+  <g data-from="history" data-to="community">
+    <title>history → community · 리뷰·별점·찜 이벤트로 이력 생성</title>
+    <path d="M335 345 L335 370 Q335 378 343 378 L528 378 Q536 378 536 386 L536 454" class="halo"/>
+    <path d="M335 345 L335 370 Q335 378 343 378 L528 378 Q536 378 536 386 L536 454" class="wire"/>
+    <path d="M541 445 L536 454 L531 445" class="arrow"/>
+  </g>
+  <g data-from="content" data-to="community">
+    <title>content → community · 큐레이션의 별점·찜·리뷰 수 집계</title>
+    <path d="M150 345 L150 399 Q150 407 158 407 L502 407 Q510 407 510 415 L510 454" class="halo"/>
+    <path d="M150 345 L150 399 Q150 407 158 407 L502 407 Q510 407 510 415 L510 454" class="wire"/>
+    <path d="M515 445 L510 454 L505 445" class="arrow"/>
+  </g>
+  <g data-from="support" data-to="community">
+    <title>support → community · 신고된 리뷰 확인·차단</title>
+    <path d="M715 345 L715 377 Q715 385 707 385 L650 385 Q642 385 642 393 L642 454" class="halo"/>
+    <path d="M715 345 L715 377 Q715 385 707 385 L650 385 Q642 385 642 393 L642 454" class="wire"/>
+    <path d="M647 445 L642 454 L637 445" class="arrow"/>
+  </g>
+  <g data-from="notification" data-to="community">
+    <title>notification → community · 리뷰 좋아요·댓글 이벤트로 알림</title>
+    <path d="M914 345 L914 408 Q914 416 906 416 L680 416 Q672 416 672 424 L672 454" class="halo"/>
+    <path d="M914 345 L914 408 Q914 416 906 416 L680 416 Q672 416 672 424 L672 454" class="wire"/>
+    <path d="M677 445 L672 454 L667 445" class="arrow"/>
+  </g>
+  <g data-from="community" data-to="storage">
+    <title>community → storage · 리뷰 이미지 소유권 검증</title>
+    <path d="M562 458 L562 369 Q562 361 554 361 L516 361 Q510 361 510 355 L510 349" class="halo"/>
+    <path d="M562 458 L562 369 Q562 361 554 361 L516 361 Q510 361 510 355 L510 349" class="wire"/>
+    <path d="M505 358 L510 349 L515 358" class="arrow"/>
+  </g>
+  <g data-from="storage" data-to="user">
+    <title>storage → user · 업로드 기록에 인증 사용자 ID 사용</title>
+    <path d="M478 285 L478 243 Q478 235 486 235 L542 235 Q550 235 550 227 L550 170" class="halo"/>
+    <path d="M478 285 L478 243 Q478 235 486 235 L542 235 Q550 235 550 227 L550 170" class="wire highlight"/>
+    <path d="M545 179 L550 170 L555 179" class="arrow highlight"/>
+  </g>
+  <g data-from="content" data-to="analytics">
+    <title>content → analytics · 활성 회원 수와 집계 제외 기준 조회</title>
+    <path d="M68 285 L68 170" class="halo"/>
+    <path d="M68 285 L68 170" class="wire highlight"/>
+    <path d="M63 179 L68 170 L73 179" class="arrow highlight"/>
+  </g>
+  <g data-module="analytics">
+    <rect x="32" y="106" width="162" height="60" rx="10" class="node"/>
+    <text x="113" y="132" text-anchor="middle" class="module">analytics</text>
+    <text x="113" y="154" text-anchor="middle" class="role">방문 통계</text>
+  </g>
+  <g data-module="user">
+    <rect x="492" y="106" width="202" height="60" rx="10" class="node"/>
+    <text x="593" y="132" text-anchor="middle" class="module">user</text>
+    <text x="593" y="154" text-anchor="middle" class="role">사용자·인증</text>
+  </g>
+  <g data-module="access-control">
+    <rect x="818" y="106" width="228" height="60" rx="10" class="node"/>
+    <text x="932" y="132" text-anchor="middle" class="module">access-control</text>
+    <text x="932" y="154" text-anchor="middle" class="role">IP 접근 제어</text>
+  </g>
+  <g data-module="content">
+    <rect x="32" y="285" width="174" height="60" rx="10" class="node"/>
+    <text x="119" y="311" text-anchor="middle" class="module">content</text>
+    <text x="119" y="333" text-anchor="middle" class="role">캠페인·큐레이션</text>
+  </g>
+  <g data-module="history">
+    <rect x="239" y="285" width="140" height="60" rx="10" class="node"/>
+    <text x="309" y="311" text-anchor="middle" class="module">history</text>
+    <text x="309" y="333" text-anchor="middle" class="role">활동 이력</text>
+  </g>
+  <g data-module="storage">
+    <rect x="404" y="285" width="148" height="60" rx="10" class="node"/>
+    <text x="478" y="311" text-anchor="middle" class="module">storage</text>
+    <text x="478" y="333" text-anchor="middle" class="role">파일·이미지</text>
+  </g>
+  <g data-module="support">
+    <rect x="660" y="285" width="144" height="60" rx="10" class="node"/>
+    <text x="732" y="311" text-anchor="middle" class="module">support</text>
+    <text x="732" y="333" text-anchor="middle" class="role">문의·리포트</text>
+  </g>
+  <g data-module="notification">
+    <rect x="849" y="285" width="197" height="60" rx="10" class="node"/>
+    <text x="947.5" y="311" text-anchor="middle" class="module">notification</text>
+    <text x="947.5" y="333" text-anchor="middle" class="role">알림</text>
+  </g>
+  <g data-module="alcohol">
+    <rect x="186" y="458" width="170" height="60" rx="10" class="node"/>
+    <text x="271" y="484" text-anchor="middle" class="module">alcohol</text>
+    <text x="271" y="506" text-anchor="middle" class="role">주류</text>
+  </g>
+  <g data-module="community">
+    <rect x="491" y="458" width="203" height="60" rx="10" class="node"/>
+    <text x="592.5" y="484" text-anchor="middle" class="module">community</text>
+    <text x="592.5" y="506" text-anchor="middle" class="role">리뷰·별점·찜</text>
+  </g>
+  <text x="82" y="231" class="label">활성 회원 수</text>
+  <text x="82" y="253" class="label">집계 제외 기준</text>
+  <text x="462" y="261" text-anchor="end" class="label">인증 사용자 ID</text>
+</svg>
