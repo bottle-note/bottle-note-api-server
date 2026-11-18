@@ -105,9 +105,17 @@ jobs:
           name: unit-test-results-${{ github.run_number }}
           path: |
             */build/reports/tests/unit_test/
+            module-domains/*/build/reports/tests/unit_test/
+            module-shared/*/build/reports/tests/unit_test/
             */build/test-results/unit_test/
+            module-domains/*/build/test-results/unit_test/
+            module-shared/*/build/test-results/unit_test/
             */build/reports/tests/batch_test/
+            module-domains/*/build/reports/tests/batch_test/
+            module-shared/*/build/reports/tests/batch_test/
             */build/test-results/batch_test/
+            module-domains/*/build/test-results/batch_test/
+            module-shared/*/build/test-results/batch_test/
 
   rule-tests:
     needs: prepare
@@ -146,7 +154,11 @@ jobs:
           name: rule-test-results-${{ github.run_number }}
           path: |
             */build/reports/tests/check_rule_test/
+            module-domains/*/build/reports/tests/check_rule_test/
+            module-shared/*/build/reports/tests/check_rule_test/
             */build/test-results/check_rule_test/
+            module-domains/*/build/test-results/check_rule_test/
+            module-shared/*/build/test-results/check_rule_test/
 
   integration-tests:
     needs: prepare
@@ -202,7 +214,11 @@ jobs:
           name: ${{ matrix.name }}-integration-test-results-${{ github.run_number }}
           path: |
             */build/reports/tests/${{ matrix.task }}/
+            module-domains/*/build/reports/tests/${{ matrix.task }}/
+            module-shared/*/build/reports/tests/${{ matrix.task }}/
             */build/test-results/${{ matrix.task }}/
+            module-domains/*/build/test-results/${{ matrix.task }}/
+            module-shared/*/build/test-results/${{ matrix.task }}/
 
   product-ci-final-build:
     needs: [ unit-tests, rule-tests, integration-tests ]

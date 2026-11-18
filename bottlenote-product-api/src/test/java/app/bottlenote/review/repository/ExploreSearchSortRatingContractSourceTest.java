@@ -20,13 +20,13 @@ class ExploreSearchSortRatingContractSourceTest {
   void review_explore_contract_is_wired_end_to_end() throws IOException {
     String request =
         read(
-            "bottlenote-community/src/main/java/app/bottlenote/review/dto/request/ReviewExploreRequest.java");
+            "module-domains/community/src/main/java/app/bottlenote/review/dto/request/ReviewExploreRequest.java");
     String criteria =
         read(
-            "bottlenote-community/src/main/java/app/bottlenote/review/dto/dsl/ReviewExploreCriteria.java");
+            "module-domains/community/src/main/java/app/bottlenote/review/dto/dsl/ReviewExploreCriteria.java");
     String repository =
         read(
-            "bottlenote-community/src/main/java/app/bottlenote/review/repository/CustomReviewRepositoryImpl.java");
+            "module-domains/community/src/main/java/app/bottlenote/review/repository/CustomReviewRepositoryImpl.java");
 
     assertThat(request)
         .contains(
