@@ -17,8 +17,12 @@ public class FollowQuerySupporter {
         select(review.count()).from(review).where(review.userId.eq(userId)), "reviewCount");
   }
 
+  // 별점 0은 별점 없음이므로 마이페이지와 같이 평가 수에서 뺀다.
   public Expression<Long> followRatingCountSubQuery(NumberPath<Long> userId) {
     return ExpressionUtils.as(
-        select(rating.count()).from(rating).where(rating.id.userId.eq(userId)), "ratingCount");
+        select(rating.count())
+            .from(rating)
+            .where(rating.id.userId.eq(userId), rating.ratingPoint.rating.gt(0.0)),
+        "ratingCount");
   }
 }
