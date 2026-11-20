@@ -2,6 +2,7 @@ package app.bottlenote.banner.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import app.bottlenote.banner.constant.BannerType;
 import app.bottlenote.banner.domain.Banner;
@@ -96,8 +97,8 @@ class AdminBannerServiceTest {
   }
 
   @Test
-  @DisplayName("배너를 생성할 때 같은 값 이상인 다른 배너의 sortOrder를 바꾸지 않는다")
-  void create_keepsOtherSortOrders() {
+  @DisplayName("정렬값 없이 배너를 생성할 때 맨 앞에 넣고 기존 배너를 한 칸씩 밀어 동순위를 만들지 않는다")
+  void create_withoutSortOrder_insertsAtFrontWithoutTies() {
     Banner first = saveBanner("첫 번째", 0);
     Banner second = saveBanner("두 번째", 1);
 
@@ -106,11 +107,13 @@ class AdminBannerServiceTest {
             .name("새 배너")
             .imageUrl("https://example.com/new.jpg")
             .bannerType(BannerType.CURATION)
-            .sortOrder(0)
             .build());
 
-    assertThat(bannerRepository.findById(first.getId()).orElseThrow().getSortOrder()).isZero();
-    assertThat(bannerRepository.findById(second.getId()).orElseThrow().getSortOrder()).isEqualTo(1);
+    assertThat(bannerRepository.findAllOrderBySortOrderAsc())
+        .extracting(Banner::getName, Banner::getSortOrder)
+        .containsExactly(tuple("새 배너", 0), tuple("첫 번째", 1), tuple("두 번째", 2));
+    assertThat(bannerRepository.findById(first.getId()).orElseThrow().getSortOrder()).isEqualTo(1);
+    assertThat(bannerRepository.findById(second.getId()).orElseThrow().getSortOrder()).isEqualTo(2);
   }
 
   private Banner saveBanner(String name, int sortOrder) {
