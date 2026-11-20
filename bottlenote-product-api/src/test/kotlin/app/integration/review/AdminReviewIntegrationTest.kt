@@ -90,6 +90,18 @@ class AdminReviewIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
+	@DisplayName("작성일 필터를 날짜만으로 보낼 때 시작일과 종료일의 하루 전체를 포함한다")
+	fun searchAdminReviews_whenCreatedRangeIsDateOnly_includesWholeDays() {
+		// given
+		val fixture = seedReviews()
+
+		// when & then
+		assertReviewIds(getReviews("createdFrom" to "2026-01-02", "createdTo" to "2026-01-02"), fixture.deletedPrivate.id)
+		assertReviewIds(getReviews("createdFrom" to "2026-01-02"), fixture.activePublic.id, fixture.deletedPrivate.id)
+		assertReviewIds(getReviews("createdTo" to "2026-01-02"), fixture.deletedPrivate.id, fixture.disabledPublic.id)
+	}
+
+	@Test
 	@DisplayName("키워드를 리뷰 본문, 작성자 이메일, 주류명에 적용한다")
 	fun searchAdminReviews_filtersByKeywordTargets() {
 		// given
