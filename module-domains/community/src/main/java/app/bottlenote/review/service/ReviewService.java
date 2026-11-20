@@ -67,9 +67,11 @@ public class ReviewService {
 
   @Transactional(readOnly = true)
   public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
+    // 삭제·비활성 리뷰와 남의 비공개 리뷰는 없는 리뷰와 같은 응답을 준다.
     Review review =
         reviewRepository
             .findById(reviewId)
+            .filter(found -> found.isViewableBy(currentUserId))
             .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
     AlcoholSummaryItem alcoholSummaryItem =
         alcoholFacade

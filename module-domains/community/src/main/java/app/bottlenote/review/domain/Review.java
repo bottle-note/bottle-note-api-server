@@ -185,4 +185,10 @@ public class Review extends BaseEntity {
   public void blockReview() {
     this.activeStatus = ReviewActiveStatus.DISABLED;
   }
+
+  /** 활성 리뷰 가운데 공개 리뷰이거나 작성자 본인이 볼 때만 상세를 보여 준다. */
+  public boolean isViewableBy(Long viewerId) {
+    return activeStatus == ReviewActiveStatus.ACTIVE
+        && (status == ReviewDisplayStatus.PUBLIC || Objects.equals(userId, viewerId));
+  }
 }
