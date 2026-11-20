@@ -22,6 +22,7 @@ import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
+import app.bottlenote.user.dto.response.RelationUserItem;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.fixture.UserTestFactory;
@@ -118,6 +119,47 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 
       assertNotNull(followerSearchResponse);
       assertEquals(followerSearchResponse.followerList().size(), followers.size());
+    }
+
+    @DisplayName("팔로잉·팔로워 목록을 조회할 때 별점 0은 평가 수에서 뺀다")
+    @Test
+    void followList_excludesZeroRatingFromRatingCount() throws Exception {
+      // given
+      User me = userTestFactory.persistUser();
+      User friend = userTestFactory.persistUser();
+      ratingTestFactory.persistRating(friend, alcoholTestFactory.persistAlcohol(), 4);
+      ratingTestFactory.persistRating(friend, alcoholTestFactory.persistAlcohol(), 0);
+      userTestFactory.persistFollow(me, friend);
+      userTestFactory.persistFollow(friend, me);
+      TokenItem token = getToken(me);
+
+      // when
+      FollowingSearchResponse following =
+          extractData(
+              mockMvcTester
+                  .get()
+                  .uri("/api/v1/follow/{userId}/following-list", me.getId())
+                  .header("Authorization", "Bearer " + token.accessToken())
+                  .exchange(),
+              FollowingSearchResponse.class);
+      FollowerSearchResponse followers =
+          extractData(
+              mockMvcTester
+                  .get()
+                  .uri("/api/v1/follow/{userId}/follower-list", me.getId())
+                  .header("Authorization", "Bearer " + token.accessToken())
+                  .exchange(),
+              FollowerSearchResponse.class);
+
+      // then
+      assertThat(following.followingList())
+          .singleElement()
+          .extracting(RelationUserItem::ratingCount)
+          .isEqualTo(1L);
+      assertThat(followers.followerList())
+          .singleElement()
+          .extracting(RelationUserItem::ratingCount)
+          .isEqualTo(1L);
     }
 
     @Test
