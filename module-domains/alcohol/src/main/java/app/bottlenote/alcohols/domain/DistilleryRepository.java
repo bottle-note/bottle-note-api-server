@@ -11,6 +11,7 @@ public interface DistilleryRepository {
 
   Optional<Distillery> findById(Long id);
 
+  /** 정렬은 호출자가 넘긴 pageable의 Sort를 따른다. */
   Page<AdminDistilleryItem> findAllDistilleries(String keyword, Pageable pageable);
 
   Distillery save(Distillery distillery);

@@ -34,7 +34,6 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
       where (:keyword is null or :keyword = ''
         or r.korName like concat('%', :keyword, '%')
         or r.engName like concat('%', :keyword, '%'))
-      order by r.sortOrder asc, r.korName asc
       """)
   Page<AdminRegionItem> findAllRegions(@Param("keyword") String keyword, Pageable pageable);
 

@@ -26,7 +26,6 @@ public interface JpaDistilleryRepository
       where (:keyword is null or :keyword = ''
         or d.korName like concat('%', :keyword, '%')
         or d.engName like concat('%', :keyword, '%'))
-      order by d.sortOrder asc, d.korName asc
       """)
   Page<AdminDistilleryItem> findAllDistilleries(
       @Param("keyword") String keyword, Pageable pageable);

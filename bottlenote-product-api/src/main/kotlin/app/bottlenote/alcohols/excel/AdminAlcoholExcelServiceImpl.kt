@@ -44,6 +44,7 @@ import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.util.CellRangeAddressList
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
@@ -63,6 +64,9 @@ class AdminAlcoholExcelServiceImpl(
 ) : AdminAlcoholExcelService {
 	companion object {
 		private const val REFERENCE_PAGE_SIZE = 1_000
+
+		// 지역·증류소 조회는 정렬을 pageable에 맡기므로 페이지 경계가 흔들리지 않게 순서를 고정한다.
+		private val SORT_ORDER_THEN_NAME = Sort.by("sortOrder", "korName", "id")
 		private const val DESCRIPTION_MARKER = "AlcoholImportDescriptionRow"
 		private const val DESCRIPTION_REFERENCE = "'알코올 데이터'!\$A\$2:\$N\$2"
 		private val DESCRIPTION_REFERENCES =
@@ -784,7 +788,7 @@ class AdminAlcoholExcelServiceImpl(
 		val items = mutableListOf<AdminRegionItem>()
 		var pageNumber = 0
 		do {
-			val page = regionRepository.findAllRegions(null, PageRequest.of(pageNumber, REFERENCE_PAGE_SIZE))
+			val page = regionRepository.findAllRegions(null, PageRequest.of(pageNumber, REFERENCE_PAGE_SIZE, SORT_ORDER_THEN_NAME))
 			items += page.content
 			pageNumber++
 		} while (page.hasNext())
@@ -795,7 +799,7 @@ class AdminAlcoholExcelServiceImpl(
 		val items = mutableListOf<AdminDistilleryItem>()
 		var pageNumber = 0
 		do {
-			val page = distilleryRepository.findAllDistilleries(null, PageRequest.of(pageNumber, REFERENCE_PAGE_SIZE))
+			val page = distilleryRepository.findAllDistilleries(null, PageRequest.of(pageNumber, REFERENCE_PAGE_SIZE, SORT_ORDER_THEN_NAME))
 			items += page.content
 			pageNumber++
 		} while (page.hasNext())

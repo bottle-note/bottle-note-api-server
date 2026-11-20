@@ -57,13 +57,13 @@ public class AlcoholReferenceService {
   @Transactional(readOnly = true)
   public GlobalResponse findAllRegionsForAdmin(AdminReferenceSearchRequest request) {
     return GlobalResponse.fromPage(
-        regionQueryRepository.findAllRegions(request.keyword(), request.toPageable()));
+        regionQueryRepository.findAllRegions(request.keyword(), request.toSortOrderPageable()));
   }
 
   @Transactional(readOnly = true)
   public GlobalResponse findAllDistilleries(AdminReferenceSearchRequest request) {
     return GlobalResponse.fromPage(
-        distilleryRepository.findAllDistilleries(request.keyword(), request.toPageable()));
+        distilleryRepository.findAllDistilleries(request.keyword(), request.toSortOrderPageable()));
   }
 
   @Transactional(readOnly = true)

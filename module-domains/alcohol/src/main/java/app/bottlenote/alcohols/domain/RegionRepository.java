@@ -14,6 +14,7 @@ public interface RegionRepository {
 
   List<RegionsItem> findAllRegionsResponse();
 
+  /** 정렬은 호출자가 넘긴 pageable의 Sort를 따른다. */
   Page<AdminRegionItem> findAllRegions(String keyword, Pageable pageable);
 
   List<Long> findChildRegionIds(Long parentId);
