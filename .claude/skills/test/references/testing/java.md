@@ -6,7 +6,7 @@ Java·Kotlin 테스트를 작성할 때 현재 구현과 함께 읽는다. 실�
 
 - `unit`: Spring context 없이 Service·도메인 동작을 Fake/InMemory로 검증한다. `unit_test`가 선택한다.
 - `integration`: Product의 API·영속성 테스트와 storage의 MinIO 테스트 등 실제 인프라 통합 테스트이며 `integration_test`가 선택한다.
-- `admin_integration`: Admin Kotlin의 통합 테스트이며 `admin_integration_test`가 선택한다.
+- `admin_integration`: product 모듈로 옮긴 admin API(Kotlin)의 통합 테스트이며 `admin_integration_test`가 선택한다. `testcontainers.db.name`은 `bottlenote_admin`이다.
 - `rule`: ArchUnit 규칙이며 `check_rule_test`가 선택한다.
 - `batch`: Batch 전용 테스트이며 `batch_test`가 선택한다. Batch는 위 네 공통 태스크가 비활성화되어 있다.
 
@@ -19,7 +19,7 @@ Java·Kotlin 테스트를 작성할 때 현재 구현과 함께 읽는다. 실�
 저장소 루트 기준 실제 위치는 다음과 같다.
 
 - Product 기반 클래스: `bottlenote-product-api/src/test/java/app/bottlenote/IntegrationTestSupport.java`
-- Admin 기반 클래스: `bottlenote-admin-api/src/test/kotlin/app/IntegrationTestSupport.kt`
+- Admin API 기반 클래스: `bottlenote-product-api/src/test/kotlin/app/IntegrationTestSupport.kt` (admin 모듈 제거 후 product 모듈로 옮겼다)
 - 공용 인프라: `module-shared/test-support/src/main/java/app/bottlenote/operation/utils/`의 `TestContainersConfig`, `DataInitializer`, `FakeWebhookRestTemplate`
 - 업무 Factory·InMemory: `module-domains/{모듈명}/src/testFixtures/java/app/bottlenote/{domain}/fixture/`
 - 인증 테스트 지원: `module-domains/user/src/testFixtures/java/app/bottlenote/operation/utils/TestAuthenticationSupport.java`
@@ -51,7 +51,7 @@ Product·Admin의 테스트 스키마는 Flyway가 만들고 Hibernate가 valida
 ## OpenAPI 계약
 
 - Product: `bottlenote-product-api/src/test/java/app/bottlenote/global/integration/`의 `OpenApiSpecTestSupport`, `OpenApiSpecQualityTest`, `OpenApiSecurityRequirementTest`와 기능별 계약 테스트를 참고한다.
-- Admin: `bottlenote-admin-api/src/test/kotlin/app/integration/openapi/`의 같은 역할의 Kotlin 기반·품질·보안 테스트를 참고한다.
+- Admin API: `bottlenote-product-api/src/test/kotlin/app/integration/openapi/`의 같은 역할의 Kotlin 기반·품질·보안 테스트를 참고한다.
 - 실제 context에서 `/api/v1/openapi.product.json`, `/admin/api/v1/openapi.admin.json`을 가져와 OpenAPI 3.1, 경로·파라미터·명시적 응답 data 스키마, 실제 bearer 요구사항, 무인증 문서 접근 정책을 검사한다.
 - DTO 필드나 endpoint를 바꾸면 관련 문서 어노테이션과 런타임 JSON 검증을 함께 갱신한다. 어노테이션 문자열만 검사하여 customizer·보안 설정을 건너뛰지 않는다.
 

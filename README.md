@@ -99,7 +99,6 @@ Product API가 호출하는 `ImageUploadService`는 S3 SDK로 업로드 URL을 �
 | 모듈 | 운영 코드의 직접 의존 |
 |---|---|
 | `product-api` | 업무 모듈 10개 전체, `foundation`, `observability` |
-| `admin-api` | 업무 모듈 10개 전체, `foundation` |
 | `batch` | `alcohol`, `community`, `support`, `foundation` |
 | `user`, `alcohol`, `analytics` | 추가 의존 없음 |
 | `storage`, `access-control` | `user` |
@@ -119,7 +118,7 @@ Product API가 호출하는 `ImageUploadService`는 S3 SDK로 업로드 URL을 �
 
 | 모듈 | 소유하는 코드 |
 |---|---|
-| product-api / admin-api / batch | 기존 3개 실행 앱. Product·Admin의 화면별 복합 조회와 응답 조합도 각 앱이 소유한다 |
+| product-api / batch | 실행 앱 2개. product-api는 admin API(`/admin/api/**`, Kotlin)를 흡수한 통합 앱이며 Product·Admin의 화면별 복합 조회와 응답 조합도 소유한다. admin-api 모듈은 제거했다 |
 | foundation | 업무 타입과 업무 테이블을 모르는 공통 기반, 공통 예외·페이징·JPA 설정·외부 연동 |
 | user | 사용자·인증·약관·차단·감사자·마스킹 |
 | alcohol | 주류·속성·기존 큐레이션(AdminCurationService)·수입 정보와 주류 병합 계약 |
@@ -134,11 +133,11 @@ Product API가 호출하는 `ImageUploadService`는 S3 SDK로 업로드 URL을 �
 | observability | 관측 공통 기능 |
 | test-support | 업무를 모르는 컨테이너 설정·데이터 정리·webhook 테스트 대역 |
 
-실행 앱 3개는 루트에 둔다. 업무 모듈 10개는 `module-domains/{이름}`, foundation·observability·test-support는 `module-shared/{이름}`에 둔다. `settings.gradle`에서 각 폴더를 기존 Gradle 프로젝트명에 `projectDir`로 연결한다.
+실행 앱 2개는 루트에 둔다. 업무 모듈 10개는 `module-domains/{이름}`, foundation·observability·test-support는 `module-shared/{이름}`에 둔다. `settings.gradle`에서 각 폴더를 기존 Gradle 프로젝트명에 `projectDir`로 연결한다.
 
 모듈명은 패키지명과 같지 않을 수 있다. 파일 위치와 build 의존을 함께 확인한다. `query`와 `web-support` 모듈은 만들지 않았다. 조회는 사용하는 앱에 두고, 인증과 마스킹은 user에, 별점 규칙과 웹 변환 설정은 community에 두었다.
 
-Product·Admin·Batch 세 앱과 기존 DB를 유지합니다. 여러 업무를 묶는 화면 조회는 사용하는 앱이 소유하며 업무 간 호출은 공개 계약을 따릅니다. community가 활동 이벤트를 발행하고 history와 notification이 받습니다. 모듈 방향은 업무의 중요도를 뜻하지 않습니다.
+Product·Batch 두 앱과 기존 DB를 유지합니다. Admin API는 [admin 흡수 ADR](<adr/2026.11.19 admin API를 product 배포 단위로 흡수하고 섀도우 검증 뒤 admin 앱을 제거한다.md>)에 따라 product 앱으로 옮겼습니다. 여러 업무를 묶는 화면 조회는 사용하는 앱이 소유하며 업무 간 호출은 공개 계약을 따릅니다. community가 활동 이벤트를 발행하고 history와 notification이 받습니다. 모듈 방향은 업무의 중요도를 뜻하지 않습니다.
 
 Gradle 의존 선언은 컴파일 경로를 정합니다. public 내부 클래스 접근과 조회 쓰기 제한은 규칙 검사와 리뷰가 함께 맡습니다. 업무 Factory·Fake는 소유 모듈의 testFixtures에서 선택하고 test-support는 중립 인프라만 제공합니다.
 
