@@ -184,6 +184,16 @@ jobs:
             release_metadata="not-required"
           fi
 
+          # admin 모듈은 main에서 제거됐다(workspace#564). admin 이미지는 그 모듈이 남아 있는 과거 운영 소스에서만 만든다.
+          if [[ "$deployment_mode" == "both" || "$deployment_mode" == "admin" ]]; then
+            for admin_path in Dockerfile-admin bottlenote-admin-api; do
+              git cat-file -e "${source_sha}:${admin_path}" 2>/dev/null || {
+                echo "::error::source ${source_sha} has no ${admin_path}; deploy ${deployment_mode} only from a source that still has the admin module"
+                exit 1
+              }
+            done
+          fi
+
           {
             echo "release-tag=$RELEASE_TAG"
             echo "version=$version"

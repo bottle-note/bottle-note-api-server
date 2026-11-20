@@ -144,6 +144,11 @@ jobs:
             product) deployed_services="product" ;;
             admin) deployed_services="admin" ;;
           esac
+          # admin 모듈은 main에서 제거됐다(workspace#564). main에서 출발한 표준 릴리즈는 product만 배포한다.
+          [[ "$deployment_mode" == "product" ]] || {
+            echo "::error::standard release supports deployment_mode=product only because main no longer has the admin module"
+            exit 1
+          }
 
           PR_JSON="$pr_json" python3 - <<'PY'
           import json
