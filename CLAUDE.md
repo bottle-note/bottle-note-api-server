@@ -110,7 +110,7 @@ git submodule update --init --recursive
 | api (개발, 통합 이미지 `bottlenote-api`) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
 | batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
 
-운영은 아직 product-api와 admin-api 두 배포 단위다. 운영 워크플로(`release_pr_create`, `release_pr_merged`, `hotfix_pr_merged`, `deploy_release_applications`)는 운영 전환 전까지 바꾸지 않는다. 개발은 product 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에만 배포한다. 개발 product-api·admin-api는 이미지를 더 빌드하지 않으므로 FE 연동 뒤 교체할 때까지 마지막 이미지로 고정된다. admin 모듈을 제거한 소스로는 운영 `admin`·`both` 릴리즈를 실행할 수 없다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
+운영은 아직 product-api와 admin-api 두 배포 단위다. 운영 워크플로(`release_pr_create`, `release_pr_merged`, `hotfix_pr_merged`, `deploy_release_applications`)의 배포 단위와 이미지 이름은 운영 전환 전까지 바꾸지 않는다. admin 모듈을 main에서 제거했으므로 main에서 출발하는 표준 릴리즈는 `product`만 허용하며 기본값도 `product`다. `admin`·`both`는 admin 모듈이 남은 운영 소스에서 자른 핫픽스에만 쓰고, 워크플로가 소스에 admin 모듈이 있는지 먼저 확인한다. 개발은 product 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에만 배포한다. 개발 product-api·admin-api Deployment는 제거했고, 두 Service는 api Pod를 가리킨다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
 
 Release PR 경로는 검증된 `source_sha`, `release_key`, `deployment_mode`를 배포 워크플로에 전달한다. 병합 자체와 검증 통과를 구분하고, 배포 대상은 전달된 `source_sha`를 기준으로 확인한다.
 
