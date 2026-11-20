@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryDistilleryRepository implements DistilleryRepository {
@@ -33,6 +34,7 @@ public class InMemoryDistilleryRepository implements DistilleryRepository {
                         || keyword.isEmpty()
                         || d.getKorName().contains(keyword)
                         || d.getEngName().contains(keyword))
+            .sorted(adminListOrder(pageable))
             .map(this::toAdminDistilleryItem)
             .toList();
 
@@ -42,6 +44,17 @@ public class InMemoryDistilleryRepository implements DistilleryRepository {
         start < filtered.size() ? filtered.subList(start, end) : List.of();
 
     return new PageImpl<>(pageContent, pageable, filtered.size());
+  }
+
+  // JPA 구현처럼 pageable의 sortOrder 방향을 따르고 같은 순서는 이름으로 정한다.
+  private Comparator<Distillery> adminListOrder(Pageable pageable) {
+    Comparator<Distillery> order = Comparator.comparingInt(Distillery::getSortOrder);
+    Sort.Order requested = pageable.getSort().getOrderFor("sortOrder");
+    if (requested != null && requested.isDescending()) {
+      order = order.reversed();
+    }
+    return order.thenComparing(
+        Distillery::getKorName, Comparator.nullsLast(Comparator.naturalOrder()));
   }
 
   @Override

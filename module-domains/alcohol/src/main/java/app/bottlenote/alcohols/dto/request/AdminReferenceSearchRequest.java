@@ -26,4 +26,12 @@ public record AdminReferenceSearchRequest(
   public Pageable toPageable() {
     return PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortOrder.name()), "id"));
   }
+
+  /** 노출 순서가 있는 지역·증류소는 sortOrder를 요청 방향으로 정렬하고, 같은 순서는 이름과 ID로 고정한다. */
+  public Pageable toSortOrderPageable() {
+    Sort sort =
+        Sort.by(Sort.Direction.fromString(sortOrder.name()), "sortOrder")
+            .and(Sort.by("korName", "id"));
+    return PageRequest.of(page, size, sort);
+  }
 }

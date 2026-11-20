@@ -15,6 +15,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryRegionRepository implements RegionRepository {
@@ -56,10 +57,7 @@ public class InMemoryRegionRepository implements RegionRepository {
                         || keyword.isEmpty()
                         || (r.getKorName() != null && r.getKorName().contains(keyword))
                         || (r.getEngName() != null && r.getEngName().contains(keyword)))
-            .sorted(
-                Comparator.comparingInt(Region::getSortOrder)
-                    .thenComparing(
-                        Region::getKorName, Comparator.nullsLast(Comparator.naturalOrder())))
+            .sorted(adminListOrder(pageable))
             .map(
                 r ->
                     new AdminRegionItem(
@@ -80,6 +78,16 @@ public class InMemoryRegionRepository implements RegionRepository {
     List<AdminRegionItem> pageContent =
         start < filtered.size() ? filtered.subList(start, end) : List.of();
     return new PageImpl<>(pageContent, pageable, filtered.size());
+  }
+
+  // JPA 구현처럼 pageable의 sortOrder 방향을 따르고 같은 순서는 이름으로 정한다.
+  private Comparator<Region> adminListOrder(Pageable pageable) {
+    Comparator<Region> order = Comparator.comparingInt(Region::getSortOrder);
+    Sort.Order requested = pageable.getSort().getOrderFor("sortOrder");
+    if (requested != null && requested.isDescending()) {
+      order = order.reversed();
+    }
+    return order.thenComparing(Region::getKorName, Comparator.nullsLast(Comparator.naturalOrder()));
   }
 
   @Override

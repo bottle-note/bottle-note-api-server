@@ -1,6 +1,8 @@
 package app.integration.alcohols
 
 import app.IntegrationTestSupport
+import app.bottlenote.alcohols.domain.Distillery
+import app.bottlenote.alcohols.domain.Region
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
@@ -127,6 +129,18 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 				.extractingPath("$.data[0].sortOrder")
 				.isEqualTo(9999)
 		}
+
+		@Test
+		@DisplayName("정렬 방향을 지정할 때 지역을 sortOrder 기준으로 그 방향에 맞춰 응답한다")
+		fun getRegionsFollowsRequestedSortDirection() {
+			// given
+			val first = alcoholTestFactory.persistRegion(Region.builder().korName("정렬지역1").engName("SortRegionFirst").sortOrder(1))
+			val second = alcoholTestFactory.persistRegion(Region.builder().korName("정렬지역2").engName("SortRegionSecond").sortOrder(2))
+
+			// when & then
+			assertThat(listIds("/v1/regions?keyword=SortRegion&sortOrder=ASC")).containsExactly(first.id, second.id)
+			assertThat(listIds("/v1/regions?keyword=SortRegion&sortOrder=DESC")).containsExactly(second.id, first.id)
+		}
 	}
 
 	@Nested
@@ -192,5 +206,30 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 				.extractingPath("$.data[0].sortOrder")
 				.isEqualTo(9999)
 		}
+
+		@Test
+		@DisplayName("정렬 방향을 지정할 때 증류소를 sortOrder 기준으로 그 방향에 맞춰 응답한다")
+		fun getDistilleriesFollowsRequestedSortDirection() {
+			// given
+			val first =
+				alcoholTestFactory.persistDistillery(Distillery.builder().korName("정렬증류소1").engName("SortDistilleryFirst").sortOrder(1))
+			val second =
+				alcoholTestFactory.persistDistillery(Distillery.builder().korName("정렬증류소2").engName("SortDistillerySecond").sortOrder(2))
+
+			// when & then
+			assertThat(listIds("/v1/distilleries?keyword=SortDistillery&sortOrder=ASC")).containsExactly(first.id, second.id)
+			assertThat(listIds("/v1/distilleries?keyword=SortDistillery&sortOrder=DESC")).containsExactly(second.id, first.id)
+		}
+	}
+
+	private fun listIds(uri: String): List<Long> {
+		val result =
+			mockMvcTester
+				.get()
+				.uri(uri)
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+		assertThat(result).hasStatusOk()
+		return mapper.readTree(result.response.contentAsString).get("data").map { it.get("id").asLong() }
 	}
 }
