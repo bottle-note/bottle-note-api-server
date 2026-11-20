@@ -12,6 +12,7 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.ReviewResultMessage;
 import app.bottlenote.review.domain.Review;
@@ -148,6 +149,74 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       assertNotNull(reviewDetailResponse.alcoholInfo());
       assertEquals(
           reviewCreateRequest.content(), reviewDetailResponse.reviewInfo().reviewContent());
+    }
+
+    @DisplayName("삭제되거나 비활성인 리뷰 상세를 조회할 때 REVIEW_NOT_FOUND로 응답한다")
+    @Test
+    void detail_whenReviewIsNotActive_returnsReviewNotFound() {
+      // given
+      User author = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      Review deleted =
+          reviewTestFactory.persistReview(
+              Review.builder()
+                  .userId(author.getId())
+                  .alcoholId(alcohol.getId())
+                  .activeStatus(ReviewActiveStatus.DELETED));
+      Review disabled =
+          reviewTestFactory.persistReview(
+              Review.builder()
+                  .userId(author.getId())
+                  .alcoholId(alcohol.getId())
+                  .activeStatus(ReviewActiveStatus.DISABLED));
+
+      // when & then
+      assertReviewNotFound(deleted.getId(), getToken(author).accessToken());
+      assertReviewNotFound(disabled.getId(), getToken(author).accessToken());
+    }
+
+    @DisplayName("다른 사용자의 비공개 리뷰 상세를 조회할 때 REVIEW_NOT_FOUND로 응답하고 작성자에게는 보여 준다")
+    @Test
+    void detail_whenPrivateReviewOfOtherUser_returnsReviewNotFound() {
+      // given
+      User author = userTestFactory.persistUser();
+      User viewer = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      Review privateReview =
+          reviewTestFactory.persistReview(
+              Review.builder()
+                  .userId(author.getId())
+                  .alcoholId(alcohol.getId())
+                  .status(ReviewDisplayStatus.PRIVATE));
+
+      // when & then
+      assertReviewNotFound(privateReview.getId(), getToken(viewer).accessToken());
+      assertReviewNotFound(privateReview.getId(), null);
+      mockMvcTester
+          .get()
+          .uri("/api/v1/reviews/detail/{reviewId}", privateReview.getId())
+          .header("Authorization", "Bearer " + getToken(author).accessToken())
+          .exchange()
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.reviewInfo.reviewId")
+          .convertTo(Long.class)
+          .isEqualTo(privateReview.getId());
+    }
+
+    private void assertReviewNotFound(Long reviewId, String accessToken) {
+      var request = mockMvcTester.get().uri("/api/v1/reviews/detail/{reviewId}", reviewId);
+      if (accessToken != null) {
+        request = request.header("Authorization", "Bearer " + accessToken);
+      }
+      MvcTestResult result = request.exchange();
+      result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+      result
+          .assertThat()
+          .bodyJson()
+          .extractingPath("$.errors[0].code")
+          .isEqualTo("REVIEW_NOT_FOUND");
     }
 
     @DisplayName("내가 작성한 리뷰 조회에 성공한다.")
