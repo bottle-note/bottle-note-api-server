@@ -26,6 +26,8 @@ public enum ValidExceptionCode implements ExceptionCode {
 
   // EXTERNAL
   DEVICE_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "디바이스 토큰은 필수입니다."),
+  KAKAO_ACCESS_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 액세스 토큰은 필수입니다."),
+  TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "토큰은 필수입니다."),
   PLATFORM_REQUIRED(HttpStatus.BAD_REQUEST, "플랫폼은 필수입니다."),
 
   // ALCOHOL
@@ -42,6 +44,9 @@ public enum ValidExceptionCode implements ExceptionCode {
   ALCOHOL_MERGE_LOG_SIZE_MINIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 1 이상이어야 합니다."),
   ALCOHOL_MERGE_LOG_SIZE_MAXIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 100 이하여야 합니다."),
   ALCOHOL_ATTRIBUTE_GROUP_INVALID_VALUE(HttpStatus.BAD_REQUEST, "속성 그룹 입력값이 올바르지 않습니다."),
+  ALCOHOL_ATTRIBUTE_INVALID_VALUE(HttpStatus.BAD_REQUEST, "속성 값이 비어 있거나 입력 형식에 맞지 않습니다."),
+  ALCOHOL_ATTRIBUTE_INVALID_RULE(HttpStatus.BAD_REQUEST, "STRING 속성의 허용값 목록 또는 정규식이 올바르지 않습니다."),
+  INVALID_EXPORT_COUNTRY_PATTERN(HttpStatus.BAD_REQUEST, "수출국 코드는 영문 대문자 2자리입니다."),
   ALCOHOL_ATTRIBUTE_GROUP_IDS_SIZE_INVALID(HttpStatus.BAD_REQUEST, "그룹 ID는 최대 100개까지 검색할 수 있습니다."),
   ALCOHOL_ATTRIBUTE_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "속성 표시명은 필수입니다."),
   ALCOHOL_ATTRIBUTE_OPERATOR_REQUIRED(HttpStatus.BAD_REQUEST, "속성 비교 조건은 필수입니다."),
@@ -80,6 +85,12 @@ public enum ValidExceptionCode implements ExceptionCode {
   REVIEW_IMAGE_URL_REQUIRED(HttpStatus.BAD_REQUEST, "리뷰 이미지 URL은 필수입니다"),
   REVIEW_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "리뷰 내용은 필수입니다."),
   REVIEW_CONTENT_MAXIMUM(HttpStatus.BAD_REQUEST, "리뷰 내용의 최대 글자수를 초과했습니다."),
+  ADMIN_REVIEW_PAGE_MINIMUM(HttpStatus.BAD_REQUEST, "페이지 번호는 0 이상이어야 합니다."),
+  ADMIN_REVIEW_SIZE_MINIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 1 이상이어야 합니다."),
+  ADMIN_REVIEW_SIZE_MAXIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 최대 100입니다."),
+  ADMIN_BEST_REVIEW_LOG_PAGE_MINIMUM(HttpStatus.BAD_REQUEST, "페이지 번호는 0 이상이어야 합니다."),
+  ADMIN_BEST_REVIEW_LOG_SIZE_MINIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 1 이상이어야 합니다."),
+  ADMIN_BEST_REVIEW_LOG_SIZE_MAXIMUM(HttpStatus.BAD_REQUEST, "페이지 크기는 최대 100입니다."),
   PRICE_MINIMUM(HttpStatus.BAD_REQUEST, "가격은 0원 이상이어야 합니다."),
   PRICE_MAXIMUM(HttpStatus.BAD_REQUEST, "입력할 수 있는 가격의 범위가 아닙니다."),
   INVALID_ZIP_CODE_PATTERN(HttpStatus.BAD_REQUEST, "우편번호는 숫자 5자리 형식입니다."),
@@ -104,6 +115,11 @@ public enum ValidExceptionCode implements ExceptionCode {
   SOCIAL_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "로그인 및 회원가입에 필요한 소셜타입이 없습니다."),
   AGE_MINIMUM(HttpStatus.BAD_REQUEST, "나이는 0 이상 이어야 합니다."),
   EMAIL_NOT_BLANK(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
+  NICKNAME_NOT_BLANK(HttpStatus.BAD_REQUEST, "닉네임은 필수입니다."),
+  EMAIL_IS_REQUIRED(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
+  USER_EMAIL_NOT_VALID(HttpStatus.BAD_REQUEST, "올바른 이메일 형식이 아닙니다."),
+  PASSWORD_IS_REQUIRED(HttpStatus.BAD_REQUEST, "비밀번호는 필수입니다."),
+  USER_PASSWORD_NOT_VALID(HttpStatus.BAD_REQUEST, "비밀번호는 8자 이상 35자 이하여야 합니다."),
 
   // AGREEMENT
   AGREEMENTS_REQUIRED(HttpStatus.BAD_REQUEST, "동의 항목은 최소 1개 이상이어야 합니다."),
@@ -134,6 +150,10 @@ public enum ValidExceptionCode implements ExceptionCode {
   HELP_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 제목은 필수입니다."),
   HELP_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 내용은 필수입니다."),
   REQUIRED_HELP_TYPE(HttpStatus.BAD_REQUEST, "문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)"),
+  HELP_IMAGE_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "문의 이미지 순서는 필수입니다."),
+  HELP_IMAGE_URL_REQUIRED(HttpStatus.BAD_REQUEST, "문의 이미지 URL은 필수입니다."),
+  CONTACT_NOT_EMPTY(HttpStatus.BAD_REQUEST, "연락처는 필수입니다."),
+  REQUIRED_CONTACT_TYPE(HttpStatus.BAD_REQUEST, "비즈니스 문의 유형은 필수입니다."),
 
   // BANNER
   BANNER_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "배너명은 필수입니다."),
@@ -144,6 +164,7 @@ public enum ValidExceptionCode implements ExceptionCode {
   BANNER_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
   BANNER_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
   BANNER_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다."),
+  BANNER_POSTER_URL_MAX_SIZE(HttpStatus.BAD_REQUEST, "포스터 URL은 최대 500자까지 가능합니다."),
 
   // CURATION
   CURATION_SPEC_ID_REQUIRED(HttpStatus.BAD_REQUEST, "큐레이션 스펙 ID는 필수입니다."),
@@ -160,6 +181,7 @@ public enum ValidExceptionCode implements ExceptionCode {
   REGION_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 영문명은 필수입니다."),
   REGION_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
   REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
+  INVALID_REQUEST_VALUE(HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다."),
 
   // AGENT
   AGENT_KEY_REQUIRED(HttpStatus.BAD_REQUEST, "에이전트 키는 필수입니다."),
@@ -169,6 +191,8 @@ public enum ValidExceptionCode implements ExceptionCode {
   ACCESS_CONTROL_BAN_TTL_MINIMUM(HttpStatus.BAD_REQUEST, "ban TTL은 1초 이상이어야 합니다."),
   ACCESS_CONTROL_BAN_TTL_MAXIMUM(HttpStatus.BAD_REQUEST, "ban TTL은 30일(2592000초) 이하여야 합니다."),
   ACCESS_CONTROL_BAN_REASON_MAX_SIZE(HttpStatus.BAD_REQUEST, "ban 사유는 최대 200자까지 가능합니다."),
+  ACCESS_CONTROL_SIGNAL_ENDPOINT_QUERY_FORBIDDEN(
+      HttpStatus.BAD_REQUEST, "보안 신호의 endpoint에는 쿼리 문자열을 넣을 수 없습니다."),
 
   // TASTING TAG GROUP
   TASTING_TAG_GROUP_CODE_REQUIRED(HttpStatus.BAD_REQUEST, "맛 그룹 코드는 필수입니다."),

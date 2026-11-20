@@ -1,5 +1,7 @@
 package app.bottlenote.global.exception.handler;
 
+import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.INVALID_REQUEST_VALUE;
+import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.TYPE_MISMATCH;
 import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.UNKNOWN_ERROR;
 
 import app.bottlenote.global.data.response.Error;
@@ -12,15 +14,17 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -70,25 +74,42 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalResponse> handleValidationException(
       MethodArgumentNotValidException exception) {
 
-    BindingResult bindingResult = exception.getBindingResult();
-
-    List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-
     Set<Error> errorSet = new HashSet<>();
 
-    for (FieldError fieldError : fieldErrors) {
-      // String fieldName = fieldError.getField();  // 필드명
-      // Object rejectedValue = fieldError.getRejectedValue(); // 거부된 값
-
-      ValidExceptionCode code =
-          ValidExceptionCode.valueOf(fieldError.getDefaultMessage()); // ALCOHOL_ID_REQUIRED
-
-      Error error = Error.of(code);
-
-      errorSet.add(error);
+    for (ObjectError objectError : exception.getBindingResult().getAllErrors()) {
+      errorSet.add(toValidationError(objectError));
     }
 
     return GlobalResponse.error(errorSet);
+  }
+
+  /**
+   * 검증 오류 하나를 표준 오류로 바꾼다.
+   *
+   * <p>메시지가 {@link ValidExceptionCode} 이름이면 그 코드를 쓴다. 값 변환 실패는 TYPE_MISMATCH, 그 밖의 문구는
+   * INVALID_REQUEST_VALUE에 원래 문구를 담는다. 변환하지 못한 메시지 때문에 처리기가 다시 실패하면 Spring 기본 오류 본문이 나가기 때문이다.
+   */
+  private Error toValidationError(ObjectError objectError) {
+    if (objectError instanceof FieldError fieldError && fieldError.isBindingFailure()) {
+      String message = String.format("'%s' 필드의 값 형식이 올바르지 않습니다.", fieldError.getField());
+      return new Error(TYPE_MISMATCH, TYPE_MISMATCH.getHttpStatus(), message);
+    }
+
+    String message = objectError.getDefaultMessage();
+    return findValidExceptionCode(message)
+        .map(Error::of)
+        .orElseGet(
+            () ->
+                new Error(
+                    INVALID_REQUEST_VALUE,
+                    INVALID_REQUEST_VALUE.getHttpStatus(),
+                    message != null ? message : INVALID_REQUEST_VALUE.getMessage()));
+  }
+
+  private static Optional<ValidExceptionCode> findValidExceptionCode(String name) {
+    return Arrays.stream(ValidExceptionCode.values())
+        .filter(code -> code.name().equals(name))
+        .findFirst();
   }
 
   /**

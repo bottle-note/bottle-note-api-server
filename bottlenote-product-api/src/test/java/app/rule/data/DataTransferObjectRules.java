@@ -2,10 +2,21 @@ package app.rule.data;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.rule.AbstractRules;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.lang.ArchRule;
 import jakarta.persistence.Entity;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -14,6 +25,8 @@ import org.junit.jupiter.api.Test;
 @DisplayName("데이터 전송 객체(DTO) 아키텍처 규칙")
 @SuppressWarnings({"NonAsciiCharacters", "JUnitTestClassNamingConvention"})
 public class DataTransferObjectRules extends AbstractRules {
+  private static final Pattern ERROR_CODE_NAME = Pattern.compile("[A-Z][A-Z0-9_]+");
+
   /** 요청 DTO 네이밍 규칙 검증 요청 DTO 클래스는 이름이 'Request'로 끝나야 합니다. */
   @Test
   public void 요청_DTO_네이밍_규칙_검증() {
@@ -198,5 +211,36 @@ public class DataTransferObjectRules extends AbstractRules {
             .areAnnotatedWith(Entity.class)
             .because("DTO 클래스는 엔티티를 직접 참조하지 않아야 합니다");
     rule.check(importedClasses);
+  }
+
+  /**
+   * 검증 어노테이션의 message에 오류 코드 이름을 적었다면 그 코드가 ValidExceptionCode에 있어야 합니다. 없는 코드는 표준 오류 코드 대신
+   * INVALID_REQUEST_VALUE와 코드 이름 문구로 응답하게 됩니다.
+   */
+  @Test
+  public void 검증_메시지_코드_정의_검증() {
+    Set<String> definedCodes =
+        Arrays.stream(ValidExceptionCode.values()).map(Enum::name).collect(Collectors.toSet());
+
+    List<String> undefined = new ArrayList<>();
+    for (JavaClass javaClass : importedClasses) {
+      Stream<? extends HasAnnotations<?>> annotated =
+          Stream.concat(
+              javaClass.getFields().stream(),
+              javaClass.getCodeUnits().stream().flatMap(unit -> unit.getParameters().stream()));
+      annotated
+          .flatMap(target -> target.getAnnotations().stream())
+          .forEach(
+              annotation ->
+                  annotation
+                      .get("message")
+                      .filter(String.class::isInstance)
+                      .map(String.class::cast)
+                      .filter(message -> ERROR_CODE_NAME.matcher(message).matches())
+                      .filter(message -> !definedCodes.contains(message))
+                      .ifPresent(message -> undefined.add(javaClass.getName() + ": " + message)));
+    }
+
+    assertThat(undefined).as("ValidExceptionCode에 없는 검증 메시지 코드").isEmpty();
   }
 }
