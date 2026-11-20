@@ -74,7 +74,7 @@ subprojects {
 		}
 	}
 
-	// Spotless 설정 (업무 라이브러리, product-api: Java / admin-api: Kotlin)
+	// Spotless 설정 (업무 라이브러리, product-api: Java)
 	if (project.name in ['bottlenote-product-api', 'bottlenote-foundation', 'bottlenote-user', 'bottlenote-alcohol', 'bottlenote-storage', 'bottlenote-community', 'bottlenote-history', 'bottlenote-support', 'bottlenote-notification', 'bottlenote-analytics', 'bottlenote-content', 'bottlenote-access-control']) {
 		apply plugin: 'com.diffplug.spotless'
 
@@ -87,14 +87,9 @@ subprojects {
 		}
 	}
 
-	if (project.name == 'bottlenote-admin-api') {
-		apply plugin: 'com.diffplug.spotless'
-
+	// product-api는 admin API의 Kotlin 소스를 흡수했으므로 Kotlin 규칙을 함께 적용한다
+	if (project.name == 'bottlenote-product-api') {
 		spotless {
-			java {
-				googleJavaFormat('1.27.0')
-				target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-			}
 			kotlin {
 				ktlint().editorConfigOverride([
 					'ktlint_standard_no-wildcard-imports': 'disabled'
@@ -150,6 +145,7 @@ subprojects {
 		}
 	}
 
+	// admin API 통합 테스트. product integration_test와 같은 머신에서 함께 돌아도 DB가 섞이지 않게 DB 이름을 나눈다
 	tasks.register('admin_integration_test', Test) {
 		useJUnitPlatform {
 			includeTags 'admin_integration'
@@ -271,9 +267,9 @@ tasks.register('integration_test') {
 	dependsOn subprojects.findAll { it.tasks.findByName('integration_test') }.collect { it.tasks.integration_test }
 }
 
-// admin_integration
+// admin_integration: admin-api 모듈에서 product-api로 옮긴 admin API 통합 테스트
 tasks.register('admin_integration_test') {
-	description = '어드민 모듈 통합 테스트'
+	description = 'admin API 통합 테스트 (@Tag("admin_integration"))'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('admin_integration_test') }.collect { it.tasks.admin_integration_test }
 }

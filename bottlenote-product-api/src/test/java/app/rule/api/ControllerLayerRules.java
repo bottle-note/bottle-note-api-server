@@ -6,6 +6,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
+import app.bottlenote.auth.presentation.AuthController;
+import app.global.admin.AdminApi;
 import app.rule.AbstractRules;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -48,6 +50,54 @@ public class ControllerLayerRules extends AbstractRules {
 
   private static final String GRAPHQL_PACKAGE = "..graphql..";
 
+  /**
+   * 이식 코드 범위를 검증합니다. product 규칙 일부가 빼고 검사하는 패키지에는 admin-api에서 옮겨 온 Kotlin 코드만 있어야 합니다. product의
+   * Java 코드가 이 범위에 들어오면 규칙 검사에서 빠지므로 막습니다.
+   */
+  @Test
+  public void 이식_코드_범위에는_admin_API_Kotlin_코드만_있다() {
+    ArchRule rule =
+        classes()
+            .that()
+            .resideInAnyPackage(ADMIN_API_PORTED_PACKAGES)
+            .or()
+            .haveNameMatching(ADMIN_API_PORTED_DTO)
+            .should()
+            .beAnnotatedWith("kotlin.Metadata")
+            .because("이식 코드 범위는 product 규칙 일부의 검사 대상에서 빠지므로 admin-api에서 옮긴 코드만 둘 수 있습니다");
+
+    rule.check(importedClasses);
+  }
+
+  /**
+   * admin API로 판정되는 컨트롤러를 검증합니다. {@link AdminApi}는 패키지로 admin 컨트롤러를 판정하므로, 그 패키지에 product 컨트롤러를 두면
+   * /admin/api 경로와 admin 보안 체인으로 자동 편입됩니다. admin 컨트롤러 이름 규칙(Admin 접두사, admin 인증 컨트롤러)을 따르지 않는 컨트롤러가
+   * 들어오면 실패시킵니다.
+   */
+  @Test
+  public void admin_API로_판정되는_컨트롤러는_admin_컨트롤러다() {
+    DescribedPredicate<JavaClass> routedToAdminApi =
+        DescribedPredicate.describe(
+            "AdminApi가 admin 컨트롤러로 판정한다",
+            javaClass -> AdminApi.INSTANCE.isAdminController(javaClass.reflect()));
+
+    ArchRule rule =
+        classes()
+            .that()
+            .areAnnotatedWith(RestController.class)
+            .or()
+            .areAnnotatedWith(Controller.class)
+            .and(routedToAdminApi)
+            .should()
+            .haveSimpleNameStartingWith("Admin")
+            .orShould()
+            .be(AuthController.class)
+            .because(
+                "admin 패키지의 컨트롤러는 경로 prefix와 보안 체인이 자동으로 admin으로 정해지므로 product 컨트롤러를 둘 수 없습니다");
+
+    rule.check(importedClasses);
+  }
+
   /** 컨트롤러 클래스 명명 규칙을 검증합니다. 컨트롤러 애노테이션이 있는 모든 클래스는 이름이 'Controller'로 끝나야 합니다. */
   @Test
   public void 컨트롤러_클래스_명명_규칙_검증() {
@@ -81,7 +131,8 @@ public class ControllerLayerRules extends AbstractRules {
             .resideInAnyPackage("..controller..", "..api..")
             .because("컨트롤러 클래스는 구조적 일관성을 위해 '.controller' 또는 '.api' 패키지에 위치해야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /**
@@ -117,7 +168,8 @@ public class ControllerLayerRules extends AbstractRules {
             .beAnnotatedWith(RequestMapping.class)
             .because("컨트롤러 클래스는 기본 경로 정의를 위해 클래스 수준의 @RequestMapping을 가져야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /**
@@ -218,7 +270,8 @@ public class ControllerLayerRules extends AbstractRules {
             .haveRawReturnType(ResponseEntity.class)
             .because("REST 컨트롤러의 메서드는 일관된 응답 구조를 위해 ResponseEntity를 반환해야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 요청 검증 적용을 확인합니다. @RequestBody가 붙은 파라미터에는 @Valid 애노테이션이 있어야 합니다. */
@@ -235,7 +288,8 @@ public class ControllerLayerRules extends AbstractRules {
             .should(validateRequestBodies())
             .because("@RequestBody 파라미터는 @Valid 애노테이션으로 검증되어야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 컨트롤러에서 트랜잭션 사용을 금지합니다. 트랜잭션 관리는 서비스 계층의 책임이어야 합니다. */
@@ -275,7 +329,8 @@ public class ControllerLayerRules extends AbstractRules {
             .should(followControllerMethodNamingConvention())
             .because("컨트롤러 메서드는 명확한 동사로 시작하는 명명 규칙을 따라야 합니다(예: getUser, createOrder)");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 필드 주입 사용을 금지합니다. 컨트롤러에서는 생성자 주입 방식을 사용해야 합니다. */

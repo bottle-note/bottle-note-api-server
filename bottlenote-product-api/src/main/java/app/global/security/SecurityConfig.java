@@ -13,6 +13,7 @@ import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import app.bottlenote.observability.visitor.VisitorIdentityResolver;
 import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import app.bottlenote.observability.visitor.VisitorTelemetryPublisher;
+import app.global.admin.security.AdminApiRequestMatcher;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -101,6 +102,9 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(MaliciousPathPattern::matches)
+                    .denyAll()
+                    // admin API는 앞선 admin 체인이 처리한다. 체인 선택이 어긋나도 product 체인에서는 열리지 않게 막는다.
+                    .requestMatchers(AdminApiRequestMatcher.INSTANCE)
                     .denyAll()
                     .requestMatchers(CorsUtils::isPreFlightRequest)
                     .permitAll()

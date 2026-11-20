@@ -7,6 +7,7 @@ import app.bottlenote.global.annotation.SecurityPolicy.AuthType;
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import app.bottlenote.global.security.policy.SecurityPolicyRoute;
 import app.bottlenote.global.security.policy.SecurityPolicyRouteCollector;
+import app.global.admin.AdminApi;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +32,9 @@ public class SecurityPolicyConfig {
             publicRoute("/actuator/**"),
             publicRoute("/error"),
             // API 스펙은 클라이언트 개발자가 인증 없이 받아갈 수 있어야 한다
-            publicRoute(specPath)));
+            publicRoute(specPath),
+            // admin 앱에서 공개하던 admin 문서 경로. YAML 경로는 admin 앱처럼 기본 정책을 따른다.
+            publicRoute(AdminApi.DOCS_PATH)));
   }
 
   /** HTTP 메서드를 구분하지 않고 전체 공개하는 경로. */

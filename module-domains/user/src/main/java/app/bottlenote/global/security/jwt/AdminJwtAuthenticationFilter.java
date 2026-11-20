@@ -14,16 +14,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
-@RequiredArgsConstructor
 public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
   public static final String AUTHORIZATION_HEADER = "Authorization";
@@ -31,6 +30,28 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final AdminJwtAuthenticationManager adminJwtAuthenticationManager;
   private final SecurityPolicyRegistry securityPolicyRegistry;
+  private final RequestMatcher maliciousPathMatcher;
+
+  public AdminJwtAuthenticationFilter(
+      AdminJwtAuthenticationManager adminJwtAuthenticationManager,
+      SecurityPolicyRegistry securityPolicyRegistry) {
+    this(adminJwtAuthenticationManager, securityPolicyRegistry, MaliciousPathPattern::matches);
+  }
+
+  /**
+   * 악성 경로 판정 기준을 체인에 맞춰 받는다.
+   *
+   * <p>관리자 API를 context-path 없이 {@code /admin/api} 아래에 둔 통합 앱은 체인의 인가 규칙과 같은 기준({@link
+   * MaliciousPathPattern#matchesUnder})을 넘긴다. 필터와 인가 규칙의 판정이 어긋나면 공개 경로의 토큰 처리가 달라진다.
+   */
+  public AdminJwtAuthenticationFilter(
+      AdminJwtAuthenticationManager adminJwtAuthenticationManager,
+      SecurityPolicyRegistry securityPolicyRegistry,
+      RequestMatcher maliciousPathMatcher) {
+    this.adminJwtAuthenticationManager = adminJwtAuthenticationManager;
+    this.securityPolicyRegistry = securityPolicyRegistry;
+    this.maliciousPathMatcher = maliciousPathMatcher;
+  }
 
   @Override
   protected void doFilterInternal(
@@ -47,7 +68,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
     try {
       if (token == null || token.isBlank()) {
-        if (MaliciousPathPattern.matches(request)
+        if (maliciousPathMatcher.matches(request)
             || securityPolicyRegistry.shouldUseAnonymousAuthentication(request, token)) {
           filterChain.doFilter(request, response);
           return;
@@ -103,7 +124,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     return CorsUtils.isPreFlightRequest(request)
-        || (!MaliciousPathPattern.matches(request)
+        || (!maliciousPathMatcher.matches(request)
             && securityPolicyRegistry.shouldSkipJwtFilter(request));
   }
 }

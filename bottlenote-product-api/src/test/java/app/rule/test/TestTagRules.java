@@ -54,7 +54,7 @@ class TestTagRules {
         List.of(
             "src/test",
             "bottlenote-product-api/src/test",
-            "bottlenote-admin-api/src/test",
+            "bottlenote-kotlin-dsl-app/src/test",
             "bottlenote-batch/src/test",
             "module-shared/foundation/src/test",
             "module-shared/observability/src/test",
@@ -74,7 +74,7 @@ class TestTagRules {
       Path testRoot = Files.createDirectories(root.resolve(source));
       Path moduleRoot = testRoot.getParent().getParent();
       String buildFile =
-          source.startsWith("bottlenote-admin-api/") ? "build.gradle.kts" : "build.gradle";
+          source.startsWith("bottlenote-kotlin-dsl-app/") ? "build.gradle.kts" : "build.gradle";
       Files.createFile(moduleRoot.resolve(buildFile));
     }
     for (String source : excluded) {

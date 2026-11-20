@@ -9,6 +9,13 @@ app: # 애플리케이션 및 배포 정보
       - https://bottle-note.github.io
     docs-allowed-origins:
       - https://bottle-note.github.io
+    # /admin/api/** 전용 CORS (기존 admin 앱의 app.cors 값)
+    admin:
+      allowed-origins:
+        - http://localhost:5173
+        - https://bottle-note.github.io
+      docs-allowed-origins:
+        - https://bottle-note.github.io
   info:
     server-name: ${SERVER_NAME:unknown}
     environment: ${SPRING_PROFILES_ACTIVE:local}
@@ -32,6 +39,11 @@ server:
     connection-timeout: 5000
 
 spring:
+  # admin 주류 엑셀 일괄 검증 업로드 한도 (기존 admin 앱 값)
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   profiles:
     include:
       - datasource
@@ -64,6 +76,34 @@ bottlenote:
   observability:
     visitor-telemetry:
       enabled: false
+  # admin 방문자 통계에서 제외할 트래픽 (기존 admin 앱 값)
+  statistics:
+    exclusion:
+      device-types: [봇, 도구]
+      ip-prefixes:
+        - 110.93.150.   # NAVER 검색 크롤러
+        - 114.111.32.
+        - 211.249.46.
+        - 193.122.101.  # 자사 Next.js SSR (공개 주소 경유 시 노드 공인 IP)
+        - 193.123.252.
+        - 158.179.171.
+        - 144.24.67.
+        - 10.42.        # 자사 Next.js SSR (k3s 파드 CIDR, 내부 Service 경유)
+        - 57.141.       # Meta 크롤러·링크 미리보기 (57.141.0.0 - 57.149.255.255, whois FB-BLOCK)
+        - 57.142.
+        - 57.143.
+        - 57.144.
+        - 57.145.
+        - 57.146.
+        - 57.147.
+        - 57.148.
+        - 57.149.
+        - 40.77.167.    # Bingbot
+        - 40.77.177.
+        - 40.77.179.
+        - 52.167.144.
+        - 66.249.       # Googlebot
+        - 74.125.       # Google 인프라
   pagination:
     cursor:
       current-key-id: v1
@@ -110,6 +150,27 @@ bottlenote:
       - /actuator
       - /favicon.ico
       - /api/v1/openapi.product.json
+  # /admin/api/** 전용 access-control (기존 admin 앱의 bottlenote.access-control 값)
+  # 경로는 admin 앱 기준(/admin/api를 뺀 경로)이다. 켜고 끄는 기준과 Redis 저장소는 bottlenote.access-control을 따른다.
+  admin-access-control:
+    fail-open: true
+    key-namespace: admin
+    default-rate-limit:
+      limit: 300
+      window-seconds: 60
+    unknown-ip-rate-limit:
+      limit: 20
+      window-seconds: 60
+    path-rules:
+      - path-prefix: /v1/auth
+        limit: 30
+        window-seconds: 60
+    # self-lockout 탈출: ban/RL 모두 스킵 (관리 평면)
+    management-path-prefixes:
+      - /v1/access-control
+    excluded-path-prefixes:
+      - /actuator
+      - /v1/openapi.admin.json
 
 # OpenAPI 문서 (스펙 JSON만 노출하고 swagger-ui는 사용하지 않는다)
 # ingress가 /api/v*/** 만 앱으로 넘기므로 스펙 경로도 그 아래에 둔다
@@ -156,6 +217,11 @@ schedules:
     view:
       sync:
         enable: true
+
+# 기동 시 큐레이션 스펙 리소스 동기화 (기존 admin 앱 작업, 모든 레플리카에서 실행)
+curation:
+  spec-sync:
+    enabled: ${CURATION_SPEC_SYNC_ENABLED:true}
 
 alcohol:
   lookup:
@@ -223,6 +289,12 @@ app:
       - http://localhost:3000
       - http://localhost:5173
       - https://bottle-note.github.io
+    admin:
+      allowed-origins:
+        - https://admin.development.bottle-note.com
+        - https://preview-admin.development.bottle-note.com
+        - http://localhost:5173
+        - https://bottle-note.github.io
 
 spring:
   config:
@@ -247,6 +319,10 @@ app:
     allowed-origins:
       - https://bottle-note.com
       - https://bottle-note.github.io
+    admin:
+      allowed-origins:
+        - https://admin.bottle-note.com
+        - https://bottle-note.github.io
 
 spring:
   config:

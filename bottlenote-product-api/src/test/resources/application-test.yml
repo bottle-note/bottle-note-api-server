@@ -6,6 +6,12 @@ bottlenote:
   access-control:
     # 통합 테스트 부하/격리: 기본 비활성 (단위 테스트는 mono에서 별도 검증)
     enabled: false
+  # admin 방문자 통계 제외 규칙 (admin-api 테스트 설정과 같은 최소 목록)
+  statistics:
+    exclusion:
+      device-types: [봇, 도구]
+      ip-prefixes:
+        - 66.249.
 
 spring:
   main:
@@ -64,6 +70,13 @@ app:
       - https://bottle-note.github.io
     docs-allowed-origins:
       - https://bottle-note.github.io
+    # /admin/api/** 전용 CORS (admin-api 테스트 설정과 같은 값)
+    admin:
+      allowed-origins:
+        - https://admin.bottle-note.com
+        - https://bottle-note.github.io
+      docs-allowed-origins:
+        - https://bottle-note.github.io
 
 # OpenAPI 문서 (운영 설정과 같은 경로를 유지해 스펙을 그대로 검증한다)
 springdoc:

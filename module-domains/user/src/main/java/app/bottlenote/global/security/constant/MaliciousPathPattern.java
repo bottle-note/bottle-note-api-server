@@ -3,6 +3,8 @@ package app.bottlenote.global.security.constant;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.PathContainer;
@@ -80,6 +82,7 @@ public enum MaliciousPathPattern {
   private static final PathPatternParser PATTERN_PARSER = PathPatternParser.defaultInstance;
   private static final List<PathPattern> REQUEST_MATCHERS =
       Arrays.stream(values()).map(pattern -> PATTERN_PARSER.parse(pattern.getPattern())).toList();
+  private static final Map<String, PathPattern> MOUNT_PATTERNS = new ConcurrentHashMap<>();
 
   /** 모든 악성 경로 패턴 배열 반환 */
   public static String[] getAllPatterns() {
@@ -95,8 +98,37 @@ public enum MaliciousPathPattern {
   }
 
   public static boolean matches(HttpServletRequest request) {
-    return REQUEST_MATCHERS.stream()
-        .anyMatch(pattern -> pattern.matches(PathContainer.parsePath(lookupPath(request))));
+    return matchesPath(PathContainer.parsePath(lookupPath(request)));
+  }
+
+  /**
+   * {@code mountPath} 아래로 들어온 요청을 {@code mountPath}가 context-path인 것처럼 판정한다.
+   *
+   * <p>통합 앱은 관리자 API를 context-path 없이 {@code /admin/api} 아래에 둔다. 기존 admin 앱은 같은 경로를 context-path로
+   * 두고 그 안쪽 경로로 판정했으므로, 관리자 체인은 이 메서드로 같은 기준을 쓴다. 예를 들어 {@code /admin/api/v1/users}는 허용하고 {@code
+   * /admin/api/.env}, {@code /admin/api/admin/login.php}는 기존처럼 막는다. {@code mountPath} 밖의 경로(ERROR
+   * dispatch의 {@code /error} 등)는 {@link #matches(HttpServletRequest)}와 같은 기준으로 판정한다.
+   *
+   * <p>mountPath를 떼는 기준은 MVC 라우팅과 같은 디코딩된 세그먼트다. raw 문자열로 비교하면 {@code /admin/%61pi/...} 같은 인코딩 변형이
+   * 다른 기준으로 판정된다.
+   */
+  public static boolean matchesUnder(HttpServletRequest request, String mountPath) {
+    PathContainer path = PathContainer.parsePath(lookupPath(request));
+    PathPattern mount =
+        MOUNT_PATTERNS.computeIfAbsent(mountPath, m -> PATTERN_PARSER.parse(m + "/**"));
+    if (!mount.matches(path)) {
+      return matchesPath(path);
+    }
+    int mountElements = PathContainer.parsePath(mountPath).elements().size();
+    PathContainer inner =
+        path.elements().size() > mountElements
+            ? path.subPath(mountElements)
+            : PathContainer.parsePath("/");
+    return matchesPath(inner);
+  }
+
+  private static boolean matchesPath(PathContainer path) {
+    return REQUEST_MATCHERS.stream().anyMatch(pattern -> pattern.matches(path));
   }
 
   private static String lookupPath(HttpServletRequest request) {

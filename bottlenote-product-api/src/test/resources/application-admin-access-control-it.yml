@@ -1,0 +1,21 @@
+# admin 체인 access-control 통합 테스트 전용 프로필 (admin-api 테스트의 access-control-it 프로필을 옮겼다)
+# 저장소는 bottlenote.access-control로 켜고, admin 체인의 규칙은 bottlenote.admin-access-control에 둔다.
+# application-test.yml의 enabled=false 기본값은 유지하고, 이 프로필 활성 시에만 켠다.
+bottlenote:
+  access-control:
+    enabled: true
+    fail-open: true
+    key-namespace: admin-ac-it-product
+    redis-command-timeout: 200ms
+  admin-access-control:
+    fail-open: true
+    key-namespace: admin-ac-it
+    default-rate-limit:
+      limit: 3
+      window-seconds: 60
+    unknown-ip-rate-limit:
+      limit: 2
+      window-seconds: 60
+    path-rules: []
+    management-path-prefixes:
+      - /v1/access-control
