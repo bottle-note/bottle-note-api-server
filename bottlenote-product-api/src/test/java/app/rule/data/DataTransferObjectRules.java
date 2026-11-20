@@ -57,7 +57,8 @@ public class DataTransferObjectRules extends AbstractRules {
             .haveSimpleNameContaining("Item")
             .because("응답 DTO 클래스는 명확한 식별을 위해 'Response' , 'Item'로 끝나야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   @Test
@@ -142,7 +143,8 @@ public class DataTransferObjectRules extends AbstractRules {
             .resideInAPackage("..dto.request..")
             .because("요청 DTO 클래스는 구조적 일관성을 위해 '.dto.request' 패키지에 위치해야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 응답 DTO 패키지 위치 검증 모든 응답 DTO 클래스는 '.dto.response' 패키지에 위치해야 합니다. */
@@ -164,7 +166,8 @@ public class DataTransferObjectRules extends AbstractRules {
             .resideInAPackage("..dto.response..")
             .because("응답 DTO 클래스는 구조적 일관성을 위해 '.dto.response' 패키지에 위치해야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 검색 조건 DTO 패키지 위치 검증 모든 검색 조건 DTO 클래스는 '.dto.dsl' 패키지에 위치해야 합니다. */

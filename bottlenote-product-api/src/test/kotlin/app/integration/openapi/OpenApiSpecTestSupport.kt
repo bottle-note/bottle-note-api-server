@@ -1,0 +1,97 @@
+package app.integration.openapi
+
+import app.IntegrationTestSupport
+import app.global.admin.docs.AdminOpenApiDocs
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.MissingNode
+import java.nio.charset.StandardCharsets.UTF_8
+
+private val HTTP_METHODS = setOf("get", "put", "post", "delete", "options", "head", "patch", "trace")
+
+/** 생성된 Admin OpenAPI 스펙을 읽어 검사하는 테스트들의 공통 기반. */
+abstract class OpenApiSpecTestSupport : IntegrationTestSupport() {
+
+	// admin 앱의 springdoc.api-docs.path였던 경로. 통합 앱에서는 admin 문서 리소스가 같은 값을 mount 아래에서 제공한다.
+	protected val specPath: String = AdminOpenApiDocs.ADMIN_APP_API_DOCS_PATH
+
+	protected fun fetchSpec(): JsonNode {
+		val result = mockMvcTester.get().uri(specPath).exchange()
+		return mapper.readTree(result.response.getContentAsString(UTF_8))
+	}
+
+	/** 스펙의 모든 엔드포인트를 평탄하게 펼친다. */
+	protected fun operationsOf(spec: JsonNode): List<SpecOperation> = spec.at("/paths").properties().flatMap { path ->
+		path.value.properties()
+			.filter { method -> method.key in HTTP_METHODS }
+			.map { method -> SpecOperation(path.key, method.key, method.value) }
+	}
+
+	/** 위반 목록을 실패 메시지에 담을 형태로 잇는다. */
+	/** endpoint 문자열("GET /v1/...")로 operation 하나를 찾는다. 없으면 NoSuchElementException */
+	protected fun operation(
+		spec: JsonNode,
+		endpoint: String
+	): SpecOperation = operationsOf(spec).first { it.endpoint() == endpoint }
+
+	/** $ref 스키마면 components에서 실제 스키마를, 아니면 그대로 돌려준다 */
+	protected fun referencedSchema(
+		spec: JsonNode,
+		schema: JsonNode
+	): JsonNode {
+		val ref = schema.path("\$ref").asText()
+		return if (ref.isBlank()) schema else spec.at(ref.removePrefix("#"))
+	}
+
+	protected fun joined(violations: List<String>): String = violations.joinToString(System.lineSeparator())
+
+	/** 노드의 직접 자식 이름. */
+	protected fun childNamesOf(node: JsonNode): List<String> = node.properties().map { it.key }
+
+	/** 스키마 노드가 선언한 property 이름. */
+	protected fun propertyNamesOf(node: JsonNode): List<String> = childNamesOf(node.path("properties"))
+
+	/** 스펙에 실린 하나의 엔드포인트. */
+	protected data class SpecOperation(val path: String, val method: String, val definition: JsonNode) {
+
+		/** 200 응답 본문의 스키마. 공통 형식이면 그 형식, 아니면 DTO 참조. */
+		fun successSchema(): JsonNode {
+			val content = definition.at("/responses/200/content")
+			if (content.isMissingNode || content.isEmpty) {
+				return MissingNode.getInstance()
+			}
+			return content.properties().iterator().next().value.path("schema")
+		}
+
+		/** HTTP 메서드와 경로를 합친 식별자. */
+		fun endpoint(): String = "${method.uppercase()} $path"
+
+		/** 문서에 선언된 보안 요구사항. 선언이 없으면 missing 노드. */
+		fun security(): JsonNode = definition.path("security")
+
+		fun tag(): String {
+			val tags = definition.at("/tags")
+			return if (tags.isArray && !tags.isEmpty) tags.get(0).asText() else ""
+		}
+
+		/** 문서에 선언된 태그 전체. */
+		fun tags(): List<String> = definition.at("/tags").map { it.asText() }
+
+		fun summary(): String = definition.path("summary").asText("")
+
+		fun operationId(): String = definition.path("operationId").asText("")
+
+		/** 공통 형식의 data 자리에 담긴 스키마. */
+		private fun dataSchema(): JsonNode = successSchema().path("properties").path("data")
+
+		fun hasEmptyDataSchema(): Boolean {
+			val data = dataSchema()
+			return OBJECT_TYPE == data.path("type").asText() && !data.has("\$ref") && !data.has("properties")
+		}
+
+		override fun toString(): String = "${method.uppercase()} $path (${tag()})"
+
+		companion object {
+			private const val OBJECT_TYPE = "object"
+		}
+	}
+}

@@ -6,12 +6,17 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 @Tag("unit")
 @DisplayName("MaliciousPathPattern 단위 테스트")
 class MaliciousPathPatternTest {
+
+  private static final String ADMIN_API = "/admin/api";
 
   @Test
   @DisplayName("getAllPatterns는 모든 악성 경로 패턴을 반환한다")
@@ -103,6 +108,108 @@ class MaliciousPathPatternTest {
         .isTrue();
     assertThat(MaliciousPathPattern.matches(new MockHttpServletRequest("GET", "/api/v1/regions")))
         .isFalse();
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/admin",
+        "/admin/",
+        "/admin/login.php",
+        "/admin/index.html",
+        "/admin/api/v1/users",
+        "/administrator/index.php"
+      })
+  @DisplayName("전체 경로 기준 판정은 /admin 아래 경로를 계속 스캐너 경로로 막는다")
+  void matches_전체_경로_기준_관리자_경로_차단(String path) {
+    assertThat(MaliciousPathPattern.matches(new MockHttpServletRequest("GET", path))).isTrue();
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/admin/api",
+        "/admin/api/",
+        "/admin/api/v1/users",
+        "/admin/api/v2/curation-specs",
+        "/admin/api/v1/openapi.admin.json",
+        "/admin/api/%761/users",
+        "/admin/%61pi/v1/users"
+      })
+  @DisplayName("mount 기준 판정은 mount 아래의 관리자 API 경로를 막지 않는다")
+  void matchesUnder_관리자_API_허용(String path) {
+    assertThat(
+            MaliciousPathPattern.matchesUnder(new MockHttpServletRequest("GET", path), ADMIN_API))
+        .isFalse();
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/admin/api/.env",
+        "/admin/api/.git/config",
+        "/admin/api/admin/login.php",
+        "/admin/api/admin/api/v1/users",
+        "/admin/api/graphql",
+        "/admin/api/wp-admin/x"
+      })
+  @DisplayName("mount 기준 판정은 mount 안쪽의 스캐너 경로를 context-path 앱처럼 막는다")
+  void matchesUnder_mount_안쪽_스캐너_경로_차단(String path) {
+    assertThat(
+            MaliciousPathPattern.matchesUnder(new MockHttpServletRequest("GET", path), ADMIN_API))
+        .isTrue();
+  }
+
+  @ParameterizedTest
+  @CsvSource({"/error, false", "/admin/login.php, true", "/admin, true", "/.env, true"})
+  @DisplayName("mount 밖의 경로는 전체 경로 기준 판정과 같다")
+  void matchesUnder_mount_밖은_전체_경로_기준(String path, boolean expected) {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
+
+    assertThat(MaliciousPathPattern.matchesUnder(request, ADMIN_API)).isEqualTo(expected);
+    assertThat(MaliciousPathPattern.matches(request)).isEqualTo(expected);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "/v1/users",
+        "/v2/curation-specs",
+        "/v1/openapi.admin.json",
+        "/",
+        "/.env",
+        "/.git/config",
+        "/admin/login.php",
+        "/admin/api/v1/users",
+        "/graphql",
+        "/graphiql/x",
+        "/backup/dump",
+        "/db.sql"
+      })
+  @DisplayName("context-path 없이 /admin/api 아래에 둔 판정은 context-path가 /admin/api인 기존 admin 앱 판정과 같다")
+  void matchesUnder_기존_admin_앱_판정과_같다(String innerPath) {
+    MockHttpServletRequest adminApp = new MockHttpServletRequest("GET", ADMIN_API + innerPath);
+    adminApp.setContextPath(ADMIN_API);
+    MockHttpServletRequest merged = new MockHttpServletRequest("GET", ADMIN_API + innerPath);
+
+    assertThat(MaliciousPathPattern.matchesUnder(merged, ADMIN_API))
+        .isEqualTo(MaliciousPathPattern.matches(adminApp));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "/admin/api/v1/users, false",
+    "/admin/api/admin/login.php, true",
+    "/admin/api/admin/api/v1/users, true",
+    "/admin/api/.env, true",
+    "/admin/api/graphql, true"
+  })
+  @DisplayName("context-path가 /admin/api인 기존 admin 앱의 전체 경로 기준 판정은 바뀌지 않는다")
+  void matches_admin_앱_context_path_판정_유지(String requestUri, boolean expected) {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", requestUri);
+    request.setContextPath(ADMIN_API);
+
+    assertThat(MaliciousPathPattern.matches(request)).isEqualTo(expected);
   }
 
   @Test

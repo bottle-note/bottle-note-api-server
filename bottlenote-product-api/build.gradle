@@ -1,4 +1,10 @@
 // bottlenote-product-api
+// admin API(Kotlin)를 흡수했으므로 Kotlin 플러그인을 쓴다
+plugins {
+	alias(libs.plugins.kotlin.jvm)
+	alias(libs.plugins.kotlin.spring)
+}
+
 dependencies {
 	implementation project(':bottlenote-user')
 	implementation project(':bottlenote-storage')
@@ -33,6 +39,12 @@ dependencies {
 
 	// OpenAPI 스펙 생성 (swagger-ui는 설정으로 비활성)
 	implementation libs.springdoc.openapi.starter.webmvc.ui
+
+	// admin API(Kotlin) 실행에 필요한 의존
+	implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+	implementation "org.jetbrains.kotlin:kotlin-reflect"
+	// XLSX (admin 주류 엑셀 일괄 검증)
+	implementation "org.apache.poi:poi-ooxml:5.3.0"
 
 	// Test - Lombok
 	testAnnotationProcessor libs.lombok
@@ -79,6 +91,11 @@ dependencies {
 bootJar {
 	enabled = true
 	archiveFileName = 'bottlenote-product-api.jar'
+}
+
+// admin API를 흡수해 통합 테스트 컨텍스트가 커졌다. 기본 테스트 JVM 힙(512MB)으로는 캐시된 컨텍스트를 감당하지 못해 1GB로 둔다.
+tasks.withType(Test).configureEach {
+	maxHeapSize = '1g'
 }
 
 jar {

@@ -73,6 +73,20 @@ class ModuleBoundaryRules {
   }
 
   @Test
+  @DisplayName("admin-api에서 옮겨 온 Admin 전용 Java 조회 타입을 검사한다")
+  void importsAdminQueries() {
+    for (String name :
+        new String[] {
+          "app.bottlenote.alcohols.service.AdminAlcoholDetailQueryService",
+          "app.bottlenote.alcohols.repository.QueryDslAdminAlcoholDetailRepository",
+          "app.bottlenote.user.service.AdminUserService",
+          "app.bottlenote.user.repository.QueryDslAdminUserQueryRepository"
+        }) {
+      assertThat(classes.contain(name)).as(name).isTrue();
+    }
+  }
+
+  @Test
   @DisplayName("라이브러리는 승인된 단방향 모듈만 참조한다")
   void followsModuleDag() {
     for (JavaClass type : classes) {
@@ -97,8 +111,7 @@ class ModuleBoundaryRules {
                         .orElse("");
                 assertThat(location)
                     .as(dependency.getDescription())
-                    .doesNotContain(
-                        "/bottlenote-product-api/", "/bottlenote-admin-api/", "/bottlenote-batch/");
+                    .doesNotContain("/bottlenote-product-api/", "/bottlenote-batch/");
               });
     }
   }

@@ -41,7 +41,8 @@ public class ServiceLayerRules extends AbstractRules {
             .haveSimpleNameEndingWith("Service")
             .because("서비스 클래스는 명확한 식별을 위해 'Service'로 끝나야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 서비스 패키지 구조를 검증합니다. 모든 서비스 클래스는 '.service' 패키지에 위치해야 합니다. */
@@ -57,7 +58,8 @@ public class ServiceLayerRules extends AbstractRules {
             .resideInAPackage("..service..")
             .because("서비스 클래스는 구조적 일관성을 위해 '.service' 패키지에 위치해야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 서비스 계층 의존성 방향을 검증합니다. 서비스는 컨트롤러에 의존해서는 안 됩니다. */
@@ -101,7 +103,8 @@ public class ServiceLayerRules extends AbstractRules {
             .beAnnotatedWith(Transactional.class)
             .because("서비스의 모든 public 메서드는 트랜잭션 경계를 명확히 하기 위해 @Transactional 애노테이션을 가져야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 서비스의 비-public 메서드에는 트랜잭션 애노테이션이 없어야 함을 검증합니다. 트랜잭션은 public 인터페이스에서만 정의되어야 합니다. */
@@ -183,7 +186,8 @@ public class ServiceLayerRules extends AbstractRules {
                 })
             .because("서비스 메서드는 최대 5개까지 매개변수를 가질 수 있습니다. 6개 이상의 매개변수는 DTO로 래핑해야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 서비스 클래스의 public 메서드 개수를 검증합니다. 너무 많은 public 메서드는 클래스가 여러 책임을 가질 가능성이 높습니다. */
@@ -284,7 +288,8 @@ public class ServiceLayerRules extends AbstractRules {
                 })
             .because("서비스 클래스는 퍼사드 서비스, 써드파티 서비스, 리포지토리에만 의존해야 합니다");
 
-    rule.check(importedClasses);
+    // admin-api에서 옮겨 온 코드는 이 규칙을 적용받은 적이 없다. 범위는 AbstractRules.ADMIN_API_PORTED_PACKAGES 참고
+    rule.check(productOwnedClasses);
   }
 
   /** 서비스 계층의 의존성 검증을 위한 허용 패키지 정의 */
