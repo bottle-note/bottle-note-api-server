@@ -105,7 +105,10 @@ public class InMemoryDistilleryRepository implements DistilleryRepository {
   @Override
   public List<Distillery> findAllOrderBySortOrderAsc() {
     return distilleries.stream()
-        .sorted(Comparator.comparing(Distillery::getSortOrder).thenComparing(Distillery::getId))
+        .sorted(
+            Comparator.comparing(Distillery::getSortOrder)
+                .thenComparing(Distillery::getKorName)
+                .thenComparing(Distillery::getId))
         .toList();
   }
 

@@ -152,9 +152,7 @@ public class InMemoryRegionRepository implements RegionRepository {
 
   @Override
   public List<Region> findAllOrderBySortOrderAsc() {
-    return regions.stream()
-        .sorted(Comparator.comparing(Region::getSortOrder).thenComparing(Region::getId))
-        .toList();
+    return regions.stream().sorted(reorderScopeOrder()).toList();
   }
 
   @Override
@@ -169,8 +167,15 @@ public class InMemoryRegionRepository implements RegionRepository {
   public List<Region> findAllByParentIdOrderBySortOrderAsc(Long parentId) {
     return regions.stream()
         .filter(r -> r.getParent() != null && Objects.equals(r.getParent().getId(), parentId))
-        .sorted(Comparator.comparing(Region::getSortOrder).thenComparing(Region::getId))
+        .sorted(reorderScopeOrder())
         .toList();
+  }
+
+  // JPA 구현처럼 동순위는 이름, ID 순으로 정한다.
+  private Comparator<Region> reorderScopeOrder() {
+    return Comparator.comparing(Region::getSortOrder)
+        .thenComparing(Region::getKorName)
+        .thenComparing(Region::getId);
   }
 
   @Override
