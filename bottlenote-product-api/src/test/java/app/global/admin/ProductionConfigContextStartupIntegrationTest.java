@@ -138,9 +138,9 @@ class ProductionConfigContextStartupIntegrationTest {
   }
 
   @Test
-  @DisplayName("JVM 전역 설정을 확인할 때 product의 SecurityContextHolder 전략이 admin 요청에도 적용된다")
-  void SecurityContextHolder_전략은_JVM_전역이다() throws InterruptedException {
-    // product SecurityConfig가 MODE_INHERITABLETHREADLOCAL로 바꾼다. admin 앱은 기본 전략이었으므로 차이를 테스트로 남긴다.
+  @DisplayName("JVM 전역 설정을 확인할 때 SecurityContextHolder는 새 스레드에 인증을 물려주지 않는다")
+  void SecurityContextHolder는_새_스레드에_인증을_물려주지_않는다() throws InterruptedException {
+    // 재사용되는 워커가 이전 요청의 인증을 들고 있지 않도록 기본 전략(MODE_THREADLOCAL)을 유지한다
     Authentication authentication = new TestingAuthenticationToken("admin", "credentials");
     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
     securityContext.setAuthentication(authentication);
@@ -155,7 +155,7 @@ class ProductionConfigContextStartupIntegrationTest {
       SecurityContextHolder.clearContext();
     }
 
-    assertThat(seenByChild.get()).isSameAs(authentication);
+    assertThat(seenByChild.get()).isNull();
   }
 
   @Test

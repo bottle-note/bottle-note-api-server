@@ -14,7 +14,6 @@ import app.bottlenote.observability.visitor.VisitorIdentityResolver;
 import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import app.bottlenote.observability.visitor.VisitorTelemetryPublisher;
 import app.global.admin.security.AdminApiRequestMatcher;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.function.Function;
@@ -30,7 +29,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -60,11 +58,6 @@ public class SecurityConfig {
   private static void statelessSessionConfig(
       SessionManagementConfigurer<HttpSecurity> sessionConfig) {
     sessionConfig.sessionCreationPolicy(STATELESS);
-  }
-
-  @PostConstruct
-  public void setup() {
-    SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
   }
 
   private static boolean hasJwtException(HttpServletRequest request) {
