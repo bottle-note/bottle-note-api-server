@@ -90,7 +90,9 @@ public class AdminBannerService {
 
     boolean isActive = determineActiveStatus(true, request.endDate());
 
-    // 생성은 다른 배너의 정렬값을 바꾸지 않는다.
+    // FE는 생성할 때 정렬값을 보내지 않아 기본값 0으로 맨 앞에 넣는다. 동순위가 생기지 않도록 기존 배너를 민다.
+    reorderSortOrders(request.sortOrder(), null);
+
     Banner banner =
         Banner.builder()
             .name(request.name())
