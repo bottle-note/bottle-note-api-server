@@ -167,11 +167,13 @@ jobs:
     strategy:
       # 실행 분이 무료인 퍼블릭 레포다. 한쪽이 깨져도 나머지 결과를 끝까지 받는다.
       fail-fast: false
+      # admin API는 product 앱에 흡수되었다. 이식한 admin 통합 테스트는 admin_integration 태그를 유지하고
+      # product 모듈의 admin_integration_test로 따로 돌려 두 테스트 묶음을 병렬로 실행한다.
       matrix:
         include:
           - name: product
             task: integration_test
-          - name: admin
+          - name: product-admin
             task: admin_integration_test
     services:
       docker:
