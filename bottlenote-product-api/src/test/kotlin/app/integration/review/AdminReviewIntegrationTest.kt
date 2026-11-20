@@ -156,6 +156,32 @@ class AdminReviewIntegrationTest : IntegrationTestSupport() {
 		assertInvalidReviewSearch("size" to "101")
 	}
 
+	@Test
+	@DisplayName("검색 조건 검증에 실패할 때 표준 오류 응답과 오류 코드로 응답한다")
+	fun searchAdminReviews_whenValidationFails_returnsStandardErrorBody() {
+		// when & then
+		assertReviewSearchError("ADMIN_REVIEW_SIZE_MAXIMUM", "size" to "101")
+		assertReviewSearchError("ADMIN_REVIEW_PAGE_MINIMUM", "page" to "-1")
+		assertReviewSearchError("TYPE_MISMATCH", "size" to "abc")
+		assertReviewSearchError("TYPE_MISMATCH", "createdFrom" to "2026-13-01")
+	}
+
+	private fun assertReviewSearchError(
+		expectedCode: String,
+		vararg params: Pair<String, String>
+	) {
+		val request = mockMvcTester
+			.get()
+			.uri("/v1/reviews")
+			.header("Authorization", "Bearer $accessToken")
+		params.forEach { request.param(it.first, it.second) }
+
+		val result = request.exchange()
+		assertThat(result).hasStatus(400)
+		assertThat(result).bodyJson().extractingPath("$.success").isEqualTo(false)
+		assertThat(result).bodyJson().extractingPath("$.errors[0].code").isEqualTo(expectedCode)
+	}
+
 	private fun sorted(
 		sortType: AdminReviewSortType,
 		sortOrder: SortOrder
