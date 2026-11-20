@@ -14,6 +14,7 @@ import app.bottlenote.observability.visitor.VisitorIdentityResolver;
 import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import app.bottlenote.observability.visitor.VisitorTelemetryPublisher;
 import app.global.admin.security.AdminApiRequestMatcher;
+import app.global.docs.UnifiedOpenApiDocs;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.function.Function;
@@ -144,6 +145,8 @@ public class SecurityConfig {
     docsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
     docsConfiguration.setAllowCredentials(false);
     source.registerCorsConfiguration(openApiSpecPath, docsConfiguration);
+    // product와 admin을 합친 문서도 product 문서와 같은 CORS 정책을 쓴다
+    source.registerCorsConfiguration(UnifiedOpenApiDocs.PATH, docsConfiguration);
 
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(corsProperties.allowedOrigins());

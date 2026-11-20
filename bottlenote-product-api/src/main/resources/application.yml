@@ -150,6 +150,7 @@ bottlenote:
       - /actuator
       - /favicon.ico
       - /api/v1/openapi.product.json
+      - /api/v1/openapi.json
   # /admin/api/** 전용 access-control (기존 admin 앱의 bottlenote.access-control 값)
   # 경로는 admin 앱 기준(/admin/api를 뺀 경로)이다. 켜고 끄는 기준과 Redis 저장소는 bottlenote.access-control을 따른다.
   admin-access-control:
