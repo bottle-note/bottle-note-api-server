@@ -6,6 +6,7 @@ import app.bottlenote.global.annotation.SecurityPolicy.AuthType;
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import app.bottlenote.global.security.policy.SecurityPolicyRouteCollector;
 import app.global.admin.docs.AdminOpenApiDocsController;
+import app.global.docs.UnifiedOpenApiDocsController;
 import app.global.security.SecurityPolicyConfig;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +43,12 @@ class AdminApiRouteIntegrationTest extends AdminApiIntegrationTestSupport {
           "GET /admin/api/v1/openapi.admin.json produces=application/json",
           "GET /admin/api/v1/openapi.admin.json.yaml produces=application/vnd.oai.openapi");
 
+  // main 이후 추가한 product·admin 합친 문서 경로. main baseline에는 없다.
+  private static final Set<String> UNIFIED_DOCS_ROUTES =
+      Set.of(
+          "GET /api/v1/openapi.json produces=application/json",
+          "GET /api/v1/openapi.json.yaml produces=application/vnd.oai.openapi");
+
   @Autowired
   @Qualifier("requestMappingHandlerMapping")
   private RequestMappingHandlerMapping handlerMapping;
@@ -63,7 +70,8 @@ class AdminApiRouteIntegrationTest extends AdminApiIntegrationTestSupport {
         routesOf(
             handler ->
                 !AdminApi.INSTANCE.isAdminController(handler)
-                    && handler != AdminOpenApiDocsController.class);
+                    && handler != AdminOpenApiDocsController.class
+                    && handler != UnifiedOpenApiDocsController.class);
 
     assertThat(productRoutes).isEqualTo(baseline("baseline/product-routes-main.txt"));
   }
@@ -73,6 +81,13 @@ class AdminApiRouteIntegrationTest extends AdminApiIntegrationTestSupport {
   void admin_문서_라우트는_admin_앱과_같다() {
     assertThat(routesOf(handler -> handler == AdminOpenApiDocsController.class))
         .isEqualTo(ADMIN_DOCS_ROUTES);
+  }
+
+  @Test
+  @DisplayName("합친 문서 라우트를 셀 때 product 문서와 같은 방식의 JSON·YAML 경로 두 개다")
+  void 합친_문서_라우트는_JSON과_YAML_두_개다() {
+    assertThat(routesOf(handler -> handler == UnifiedOpenApiDocsController.class))
+        .isEqualTo(UNIFIED_DOCS_ROUTES);
   }
 
   @Test
