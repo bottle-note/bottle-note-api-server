@@ -40,6 +40,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -360,7 +361,7 @@ public class ReviewQuerySupporter {
       displayStatusEq(request.displayStatus()),
       adminKeywordContains(request.keyword()),
       createdFromGoe(request.createdFrom()),
-      createdToLoe(request.createdTo())
+      createdToInclusive(request.createdTo())
     };
   }
 
@@ -411,12 +412,13 @@ public class ReviewQuerySupporter {
         .or(alcohol.engName.likeIgnoreCase(value));
   }
 
-  private static BooleanExpression createdFromGoe(java.time.LocalDateTime createdFrom) {
-    return createdFrom != null ? review.createAt.goe(createdFrom) : null;
+  private static BooleanExpression createdFromGoe(LocalDate createdFrom) {
+    return createdFrom != null ? review.createAt.goe(createdFrom.atStartOfDay()) : null;
   }
 
-  private static BooleanExpression createdToLoe(java.time.LocalDateTime createdTo) {
-    return createdTo != null ? review.createAt.loe(createdTo) : null;
+  // 종료일은 그날 하루 전체를 포함한다.
+  private static BooleanExpression createdToInclusive(LocalDate createdTo) {
+    return createdTo != null ? review.createAt.lt(createdTo.plusDays(1).atStartOfDay()) : null;
   }
 
   /** 검색 토큰을 이용해 작성자, 주류 정보, 리뷰 콘텐츠, 테이스팅 태그를 모두 검색하는 조건 생성 */
