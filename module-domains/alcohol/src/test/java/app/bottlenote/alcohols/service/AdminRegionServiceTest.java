@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.dto.request.AdminRegionCreateRequest;
@@ -423,6 +424,23 @@ class AdminRegionServiceTest {
           .containsExactly(
               third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
       assertThat(result).extracting(Region::getSortOrder).containsExactly(1, 2, 3, 4, 5);
+    }
+
+    @Test
+    @DisplayName("요청에 없는 동순위 지역을 뒤에 붙일 때 관리자 목록처럼 이름순을 유지한다")
+    void reorder_whenRemainingRegionsTie_keepsAdminListOrder() {
+      Region target = saveRegion("대상", "Target", null, 10);
+      Region laterByName = saveRegion("하이랜드", "Highland", null, 9999);
+      Region earlierByName = saveRegion("가나", "Gana", null, 9999);
+
+      service.reorder(new AdminBulkReorderRequest(List.of(target.getId())));
+
+      assertThat(regionRepository.findAllOrderBySortOrderAsc())
+          .extracting(Region::getId, Region::getSortOrder)
+          .containsExactly(
+              tuple(target.getId(), 1),
+              tuple(earlierByName.getId(), 2),
+              tuple(laterByName.getId(), 3));
     }
 
     @Test

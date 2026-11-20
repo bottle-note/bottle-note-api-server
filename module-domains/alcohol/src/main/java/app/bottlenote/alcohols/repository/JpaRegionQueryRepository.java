@@ -62,7 +62,8 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   List<Region> findAllBySortOrderGreaterThanEqual(@Param("sortOrder") int sortOrder);
 
   @Override
-  @Query("select r from region r order by r.sortOrder asc, r.id asc")
+  // 일괄 재정렬이 나머지 행을 관리자 목록에 보이는 순서대로 이어 붙이도록 동순위는 이름, ID 순으로 정한다.
+  @Query("select r from region r order by r.sortOrder asc, r.korName asc, r.id asc")
   List<Region> findAllOrderBySortOrderAsc();
 
   @Override
@@ -70,7 +71,8 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   List<Region> findAllByIdInOrderBySortOrderAsc(@Param("ids") Collection<Long> ids);
 
   @Override
-  @Query("select r from region r where r.parent.id = :parentId order by r.sortOrder asc, r.id asc")
+  @Query(
+      "select r from region r where r.parent.id = :parentId order by r.sortOrder asc, r.korName asc, r.id asc")
   List<Region> findAllByParentIdOrderBySortOrderAsc(@Param("parentId") Long parentId);
 
   @Override

@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -327,6 +328,29 @@ class DistilleryServiceTest {
           .containsExactly(
               third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
       assertThat(result).extracting(Distillery::getSortOrder).containsExactly(1, 2, 3, 4, 5);
+    }
+
+    @Test
+    @DisplayName("요청에 없는 동순위 증류소를 뒤에 붙일 때 관리자 목록처럼 이름순을 유지한다")
+    void reorder_whenRemainingDistilleriesTie_keepsAdminListOrder() {
+      Distillery target =
+          distilleryRepository.save(
+              Distillery.builder().korName("대상").engName("Target").sortOrder(10).build());
+      Distillery laterByName =
+          distilleryRepository.save(
+              Distillery.builder().korName("하이랜드").engName("Highland").sortOrder(9999).build());
+      Distillery earlierByName =
+          distilleryRepository.save(
+              Distillery.builder().korName("가나").engName("Gana").sortOrder(9999).build());
+
+      distilleryService.reorder(new AdminBulkReorderRequest(List.of(target.getId())));
+
+      assertThat(distilleryRepository.findAllOrderBySortOrderAsc())
+          .extracting(Distillery::getId, Distillery::getSortOrder)
+          .containsExactly(
+              tuple(target.getId(), 1),
+              tuple(earlierByName.getId(), 2),
+              tuple(laterByName.getId(), 3));
     }
 
     @Test

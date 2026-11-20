@@ -35,7 +35,8 @@ public interface JpaDistilleryRepository
   List<Distillery> findAllBySortOrderGreaterThanEqual(@Param("sortOrder") int sortOrder);
 
   @Override
-  @Query("select d from distillery d order by d.sortOrder asc, d.id asc")
+  // 일괄 재정렬이 나머지 행을 관리자 목록에 보이는 순서대로 이어 붙이도록 동순위는 이름, ID 순으로 정한다.
+  @Query("select d from distillery d order by d.sortOrder asc, d.korName asc, d.id asc")
   List<Distillery> findAllOrderBySortOrderAsc();
 
   @Override

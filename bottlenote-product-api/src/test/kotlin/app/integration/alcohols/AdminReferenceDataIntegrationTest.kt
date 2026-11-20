@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin 참조 데이터 API 통합 테스트")
@@ -220,6 +221,73 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(listIds("/v1/distilleries?keyword=SortDistillery&sortOrder=ASC")).containsExactly(first.id, second.id)
 			assertThat(listIds("/v1/distilleries?keyword=SortDistillery&sortOrder=DESC")).containsExactly(second.id, first.id)
 		}
+	}
+
+	@Nested
+	@DisplayName("일괄 재정렬 API")
+	inner class BulkReorderApi {
+		@Test
+		@DisplayName("요청에 없는 동순위 증류소를 뒤에 붙일 때 관리자 목록에 보이던 이름순을 유지한다")
+		fun reorderDistilleriesKeepsVisibleOrderOfTiedRows() {
+			// given
+			val target = alcoholTestFactory.persistDistillery(Distillery.builder().korName("대상").engName("TieDistilleryTarget").sortOrder(1))
+			val laterByName = alcoholTestFactory.persistDistillery(Distillery.builder().korName("하이랜드").engName("TieDistilleryH").sortOrder(9999))
+			val earlierByName = alcoholTestFactory.persistDistillery(Distillery.builder().korName("가나").engName("TieDistilleryG").sortOrder(9999))
+			assertThat(listIds("/v1/distilleries?keyword=TieDistillery&sortOrder=ASC"))
+				.containsExactly(target.id, earlierByName.id, laterByName.id)
+
+			// when
+			bulkReorder("/v1/distilleries/bulk/reorder", listOf(target.id))
+
+			// then
+			assertThat(listIds("/v1/distilleries?keyword=TieDistillery&sortOrder=ASC"))
+				.containsExactly(target.id, earlierByName.id, laterByName.id)
+			assertThat(listSortOrders("/v1/distilleries?keyword=TieDistillery&sortOrder=ASC")).doesNotHaveDuplicates()
+		}
+
+		@Test
+		@DisplayName("요청에 없는 동순위 지역을 뒤에 붙일 때 관리자 목록에 보이던 이름순을 유지한다")
+		fun reorderRegionsKeepsVisibleOrderOfTiedRows() {
+			// given
+			val target = alcoholTestFactory.persistRegion(Region.builder().korName("대상").engName("TieRegionTarget").sortOrder(1))
+			val laterByName = alcoholTestFactory.persistRegion(Region.builder().korName("하이랜드").engName("TieRegionH").sortOrder(9999))
+			val earlierByName = alcoholTestFactory.persistRegion(Region.builder().korName("가나").engName("TieRegionG").sortOrder(9999))
+			assertThat(listIds("/v1/regions?keyword=TieRegion&sortOrder=ASC"))
+				.containsExactly(target.id, earlierByName.id, laterByName.id)
+
+			// when
+			bulkReorder("/v1/regions/bulk/reorder", listOf(target.id))
+
+			// then
+			assertThat(listIds("/v1/regions?keyword=TieRegion&sortOrder=ASC"))
+				.containsExactly(target.id, earlierByName.id, laterByName.id)
+			assertThat(listSortOrders("/v1/regions?keyword=TieRegion&sortOrder=ASC")).doesNotHaveDuplicates()
+		}
+	}
+
+	private fun bulkReorder(
+		uri: String,
+		ids: List<Long>
+	) {
+		assertThat(
+			mockMvcTester
+				.patch()
+				.uri(uri)
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(mapOf("ids" to ids)))
+		).hasStatusOk()
+	}
+
+	private fun listSortOrders(uri: String): List<Int> {
+		val result =
+			mockMvcTester
+				.get()
+				.uri(uri)
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+		assertThat(result).hasStatusOk()
+		return mapper.readTree(result.response.contentAsString).get("data").map { it.get("sortOrder").asInt() }
 	}
 
 	private fun listIds(uri: String): List<Long> {
