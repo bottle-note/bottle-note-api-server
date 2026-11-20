@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -216,6 +217,9 @@ public class DataTransferObjectRules extends AbstractRules {
   /**
    * 검증 어노테이션의 message에 오류 코드 이름을 적었다면 그 코드가 ValidExceptionCode에 있어야 합니다. 없는 코드는 표준 오류 코드 대신
    * INVALID_REQUEST_VALUE와 코드 이름 문구로 응답하게 됩니다.
+   *
+   * <p>필드, 메서드(@AssertTrue 등), 생성자·메서드 파라미터에 붙은 어노테이션을 검사합니다. {@code List<@NotNull(message = "...")
+   * Long>}처럼 타입 인자에 붙은 어노테이션은 ArchUnit이 가져오지 않아 이 규칙으로 검사하지 못합니다.
    */
   @Test
   public void 검증_메시지_코드_정의_검증() {
@@ -225,9 +229,11 @@ public class DataTransferObjectRules extends AbstractRules {
     List<String> undefined = new ArrayList<>();
     for (JavaClass javaClass : importedClasses) {
       Stream<? extends HasAnnotations<?>> annotated =
-          Stream.concat(
-              javaClass.getFields().stream(),
-              javaClass.getCodeUnits().stream().flatMap(unit -> unit.getParameters().stream()));
+          Stream.of(
+                  javaClass.getFields().stream(),
+                  javaClass.getMethods().stream(),
+                  javaClass.getCodeUnits().stream().flatMap(unit -> unit.getParameters().stream()))
+              .flatMap(Function.identity());
       annotated
           .flatMap(target -> target.getAnnotations().stream())
           .forEach(
