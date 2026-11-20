@@ -102,6 +102,18 @@ class AdminReviewIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
+	@DisplayName("작성일 필터를 ISO 날짜·시각으로 보낼 때 분·초·소수 초 형식을 모두 그 날짜로 받는다")
+	fun searchAdminReviews_whenCreatedRangeHasTime_acceptsIsoLocalDateTimeForms() {
+		// given
+		val fixture = seedReviews()
+
+		// when & then
+		listOf("2026-01-02T10:30", "2026-01-02T00:00:00", "2026-01-02T00:00:00.000", "2026-01-02T00:00:00.123456789").forEach {
+			assertReviewIds(getReviews("createdFrom" to it, "createdTo" to it), fixture.deletedPrivate.id)
+		}
+	}
+
+	@Test
 	@DisplayName("키워드를 리뷰 본문, 작성자 이메일, 주류명에 적용한다")
 	fun searchAdminReviews_filtersByKeywordTargets() {
 		// given
