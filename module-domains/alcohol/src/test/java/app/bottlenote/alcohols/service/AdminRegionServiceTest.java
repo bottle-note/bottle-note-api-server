@@ -85,6 +85,31 @@ class AdminRegionServiceTest {
     }
 
     @Test
+    @DisplayName("지역을 생성할 때 같은 값 이상인 다른 지역의 sortOrder를 바꾸지 않는다")
+    void create_keepsOtherSortOrders() {
+      Region lower = saveRegion("A", "A", null, 10);
+      Region same = saveRegion("B", "B", null, 20);
+      Region higher = saveRegion("C", "C", null, 30);
+
+      var result =
+          service.create(
+              AdminRegionCreateRequest.builder()
+                  .korName("새 지역")
+                  .engName("New")
+                  .sortOrder(20)
+                  .build());
+
+      assertThat(regionRepository.findById(result.targetId()).orElseThrow().getSortOrder())
+          .isEqualTo(20);
+      assertThat(regionRepository.findById(lower.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(10);
+      assertThat(regionRepository.findById(same.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(20);
+      assertThat(regionRepository.findById(higher.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(30);
+    }
+
+    @Test
     @DisplayName("한글 이름이 중복되면 REGION_DUPLICATE_KOR_NAME 예외가 발생한다")
     void create_whenKorNameDuplicated_throws() {
       saveRegion("스코틀랜드", "Scotland", null, 10);

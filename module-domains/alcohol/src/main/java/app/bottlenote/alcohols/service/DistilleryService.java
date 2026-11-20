@@ -54,8 +54,7 @@ public class DistilleryService {
       throw new AlcoholException(DISTILLERY_DUPLICATE_NAME);
     }
 
-    reorderSortOrders(request.sortOrder(), null);
-
+    // 생성은 다른 증류소의 정렬값을 바꾸지 않는다.
     Distillery distillery =
         Distillery.builder()
             .korName(request.korName())
@@ -155,7 +154,7 @@ public class DistilleryService {
     List<Distillery> conflicting =
         distilleryRepository.findAllBySortOrderGreaterThanEqual(newSortOrder);
     conflicting.stream()
-        .filter(d -> excludeDistilleryId == null || !d.getId().equals(excludeDistilleryId))
+        .filter(d -> !d.getId().equals(excludeDistilleryId))
         .forEach(d -> d.updateSortOrder(d.getSortOrder() + 1));
   }
 

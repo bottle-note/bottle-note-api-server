@@ -95,6 +95,24 @@ class AdminBannerServiceTest {
     assertThat(saved.getPosterUrl()).isEqualTo("https://example.com/poster.jpg");
   }
 
+  @Test
+  @DisplayName("배너를 생성할 때 같은 값 이상인 다른 배너의 sortOrder를 바꾸지 않는다")
+  void create_keepsOtherSortOrders() {
+    Banner first = saveBanner("첫 번째", 0);
+    Banner second = saveBanner("두 번째", 1);
+
+    adminBannerService.create(
+        AdminBannerCreateRequest.builder()
+            .name("새 배너")
+            .imageUrl("https://example.com/new.jpg")
+            .bannerType(BannerType.CURATION)
+            .sortOrder(0)
+            .build());
+
+    assertThat(bannerRepository.findById(first.getId()).orElseThrow().getSortOrder()).isZero();
+    assertThat(bannerRepository.findById(second.getId()).orElseThrow().getSortOrder()).isEqualTo(1);
+  }
+
   private Banner saveBanner(String name, int sortOrder) {
     return bannerRepository.save(
         Banner.builder()
