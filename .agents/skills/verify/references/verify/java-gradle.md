@@ -36,7 +36,7 @@ checkout 로그는 필요한 구간만 읽고 민감한 값을 마스킹한다. 
 - `prepare`: 메타데이터를 수집한다.
 - `unit-tests`: `./gradlew unit_test`와 `./gradlew :bottlenote-batch:batch_test --tests "app.batch.bottlenote.job.popularity.*"`를 실행한다.
 - `rule-tests`: `./gradlew check_rule_test`를 실행한다.
-- `integration-tests`: product(`integration_test`)와 admin(`admin_integration_test`) matrix를 실행한다. 표시 이름은 조회된 job 이름을 사용한다.
+- `integration-tests`: product(`integration_test`)와 product-admin(`admin_integration_test`) matrix를 병렬로 실행한다. 두 태스크 모두 product 모듈 테스트이며, product-admin은 product로 옮긴 admin API 통합 테스트다. 표시 이름은 조회된 job 이름을 사용한다.
 - `product-ci-final-build`: 위 테스트 jobs에 의존하며 `./gradlew build -x test --build-cache --parallel`을 실행한다. 이름과 달리 명령은 전체 빌드다.
 - `test-report`: 실패 시에도 JUnit 리포트를 발행한다. 성공했다고 테스트가 모두 통과한 것은 아니다.
 
@@ -60,13 +60,13 @@ JDK 21과 필요한 의존성·서브모듈 리소스를 먼저 확인한다. st
 
 각 수준은 필요한 태스크 집합이다. quick → standard → full을 모두 순서대로 실행하지 않으며, 이미 확인한 동일 소스·범위의 결과는 재사용한다.
 
-- quick: Java 및 Admin Kotlin의 운영·테스트 컴파일, 포맷, 아키텍처 규칙을 확인한다.
+- quick: Java 및 product 모듈 Kotlin(admin API)의 운영·테스트 컴파일, 포맷, 아키텍처 규칙을 확인한다.
 - standard: 포맷·규칙·단위 테스트와 패키징을 확인하고 CI의 Batch popularity 범위를 포함한다.
-- full: standard의 검사 범위에 Product·Admin 통합과 전체 Batch 검사를 포함한다. 전체 Batch가 popularity를 포함하므로 별도 중복 실행하지 않는다.
+- full: standard의 검사 범위에 Product·Admin API 통합과 전체 Batch 검사를 포함한다. 전체 Batch가 popularity를 포함하므로 별도 중복 실행하지 않는다.
 
 ```bash
 # local quick
-./gradlew compileJava compileTestJava :bottlenote-admin-api:compileKotlin :bottlenote-admin-api:compileTestKotlin spotlessCheck check_rule_test -x spotlessApply
+./gradlew compileJava compileTestJava :bottlenote-product-api:compileKotlin :bottlenote-product-api:compileTestKotlin spotlessCheck check_rule_test -x spotlessApply
 
 # local standard
 ./gradlew build unit_test check_rule_test -x test -x spotlessApply --build-cache --parallel

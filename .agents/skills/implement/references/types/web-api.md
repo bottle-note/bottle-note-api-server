@@ -4,7 +4,7 @@ Product Java와 Admin Kotlin의 HTTP 계약을 변경할 때 읽는다. 프로�
 
 ## 구현 경계
 
-Product Controller는 `bottlenote-product-api/src/main/java/app/bottlenote/`, Admin Controller·Docs는 `bottlenote-admin-api/src/main/kotlin/app/bottlenote/{domain}/presentation/`와 `presentation/docs/`에서 찾는다. 기존 경로·버전·메서드·상태 코드를 먼저 확인하고 주변 패턴을 유지한다.
+Product Controller는 `bottlenote-product-api/src/main/java/app/bottlenote/`, Admin Controller·Docs는 product 모듈의 `bottlenote-product-api/src/main/kotlin/app/bottlenote/{domain}/presentation/`와 `presentation/docs/`에서 찾는다. 기존 경로·버전·메서드·상태 코드를 먼저 확인하고 주변 패턴을 유지한다.
 
 Controller는 인증 주체와 요청 DTO를 해석하여 공개 진입점을 호출한다. 공개 command/query 서비스와 앱 조회 서비스를 직접 주입할 수 있다. 업무 VO 생성·검증과 트랜잭션은 Service가 담당하고, 복합 응답은 사용하는 앱의 서비스가 조합한다. 현재 보안 정책 어노테이션·필터를 확인하고 사용자별 소유권 검증을 보존한다. 선택 인증과 필수 인증을 혼동하지 않는다.
 
