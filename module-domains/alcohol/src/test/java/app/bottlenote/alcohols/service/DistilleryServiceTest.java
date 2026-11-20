@@ -211,8 +211,8 @@ class DistilleryServiceTest {
   class SortOrder {
 
     @Test
-    @DisplayName("create 시 sortOrder 가 충돌하면 같은 값 이상 다른 증류소를 +1 reorder 한다")
-    void create_reorder() {
+    @DisplayName("증류소를 생성할 때 같은 값 이상인 다른 증류소의 sortOrder를 바꾸지 않는다")
+    void create_keepsOtherSortOrders() {
       Distillery a =
           distilleryRepository.save(
               Distillery.builder().korName("A").engName("A").sortOrder(10).build());
@@ -221,13 +221,15 @@ class DistilleryServiceTest {
               Distillery.builder().korName("B").engName("B").sortOrder(20).build());
 
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("새이름", "NewName", null, 20);
-      distilleryService.create(request);
+          new AdminDistilleryUpsertRequest("새이름", "NewName", null, 10);
+      AdminResultResponse result = distilleryService.create(request);
 
+      assertThat(distilleryRepository.findById(result.targetId()).orElseThrow().getSortOrder())
+          .isEqualTo(10);
       assertThat(distilleryRepository.findById(a.getId()).orElseThrow().getSortOrder())
           .isEqualTo(10);
       assertThat(distilleryRepository.findById(b.getId()).orElseThrow().getSortOrder())
-          .isEqualTo(21);
+          .isEqualTo(20);
     }
 
     @Test

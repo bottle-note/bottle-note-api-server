@@ -85,8 +85,7 @@ public class AdminRegionService {
 
     Region parent = resolveParent(request.parentId(), null);
 
-    reorderSortOrders(request.sortOrder(), null);
-
+    // 생성은 다른 지역의 정렬값을 바꾸지 않는다.
     Region region =
         Region.builder()
             .korName(request.korName())
@@ -268,7 +267,7 @@ public class AdminRegionService {
     }
     List<Region> conflicting = regionRepository.findAllBySortOrderGreaterThanEqual(newSortOrder);
     conflicting.stream()
-        .filter(r -> excludeRegionId == null || !r.getId().equals(excludeRegionId))
+        .filter(r -> !r.getId().equals(excludeRegionId))
         .forEach(r -> r.updateSortOrder(r.getSortOrder() + 1));
   }
 

@@ -90,8 +90,7 @@ public class AdminBannerService {
 
     boolean isActive = determineActiveStatus(true, request.endDate());
 
-    reorderSortOrders(request.sortOrder(), null);
-
+    // 생성은 다른 배너의 정렬값을 바꾸지 않는다.
     Banner banner =
         Banner.builder()
             .name(request.name())
