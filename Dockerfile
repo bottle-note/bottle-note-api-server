@@ -13,7 +13,7 @@ ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN mkdir -p config
 
-COPY bottlenote-product-api/build/libs/bottlenote-product-api.jar /app.jar
+COPY bottlenote-api/build/libs/bottlenote-api.jar /app.jar
 
 ENV SPRING_PROFILES_ACTIVE=default
 

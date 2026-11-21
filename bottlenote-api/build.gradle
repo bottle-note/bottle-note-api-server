@@ -1,4 +1,4 @@
-// bottlenote-product-api
+// bottlenote-api
 // admin API(Kotlin)를 흡수했으므로 Kotlin 플러그인을 쓴다
 plugins {
 	alias(libs.plugins.kotlin.jvm)
@@ -90,7 +90,7 @@ dependencies {
 
 bootJar {
 	enabled = true
-	archiveFileName = 'bottlenote-product-api.jar'
+	archiveFileName = 'bottlenote-api.jar'
 }
 
 // admin API를 흡수해 통합 테스트 컨텍스트가 커졌다. 기본 테스트 JVM 힙(512MB)으로는 캐시된 컨텍스트를 감당하지 못해 1GB로 둔다.
