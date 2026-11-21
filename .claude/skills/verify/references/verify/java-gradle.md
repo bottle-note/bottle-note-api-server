@@ -66,7 +66,7 @@ JDK 21과 필요한 의존성·서브모듈 리소스를 먼저 확인한다. st
 
 ```bash
 # local quick
-./gradlew compileJava compileTestJava :bottlenote-product-api:compileKotlin :bottlenote-product-api:compileTestKotlin spotlessCheck check_rule_test -x spotlessApply
+./gradlew compileJava compileTestJava :bottlenote-api:compileKotlin :bottlenote-api:compileTestKotlin spotlessCheck check_rule_test -x spotlessApply
 
 # local standard
 ./gradlew build unit_test check_rule_test -x test -x spotlessApply --build-cache --parallel
@@ -79,7 +79,7 @@ JDK 21과 필요한 의존성·서브모듈 리소스를 먼저 확인한다. st
 구현 중 최소 검사는 실제 변경 대상과 소비 모듈을 선택한다. 예를 들어 아래 명령은 해당 Product 테스트만 검증하며 전체 프로젝트 통과 증거가 아니다.
 
 ```bash
-./gradlew :bottlenote-product-api:unit_test --tests '<FULLY_QUALIFIED_TEST_CLASS>' -x spotlessApply
+./gradlew :bottlenote-api:unit_test --tests '<FULLY_QUALIFIED_TEST_CLASS>' -x spotlessApply
 ```
 
 마지막으로 `git diff --check`, `git diff`, `git status --short`로 의도하지 않은 변경을 확인한다. 실패 로그는 필요한 원인만 마스킹하여 보고한다. 테스트 실패를 해결할 수정 권한은 기존 요청에서 판단하며, 검증 요청만으로 코드·설정·Git 상태를 바꾸지 않는다.

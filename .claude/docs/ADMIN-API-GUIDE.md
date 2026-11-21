@@ -2,7 +2,7 @@
 
 > Admin API 구현 시 따라야 할 규칙과 체크리스트를 정의합니다.
 > 코드 예시는 기존 구현 파일을 참고하세요.
-> admin-api 모듈은 제거되었고 Admin API(Kotlin)와 그 테스트는 `bottlenote-product-api` 모듈로 옮겼다. 아래의 `admin-api`·`mono` 구분은 이전 구조의 설명이므로, 업무 코드의 실제 소유 모듈은 `CLAUDE.md`의 모듈 구조를 따른다.
+> admin-api 모듈은 제거되었고 Admin API(Kotlin)와 그 테스트는 `bottlenote-api` 모듈로 옮겼다. 아래의 `admin-api`·`mono` 구분은 이전 구조의 설명이므로, 업무 코드의 실제 소유 모듈은 `CLAUDE.md`의 모듈 구조를 따른다.
 
 ---
 
@@ -53,7 +53,7 @@ admin-api (Kotlin) → mono (Java)
 | 2 | 응답 data 타입 명시 | `GlobalResponse<{ResponseType}>` |
 | 3 | 보안 요구사항 확인 | 실제 `SecurityPolicy` 기반 `bearerAuth` |
 | 4 | 품질 계약 테스트 | `app/integration/openapi/` |
-| 5 | 테스트 컴파일 | `./gradlew :bottlenote-product-api:compileTestKotlin` |
+| 5 | 테스트 컴파일 | `./gradlew :bottlenote-api:compileTestKotlin` |
 
 > 공개 스펙 경로는 `GET /admin/api/v1/openapi.admin.json`이다. 무인증 조회를 허용하고 Swagger UI는 제공하지 않는다.
 
@@ -166,27 +166,27 @@ RuntimeException
 
 | 항목 | 파일 경로 |
 |------|----------|
-| Controller | `bottlenote-product-api/src/main/kotlin/app/bottlenote/alcohols/presentation/AdminCurationController.kt` |
+| Controller | `bottlenote-api/src/main/kotlin/app/bottlenote/alcohols/presentation/AdminCurationController.kt` |
 | Service | `mono/.../alcohols/service/AdminCurationService.java` |
 | Response DTO | `mono/.../alcohols/dto/response/AdminCurationDetailResponse.java` |
 | Request DTO | `mono/.../alcohols/dto/request/AdminCuration*Request.java` |
-| Integration Test | `bottlenote-product-api/src/test/kotlin/app/integration/curation/AdminCurationIntegrationTest.kt` |
-| OpenAPI Test | `bottlenote-product-api/src/test/kotlin/app/integration/openapi/` |
-| Helper | `bottlenote-product-api/src/test/kotlin/app/helper/curation/CurationHelper.kt` |
+| Integration Test | `bottlenote-api/src/test/kotlin/app/integration/curation/AdminCurationIntegrationTest.kt` |
+| OpenAPI Test | `bottlenote-api/src/test/kotlin/app/integration/openapi/` |
+| Helper | `bottlenote-api/src/test/kotlin/app/helper/curation/CurationHelper.kt` |
 
 ### Banner (배너) - QueryDSL 검색, 비즈니스 검증, sortOrder 리오더링 포함
 
 | 항목 | 파일 경로 |
 |------|----------|
-| Controller | `bottlenote-product-api/src/main/kotlin/app/bottlenote/banner/presentation/AdminBannerController.kt` |
+| Controller | `bottlenote-api/src/main/kotlin/app/bottlenote/banner/presentation/AdminBannerController.kt` |
 | Service | `mono/.../banner/service/AdminBannerService.java` |
 | Response DTO | `mono/.../banner/dto/response/AdminBanner*Response.java` |
 | Request DTO | `mono/.../banner/dto/request/AdminBanner*Request.java` |
 | Exception | `mono/.../banner/exception/BannerException.java`, `BannerExceptionCode.java` |
 | QueryDSL | `mono/.../banner/repository/CustomBannerRepository*.java` |
-| Integration Test | `bottlenote-product-api/src/test/kotlin/app/integration/banner/AdminBannerIntegrationTest.kt` |
-| Helper | `bottlenote-product-api/src/test/kotlin/app/helper/banner/BannerHelper.kt` |
-| OpenAPI Test | `bottlenote-product-api/src/test/kotlin/app/integration/openapi/` |
+| Integration Test | `bottlenote-api/src/test/kotlin/app/integration/banner/AdminBannerIntegrationTest.kt` |
+| Helper | `bottlenote-api/src/test/kotlin/app/helper/banner/BannerHelper.kt` |
+| OpenAPI Test | `bottlenote-api/src/test/kotlin/app/integration/openapi/` |
 
 ---
 
@@ -196,16 +196,16 @@ Admin API 구현 완료 후 아래 순서대로 검증:
 
 | 순서 | 검증 항목 | 명령어 | 태그/범위 |
 |------|----------|--------|-----------|
-| 1 | 컴파일 | `./gradlew :bottlenote-product-api:compileKotlin` | - |
+| 1 | 컴파일 | `./gradlew :bottlenote-api:compileKotlin` | - |
 | 2 | 코드 포맷팅 | `./gradlew :bottlenote-mono:spotlessCheck` | mono만 적용 |
 | 3 | 아키텍처 규칙 | `./gradlew check_rule_test` | `@Tag("rule")` |
 | 4 | 단위 테스트 | `./gradlew unit_test` | `@Tag("unit")` |
 | 5 | Product 통합 테스트 | `./gradlew integration_test` | `@Tag("integration")` |
-| 6 | Admin 통합 테스트 | `./gradlew :bottlenote-product-api:admin_integration_test` | `@Tag("admin_integration")` |
+| 6 | Admin 통합 테스트 | `./gradlew :bottlenote-api:admin_integration_test` | `@Tag("admin_integration")` |
 
 > CI 파이프라인은 3~6번을 병렬 실행한다. Admin OpenAPI 품질 테스트는 6번에 포함되며, mono 모듈 변경이 product-api에 영향을 줄 수 있으므로 `integration_test`도 반드시 확인해야 한다.
 
 **전체 검증 (위 1-6 포함):**
 ```bash
-./gradlew :bottlenote-product-api:build
+./gradlew :bottlenote-api:build
 ```

@@ -12,7 +12,7 @@ Fake/InMemory는 반환값뿐 아니라 필터, 정렬, 갱신·삭제, 중복, 
 
 - Product 공개 JSON은 `/api/v1/openapi.product.json`, Admin 공개 JSON은 `/admin/api/v1/openapi.admin.json`이다.
 - Product의 `src/main/java/app/global/config/`, Admin의 `src/main/kotlin/app/global/config/`에서 OpenAPI·응답·보안 customizer를 확인한다.
-- Product 계약 테스트는 `bottlenote-product-api/src/test/java/app/bottlenote/global/integration/`, Admin API는 `bottlenote-product-api/src/test/kotlin/app/integration/openapi/`에 있다.
+- Product 계약 테스트는 `bottlenote-api/src/test/java/app/bottlenote/global/integration/`, Admin API는 `bottlenote-api/src/test/kotlin/app/integration/openapi/`에 있다.
 - OpenAPI 3.1, 명시적 GlobalResponse data 스키마, 실제 인증 정책과 일치하는 bearer 요구, 무인증 문서 접근, Swagger UI 미제공, `https://bottle-note.github.io` 문서 CORS 정책을 보존한다.
 - Controller·Docs 어노테이션 수정과 런타임 JSON 계약 테스트 작성을 함께 진행한다. CI는 Product·Admin 통합 jobs에서 이 테스트를 검증한다. 어노테이션이나 로컬 build만으로 런타임 계약을 검증했다고 보고하지 않는다.
 
