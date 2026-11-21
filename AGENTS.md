@@ -104,19 +104,18 @@ git submodule update --init --recursive
 
 | 대상 | 워크플로 | 트리거 |
 |------|---------|--------|
-| product-api / admin-api (운영·Release PR) | `release_pr_create.yml` → `release_pr_merged.yml` → `deploy_release_applications.yml` | `releases/**` 대상 Release PR 생성·병합 후 검증 통과 (표준 경로) |
-| product-api / admin-api (운영·핫픽스) | `release_pr_create.yml`(release_type=hotfix) → `hotfix_pr_merged.yml` → `deploy_release_applications.yml` | `hotfixes/**` 대상 핫픽스 PR 병합 후 검증 통과 |
-| product-api / admin-api (운영·기존 릴리스 경로) | `deploy_release_applications.yml` | `backend/vX.Y.Z` 릴리스 published (호환 경로, 표준 운영에서는 사용하지 않음) |
+| api (운영·Release PR) | `release_pr_create.yml` → `release_pr_merged.yml` → `deploy_release_applications.yml` | `releases/**` 대상 Release PR 생성·병합 후 검증 통과 (표준 경로) |
+| api (운영·핫픽스) | `release_pr_create.yml`(release_type=hotfix) → `hotfix_pr_merged.yml` → `deploy_release_applications.yml` | `hotfixes/**` 대상 핫픽스 PR 병합 후 검증 통과 |
 | api (개발, 통합 이미지 `bottlenote-api`) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
 | batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
 
-운영도 2026.11.21부터 통합 `api` Deployment 하나로 돌고, `product-api`·`admin-api` Service는 api Pod를 가리킨다. 운영 릴리즈 단위 이름(`product`)과 이미지 이름(`bottlenote-product-api`, 채널 `product_latest_production`)은 아직 그대로이며 이름 정리는 별도로 한다. 배포 워크플로는 소스에 있는 모듈(`bottlenote-api` 또는 이름을 바꾸기 전 `bottlenote-product-api`)을 찾아 빌드한다. admin 모듈을 main에서 제거했으므로 main에서 출발하는 표준 릴리즈는 `product`만 허용하며 기본값도 `product`다. `admin`·`both`는 admin 모듈이 남은 운영 소스에서 자른 핫픽스에만 쓰고, 워크플로가 소스에 admin 모듈이 있는지 먼저 확인한다. 개발은 api 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에만 배포한다. 개발 product-api·admin-api Deployment는 제거했고, 두 Service는 api Pod를 가리킨다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
+운영과 개발 모두 통합 `api` Deployment 하나로 돌고, `product-api`·`admin-api` Service는 api Pod를 가리킨다. 운영 배포 단위는 `api` 하나이며(2026.11.21), 표준 릴리즈와 핫픽스 모두 `deployment_mode=api`만 받는다. 운영 이미지는 `bottlenote-api`(`api_<YYYY.MM.DD.N>`, 채널 `api_latest_production`), 배포 태그는 `deployed/api/<키>`다. 예전 `deployed/product`·`deployed/admin` 태그는 이력으로만 남고, api 단위의 첫 배포 태그가 생기기 전에는 핫픽스를 시작할 수 없다. 배포 워크플로는 소스에 있는 모듈(`bottlenote-api` 또는 이름을 바꾸기 전 `bottlenote-product-api`)을 찾아 빌드한다. 개발은 api 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에 배포한다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
 
 Release PR 경로는 검증된 `source_sha`, `release_key`, `deployment_mode`를 배포 워크플로에 전달한다. 병합 자체와 검증 통과를 구분하고, 배포 대상은 전달된 `source_sha`를 기준으로 확인한다.
 
 `releases/**`와 `hotfixes/**` 브랜치는 수동으로 만들지 않고 `release_pr_create.yml`로만 생성한다. 핫픽스 브랜치는 main이 아니라 해당 배포 단위의 최신 `deployed/<단위>/<키>` 태그가 가리키는 커밋에서 잘린다. 생성된 PR의 실제 source 또는 동일 tree인 부모 SHA의 CI 성공을 병합 전에 확인한다. 일반 Release PR의 workflow 검증이 CI 성공까지 자동 보장하지는 않는다.
 
-이미지는 `immutable 태그 push → Cosign 서명 → 검증 → 채널 태그 승격 → digest·서명 재검증` 순서로 공개한다. 배포에 성공하면 릴리즈 브랜치를 지우기 전에 배포 소스에 `deployed/<단위>/<YYYY-MM-DD>/<N>` annotated 태그를 찍는다. 이 태그가 배포 이력의 단일 기준이며 릴리즈 키 재사용의 최종 방어선이다. 근거는 [ADR](<adr/2026.09.10 배포 소스는 브랜치가 아니라 deployed 태그로 보관한다.md>)을 따른다. 승격 전 실패하면 해당 채널의 기존 digest를 유지하지만, `both`의 Product/Admin은 독립적으로 승격하므로 전체 run 실패 시 부분 반영 여부를 확인한다. 서비스별 핫픽스 지원 범위, source와 action 출처, 실패 대응은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
+이미지는 `immutable 태그 push → Cosign 서명 → 검증 → 채널 태그 승격 → digest·서명 재검증` 순서로 공개한다. 배포에 성공하면 릴리즈 브랜치를 지우기 전에 배포 소스에 `deployed/<단위>/<YYYY-MM-DD>/<N>` annotated 태그를 찍는다. 이 태그가 배포 이력의 단일 기준이며 릴리즈 키 재사용의 최종 방어선이다. 근거는 [ADR](<adr/2026.09.10 배포 소스는 브랜치가 아니라 deployed 태그로 보관한다.md>)을 따른다. 승격 전 실패하면 채널의 기존 digest를 유지한다. 서비스별 핫픽스 지원 범위, source와 action 출처, 실패 대응은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
 
 ```bash
 # batch 배포 — version은 정확한 X.Y.Z, production은 main에서만 허용
