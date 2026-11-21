@@ -1,9 +1,7 @@
 name: deploy release applications
 
+# 운영 배포 단위는 통합 api 하나다(workspace#564). product·admin 단위와 backend/vX.Y.Z GitHub Release 경로는 2026.11.21에 정리했다.
 on:
-  release:
-    types:
-      - published
   workflow_call:
     inputs:
       source_sha:
@@ -15,7 +13,7 @@ on:
         required: true
         type: string
       deployment_mode:
-        description: Applications to deploy
+        description: Deployment unit (api)
         required: true
         type: string
       release_type:
@@ -39,12 +37,12 @@ permissions:
   actions: read
 
 concurrency:
-  group: deploy-backend-production-${{ github.event.release.tag_name || inputs.release_key }}
+  group: deploy-backend-production-${{ inputs.release_key }}
   cancel-in-progress: false
 
 env:
-  PRODUCT_IMAGE_NAME: bottlenote-product-api
-  ADMIN_IMAGE_NAME: bottlenote-admin-api
+  API_IMAGE_NAME: bottlenote-api
+  API_CHANNEL_TAG: api_latest_production
 
 jobs:
   release-gate:
@@ -52,27 +50,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      release-tag: ${{ steps.release.outputs.release-tag }}
       version: ${{ steps.release.outputs.version }}
-      image-tag: ${{ steps.release.outputs.image-tag }}
-      tag-sha: ${{ steps.release.outputs.tag-sha }}
       source-sha: ${{ steps.release.outputs.source-sha }}
       source-ref: ${{ steps.release.outputs.source-ref }}
       deployment-mode: ${{ steps.release.outputs.deployment-mode }}
-      product-image-tag: ${{ steps.release.outputs.product-image-tag }}
-      admin-image-tag: ${{ steps.release.outputs.admin-image-tag }}
-      deployment-source: ${{ steps.release.outputs.deployment-source }}
+      api-image-tag: ${{ steps.release.outputs.api-image-tag }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - name: validate published backend release
+      - name: validate release PR source
         id: release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
           SOURCE_SHA_INPUT: ${{ inputs.source_sha }}
           RELEASE_KEY_INPUT: ${{ inputs.release_key }}
           DEPLOYMENT_MODE_INPUT: ${{ inputs.deployment_mode }}
@@ -83,155 +74,86 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
 
-          if [[ "$GITHUB_EVENT_NAME" == "release" ]]; then
-            [[ -n "$RELEASE_TAG" ]] || { echo "::error::release tag is required"; exit 1; }
-            [[ "$RELEASE_TAG" =~ ^backend/v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::backend release tag required, got: $RELEASE_TAG"; exit 1; }
+          [[ "$SOURCE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::source_sha must be a full commit SHA"; exit 1; }
+          [[ "$RELEASE_KEY_INPUT" =~ ^([0-9]{4}-[0-9]{2}-[0-9]{2})/([1-9][0-9]*)$ ]] || { echo "::error::release_key must use YYYY-MM-DD/N format"; exit 1; }
+          release_date="${BASH_REMATCH[1]}"
+          sequence="${BASH_REMATCH[2]}"
+          normalized_date="$(date -u -d "$release_date" +%F)" || { echo "::error::release_key contains an invalid calendar date"; exit 1; }
+          [[ "$normalized_date" == "$release_date" ]] || { echo "::error::release_key contains an invalid calendar date"; exit 1; }
+          [[ "$DEPLOYMENT_MODE_INPUT" == "api" ]] || { echo "::error::deployment_mode must be api"; exit 1; }
 
-            version="${RELEASE_TAG#backend/v}"
-            product_image_tag="backend_${version}"
-            admin_image_tag="backend_${version}"
-            deployment_mode="both"
-            deployment_source="github-release"
-            source_ref="$RELEASE_TAG"
+          source_sha="$SOURCE_SHA_INPUT"
+          release_key="$RELEASE_KEY_INPUT"
+          deployment_mode="$DEPLOYMENT_MODE_INPUT"
+          release_type="${RELEASE_TYPE_INPUT:-standard}"
+          git cat-file -e "${source_sha}^{commit}" || { echo "::error::source_sha is not available as a commit"; exit 1; }
 
-            git fetch --tags origin
-            git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null || { echo "::error::release tag not found: $RELEASE_TAG"; exit 1; }
-            source_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
-            git merge-base --is-ancestor "$source_sha" origin/main || { echo "::error::tag commit is not contained in origin/main: $source_sha"; exit 1; }
-
-            releases_json="$(curl -fsSL \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")" || { echo "::error::failed to list releases"; exit 1; }
-
-            RELEASES_JSON="$releases_json" python3 - <<'PY'
-          import json, os, sys
-          tag = os.environ['RELEASE_TAG']
-          releases = json.loads(os.environ['RELEASES_JSON'])
-          release = next((item for item in releases if item.get('tag_name') == tag), None)
-          if release is None:
-              print(f'::error::release not found for tag: {tag}', file=sys.stderr)
-              sys.exit(1)
-          if release.get('draft'):
-              print('::error::release must be published before production deploy', file=sys.stderr)
-              sys.exit(1)
-          if release.get('prerelease'):
-              print('::error::production release must not be prerelease', file=sys.stderr)
-              sys.exit(1)
-          body = (release.get('body') or '').strip()
-          if len(body) < 80:
-              print('::error::release changelog is empty or too short', file=sys.stderr)
-              sys.exit(1)
-          print(f"release_id={release.get('id')} body_length={len(body)}")
-          PY
-            release_key="$version"
-            release_metadata="passed"
-          else
-            [[ "$SOURCE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::source_sha must be a full commit SHA"; exit 1; }
-            [[ "$RELEASE_KEY_INPUT" =~ ^([0-9]{4}-[0-9]{2}-[0-9]{2})/([1-9][0-9]*)$ ]] || { echo "::error::release_key must use YYYY-MM-DD/N format"; exit 1; }
-            release_date="${BASH_REMATCH[1]}"
-            sequence="${BASH_REMATCH[2]}"
-            normalized_date="$(date -u -d "$release_date" +%F)" || { echo "::error::release_key contains an invalid calendar date"; exit 1; }
-            [[ "$normalized_date" == "$release_date" ]] || { echo "::error::release_key contains an invalid calendar date"; exit 1; }
-            [[ "$DEPLOYMENT_MODE_INPUT" =~ ^(both|product|admin)$ ]] || { echo "::error::deployment_mode must be one of both, product, admin"; exit 1; }
-
-            source_sha="$SOURCE_SHA_INPUT"
-            release_key="$RELEASE_KEY_INPUT"
-            deployment_mode="$DEPLOYMENT_MODE_INPUT"
-            release_type="${RELEASE_TYPE_INPUT:-standard}"
-            deployment_source="release-pr"
-            git cat-file -e "${source_sha}^{commit}" || { echo "::error::source_sha is not available as a commit"; exit 1; }
-
-            case "$release_type" in
-              standard)
-                [[ -z "$BASE_SOURCE_SHA_INPUT" ]] || {
-                  echo "::error::standard release must not provide base_source_sha"
-                  exit 1
-                }
-                git merge-base --is-ancestor "$source_sha" origin/main || {
-                  echo "::error::standard source_sha is not contained in origin/main: $source_sha"
-                  exit 1
-                }
-                source_ref="main"
-                ;;
-              hotfix)
-                [[ "$CANDIDATE_SHA_INPUT" =~ ^[0-9a-f]{40}$ && "$BASE_SOURCE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]] || {
-                  echo "::error::hotfix release requires candidate_sha and base_source_sha"
-                  exit 1
-                }
-                git cat-file -e "${CANDIDATE_SHA_INPUT}^{commit}"
-                git cat-file -e "${BASE_SOURCE_SHA_INPUT}^{commit}"
-                read -r merge_sha first_parent second_parent extra_parent <<< "$(git rev-list --parents -n 1 "$source_sha")"
-                [[ "$merge_sha" == "$source_sha" && "$first_parent" == "$BASE_SOURCE_SHA_INPUT" && \
-                   "$second_parent" == "$CANDIDATE_SHA_INPUT" && -z "${extra_parent:-}" ]] || {
-                  echo "::error::hotfix deployment source is not the verified base-plus-candidate merge"
-                  exit 1
-                }
-                source_ref="hotfixes/${release_key}"
-                ;;
-              *)
-                echo "::error::release_type must be standard or hotfix"
-                exit 1
-                ;;
-            esac
-
-            image_version="${release_date//-/.}.${sequence}"
-            product_image_tag="product_${image_version}"
-            admin_image_tag="admin_${image_version}"
-            version="$image_version"
-            RELEASE_TAG=""
-            release_metadata="not-required"
-          fi
-
-          # admin 모듈은 main에서 제거됐다(workspace#564). admin 이미지는 그 모듈이 남아 있는 과거 운영 소스에서만 만든다.
-          if [[ "$deployment_mode" == "both" || "$deployment_mode" == "admin" ]]; then
-            for admin_path in Dockerfile-admin bottlenote-admin-api; do
-              git cat-file -e "${source_sha}:${admin_path}" 2>/dev/null || {
-                echo "::error::source ${source_sha} has no ${admin_path}; deploy ${deployment_mode} only from a source that still has the admin module"
+          case "$release_type" in
+            standard)
+              [[ -z "$BASE_SOURCE_SHA_INPUT" ]] || {
+                echo "::error::standard release must not provide base_source_sha"
                 exit 1
               }
-            done
-          fi
+              git merge-base --is-ancestor "$source_sha" origin/main || {
+                echo "::error::standard source_sha is not contained in origin/main: $source_sha"
+                exit 1
+              }
+              source_ref="main"
+              ;;
+            hotfix)
+              [[ "$CANDIDATE_SHA_INPUT" =~ ^[0-9a-f]{40}$ && "$BASE_SOURCE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]] || {
+                echo "::error::hotfix release requires candidate_sha and base_source_sha"
+                exit 1
+              }
+              git cat-file -e "${CANDIDATE_SHA_INPUT}^{commit}"
+              git cat-file -e "${BASE_SOURCE_SHA_INPUT}^{commit}"
+              read -r merge_sha first_parent second_parent extra_parent <<< "$(git rev-list --parents -n 1 "$source_sha")"
+              [[ "$merge_sha" == "$source_sha" && "$first_parent" == "$BASE_SOURCE_SHA_INPUT" && \
+                 "$second_parent" == "$CANDIDATE_SHA_INPUT" && -z "${extra_parent:-}" ]] || {
+                echo "::error::hotfix deployment source is not the verified base-plus-candidate merge"
+                exit 1
+              }
+              source_ref="hotfixes/${release_key}"
+              ;;
+            *)
+              echo "::error::release_type must be standard or hotfix"
+              exit 1
+              ;;
+          esac
+
+          version="${release_date//-/.}.${sequence}"
+          api_image_tag="api_${version}"
 
           {
-            echo "release-tag=$RELEASE_TAG"
             echo "version=$version"
-            echo "image-tag=$product_image_tag"
-            echo "tag-sha=$source_sha"
             echo "source-sha=$source_sha"
             echo "source-ref=$source_ref"
             echo "deployment-mode=$deployment_mode"
-            echo "product-image-tag=$product_image_tag"
-            echo "admin-image-tag=$admin_image_tag"
-            echo "deployment-source=$deployment_source"
+            echo "api-image-tag=$api_image_tag"
           } >> "$GITHUB_OUTPUT"
 
           {
             echo "## Backend Production Release Gate"
             echo "- Release key: \`${release_key}\`"
             echo "- Deployment mode: \`${deployment_mode}\`"
-            echo "- Deployment source: \`${deployment_source}\`"
-            [[ "$deployment_source" != "release-pr" ]] || echo "- Release type: \`${release_type}\`"
+            echo "- Release type: \`${release_type}\`"
             echo "- Version: \`${version}\`"
-            echo "- Product image tag: \`${product_image_tag}\`"
-            echo "- Admin image tag: \`${admin_image_tag}\`"
+            echo "- API image tag: \`${api_image_tag}\`"
             echo "- Source commit: \`${source_sha}\`"
             echo "- Source ref: \`${source_ref}\`"
             echo "- Main ancestry: \`passed\`"
-            echo "- Release metadata/changelog: \`${release_metadata}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "[backend-release-gate] passed release_key=$release_key deployment_mode=$deployment_mode version=$version source_sha=$source_sha"
 
   prepare-build:
-    name: build backend modules
+    name: build api module
     needs: release-gate
     runs-on: ubuntu-24.04-arm
     outputs:
-      product-module: ${{ steps.module.outputs.product-module }}
+      api-module: ${{ steps.module.outputs.api-module }}
     steps:
-      - name: checkout release tag with submodules
+      - name: checkout release source with submodules
         uses: actions/checkout@v7
         with:
           ref: ${{ needs.release-gate.outputs.source-sha }}
@@ -256,52 +178,29 @@ jobs:
 
       # 통합 앱 모듈은 bottlenote-product-api에서 bottlenote-api로 이름을 바꿨다.
       # 핫픽스는 이름을 바꾸기 전 운영 소스에서도 잘리므로 배포 소스에 있는 모듈 이름을 따른다.
-      - name: resolve product module
+      - name: resolve api module
         id: module
         run: |
           if [[ -d bottlenote-api ]]; then
-            echo "product-module=bottlenote-api" >> "$GITHUB_OUTPUT"
+            echo "api-module=bottlenote-api" >> "$GITHUB_OUTPUT"
           else
-            echo "product-module=bottlenote-product-api" >> "$GITHUB_OUTPUT"
+            echo "api-module=bottlenote-product-api" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: build selected modules
+      - name: build api module
         env:
-          DEPLOYMENT_MODE: ${{ needs.release-gate.outputs.deployment-mode }}
-          PRODUCT_MODULE: ${{ steps.module.outputs.product-module }}
-        run: |
-          case "$DEPLOYMENT_MODE" in
-            both)
-              ./gradlew ":${PRODUCT_MODULE}:build" :bottlenote-admin-api:build \
-                -x test --build-cache --parallel
-              ;;
-            product)
-              ./gradlew ":${PRODUCT_MODULE}:build" -x test --build-cache
-              ;;
-            admin)
-              ./gradlew :bottlenote-admin-api:build -x test --build-cache
-              ;;
-          esac
+          API_MODULE: ${{ steps.module.outputs.api-module }}
+        run: ./gradlew ":${API_MODULE}:build" -x test --build-cache
 
-      - name: upload product jar
-        if: needs.release-gate.outputs.deployment-mode == 'both' || needs.release-gate.outputs.deployment-mode == 'product'
+      - name: upload api jar
         uses: actions/upload-artifact@v7
         with:
-          name: product-jar
-          path: ${{ steps.module.outputs.product-module }}/build/libs/${{ steps.module.outputs.product-module }}.jar
+          name: api-jar
+          path: ${{ steps.module.outputs.api-module }}/build/libs/${{ steps.module.outputs.api-module }}.jar
           retention-days: 1
 
-      - name: upload admin jar
-        if: needs.release-gate.outputs.deployment-mode == 'both' || needs.release-gate.outputs.deployment-mode == 'admin'
-        uses: actions/upload-artifact@v7
-        with:
-          name: admin-jar
-          path: bottlenote-admin-api/build/libs/bottlenote-admin-api.jar
-          retention-days: 1
-
-  build-product-image:
-    name: build and push product image
-    if: needs.release-gate.outputs.deployment-mode == 'both' || needs.release-gate.outputs.deployment-mode == 'product'
+  build-api-image:
+    name: build and push api image
     needs:
       - release-gate
       - prepare-build
@@ -323,11 +222,11 @@ jobs:
           git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
           git checkout origin/main -- .github/actions/docker-build-push/action.yml
 
-      - name: download product jar
+      - name: download api jar
         uses: actions/download-artifact@v8
         with:
-          name: product-jar
-          path: ${{ needs.prepare-build.outputs.product-module }}/build/libs/
+          name: api-jar
+          path: ${{ needs.prepare-build.outputs.api-module }}/build/libs/
 
       - name: build and push to registry
         id: build
@@ -336,157 +235,32 @@ jobs:
           registry-url: ${{ secrets.REGISTRY_ADDRESS }}
           registry-username: ${{ secrets.REGISTRY_USERNAME }}
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-          image-name: ${{ env.PRODUCT_IMAGE_NAME }}
-          image-tag: ${{ needs.release-gate.outputs.product-image-tag }}
-          promote-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'product_latest_production' || '' }}
+          image-name: ${{ env.API_IMAGE_NAME }}
+          image-tag: ${{ needs.release-gate.outputs.api-image-tag }}
+          promote-tags: ${{ env.API_CHANNEL_TAG }}
           source-sha: ${{ needs.release-gate.outputs.source-sha }}
           source-ref: ${{ needs.release-gate.outputs.source-ref }}
           dockerfile: Dockerfile
           context: .
           platforms: linux/arm64
-          cache-scope: product-production
+          cache-scope: api-production
           cache-export: 'false'
-          image-title: "BottleNote Product API"
-          image-description: "BottleNote Product API Server"
+          image-title: "BottleNote API"
+          image-description: "BottleNote API Server (product and admin API)"
           image-vendor: "BottleNote"
           image-authors: "BottleNote Team"
           sign-image: 'true'
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
           cosign-public-key-path: 'git.environment-variables/storage/docker-registry/cosign.pub'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
-
-  build-admin-image:
-    name: build and push admin image
-    if: needs.release-gate.outputs.deployment-mode == 'both' || needs.release-gate.outputs.deployment-mode == 'admin'
-    needs:
-      - release-gate
-      - prepare-build
-    runs-on: ubuntu-24.04-arm
-    outputs:
-      image-digest: ${{ steps.build.outputs.image-digest }}
-      promoted-tags: ${{ steps.build.outputs.promoted-tags }}
-      previous-digest: ${{ steps.build.outputs.previous-digest }}
-    steps:
-      - name: checkout release source with submodules
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.release-gate.outputs.source-sha }}
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
-      - name: refresh docker build action from main
-        run: |
-          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
-          git checkout origin/main -- .github/actions/docker-build-push/action.yml
-
-      - name: download admin jar
-        uses: actions/download-artifact@v8
-        with:
-          name: admin-jar
-          path: bottlenote-admin-api/build/libs/
-
-      - name: build and push to registry
-        id: build
-        uses: ./.github/actions/docker-build-push
-        with:
-          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
-          registry-username: ${{ secrets.REGISTRY_USERNAME }}
-          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-          image-name: ${{ env.ADMIN_IMAGE_NAME }}
-          image-tag: ${{ needs.release-gate.outputs.admin-image-tag }}
-          promote-tags: ${{ needs.release-gate.outputs.deployment-source == 'release-pr' && 'admin_latest_production' || '' }}
-          source-sha: ${{ needs.release-gate.outputs.source-sha }}
-          source-ref: ${{ needs.release-gate.outputs.source-ref }}
-          dockerfile: Dockerfile-admin
-          context: .
-          platforms: linux/arm64
-          cache-scope: admin-production
-          cache-export: 'false'
-          image-title: "BottleNote Admin API"
-          image-description: "BottleNote Admin API Server"
-          image-vendor: "BottleNote"
-          image-authors: "BottleNote Team"
-          sign-image: 'true'
-          cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
-          cosign-public-key-path: 'git.environment-variables/storage/docker-registry/cosign.pub'
-          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
-
-  update-production:
-    name: update backend production images
-    if: needs.release-gate.outputs.deployment-source == 'github-release'
-    needs:
-      - release-gate
-      - build-product-image
-      - build-admin-image
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout code with submodules
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
-      - name: setup kustomize
-        uses: imranismail/setup-kustomize@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: update production image tags
-        run: |
-          IMAGE_TAG="${{ needs.release-gate.outputs.image-tag }}"
-          REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
-
-          echo "Updating backend production image tags: $IMAGE_TAG"
-          cd git.environment-variables
-          git checkout main
-          cd deploy/overlays/production
-          kustomize edit set image \
-            bottlenote-product-api=${REGISTRY}/${{ env.PRODUCT_IMAGE_NAME }}:${IMAGE_TAG} \
-            bottlenote-admin-api=${REGISTRY}/${{ env.ADMIN_IMAGE_NAME }}:${IMAGE_TAG}
-          echo "production kustomization.yaml updated"
-
-      - name: commit and push with retry
-        run: |
-          cd git.environment-variables
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add deploy/overlays/production/kustomization.yaml
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-          git commit -m "chore(backend): update production image tags to ${{ needs.release-gate.outputs.image-tag }}
-
-          Updated by GitHub Actions
-          Release: ${{ needs.release-gate.outputs.release-tag }}
-          Commit: ${{ needs.release-gate.outputs.tag-sha }}
-          Product digest: ${{ needs.build-product-image.outputs.image-digest }}
-          Admin digest: ${{ needs.build-admin-image.outputs.image-digest }}
-          Workflow: ${{ github.workflow }}"
-          for i in {1..5}; do
-            git pull --rebase origin main && git push origin main && break
-            echo "Push failed, retry $i/5..."
-            sleep $((i * 2))
-          done
-          echo "Backend production deployment triggered"
 
   image-updater-handoff:
-    name: hand off release images to image updater
-    if: |
-      always() &&
-      needs.release-gate.result == 'success' &&
-      needs.release-gate.outputs.deployment-source == 'release-pr' &&
-      (needs.build-product-image.result == 'success' || needs.build-product-image.result == 'skipped') &&
-      (needs.build-admin-image.result == 'success' || needs.build-admin-image.result == 'skipped')
+    name: hand off release image to image updater
     needs:
       - release-gate
-      - build-product-image
-      - build-admin-image
+      - build-api-image
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      PRODUCT_CHANNEL_TAG: product_latest_production
-      ADMIN_CHANNEL_TAG: admin_latest_production
     steps:
       - name: login to private registry
         uses: docker/login-action@v4
@@ -495,76 +269,43 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      # 승격된 채널 태그가 build job 이 서명·검증한 digest 를 가리키는지 두 이미지 모두 독립적으로 재확인한다.
-      - name: verify promoted channel digests
+      # 승격된 채널 태그가 build job 이 서명·검증한 digest 를 가리키는지 독립적으로 재확인한다.
+      - name: verify promoted channel digest
         env:
           REGISTRY: ${{ secrets.REGISTRY_ADDRESS }}
-          PRODUCT_IMAGE_NAME: ${{ env.PRODUCT_IMAGE_NAME }}
-          ADMIN_IMAGE_NAME: ${{ env.ADMIN_IMAGE_NAME }}
-          DEPLOYMENT_MODE: ${{ needs.release-gate.outputs.deployment-mode }}
           VERSION: ${{ needs.release-gate.outputs.version }}
           SOURCE_SHA: ${{ needs.release-gate.outputs.source-sha }}
-          PRODUCT_IMAGE_TAG: ${{ needs.release-gate.outputs.product-image-tag }}
-          PRODUCT_IMAGE_DIGEST: ${{ needs.build-product-image.outputs.image-digest }}
-          PRODUCT_PROMOTED_TAGS: ${{ needs.build-product-image.outputs.promoted-tags }}
-          PRODUCT_PREVIOUS_DIGEST: ${{ needs.build-product-image.outputs.previous-digest }}
-          ADMIN_IMAGE_TAG: ${{ needs.release-gate.outputs.admin-image-tag }}
-          ADMIN_IMAGE_DIGEST: ${{ needs.build-admin-image.outputs.image-digest }}
-          ADMIN_PROMOTED_TAGS: ${{ needs.build-admin-image.outputs.promoted-tags }}
-          ADMIN_PREVIOUS_DIGEST: ${{ needs.build-admin-image.outputs.previous-digest }}
+          API_IMAGE_TAG: ${{ needs.release-gate.outputs.api-image-tag }}
+          API_IMAGE_DIGEST: ${{ needs.build-api-image.outputs.image-digest }}
+          API_PROMOTED_TAGS: ${{ needs.build-api-image.outputs.promoted-tags }}
+          API_PREVIOUS_DIGEST: ${{ needs.build-api-image.outputs.previous-digest }}
         run: |
           set -euo pipefail
+          image="${REGISTRY}/${API_IMAGE_NAME}"
 
-          verify_channel() {
-            local label="$1" image_name="$2" channel_tag="$3" expected_digest="$4" promoted_tags="$5"
-            local image="${REGISTRY}/${image_name}"
-
-            [[ "$expected_digest" =~ ^sha256:[0-9a-f]{64}$ ]] || {
-              echo "::error::${label} build job did not report a valid image digest: ${expected_digest}"
-              exit 1
-            }
-            [[ "$promoted_tags" == "$channel_tag" ]] || {
-              echo "::error::${label} build job promoted '${promoted_tags}', expected '${channel_tag}'"
-              exit 1
-            }
-            local channel_digest
-            channel_digest="$(docker buildx imagetools inspect "${image}:${channel_tag}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
-            [[ "$channel_digest" == "$expected_digest" ]] || {
-              echo "::error::${channel_tag} points to ${channel_digest}, expected ${expected_digest}"
-              exit 1
-            }
-            echo "verified ${image}:${channel_tag} -> ${expected_digest}"
+          [[ "$API_IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || {
+            echo "::error::build job did not report a valid image digest: ${API_IMAGE_DIGEST}"
+            exit 1
           }
+          [[ "$API_PROMOTED_TAGS" == "$API_CHANNEL_TAG" ]] || {
+            echo "::error::build job promoted '${API_PROMOTED_TAGS}', expected '${API_CHANNEL_TAG}'"
+            exit 1
+          }
+          channel_digest="$(docker buildx imagetools inspect "${image}:${API_CHANNEL_TAG}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          [[ "$channel_digest" == "$API_IMAGE_DIGEST" ]] || {
+            echo "::error::${API_CHANNEL_TAG} points to ${channel_digest}, expected ${API_IMAGE_DIGEST}"
+            exit 1
+          }
+          echo "verified ${image}:${API_CHANNEL_TAG} -> ${API_IMAGE_DIGEST}"
 
           {
             echo "## Production image updater handoff"
             echo "- Version: \`${VERSION}\`"
             echo "- Source SHA: \`${SOURCE_SHA}\`"
-            echo "- Deployment mode: \`${DEPLOYMENT_MODE}\`"
+            echo "- API image: \`${API_IMAGE_TAG}\`"
+            echo "- API channel: \`${API_CHANNEL_TAG}\`"
+            echo "- API digest: \`${API_IMAGE_DIGEST}\`"
+            echo "- API previous digest: \`${API_PREVIOUS_DIGEST:-none}\`"
+            echo "- API channel digest re-check: \`passed\`"
+            echo "- GitOps update: \`Argo CD Image Updater\`"
           } >> "$GITHUB_STEP_SUMMARY"
-
-          if [[ "$DEPLOYMENT_MODE" == "both" || "$DEPLOYMENT_MODE" == "product" ]]; then
-            verify_channel product "$PRODUCT_IMAGE_NAME" "$PRODUCT_CHANNEL_TAG" \
-              "$PRODUCT_IMAGE_DIGEST" "$PRODUCT_PROMOTED_TAGS"
-            {
-              echo "- Product image: \`${PRODUCT_IMAGE_TAG}\`"
-              echo "- Product channel: \`${PRODUCT_CHANNEL_TAG}\`"
-              echo "- Product digest: \`${PRODUCT_IMAGE_DIGEST}\`"
-              echo "- Product previous digest: \`${PRODUCT_PREVIOUS_DIGEST:-none}\`"
-              echo "- Product channel digest re-check: \`passed\`"
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          if [[ "$DEPLOYMENT_MODE" == "both" || "$DEPLOYMENT_MODE" == "admin" ]]; then
-            verify_channel admin "$ADMIN_IMAGE_NAME" "$ADMIN_CHANNEL_TAG" \
-              "$ADMIN_IMAGE_DIGEST" "$ADMIN_PROMOTED_TAGS"
-            {
-              echo "- Admin image: \`${ADMIN_IMAGE_TAG}\`"
-              echo "- Admin channel: \`${ADMIN_CHANNEL_TAG}\`"
-              echo "- Admin digest: \`${ADMIN_IMAGE_DIGEST}\`"
-              echo "- Admin previous digest: \`${ADMIN_PREVIOUS_DIGEST:-none}\`"
-              echo "- Admin channel digest re-check: \`passed\`"
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          echo "- GitOps update: \`Argo CD Image Updater\`" >> "$GITHUB_STEP_SUMMARY"

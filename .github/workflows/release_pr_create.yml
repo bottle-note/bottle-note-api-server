@@ -12,14 +12,12 @@ on:
         required: true
         type: string
       deployment_mode:
-        description: Applications to deploy. standard allows product only; both and admin are for hotfixes cut from a source that still has the admin module
+        description: Deployment unit. The unified api (product and admin API in one app) is the only unit
         required: true
-        default: product
+        default: api
         type: choice
         options:
-          - product
-          - both
-          - admin
+          - api
       release_type:
         description: standard creates releases/<key> from main with a release PR; hotfix creates hotfixes/<key> at the deployed production source
         required: false
@@ -39,8 +37,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PRODUCT_IMAGE_NAME: bottlenote-product-api
-  ADMIN_IMAGE_NAME: bottlenote-admin-api
+  API_IMAGE_NAME: bottlenote-api
   RELEASE_SERVICE: backend
 
 jobs:
@@ -99,13 +96,9 @@ jobs:
             echo "::error::release_type must be standard or hotfix"
             exit 1
           }
-          [[ "$DEPLOYMENT_MODE" =~ ^(both|product|admin)$ ]] || {
-            echo "::error::deployment_mode must be one of both, product, admin"
-            exit 1
-          }
-          # admin 모듈은 main에서 제거됐다(workspace#564). main에서 출발하는 표준 릴리즈는 product만 만들 수 있다.
-          [[ "$RELEASE_TYPE" == "hotfix" || "$DEPLOYMENT_MODE" == "product" ]] || {
-            echo "::error::standard release supports deployment_mode=product only because main no longer has the admin module; use both or admin only for a hotfix cut from a deployed source that still has it"
+          # 배포 단위는 통합 api 하나다(workspace#564). product·admin 단위와 이미지는 2026.11.21에 정리했다.
+          [[ "$DEPLOYMENT_MODE" == "api" ]] || {
+            echo "::error::deployment_mode must be api"
             exit 1
           }
 
@@ -115,11 +108,7 @@ jobs:
           hotfix_branch="hotfixes/${release_key}"
 
           # 배포 모드가 이번 릴리즈의 배포 단위를 정한다. 태그와 이미지는 단위마다 하나씩이다.
-          case "$DEPLOYMENT_MODE" in
-            both) deployed_services="product admin" ;;
-            product) deployed_services="product" ;;
-            admin) deployed_services="admin" ;;
-          esac
+          deployed_services="api"
 
           url_encode() {
             python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["VALUE"], safe=""))'
@@ -165,10 +154,7 @@ jobs:
           for service in $deployed_services; do
             require_missing_deployed_tag "$service" "$release_key"
 
-            case "$service" in
-              product) image_name="$PRODUCT_IMAGE_NAME" ;;
-              admin) image_name="$ADMIN_IMAGE_NAME" ;;
-            esac
+            image_name="$API_IMAGE_NAME"
             image="${REGISTRY_ADDRESS}/${image_name}:${service}_${image_version}"
             if docker manifest inspect "$image" >/dev/null 2>"$manifest_error_log"; then
               echo "::error::image tag already exists for release key ${release_key}: ${image}"
@@ -438,15 +424,6 @@ jobs:
 
           git fetch --no-tags origin "$base_source_sha"
           git cat-file -e "${base_source_sha}^{commit}"
-          # admin 이미지는 admin 모듈이 남아 있는 운영 소스에서만 만들 수 있다. 브랜치를 만들기 전에 확인한다.
-          if [[ " ${DEPLOYED_SERVICES} " == *" admin "* ]]; then
-            for admin_path in Dockerfile-admin bottlenote-admin-api; do
-              git cat-file -e "${base_source_sha}:${admin_path}" 2>/dev/null || {
-                echo "::error::deployed source ${base_source_sha} has no ${admin_path}; an admin hotfix cannot be built from it"
-                exit 1
-              }
-            done
-          fi
           # 정보성 경고(대안 A 생성 가드): 운영 소스 스냅샷에 pull_request 트리거가 남아 있어도
           # hotfixes/** 네임스페이스는 그 스냅샷의 releases/** 필터에 걸리지 않는다.
           if git show "${base_source_sha}:.github/workflows/release_pr_merged.yml" 2>/dev/null | grep -Eq '^  pull_request:'; then

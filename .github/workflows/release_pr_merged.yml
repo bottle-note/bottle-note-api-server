@@ -117,7 +117,7 @@ jobs:
           candidate_sha = one('release-source-sha', r'[0-9a-f]{40}')
           key = one('release-key', r'[0-9]{4}-[0-9]{2}-[0-9]{2}/[1-9][0-9]*')
           service = one('release-service', r'backend')
-          deployment_mode = one('release-deployment-mode', r'both|product|admin')
+          deployment_mode = one('release-deployment-mode', r'api')
           if key != os.environ['EXPECTED_KEY'] or service != 'backend':
               print('::error::release PR body markers do not match the release target', file=sys.stderr)
               sys.exit(1)
@@ -135,20 +135,11 @@ jobs:
           mapfile -t release_fields <<< "$release_values"
           candidate_sha="${release_fields[0]}"
           deployment_mode="${release_fields[1]}"
-          [[ "$deployment_mode" =~ ^(both|product|admin)$ ]] || {
+          [[ "$deployment_mode" == "api" ]] || {
             echo "::error::invalid deployment mode marker: ${deployment_mode}"
             exit 1
           }
-          case "$deployment_mode" in
-            both) deployed_services="product admin" ;;
-            product) deployed_services="product" ;;
-            admin) deployed_services="admin" ;;
-          esac
-          # admin 모듈은 main에서 제거됐다(workspace#564). main에서 출발한 표준 릴리즈는 product만 배포한다.
-          [[ "$deployment_mode" == "product" ]] || {
-            echo "::error::standard release supports deployment_mode=product only because main no longer has the admin module"
-            exit 1
-          }
+          deployed_services="api"
 
           PR_JSON="$pr_json" python3 - <<'PY'
           import json
