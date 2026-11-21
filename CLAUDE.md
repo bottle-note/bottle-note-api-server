@@ -30,7 +30,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 | 모듈 | 소유하는 코드 |
 |---|---|
-| product-api / batch | 실행 앱 2개. product-api는 admin API(`/admin/api/**`, Kotlin)를 흡수한 통합 앱이며 Product·Admin의 화면별 복합 조회와 응답 조합도 소유한다. admin-api 모듈은 제거했다 |
+| api / batch | 실행 앱 2개. api(모듈 `bottlenote-api`, 옛 `bottlenote-product-api`)는 admin API(`/admin/api/**`, Kotlin)를 흡수한 통합 앱이며 Product·Admin의 화면별 복합 조회와 응답 조합도 소유한다. admin-api 모듈은 제거했다 |
 | foundation | 업무 타입과 업무 테이블을 모르는 공통 기반, 공통 예외·페이징·JPA 설정·외부 연동 |
 | user | 사용자·인증·약관·차단·감사자·마스킹 |
 | alcohol | 주류·속성·기존 큐레이션(AdminCurationService)·수입 정보와 주류 병합 계약 |
@@ -63,7 +63,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 Product는 필요한 업무 라이브러리를 직접 선언하며, 흡수한 admin API도 같은 선언을 쓴다. Product와 Batch는 서로를 의존하지 않는다. Batch main은 foundation, alcohol, community, support를 직접 선언하고 test에서는 user도 직접 쓴다.
 
-공개 계약·앱 조회·이벤트는 [협력 ADR](<adr/2026.11.17 모듈 간 협력은 공개 계약과 단방향 의존으로 구성한다.md>)을 따른다. Gradle 의존은 public 내부 클래스 접근을 모두 차단하지 않는다. 허용 방향과 조회 쓰기 금지는 product 앱의 `ModuleBoundaryRules`와 코드 리뷰로 확인한다. 모듈 분리는 실행 앱과 DB 구성을 바꾸지 않으며 MSA 전환이나 변경 감지 이미지 빌드를 뜻하지 않는다. admin 앱을 product로 흡수한 결정은 [admin 흡수 ADR](<adr/2026.11.19 admin API를 product 배포 단위로 흡수하고 섀도우 검증 뒤 admin 앱을 제거한다.md>)을 따른다.
+공개 계약·앱 조회·이벤트는 [협력 ADR](<adr/2026.11.17 모듈 간 협력은 공개 계약과 단방향 의존으로 구성한다.md>)을 따른다. Gradle 의존은 public 내부 클래스 접근을 모두 차단하지 않는다. 허용 방향과 조회 쓰기 금지는 api 앱의 `ModuleBoundaryRules`와 코드 리뷰로 확인한다. 모듈 분리는 실행 앱과 DB 구성을 바꾸지 않으며 MSA 전환이나 변경 감지 이미지 빌드를 뜻하지 않는다. admin 앱을 product로 흡수한 결정은 [admin 흡수 ADR](<adr/2026.11.19 admin API를 product 배포 단위로 흡수하고 섀도우 검증 뒤 admin 앱을 제거한다.md>)을 따른다.
 
 ## 빌드 및 실행
 
@@ -76,13 +76,13 @@ git submodule update --init --recursive
 ./gradlew unit_test             # 단위 테스트 (@Tag("unit"))
 ./gradlew integration_test      # 통합 테스트 (@Tag("integration"))
 ./gradlew check_rule_test       # 아키텍처 규칙 테스트 (@Tag("rule"))
-./gradlew admin_integration_test # admin API 통합 테스트 (@Tag("admin_integration"), product 모듈)
+./gradlew admin_integration_test # admin API 통합 테스트 (@Tag("admin_integration"), api 모듈)
 ./gradlew bootRun               # 애플리케이션 실행
 
-# product-api 모듈 (product·admin API 통합 앱)
-./gradlew :bottlenote-product-api:build                   # 통합 앱 빌드
-./gradlew :bottlenote-product-api:admin_integration_test  # admin API 통합 테스트만 실행
-./gradlew :bottlenote-product-api:bootRun                 # 통합 앱 실행 (/api/**, /admin/api/**)
+# api 모듈 (product·admin API 통합 앱)
+./gradlew :bottlenote-api:build                   # 통합 앱 빌드
+./gradlew :bottlenote-api:admin_integration_test  # admin API 통합 테스트만 실행
+./gradlew :bottlenote-api:bootRun                 # 통합 앱 실행 (/api/**, /admin/api/**)
 ```
 
 ### 서브모듈
@@ -110,7 +110,7 @@ git submodule update --init --recursive
 | api (개발, 통합 이미지 `bottlenote-api`) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
 | batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
 
-운영은 아직 product-api와 admin-api 두 배포 단위다. 운영 워크플로(`release_pr_create`, `release_pr_merged`, `hotfix_pr_merged`, `deploy_release_applications`)의 배포 단위와 이미지 이름은 운영 전환 전까지 바꾸지 않는다. admin 모듈을 main에서 제거했으므로 main에서 출발하는 표준 릴리즈는 `product`만 허용하며 기본값도 `product`다. `admin`·`both`는 admin 모듈이 남은 운영 소스에서 자른 핫픽스에만 쓰고, 워크플로가 소스에 admin 모듈이 있는지 먼저 확인한다. 개발은 product 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에만 배포한다. 개발 product-api·admin-api Deployment는 제거했고, 두 Service는 api Pod를 가리킨다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
+운영도 2026.11.21부터 통합 `api` Deployment 하나로 돌고, `product-api`·`admin-api` Service는 api Pod를 가리킨다. 운영 릴리즈 단위 이름(`product`)과 이미지 이름(`bottlenote-product-api`, 채널 `product_latest_production`)은 아직 그대로이며 이름 정리는 별도로 한다. 배포 워크플로는 소스에 있는 모듈(`bottlenote-api` 또는 이름을 바꾸기 전 `bottlenote-product-api`)을 찾아 빌드한다. admin 모듈을 main에서 제거했으므로 main에서 출발하는 표준 릴리즈는 `product`만 허용하며 기본값도 `product`다. `admin`·`both`는 admin 모듈이 남은 운영 소스에서 자른 핫픽스에만 쓰고, 워크플로가 소스에 admin 모듈이 있는지 먼저 확인한다. 개발은 api 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에만 배포한다. 개발 product-api·admin-api Deployment는 제거했고, 두 Service는 api Pod를 가리킨다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
 
 Release PR 경로는 검증된 `source_sha`, `release_key`, `deployment_mode`를 배포 워크플로에 전달한다. 병합 자체와 검증 통과를 구분하고, 배포 대상은 전달된 `source_sha`를 기준으로 확인한다.
 
@@ -146,7 +146,7 @@ gh workflow run deploy_development_applications.yml
 
 구현에 필요한 테스트 작성과 자체 검토는 같은 요청 안에서 수행한다. 스킬 전환은 새로운 권한을 부여하지 않으며, 커밋·푸시·PR 및 로컬 전체 검증을 필수 후속 단계로 붙이지 않는다.
 
-**Detailed patterns** for product-api implementation (including the absorbed admin API) are in skill reference files:
+**Detailed patterns** for api implementation (including the absorbed admin API) are in skill reference files:
 - `.claude/skills/implement/references/languages/java-spring.md` — Java/Spring 구현 패턴
 - `.claude/skills/implement/references/languages/bottlenote-patterns.md` — 프로젝트 특화 패턴 (InMemory 갱신 체크리스트 등)
 - `.claude/skills/test/references/testing/java.md` — Java 테스트 패턴
@@ -266,7 +266,7 @@ gh workflow run deploy_development_applications.yml
 
 스키마는 Flyway가 애플리케이션 기동 시점에 적용한다. `ddl-auto`는 `validate`이며 Hibernate가 스키마를 생성하거나 변경하지 않는다. 엔티티를 바꾸면 마이그레이션도 함께 작성해야 하고, 그러지 않으면 기동 시 validate에서 실패한다.
 
-- 마이그레이션 원본은 `git.environment-variables/storage/db/migration/`에 두고, product-api의 `processResources`가 빌드 시 `classpath:db/migration`으로 복사한다. 저장소 소스 트리에는 `db/migration` 디렉터리가 없다.
+- 마이그레이션 원본은 `git.environment-variables/storage/db/migration/`에 두고, api 모듈의 `processResources`가 빌드 시 `classpath:db/migration`으로 복사한다. 저장소 소스 트리에는 `db/migration` 디렉터리가 없다.
 - 설정은 `enabled: ${FLYWAY_ENABLED:true}`, `baseline-on-migrate: false`, `locations: classpath:db/migration`이다. 기존 스키마에 임의로 baseline을 잡지 않는다.
 - batch 모듈은 `flyway.enabled=false`이며 마이그레이션 주체가 아니다. batch는 서브모듈의 어떤 리소스도 패키징하지 않으며 배치 SQL은 Java 코드 안에 둔다(2026.09.22 ADR).
 - 통합 테스트도 `flyway.enabled=true`로 동작한다. TestContainers 스키마 역시 Flyway가 만들며, 별도 init 스크립트를 쓰지 않는다.
