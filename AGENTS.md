@@ -111,7 +111,7 @@ git submodule update --init --recursive
 | api (개발, 통합 이미지 `bottlenote-api`) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
 | batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
 
-운영과 개발 모두 통합 `api` Deployment 하나로 돌고, `product-api`·`admin-api` Service는 api Pod를 가리킨다. 운영 배포 단위는 `api` 하나이며(2026.11.21), 표준 릴리즈와 핫픽스 모두 `deployment_mode=api`만 받는다. 운영 이미지는 `bottlenote-api`(`api_<YYYY.MM.DD.N>`, 채널 `api_latest_production`), 배포 태그는 `deployed/api/<키>`다. 예전 `deployed/product`·`deployed/admin` 태그는 이력으로만 남고, api 단위의 첫 배포 태그가 생기기 전에는 핫픽스를 시작할 수 없다. 배포 워크플로는 소스에 있는 모듈(`bottlenote-api` 또는 이름을 바꾸기 전 `bottlenote-product-api`)을 찾아 빌드한다. 개발은 api 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에 배포한다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
+운영과 개발 모두 통합 `api` Deployment 하나로 돌고, `product-api`·`admin-api` Service는 api Pod를 가리킨다. 운영 배포 단위는 `api` 하나이며(2026.11.21), Release PR 생성 워크플로에는 배포 단위 입력이 없으며 PR 마커에는 `api`가 고정으로 들어간다. 운영 이미지는 `bottlenote-api`(`api_<YYYY.MM.DD.N>`, 채널 `api_latest_production`), 배포 태그는 `deployed/api/<키>`다. 예전 `deployed/product`·`deployed/admin` 태그는 이력으로만 남고, api 단위의 첫 배포 태그가 생기기 전에는 핫픽스를 시작할 수 없다. 배포 워크플로는 소스에 있는 모듈(`bottlenote-api` 또는 이름을 바꾸기 전 `bottlenote-product-api`)을 찾아 빌드한다. 개발은 api 모듈 jar를 `bottlenote-api` 이미지(`api_<short sha>`, 채널 태그 `api_latest_development`)로 만들어 개발 `api` Deployment에 배포한다. 제약과 영향은 [릴리즈 지침](<릴리즈 지침.md>)을 따른다.
 
 Release PR 경로는 검증된 `source_sha`, `release_key`, `deployment_mode`를 배포 워크플로에 전달한다. 병합 자체와 검증 통과를 구분하고, 배포 대상은 전달된 `source_sha`를 기준으로 확인한다.
 

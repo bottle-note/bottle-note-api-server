@@ -11,13 +11,6 @@ on:
         description: Positive release sequence number
         required: true
         type: string
-      deployment_mode:
-        description: Deployment unit. The unified api (product and admin API in one app) is the only unit
-        required: true
-        default: api
-        type: choice
-        options:
-          - api
       release_type:
         description: standard creates releases/<key> from main with a release PR; hotfix creates hotfixes/<key> at the deployed production source
         required: false
@@ -48,7 +41,8 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_DATE: ${{ inputs.release_date }}
       SEQUENCE: ${{ inputs.sequence }}
-      DEPLOYMENT_MODE: ${{ inputs.deployment_mode }}
+      # 배포 단위는 통합 api 하나라 입력으로 받지 않는다. PR 마커와 release commit 제목에는 그대로 쓴다.
+      DEPLOYMENT_MODE: api
       RELEASE_TYPE: ${{ inputs.release_type }}
       REPOSITORY: ${{ github.repository }}
       REPOSITORY_OWNER: ${{ github.repository_owner }}
@@ -94,11 +88,6 @@ jobs:
           }
           [[ "$RELEASE_TYPE" == "standard" || "$RELEASE_TYPE" == "hotfix" ]] || {
             echo "::error::release_type must be standard or hotfix"
-            exit 1
-          }
-          # 배포 단위는 통합 api 하나다(workspace#564). product·admin 단위와 이미지는 2026.11.21에 정리했다.
-          [[ "$DEPLOYMENT_MODE" == "api" ]] || {
-            echo "::error::deployment_mode must be api"
             exit 1
           }
 
