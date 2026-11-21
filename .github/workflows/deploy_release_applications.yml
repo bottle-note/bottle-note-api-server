@@ -228,6 +228,8 @@ jobs:
     name: build backend modules
     needs: release-gate
     runs-on: ubuntu-24.04-arm
+    outputs:
+      product-module: ${{ steps.module.outputs.product-module }}
     steps:
       - name: checkout release tag with submodules
         uses: actions/checkout@v7
@@ -252,17 +254,29 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      # 통합 앱 모듈은 bottlenote-product-api에서 bottlenote-api로 이름을 바꿨다.
+      # 핫픽스는 이름을 바꾸기 전 운영 소스에서도 잘리므로 배포 소스에 있는 모듈 이름을 따른다.
+      - name: resolve product module
+        id: module
+        run: |
+          if [[ -d bottlenote-api ]]; then
+            echo "product-module=bottlenote-api" >> "$GITHUB_OUTPUT"
+          else
+            echo "product-module=bottlenote-product-api" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: build selected modules
         env:
           DEPLOYMENT_MODE: ${{ needs.release-gate.outputs.deployment-mode }}
+          PRODUCT_MODULE: ${{ steps.module.outputs.product-module }}
         run: |
           case "$DEPLOYMENT_MODE" in
             both)
-              ./gradlew :bottlenote-product-api:build :bottlenote-admin-api:build \
+              ./gradlew ":${PRODUCT_MODULE}:build" :bottlenote-admin-api:build \
                 -x test --build-cache --parallel
               ;;
             product)
-              ./gradlew :bottlenote-product-api:build -x test --build-cache
+              ./gradlew ":${PRODUCT_MODULE}:build" -x test --build-cache
               ;;
             admin)
               ./gradlew :bottlenote-admin-api:build -x test --build-cache
@@ -274,7 +288,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: product-jar
-          path: bottlenote-product-api/build/libs/bottlenote-product-api.jar
+          path: ${{ steps.module.outputs.product-module }}/build/libs/${{ steps.module.outputs.product-module }}.jar
           retention-days: 1
 
       - name: upload admin jar
@@ -313,7 +327,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: product-jar
-          path: bottlenote-product-api/build/libs/
+          path: ${{ needs.prepare-build.outputs.product-module }}/build/libs/
 
       - name: build and push to registry
         id: build

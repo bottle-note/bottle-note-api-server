@@ -27,7 +27,7 @@ class ExploreStandardQueryStructureTest {
             "src/main/java/app/bottlenote/alcohols/repository/QueryDslAlcoholDetailQueryRepository.java");
     if (!Files.exists(path)) {
       // 테스트가 저장소 루트에서 실행되는 경우 대비
-      path = Paths.get("bottlenote-product-api").resolve(path);
+      path = Paths.get("bottlenote-api").resolve(path);
     }
     String source = Files.readString(path);
 

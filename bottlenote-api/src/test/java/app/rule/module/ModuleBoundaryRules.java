@@ -111,7 +111,7 @@ class ModuleBoundaryRules {
                         .orElse("");
                 assertThat(location)
                     .as(dependency.getDescription())
-                    .doesNotContain("/bottlenote-product-api/", "/bottlenote-batch/");
+                    .doesNotContain("/bottlenote-api/", "/bottlenote-batch/");
               });
     }
   }

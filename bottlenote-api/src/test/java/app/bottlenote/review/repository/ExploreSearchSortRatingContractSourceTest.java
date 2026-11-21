@@ -56,13 +56,13 @@ class ExploreSearchSortRatingContractSourceTest {
   void alcohol_explore_rating_uses_displayed_aggregate() throws IOException {
     String request =
         read(
-            "bottlenote-product-api/src/main/java/app/bottlenote/alcohols/dto/request/ExploreStandardRequest.java");
+            "bottlenote-api/src/main/java/app/bottlenote/alcohols/dto/request/ExploreStandardRequest.java");
     String criteria =
         read(
-            "bottlenote-product-api/src/main/java/app/bottlenote/alcohols/dto/dsl/ExploreStandardCriteria.java");
+            "bottlenote-api/src/main/java/app/bottlenote/alcohols/dto/dsl/ExploreStandardCriteria.java");
     String repository =
         read(
-            "bottlenote-product-api/src/main/java/app/bottlenote/alcohols/repository/QueryDslAlcoholDetailQueryRepository.java");
+            "bottlenote-api/src/main/java/app/bottlenote/alcohols/repository/QueryDslAlcoholDetailQueryRepository.java");
 
     assertThat(request)
         .contains(

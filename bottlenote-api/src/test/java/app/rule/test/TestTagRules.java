@@ -53,7 +53,7 @@ class TestTagRules {
     List<String> included =
         List.of(
             "src/test",
-            "bottlenote-product-api/src/test",
+            "bottlenote-api/src/test",
             "bottlenote-kotlin-dsl-app/src/test",
             "bottlenote-batch/src/test",
             "module-shared/foundation/src/test",
@@ -65,7 +65,7 @@ class TestTagRules {
         List.of(
             "build/src/test",
             "build/spotless/user/src/test",
-            "bottlenote-product-api/build/src/test",
+            "bottlenote-api/build/src/test",
             "module-domains/build/src/test",
             "module-domains/user/build/src/test",
             "module-domains/nested/user/src/test",
