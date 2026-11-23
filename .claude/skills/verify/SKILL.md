@@ -8,7 +8,7 @@ description: >-
 
 # Verify
 
-프로젝트 지침의 `스킬 실행 원칙`을 따른다. 이 스킬은 검증 증거를 확인하고 보고한다. 기본 동작은 GitHub Actions 관찰이며, 구현 중 최소 검사는 전체 검증과 구분한다. 명령과 현재 CI 구성은 [java-gradle.md](references/verify/java-gradle.md)를 필요할 때 읽는다.
+기본 동작은 대상 커밋의 GitHub Actions 조회다. 사용자가 로컬 검사 수준이나 실행할 테스트를 지정하면 그 범위를 실행한다. 실행 권한은 [스킬 실행 원칙](../../../AGENTS.md#스킬-실행-원칙)을 따른다. 명령과 CI 구성은 [검증 참조](references/verify/java-gradle.md)를 필요할 때 읽는다.
 
 ## 실행 방식
 

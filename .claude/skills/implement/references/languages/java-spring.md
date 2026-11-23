@@ -1,6 +1,6 @@
 # BottleNote Java와 Kotlin 구현 패턴
 
-Java 21·Spring·Gradle 모듈의 변경에 필요한 참조다. 프로젝트 지침의 레이어 표준과 공통 실행 계약을 따른다. HTTP 작업에는 [web-api.md](../types/web-api.md), Batch에는 [batch.md](../types/batch.md), 테스트 더블·마이그레이션 변경에는 [bottlenote-patterns.md](bottlenote-patterns.md)를 함께 확인한다.
+Java 21·Spring·Gradle 모듈의 변경에 필요한 참조다. 프로젝트 지침의 레이어 표준과 스킬 실행 원칙을 따른다. HTTP 작업에는 [web-api.md](../types/web-api.md), Batch에는 [batch.md](../types/batch.md), 테스트 더블·마이그레이션 변경에는 [bottlenote-patterns.md](bottlenote-patterns.md)를 함께 확인한다.
 
 ## 모듈과 실제 위치
 
