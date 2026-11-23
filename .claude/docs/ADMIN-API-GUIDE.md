@@ -2,7 +2,7 @@
 
 > Admin API 구현 시 따라야 할 규칙과 체크리스트를 정의합니다.
 > 코드 예시는 기존 구현 파일을 참고하세요.
-> admin-api 모듈은 제거되었고 Admin API(Kotlin)와 그 테스트는 `bottlenote-api` 모듈로 옮겼다. 아래의 `admin-api`·`mono` 구분은 이전 구조의 설명이므로, 업무 코드의 실제 소유 모듈은 `CLAUDE.md`의 모듈 구조를 따른다.
+> admin-api 모듈은 제거되었고 Admin API(Kotlin)와 그 테스트는 `bottlenote-api` 모듈로 옮겼다. 아래의 `admin-api`·`mono` 구분은 이전 구조의 설명이므로, 업무 코드의 실제 소유 모듈은 [AGENTS.md의 모듈 구조](../../AGENTS.md#모듈-구조)를 따른다.
 
 ---
 

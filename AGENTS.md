@@ -1,8 +1,8 @@
 # AGENTS.md
 
-This file provides guidance to Codex CLI when working with code in this repository.
+This file provides shared project instructions for Codex and Claude Code.
 
-> If a `AGENTS.personal.md` file exists in the same directory, also refer to its contents.
+> Also read your tool's personal instructions file if it exists in the same directory. Use `AGENTS.personal.md` for Codex and `CLAUDE.personal.md` for Claude Code.
 > **Team instructions take priority over personal instructions when they conflict.**
 
 ## User Instructions
@@ -63,7 +63,9 @@ This file provides guidance to Codex CLI when working with code in this reposito
 
 Product는 필요한 업무 라이브러리를 직접 선언하며, 흡수한 admin API도 같은 선언을 쓴다. Product와 Batch는 서로를 의존하지 않는다. Batch main은 foundation, alcohol, community, support를 직접 선언하고 test에서는 user도 직접 쓴다.
 
-공개 계약·앱 조회·이벤트는 [협력 ADR](<adr/2026.11.17 모듈 간 협력은 공개 계약과 단방향 의존으로 구성한다.md>)을 따른다. Gradle 의존은 public 내부 클래스 접근을 모두 차단하지 않는다. 허용 방향과 조회 쓰기 금지는 api 앱의 `ModuleBoundaryRules`와 코드 리뷰로 확인한다. 모듈 분리는 실행 앱과 DB 구성을 바꾸지 않으며 MSA 전환이나 변경 감지 이미지 빌드를 뜻하지 않는다. admin 앱을 product로 흡수한 결정은 [admin 흡수 ADR](<adr/2026.11.19 admin API를 product 배포 단위로 흡수하고 섀도우 검증 뒤 admin 앱을 제거한다.md>)을 따른다.
+공개 계약, 앱 복합 조회, 이벤트는 [협력 ADR](<adr/2026.11.17 모듈 간 협력은 공개 계약과 단방향 의존으로 구성한다.md>)을 따른다. Gradle 의존으로 업무 내부의 public 클래스까지 숨길 수는 없다. api의 `ModuleBoundaryRules`는 모듈 의존 방향, 서비스 허용 목록, 다른 모듈의 `.repository` 패키지에 있는 일부 쓰기 메서드 호출을 검사한다. 도메인 포트와 JPA 변경 감지에서 발생하는 쓰기는 코드 리뷰에서 확인한다.
+
+업무 모듈 분리는 실행 앱과 DB 구성을 유지한다. Admin 앱의 배포 단위를 통합한 결정은 [Admin 흡수 ADR](<adr/2026.11.19 admin API를 product 배포 단위로 흡수하고 섀도우 검증 뒤 admin 앱을 제거한다.md>)을 따른다.
 
 ## 빌드 및 실행
 
@@ -131,11 +133,12 @@ gh workflow run deploy_development_applications.yml
 
 ## Skills (Development Workflow)
 
-요청에 맞는 스킬을 선택한다. 각 스킬은 독립적으로 사용할 수 있으며, 아래 공통 실행 원칙을 따른다.
+사용자가 스킬을 지정하면 그 스킬을 먼저 적용한다. 요청에 맞는 절차가 분명하면 해당 스킬에서 바로 시작한다. 적용할 절차가 분명하지 않고 그 선택에 따라 변경 범위나 검증 방법이 달라지면 에이전트가 `workflow`를 참고한다. 사용자는 평소처럼 작업을 요청하거나 스킬을 직접 지정해도 된다.
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `/define` | Requirements clarification | Starting a new feature, vague requirements |
+| `/workflow` | 개발 작업 절차 선택 | 직접 호출했거나, 어느 절차를 택하느냐에 따라 변경 범위나 검증 방법이 달라지고 적용할 절차가 불분명할 때 |
+| `/define` | 요구사항 정리 | 명세 작성 요청, 기대 동작이나 공개 계약에 중요한 미결정 사항이 있을 때 |
 | `/plan` | Task breakdown | 계획 요청, 복잡한 변경의 의존 관계 정리 |
 | `/implement` | Implementation | 명확한 기능 구현·수정, 필요한 테스트 작성 |
 | `/test` | Test creation | Unit, integration, OpenAPI quality tests |
@@ -150,19 +153,21 @@ gh workflow run deploy_development_applications.yml
 - `.agents/skills/implement/references/languages/bottlenote-patterns.md` — 프로젝트 특화 패턴 (InMemory 갱신 체크리스트 등)
 - `.agents/skills/test/references/testing/java.md` — Java 테스트 패턴
 
-## 에이전트 설정 미러 규칙
+## 에이전트 지침과 스킬
 
-이 저장소는 codex와 Claude Code용 설정을 이중으로 보관한다. **한쪽을 고치면 반드시 다른 쪽도 같이 고친다.**
+Codex와 Claude Code는 이 파일을 프로젝트 공통 지침으로 사용한다. Claude Code 2.1.277 이상은 기본 설정에서 작업 디렉터리나 상위 경로에 `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`가 없을 때 이 파일을 자동으로 읽는다. [Claude Code 공식 문서](https://code.claude.com/docs/en/memory#agentsmd)
 
-| 대상 | codex | Claude Code |
-|---|---|---|
-| 지침 | `AGENTS.md` | `CLAUDE.md` |
-| 스킬 | `.agents/skills` 디렉터리 | `.claude/skills` 디렉터리 |
+Codex는 `.agents/skills`에서 스킬을 찾고 Claude Code는 `.claude/skills`에서 스킬을 찾는다. 스킬을 수정할 때는 두 디렉터리에 함께 반영한다.
 
-- 두 지침 문서는 런타임 이름, 스킬 디렉터리 경로, personal 지침 파일명, 첫 줄 제목만 다르고 나머지 본문은 완전히 같아야 한다. 이 네 가지 외의 차이는 동기화 누락이다.
 - 두 skills 디렉터리의 배포 파일은 바이트 단위로 같아야 한다. `diff -r -x .DS_Store .agents/skills .claude/skills`로 확인하고, 스킬 파일 안에 특정 런타임의 디렉터리 경로를 하드코딩하지 않는다. 각 런타임의 로컬 설정과 OS 메타데이터는 비교 대상이 아니다.
 - Skills 표에 적은 슬래시 커맨드는 실제 스킬 디렉터리로 존재해야 한다. 스킬을 제거하면 표에서도 지운다.
 - 훅을 다시 도입한다면 머신 고유 절대경로와 런타임 전용 환경변수를 넣지 않는다. 저장소 루트는 `$(git rev-parse --show-toplevel)`로 구한다.
+
+## 기술 지침과 명세 작성
+
+- 프로젝트 지침, 스킬 절차, 기술 문서에는 ASD-STE100의 문장 원칙을 적용한다. 행위자와 적용 조건을 밝힌다. 한 문장에는 요구나 지시를 하나씩 적는다. 한 개념에는 같은 용어를 쓴다. [ASD-STE100](https://www.asd-ste100.org/about_STE.html)
+- 기능 명세, API 계약, 도메인 규칙, 아키텍처 제약에는 RFC 2119·8174를 적용한다. 문서 앞에서 적용 기준을 밝힌다. `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`의 의미를 구분한다. 기존 계약의 요구 수준을 유지한다. 근거가 부족하면 미결로 적는다. [BCP 14](https://www.rfc-editor.org/info/bcp14/)
+- 수용 기준에는 대상, 입력이나 상태, 관찰할 결과를 적는다. 경계값에는 단위와 포함 여부를 밝힌다. 오류를 검증할 때는 응답 상태와 함께 오류가 발생해야 하는 조건도 확인한다.
 
 ## 코드 작성 규칙
 
@@ -182,7 +187,7 @@ gh workflow run deploy_development_applications.yml
 3. 도메인 레포지토리 시그니처에 Spring Data 타입(`Page`, `Pageable`, `Slice`, `Sort`) 노출 금지. 페이징은 자체 타입(`KeysetPageResponse`, cursor criteria)을 쓴다.
 4. 기술 세부사항(QueryDSL, EntityManager, Redis)은 구현 레포지토리 안에 격리하고 포트 밖으로 새지 않는다.
 5. 소유는 물리 모듈과 source set으로 판단한다. 기존 패키지명과 FQN은 보존할 수 있으며 모듈명과 일치할 의무는 없다. 업무 코드는 소유 모듈에, 앱 복합 조회는 사용하는 앱에 둔다.
-6. 타 업무 호출은 명시한 공개 계약을 따른다. 앱 복합 조회의 읽기 전용 조인과 storage의 좁은 서비스 계약은 협력 ADR 및 ModuleBoundaryRules의 허용 범위를 따른다. 타 업무 저장소의 쓰기는 허용하지 않는다.
+6. 다른 업무의 기능이 필요하면 해당 업무의 공개 계약을 호출한다. 앱 복합 조회의 읽기 전용 조인과 `storage`의 좁은 서비스 계약은 협력 ADR의 허용 범위를 따른다. 다른 업무의 저장소에 직접 쓰지 않는다. 기존에 사용하는 도메인 포트의 공개 여부가 명시돼 있지 않으면 계약 근거를 확인한다.
 7. Facade interface와 별도 구현체는 기존 패턴으로 유지하되 일률적으로 강제하지 않는다. Product FollowQueryService처럼 서비스가 공개 Facade를 구현할 수 있다. 대체가 필요한 포트와 계약은 유지하며 모든 서비스에 전달용 interface를 만들지 않는다.
 8. Controller는 해당 앱이 사용하는 공개 진입점을 호출한다. 공개 command/query 서비스 클래스와 앱 조회 서비스도 직접 주입할 수 있다. 업무 검증·VO 생성·트랜잭션 책임은 서비스에 두고 Controller에 옮기지 않는다.
 9. 트랜잭션 경계와 업무 VO 생성·검증은 서비스가 소유한다. 여러 업무를 묶는 화면 응답은 사용하는 앱의 서비스와 조회 구현이 소유한다.
@@ -301,7 +306,7 @@ gh workflow run deploy_development_applications.yml
 
 ## 스킬 실행 원칙
 
-스킬은 요청을 수행하는 개별 도구다. 모든 작업에 define → plan → implement → test → verify 순서를 강제하지 않는다. 사용자의 최신 명시 지시와 대화에서 승인한 범위가 스킬 및 계획 문서보다 우선한다.
+요청에 필요한 절차와 스킬을 선택한다. 사용자가 지정한 작업 범위와 종료 조건을 지킨다. 사용자의 최신 명시 지시와 대화에서 승인한 범위가 스킬 및 계획 문서보다 우선한다.
 
 ### 요청과 권한
 
@@ -316,7 +321,7 @@ gh workflow run deploy_development_applications.yml
 
 - 계획은 불확실성, 공개 계약·스키마 영향, 의존 관계와 작업 위험에 따라 작성한다. 파일 수나 코드 줄 수만으로 계획 승인, Task 분할, 컴파일 주기를 강제하지 않는다.
 - 진행 상태·수용 기준·검증 근거는 저장소 문서가 아니라 workspace 이슈와 PR 본문에 남긴다. 저장소에는 계획서를 두지 않는다(`plan/`은 2026.09.07 폐지).
-- 코드와 git 히스토리에서 복원되지 않는 설계 결정은 `adr/YYYY.MM.DD 결정 한 문장.md`로 기록한다. 작성 규칙과 색인은 `adr/README.md`를 따른다. 본문은 원형 ADR의 `Context(배경)` → `Decision(결정)` → `Status(상태)` → `Consequences(결과와 영향)` 순서로 작성하고 항목명은 `English(한글)`로 병기한다. 결정이 바뀌면 기존 문서의 `Status(상태)`를 `Superseded(대체됨)`으로 표시하고 새 문서를 만든다. 문서가 없는 명확한 수정은 바로 진행할 수 있다.
+- 코드와 Git 이력에서 복원할 수 없는 설계 결정은 ADR로 기록한다. 파일명, 양식, 기존 결정의 대체 방법은 [ADR 작성 규칙](adr/README.md)을 따른다.
 - 이전 계획 문서의 `Execution Mode` 같은 과거 기록은 최신 지시보다 우선하지 않으며, 오래된 문서만으로 새 권한을 추론하지 않는다.
 - 코드로 확인 가능한 가정은 조사해서 해결한다. 발견 때문에 성공 기준·공개 계약·데이터 호환성이나 허가 범위가 실질적으로 달라지면 근거와 선택지를 제시하고 해당 작업을 멈춘다.
 - 실패 시 같은 명령을 근거 없이 반복하지 않는다. 로그와 재현 조건으로 원인을 좁히고, 새 권한이나 정보가 필요할 때 구체적인 장애 요인을 보고한다.
