@@ -24,6 +24,7 @@ import com.querydsl.jpa.JPAExpressions;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AlcoholQuerySupporter {
+
+  private static final Pattern KOREAN_NAME_TOKEN = Pattern.compile("[가-힣]{2,}");
 
   private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
 
@@ -152,15 +155,21 @@ public class AlcoholQuerySupporter {
       if (StringUtils.isNullOrEmpty(searchToken)) {
         continue;
       }
+      String likePattern = contains(searchToken);
+      BooleanExpression koreanNameCondition = alcohol.korName.likeIgnoreCase(likePattern, ESCAPE);
+      if (KOREAN_NAME_TOKEN.matcher(searchToken).matches()) {
+        koreanNameCondition =
+            koreanNameCondition.or(
+                Expressions.stringTemplate("replace({0}, ' ', '')", alcohol.korName)
+                    .likeIgnoreCase(likePattern, ESCAPE));
+      }
       BooleanExpression basicCondition =
-          alcohol
-              .korName
-              .likeIgnoreCase(contains(searchToken), ESCAPE)
-              .or(alcohol.engName.likeIgnoreCase(contains(searchToken), ESCAPE))
-              .or(alcohol.korCategory.likeIgnoreCase(contains(searchToken), ESCAPE))
-              .or(alcohol.engCategory.likeIgnoreCase(contains(searchToken), ESCAPE))
-              .or(region.korName.likeIgnoreCase(contains(searchToken), ESCAPE))
-              .or(region.engName.likeIgnoreCase(contains(searchToken), ESCAPE));
+          koreanNameCondition
+              .or(alcohol.engName.likeIgnoreCase(likePattern, ESCAPE))
+              .or(alcohol.korCategory.likeIgnoreCase(likePattern, ESCAPE))
+              .or(alcohol.engCategory.likeIgnoreCase(likePattern, ESCAPE))
+              .or(region.korName.likeIgnoreCase(likePattern, ESCAPE))
+              .or(region.engName.likeIgnoreCase(likePattern, ESCAPE));
 
       BooleanExpression tastingTagCondition =
           alcohol.id.in(
@@ -171,8 +180,8 @@ public class AlcoholQuerySupporter {
                   .where(
                       tastingTag
                           .korName
-                          .likeIgnoreCase(contains(searchToken), ESCAPE)
-                          .or(tastingTag.engName.likeIgnoreCase(contains(searchToken), ESCAPE))));
+                          .likeIgnoreCase(likePattern, ESCAPE)
+                          .or(tastingTag.engName.likeIgnoreCase(likePattern, ESCAPE))));
 
       BooleanExpression keywordCondition = basicCondition.or(tastingTagCondition);
       if (finalCondition == null) {

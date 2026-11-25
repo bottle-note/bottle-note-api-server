@@ -306,6 +306,49 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .doesNotContain(onlyA.getId().intValue(), onlyB.getId().intValue());
     }
 
+    @ParameterizedTest(name = "keyword={0}")
+    @ValueSource(strings = {"글렌 스코샤", "글렌스코샤"})
+    @DisplayName("한글 상품명을 붙여 쓰거나 띄어 써도 같은 상품을 찾는다")
+    void keyword_matches_korean_name_with_or_without_spaces(String keyword) {
+      Alcohol target =
+          alcoholTestFactory.persistAlcoholWithName("글렌 스코샤 빅토리아나 CS", "Glen Scotia Victoriana CS");
+      Alcohol other = alcoholTestFactory.persistAlcoholWithName("글렌피딕 15", "Glenfiddich 15");
+
+      exchangeGet(b -> b.param("keyword", keyword))
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .contains(target.getId().intValue())
+          .doesNotContain(other.getId().intValue());
+    }
+
+    @Test
+    @DisplayName("붙여 쓴 한글 상품명과 함께 입력한 단어도 모두 일치해야 한다")
+    void keyword_with_joined_korean_name_requires_all_tokens() {
+      Alcohol target =
+          alcoholTestFactory.persistAlcoholWithName("글렌 스코샤 빅토리아나 CS", "Glen Scotia Victoriana CS");
+      Alcohol withoutBrand =
+          alcoholTestFactory.persistAlcoholWithName("위스키 빅토리아나 CS", "Whisky Victoriana CS");
+      Alcohol withoutCs =
+          alcoholTestFactory.persistAlcoholWithName("글렌 스코샤 빅토리아나", "Glen Scotia Victoriana");
+      Alcohol withoutEdition =
+          alcoholTestFactory.persistAlcoholWithName("글렌 스코샤 CS", "Glen Scotia CS");
+
+      exchangeGet(b -> b.param("keyword", "글렌스코샤 빅토리아나 CS"))
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .contains(target.getId().intValue())
+          .doesNotContain(
+              withoutBrand.getId().intValue(),
+              withoutCs.getId().intValue(),
+              withoutEdition.getId().intValue());
+    }
+
     @ParameterizedTest(name = "keyword={2}")
     @CsvSource(
         delimiter = '|',
